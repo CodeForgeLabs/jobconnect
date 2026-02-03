@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "jobconnect/auth/gen/auth/v1;authv1";
+
+// AuthService is the internal authentication API (gRPC).
+service AuthService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc VerifyEmailOTP(VerifyEmailOTPRequest) returns (VerifyEmailOTPResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Refresh(RefreshRequest) returns (RefreshResponse);
+  rpc LogoutEverywhere(LogoutEverywhereRequest) returns (LogoutEverywhereResponse);
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string display_name = 3;
+  // e.g. "client", "freelancer", "admin"
+  string role = 4;
+  bool accept_terms = 5;
+}
+
+message RegisterResponse {
+  string user_id = 1;
+  // For UX: indicates OTP was sent.
+  bool otp_sent = 2;
+}
+
+message VerifyEmailOTPRequest {
+  string email = 1;
+  string otp = 2;
+}
+
+message VerifyEmailOTPResponse {
+  bool verified = 1;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 access_token_expires_in_seconds = 3;
+}
+
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+message RefreshResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 access_token_expires_in_seconds = 3;
+}
+
+message LogoutEverywhereRequest {
+  string user_id = 1;
+}
+
+message LogoutEverywhereResponse {
+  bool ok = 1;
+}
+
