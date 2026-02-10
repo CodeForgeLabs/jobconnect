@@ -5,11 +5,17 @@ import (
 	"google.golang.org/grpc/health"
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
+
+	authv1 "jobconnect/auth/gen/auth/v1"
 )
 
-type Server struct{}
+type Server struct {
+	auth authv1.AuthServiceServer
+}
 
-func NewServer() *Server { return &Server{} }
+func NewServer(auth authv1.AuthServiceServer) *Server {
+	return &Server{auth: auth}
+}
 
 // Register wires handlers into the given gRPC server.
 func (s *Server) Register(grpcServer *grpc.Server) {
@@ -17,8 +23,9 @@ func (s *Server) Register(grpcServer *grpc.Server) {
 	hs.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
 	healthpb.RegisterHealthServer(grpcServer, hs)
 
-	// Local dev convenience.
 	reflection.Register(grpcServer)
 
-	// TODO: Register auth.v1.AuthServiceServer once proto generation is set up.
+	if s.auth != nil {
+		authv1.RegisterAuthServiceServer(grpcServer, s.auth)
+	}
 }

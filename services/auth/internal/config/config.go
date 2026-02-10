@@ -13,6 +13,9 @@ type Config struct {
 
 	AccessTokenTTL  time.Duration
 	RefreshTokenTTL time.Duration
+	OTPTTL          time.Duration
+
+	JWTSecret []byte
 }
 
 func LoadFromEnv() (Config, error) {
@@ -21,10 +24,16 @@ func LoadFromEnv() (Config, error) {
 		PostgresURL:     os.Getenv("AUTH_POSTGRES_URL"),
 		AccessTokenTTL:  getEnvDurationSeconds("AUTH_ACCESS_TOKEN_TTL_SECONDS", 15*60),
 		RefreshTokenTTL: getEnvDurationSeconds("AUTH_REFRESH_TOKEN_TTL_SECONDS", 30*24*60*60),
+		OTPTTL:          getEnvDurationSeconds("AUTH_OTP_TTL_SECONDS", 15*60),
 	}
 	if cfg.PostgresURL == "" {
 		return Config{}, fmt.Errorf("AUTH_POSTGRES_URL is required")
 	}
+	secret := os.Getenv("AUTH_JWT_SECRET")
+	if secret == "" {
+		return Config{}, fmt.Errorf("AUTH_JWT_SECRET is required")
+	}
+	cfg.JWTSecret = []byte(secret)
 	return cfg, nil
 }
 

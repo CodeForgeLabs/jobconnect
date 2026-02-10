@@ -10,11 +10,18 @@ import (
 	"time"
 
 	grpcadapter "jobconnect/auth/internal/adapters/grpc"
+	"jobconnect/auth/internal/application"
 	"jobconnect/auth/internal/config"
+	"jobconnect/auth/internal/infrastructure/clock"
 	"jobconnect/auth/internal/infrastructure/db"
+	"jobconnect/auth/internal/infrastructure/email"
+	"jobconnect/auth/internal/infrastructure/hasher"
+	"jobconnect/auth/internal/infrastructure/tokens"
 
 	"google.golang.org/grpc"
 )
+
+const tosVersion, privacyVersion = "1.0", "1.0"
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -31,7 +38,61 @@ func main() {
 	}
 	defer pool.Close()
 
-	_ = pool // TODO: pass into repositories/use-cases
+	// Repositories
+	userRepo := db.NewUserRepo(pool)
+	credRepo := db.NewCredentialRepo(pool)
+	otpRepo := db.NewOTPRepo(pool)
+	sessionRepo := db.NewSessionRepo(pool)
+	tosRepo := db.NewTOSRepo(pool)
+
+	// Infrastructure
+	hasherImpl := hasher.NewArgon2Hasher()
+	clockImpl := clock.NewRealClock()
+	tokenIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
+	emailSender := email.NewNoopSender()
+
+	// Use-cases
+	registerUC := &application.RegisterUser{
+		Users:          userRepo,
+		Creds:          credRepo,
+		OTPs:           otpRepo,
+		TOS:            tosRepo,
+		Hasher:         hasherImpl,
+		Clock:          clockImpl,
+		EmailSend:      emailSender,
+		OTPTTL:         cfg.OTPTTL,
+		TOSVersion:     tosVersion,
+		PrivacyVersion: privacyVersion,
+	}
+	verifyOTPUC := &application.VerifyEmailOTP{
+		Users:  userRepo,
+		OTPs:   otpRepo,
+		Hasher: hasherImpl,
+		Clock:  clockImpl,
+	}
+	loginUC := &application.Login{
+		Users:      userRepo,
+		Creds:      credRepo,
+		Sessions:   sessionRepo,
+		Hasher:     hasherImpl,
+		Tokens:     tokenIssuer,
+		Clock:      clockImpl,
+		AccessTTL:  cfg.AccessTokenTTL,
+		RefreshTTL: cfg.RefreshTokenTTL,
+	}
+	refreshUC := &application.Refresh{
+		Users:      userRepo,
+		Sessions:   sessionRepo,
+		Tokens:     tokenIssuer,
+		Clock:      clockImpl,
+		AccessTTL:  cfg.AccessTokenTTL,
+		RefreshTTL: cfg.RefreshTokenTTL,
+	}
+	logoutUC := &application.LogoutEverywhere{
+		Sessions: sessionRepo,
+	}
+
+	authServer := grpcadapter.NewAuthServer(registerUC, verifyOTPUC, loginUC, refreshUC, logoutUC)
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
 	if err != nil {
@@ -39,7 +100,7 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	grpcadapter.NewServer().Register(grpcServer)
+	grpcadapter.NewServer(authServer).Register(grpcServer)
 
 	go func() {
 		log.Printf("auth gRPC listening on %s", cfg.GRPCListenAddr)
@@ -49,10 +110,9 @@ func main() {
 		}
 	}()
 
-	// Graceful shutdown.
-	sigCh := make(chan os.Signal, 1)                    // channel which receives os.Signals as datatype and has buffer size of 1 which means it can only hold 1 signal at a time
-	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM) // signal.Notify is a function that registers the given channel to receive notifications of the specified signals
-	select {                                            // select is used to wait for a signal to be received
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	select {
 	case <-sigCh:
 	case <-ctx.Done():
 	}

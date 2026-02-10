@@ -1,0 +1,32 @@
+## Go build artifacts
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+## Test / coverage output
+coverage/
+coverage.out
+
+## Logs & temp files
+*.log
+tmp/
+
+## IDE / editor
+.vscode/
+.idea/
+*.iml
+
+## OS-specific
+.DS_Store
+Thumbs.db
+
+## Local env / secrets
+.env
+.env.*
+*.local
+
