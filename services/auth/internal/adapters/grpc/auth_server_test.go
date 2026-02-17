@@ -227,7 +227,8 @@ func TestAuthServer_Register_Success(t *testing.T) {
 	resp, err := srv.Register(context.Background(), &authv1.RegisterRequest{
 		Email:       "test@example.com",
 		Password:    "Password1!",
-		DisplayName: "Test",
+		FirstName:   "Test",
+		LastName:    "User",
 		Role:        domain.RoleClient,
 		AcceptTerms: true,
 	})

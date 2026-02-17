@@ -15,7 +15,8 @@ type Config struct {
 	RefreshTokenTTL time.Duration
 	OTPTTL          time.Duration
 
-	JWTSecret []byte
+	JWTSecret       []byte
+	UserServiceAddr string
 }
 
 func LoadFromEnv() (Config, error) {
@@ -25,6 +26,7 @@ func LoadFromEnv() (Config, error) {
 		AccessTokenTTL:  getEnvDurationSeconds("AUTH_ACCESS_TOKEN_TTL_SECONDS", 15*60),
 		RefreshTokenTTL: getEnvDurationSeconds("AUTH_REFRESH_TOKEN_TTL_SECONDS", 30*24*60*60),
 		OTPTTL:          getEnvDurationSeconds("AUTH_OTP_TTL_SECONDS", 15*60),
+		UserServiceAddr: os.Getenv("USER_SERVICE_GRPC_ADDR"),
 	}
 	if cfg.PostgresURL == "" {
 		return Config{}, fmt.Errorf("AUTH_POSTGRES_URL is required")

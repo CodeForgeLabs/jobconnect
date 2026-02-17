@@ -1,0 +1,8 @@
+version: v2
+plugins:
+  - plugin: go
+    out: services/user/gen
+    opt: paths=source_relative
+  - plugin: go-grpc
+    out: services/user/gen
+    opt: paths=source_relative

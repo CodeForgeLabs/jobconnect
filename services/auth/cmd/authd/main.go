@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -17,8 +19,11 @@ import (
 	"jobconnect/auth/internal/infrastructure/email"
 	"jobconnect/auth/internal/infrastructure/hasher"
 	"jobconnect/auth/internal/infrastructure/tokens"
+	"jobconnect/auth/internal/infrastructure/usergrpc"
+	userv1 "jobconnect/user/gen/user/v1"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const tosVersion, privacyVersion = "1.0", "1.0"
@@ -26,6 +31,10 @@ const tosVersion, privacyVersion = "1.0", "1.0"
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	if err := loadDotEnv(".env"); err != nil && !os.IsNotExist(err) {
+		log.Fatalf("load .env: %v", err)
+	}
 
 	cfg, err := config.LoadFromEnv()
 	if err != nil {
@@ -51,12 +60,22 @@ func main() {
 	tokenIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
 	emailSender := email.NewNoopSender()
 
+	userConn, err := grpc.NewClient(cfg.UserServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("user service dial: %v", err)
+	}
+	defer userConn.Close()
+
+	userClient := userv1.NewUserServiceClient(userConn)
+	userProfiles := usergrpc.NewProfileClient(userClient)
+
 	// Use-cases
 	registerUC := &application.RegisterUser{
 		Users:          userRepo,
 		Creds:          credRepo,
 		OTPs:           otpRepo,
 		TOS:            tosRepo,
+		UserProfiles:   userProfiles,
 		Hasher:         hasherImpl,
 		Clock:          clockImpl,
 		EmailSend:      emailSender,
@@ -128,4 +147,35 @@ func main() {
 	case <-time.After(10 * time.Second):
 		grpcServer.Stop()
 	}
+}
+
+func loadDotEnv(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, val, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		val = strings.TrimSpace(val)
+		val = strings.Trim(val, "\"'")
+		if key == "" {
+			continue
+		}
+		if _, exists := os.LookupEnv(key); !exists {
+			_ = os.Setenv(key, val)
+		}
+	}
+
+	return scanner.Err()
 }

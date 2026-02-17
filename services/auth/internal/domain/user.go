@@ -25,6 +25,8 @@ type User struct {
 	ID              uuid.UUID
 	Email           string
 	Role            string
+	FirstName       string
+	LastName        string
 	DisplayName     string
 	EmailVerifiedAt *time.Time // nil until verified
 	CreatedAt       time.Time
@@ -69,6 +71,27 @@ func ValidateDisplayName(name string) error {
 	}
 	if len(name) > 255 {
 		return fmt.Errorf("display name too long")
+	}
+	return nil
+}
+
+// ValidateFirstName returns an error if first name is empty or too long.
+func ValidateFirstName(name string) error {
+	return validateNamePart(name, "first name")
+}
+
+// ValidateLastName returns an error if last name is empty or too long.
+func ValidateLastName(name string) error {
+	return validateNamePart(name, "last name")
+}
+
+func validateNamePart(name, label string) error {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return fmt.Errorf("%s is required", label)
+	}
+	if len(name) > 255 {
+		return fmt.Errorf("%s too long", label)
 	}
 	return nil
 }

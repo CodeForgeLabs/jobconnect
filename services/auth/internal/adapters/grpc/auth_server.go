@@ -48,7 +48,8 @@ func (s *AuthServer) Register(ctx context.Context, req *authv1.RegisterRequest) 
 	out, err := s.RegisterUC.Execute(ctx, application.RegisterUserInput{
 		Email:       req.Email,
 		Password:    req.Password,
-		DisplayName: req.DisplayName,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
 		Role:        req.Role,
 		AcceptTerms: req.AcceptTerms,
 	})
@@ -133,7 +134,7 @@ func toStatus(err error) error {
 	switch {
 	case contains(msg, "already registered"), contains(msg, "email already"):
 		return status.Error(codes.AlreadyExists, msg)
-	case contains(msg, "invalid email"), contains(msg, "password"), contains(msg, "display name"), contains(msg, "role"), contains(msg, "terms"):
+	case contains(msg, "invalid email"), contains(msg, "password"), contains(msg, "display name"), contains(msg, "first name"), contains(msg, "last name"), contains(msg, "role"), contains(msg, "terms"):
 		return status.Error(codes.InvalidArgument, msg)
 	case contains(msg, "invalid refresh token"), contains(msg, "session revoked"), contains(msg, "invalid email or password"):
 		return status.Error(codes.Unauthenticated, msg)

@@ -1,0 +1,30 @@
+package grpcadapter
+
+import (
+	userv1 "jobconnect/user/gen/user/v1"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
+)
+
+type Server struct {
+	user userv1.UserServiceServer
+}
+
+func NewServer(user userv1.UserServiceServer) *Server {
+	return &Server{user: user}
+}
+
+func (s *Server) Register(grpcServer *grpc.Server) {
+	hs := health.NewServer()
+	hs.SetServingStatus("", healthpb.HealthCheckResponse_SERVING)
+	healthpb.RegisterHealthServer(grpcServer, hs)
+
+	reflection.Register(grpcServer)
+
+	if s.user != nil {
+		userv1.RegisterUserServiceServer(grpcServer, s.user)
+	}
+}

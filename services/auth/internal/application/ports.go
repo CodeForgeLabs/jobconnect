@@ -17,6 +17,21 @@ type UserRepository interface {
 	SetEmailVerified(ctx context.Context, userID uuid.UUID, at time.Time) error
 }
 
+// CreateProfileInput is the input for creating a user profile via user service.
+type CreateProfileInput struct {
+	UserID      uuid.UUID
+	Role        string
+	FirstName   string
+	LastName    string
+	DisplayName string
+	AvatarURL   string
+}
+
+// UserProfileService creates profiles in the user service.
+type UserProfileService interface {
+	CreateProfile(ctx context.Context, in CreateProfileInput) error
+}
+
 // CredentialRepository stores password hashes per user.
 type CredentialRepository interface {
 	Create(ctx context.Context, userID uuid.UUID, passwordHash string) error

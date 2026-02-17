@@ -7,11 +7,12 @@
 package authv1
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -22,10 +23,11 @@ const (
 )
 
 type RegisterRequest struct {
-	state       protoimpl.MessageState `protogen:"open.v1"`
-	Email       string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
-	Password    string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	DisplayName string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Email     string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Password  string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	FirstName string                 `protobuf:"bytes,3,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName  string                 `protobuf:"bytes,6,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
 	// e.g. "client", "freelancer", "admin"
 	Role          string `protobuf:"bytes,4,opt,name=role,proto3" json:"role,omitempty"`
 	AcceptTerms   bool   `protobuf:"varint,5,opt,name=accept_terms,json=acceptTerms,proto3" json:"accept_terms,omitempty"`
@@ -77,9 +79,16 @@ func (x *RegisterRequest) GetPassword() string {
 	return ""
 }
 
-func (x *RegisterRequest) GetDisplayName() string {
+func (x *RegisterRequest) GetFirstName() string {
 	if x != nil {
-		return x.DisplayName
+		return x.FirstName
+	}
+	return ""
+}
+
+func (x *RegisterRequest) GetLastName() string {
+	if x != nil {
+		return x.LastName
 	}
 	return ""
 }
@@ -555,11 +564,13 @@ var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x12auth/v1/auth.proto\x12\aauth.v1\"\x9d\x01\n" +
+	"\x12auth/v1/auth.proto\x12\aauth.v1\"\xb6\x01\n" +
 	"\x0fRegisterRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\x12!\n" +
-	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12\x12\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x1d\n" +
+	"\n" +
+	"first_name\x18\x03 \x01(\tR\tfirstName\x12\x1b\n" +
+	"\tlast_name\x18\x06 \x01(\tR\blastName\x12\x12\n" +
 	"\x04role\x18\x04 \x01(\tR\x04role\x12!\n" +
 	"\faccept_terms\x18\x05 \x01(\bR\vacceptTerms\"F\n" +
 	"\x10RegisterResponse\x12\x17\n" +

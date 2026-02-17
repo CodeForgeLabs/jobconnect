@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"jobconnect/auth/internal/domain"
@@ -16,7 +17,8 @@ import (
 type RegisterUserInput struct {
 	Email       string
 	Password    string
-	DisplayName string
+	FirstName   string
+	LastName    string
 	Role        string
 	AcceptTerms bool
 }
@@ -33,6 +35,7 @@ type RegisterUser struct {
 	Creds          CredentialRepository
 	OTPs           OTPRepository
 	TOS            TOSRepository
+	UserProfiles   UserProfileService
 	Hasher         domain.PasswordHasher
 	Clock          Clock
 	EmailSend      EmailSender
@@ -52,7 +55,14 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 	if err := domain.ValidatePasswordStrength(in.Password); err != nil {
 		return RegisterUserOutput{}, err
 	}
-	if err := domain.ValidateDisplayName(in.DisplayName); err != nil {
+	if err := domain.ValidateFirstName(in.FirstName); err != nil {
+		return RegisterUserOutput{}, err
+	}
+	if err := domain.ValidateLastName(in.LastName); err != nil {
+		return RegisterUserOutput{}, err
+	}
+	displayName := buildDisplayName(in.FirstName, in.LastName)
+	if err := domain.ValidateDisplayName(displayName); err != nil {
 		return RegisterUserOutput{}, err
 	}
 	if err := domain.ValidateRole(in.Role); err != nil {
@@ -78,7 +88,9 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 		ID:          uuid.New(),
 		Email:       email,
 		Role:        in.Role,
-		DisplayName: in.DisplayName,
+		FirstName:   in.FirstName,
+		LastName:    in.LastName,
+		DisplayName: displayName,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -93,6 +105,19 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 
 	if uc.TOS != nil {
 		_ = uc.TOS.Create(ctx, u.ID, uc.TOSVersion, uc.PrivacyVersion)
+	}
+
+	if uc.UserProfiles != nil {
+		if err := uc.UserProfiles.CreateProfile(ctx, CreateProfileInput{
+			UserID:      u.ID,
+			Role:        u.Role,
+			FirstName:   u.FirstName,
+			LastName:    u.LastName,
+			DisplayName: u.DisplayName,
+			AvatarURL:   "",
+		}); err != nil {
+			return RegisterUserOutput{}, err
+		}
 	}
 
 	otp, err := generateOTP(domain.OTPLength)
@@ -119,6 +144,12 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 	}
 
 	return RegisterUserOutput{UserID: u.ID, OTPSent: otpSent}, nil
+}
+
+func buildDisplayName(firstName, lastName string) string {
+	firstName = strings.TrimSpace(firstName)
+	lastName = strings.TrimSpace(lastName)
+	return strings.TrimSpace(firstName + " " + lastName)
 }
 
 func generateOTP(length int) (string, error) {

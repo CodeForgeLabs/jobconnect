@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package user.v1;
+option go_package = "jobconnect/user/gen/user/v1;userv1";
+
+enum Role {
+    ROLE_UNSPECIFIED = 0;
+    ROLE_CLIENT = 1;
+    ROLE_FREELANCER = 2;
+    ROLE_ADMIN = 3;
+}
+
+service UserService {
+    rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse);
+}
+
+message CreateProfileRequest {
+    string user_id = 1;
+    Role role = 2;
+    string display_name = 3;
+    string avatar_url = 4;
+
+    oneof role_details {
+        ClientProfileInput client = 5;
+        FreelancerProfileInput freelancer = 6;
+    }
+}
+
+message CreateProfileResponse {
+    bool success = 1;
+    int64 profile_id = 2;
+}
+
+message ClientProfileInput {
+    string company_name = 1;
+    string billing_address = 2;
+    string tax_id = 3;
+    string verification_status = 4;
+}
+
+message FreelancerProfileInput {
+    string headline = 1;
+    string bio = 2;
+    repeated string skills = 3;
+    string experience_level = 4;
+    double rating = 5;
+    string verification_status = 6;
+}
+
