@@ -176,7 +176,7 @@ func TestAuthServer_Login_Success(t *testing.T) {
 		&application.VerifyEmailOTP{},
 		loginUC,
 		&application.Refresh{},
-		&application.LogoutEverywhere{},
+		&application.Logout{},
 	)
 
 	resp, err := srv.Login(context.Background(), &authv1.LoginRequest{
@@ -221,7 +221,7 @@ func TestAuthServer_Register_Success(t *testing.T) {
 		&application.VerifyEmailOTP{},
 		&application.Login{},
 		&application.Refresh{},
-		&application.LogoutEverywhere{},
+		&application.Logout{},
 	)
 
 	resp, err := srv.Register(context.Background(), &authv1.RegisterRequest{

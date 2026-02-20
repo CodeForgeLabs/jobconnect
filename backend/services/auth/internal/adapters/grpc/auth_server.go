@@ -8,7 +8,6 @@ import (
 	authv1 "jobconnect/auth/gen/auth/v1"
 	"jobconnect/auth/internal/application"
 
-	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,7 +20,7 @@ type AuthServer struct {
 	VerifyEmailOTPUC   *application.VerifyEmailOTP
 	LoginUC            *application.Login
 	RefreshUC          *application.Refresh
-	LogoutEverywhereUC *application.LogoutEverywhere
+	LogoutEverywhereUC *application.Logout
 }
 
 // NewAuthServer returns an AuthServer with the given use-cases.
@@ -30,7 +29,7 @@ func NewAuthServer(
 	verifyOTP *application.VerifyEmailOTP,
 	login *application.Login,
 	refresh *application.Refresh,
-	logout *application.LogoutEverywhere,
+	logout *application.Logout,
 ) *AuthServer {
 	return &AuthServer{
 		RegisterUC:         register,
@@ -115,11 +114,7 @@ func (s *AuthServer) LogoutEverywhere(ctx context.Context, req *authv1.LogoutEve
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user id")
-	}
-	err = s.LogoutEverywhereUC.Execute(ctx, application.LogoutEverywhereInput{UserID: userID})
+	err := s.LogoutEverywhereUC.Execute(ctx, application.LogoutInput{RefreshToken: req.RefreshToken})
 	if err != nil {
 		return nil, toStatus(err)
 	}
@@ -134,9 +129,9 @@ func toStatus(err error) error {
 	switch {
 	case contains(msg, "already registered"), contains(msg, "email already"):
 		return status.Error(codes.AlreadyExists, msg)
-	case contains(msg, "invalid email"), contains(msg, "password"), contains(msg, "display name"), contains(msg, "first name"), contains(msg, "last name"), contains(msg, "role"), contains(msg, "terms"):
+	case contains(msg, "invalid email"), contains(msg, "password"), contains(msg, "display name"), contains(msg, "first name"), contains(msg, "last name"), contains(msg, "role"), contains(msg, "terms"), contains(msg, "refresh token required"):
 		return status.Error(codes.InvalidArgument, msg)
-	case contains(msg, "invalid refresh token"), contains(msg, "session revoked"), contains(msg, "invalid email or password"):
+	case contains(msg, "invalid refresh token"), contains(msg, "refresh token expired"), contains(msg, "session revoked"), contains(msg, "invalid email or password"):
 		return status.Error(codes.Unauthenticated, msg)
 	default:
 		return status.Error(codes.Internal, fmt.Sprintf("internal error: %v", err))

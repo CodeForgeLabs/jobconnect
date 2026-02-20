@@ -36,6 +36,7 @@ type AuthServiceClient interface {
 	VerifyEmailOTP(ctx context.Context, in *VerifyEmailOTPRequest, opts ...grpc.CallOption) (*VerifyEmailOTPResponse, error)
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Refresh(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*RefreshResponse, error)
+	// Log out current session (by refresh token).
 	LogoutEverywhere(ctx context.Context, in *LogoutEverywhereRequest, opts ...grpc.CallOption) (*LogoutEverywhereResponse, error)
 }
 
@@ -107,6 +108,7 @@ type AuthServiceServer interface {
 	VerifyEmailOTP(context.Context, *VerifyEmailOTPRequest) (*VerifyEmailOTPResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Refresh(context.Context, *RefreshRequest) (*RefreshResponse, error)
+	// Log out current session (by refresh token).
 	LogoutEverywhere(context.Context, *LogoutEverywhereRequest) (*LogoutEverywhereResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }

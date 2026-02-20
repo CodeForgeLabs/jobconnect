@@ -7,12 +7,11 @@
 package authv1
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -474,7 +473,7 @@ func (x *RefreshResponse) GetAccessTokenExpiresInSeconds() int64 {
 
 type LogoutEverywhereRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,1,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -509,9 +508,9 @@ func (*LogoutEverywhereRequest) Descriptor() ([]byte, []int) {
 	return file_auth_v1_auth_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *LogoutEverywhereRequest) GetUserId() string {
+func (x *LogoutEverywhereRequest) GetRefreshToken() string {
 	if x != nil {
-		return x.UserId
+		return x.RefreshToken
 	}
 	return ""
 }
@@ -593,9 +592,9 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x0fRefreshResponse\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\x12#\n" +
 	"\rrefresh_token\x18\x02 \x01(\tR\frefreshToken\x12D\n" +
-	"\x1faccess_token_expires_in_seconds\x18\x03 \x01(\x03R\x1baccessTokenExpiresInSeconds\"2\n" +
-	"\x17LogoutEverywhereRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"*\n" +
+	"\x1faccess_token_expires_in_seconds\x18\x03 \x01(\x03R\x1baccessTokenExpiresInSeconds\">\n" +
+	"\x17LogoutEverywhereRequest\x12#\n" +
+	"\rrefresh_token\x18\x01 \x01(\tR\frefreshToken\"*\n" +
 	"\x18LogoutEverywhereResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok2\xf0\x02\n" +
 	"\vAuthService\x12?\n" +

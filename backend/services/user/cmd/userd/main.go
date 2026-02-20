@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -21,6 +23,10 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	if err := loadDotEnv(".env"); err != nil && !os.IsNotExist(err) {
+		log.Fatalf("load .env: %v", err)
+	}
 
 	cfg, err := config.LoadFromEnv()
 	if err != nil {
@@ -81,4 +87,35 @@ func gracefulStop(srv *grpc.Server) {
 	case <-time.After(5 * time.Second):
 		srv.Stop()
 	}
+}
+
+func loadDotEnv(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, val, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		val = strings.TrimSpace(val)
+		val = strings.Trim(val, "\"'")
+		if key == "" {
+			continue
+		}
+		if _, exists := os.LookupEnv(key); !exists {
+			_ = os.Setenv(key, val)
+		}
+	}
+
+	return scanner.Err()
 }

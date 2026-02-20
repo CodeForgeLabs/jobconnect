@@ -107,8 +107,9 @@ func main() {
 		AccessTTL:  cfg.AccessTokenTTL,
 		RefreshTTL: cfg.RefreshTokenTTL,
 	}
-	logoutUC := &application.LogoutEverywhere{
+	logoutUC := &application.Logout{
 		Sessions: sessionRepo,
+		Tokens:   tokenIssuer,
 	}
 
 	authServer := grpcadapter.NewAuthServer(registerUC, verifyOTPUC, loginUC, refreshUC, logoutUC)

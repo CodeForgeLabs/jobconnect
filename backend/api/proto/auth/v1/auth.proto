@@ -10,6 +10,7 @@ service AuthService {
   rpc VerifyEmailOTP(VerifyEmailOTPRequest) returns (VerifyEmailOTPResponse);
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc Refresh(RefreshRequest) returns (RefreshResponse);
+  // Log out current session (by refresh token).
   rpc LogoutEverywhere(LogoutEverywhereRequest) returns (LogoutEverywhereResponse);
 }
 
@@ -60,7 +61,7 @@ message RefreshResponse {
 }
 
 message LogoutEverywhereRequest {
-  string user_id = 1;
+  string refresh_token = 1;
 }
 
 message LogoutEverywhereResponse {
