@@ -204,6 +204,1030 @@ func (x *CreateProfileResponse) GetProfileId() int64 {
 	return 0
 }
 
+type GetProfileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProfileRequest) Reset() {
+	*x = GetProfileRequest{}
+	mi := &file_user_user_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProfileRequest) ProtoMessage() {}
+
+func (x *GetProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProfileRequest.ProtoReflect.Descriptor instead.
+func (*GetProfileRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetProfileRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type GetProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProfileResponse) Reset() {
+	*x = GetProfileResponse{}
+	mi := &file_user_user_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProfileResponse) ProtoMessage() {}
+
+func (x *GetProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProfileResponse.ProtoReflect.Descriptor instead.
+func (*GetProfileResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetProfileResponse) GetProfile() *Profile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
+type UpdateProfileRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DisplayName     *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
+	AvatarUrl       *string                `protobuf:"bytes,3,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
+	Language        *string                `protobuf:"bytes,4,opt,name=language,proto3,oneof" json:"language,omitempty"`
+	ContactEmail    *string                `protobuf:"bytes,5,opt,name=contact_email,json=contactEmail,proto3,oneof" json:"contact_email,omitempty"`
+	ContactPhone    *string                `protobuf:"bytes,6,opt,name=contact_phone,json=contactPhone,proto3,oneof" json:"contact_phone,omitempty"`
+	Bio             *string                `protobuf:"bytes,7,opt,name=bio,proto3,oneof" json:"bio,omitempty"`
+	FirstName       *string                `protobuf:"bytes,8,opt,name=first_name,json=firstName,proto3,oneof" json:"first_name,omitempty"`
+	LastName        *string                `protobuf:"bytes,9,opt,name=last_name,json=lastName,proto3,oneof" json:"last_name,omitempty"`
+	CompanyName     *string                `protobuf:"bytes,10,opt,name=company_name,json=companyName,proto3,oneof" json:"company_name,omitempty"`
+	BillingAddress  *string                `protobuf:"bytes,11,opt,name=billing_address,json=billingAddress,proto3,oneof" json:"billing_address,omitempty"`
+	TaxId           *string                `protobuf:"bytes,12,opt,name=tax_id,json=taxId,proto3,oneof" json:"tax_id,omitempty"`
+	Headline        *string                `protobuf:"bytes,13,opt,name=headline,proto3,oneof" json:"headline,omitempty"`
+	Skills          []string               `protobuf:"bytes,14,rep,name=skills,proto3" json:"skills,omitempty"`
+	ExperienceLevel *string                `protobuf:"bytes,15,opt,name=experience_level,json=experienceLevel,proto3,oneof" json:"experience_level,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *UpdateProfileRequest) Reset() {
+	*x = UpdateProfileRequest{}
+	mi := &file_user_user_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateProfileRequest) ProtoMessage() {}
+
+func (x *UpdateProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateProfileRequest.ProtoReflect.Descriptor instead.
+func (*UpdateProfileRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UpdateProfileRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetDisplayName() string {
+	if x != nil && x.DisplayName != nil {
+		return *x.DisplayName
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetAvatarUrl() string {
+	if x != nil && x.AvatarUrl != nil {
+		return *x.AvatarUrl
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetLanguage() string {
+	if x != nil && x.Language != nil {
+		return *x.Language
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetContactEmail() string {
+	if x != nil && x.ContactEmail != nil {
+		return *x.ContactEmail
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetContactPhone() string {
+	if x != nil && x.ContactPhone != nil {
+		return *x.ContactPhone
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetBio() string {
+	if x != nil && x.Bio != nil {
+		return *x.Bio
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetFirstName() string {
+	if x != nil && x.FirstName != nil {
+		return *x.FirstName
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetLastName() string {
+	if x != nil && x.LastName != nil {
+		return *x.LastName
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetCompanyName() string {
+	if x != nil && x.CompanyName != nil {
+		return *x.CompanyName
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetBillingAddress() string {
+	if x != nil && x.BillingAddress != nil {
+		return *x.BillingAddress
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetTaxId() string {
+	if x != nil && x.TaxId != nil {
+		return *x.TaxId
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetHeadline() string {
+	if x != nil && x.Headline != nil {
+		return *x.Headline
+	}
+	return ""
+}
+
+func (x *UpdateProfileRequest) GetSkills() []string {
+	if x != nil {
+		return x.Skills
+	}
+	return nil
+}
+
+func (x *UpdateProfileRequest) GetExperienceLevel() string {
+	if x != nil && x.ExperienceLevel != nil {
+		return *x.ExperienceLevel
+	}
+	return ""
+}
+
+type UpdateProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	Completeness  *ProfileCompleteness   `protobuf:"bytes,2,opt,name=completeness,proto3" json:"completeness,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateProfileResponse) Reset() {
+	*x = UpdateProfileResponse{}
+	mi := &file_user_user_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateProfileResponse) ProtoMessage() {}
+
+func (x *UpdateProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateProfileResponse.ProtoReflect.Descriptor instead.
+func (*UpdateProfileResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *UpdateProfileResponse) GetProfile() *Profile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
+func (x *UpdateProfileResponse) GetCompleteness() *ProfileCompleteness {
+	if x != nil {
+		return x.Completeness
+	}
+	return nil
+}
+
+type DeleteProfileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	HardDelete    bool                   `protobuf:"varint,2,opt,name=hard_delete,json=hardDelete,proto3" json:"hard_delete,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteProfileRequest) Reset() {
+	*x = DeleteProfileRequest{}
+	mi := &file_user_user_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteProfileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteProfileRequest) ProtoMessage() {}
+
+func (x *DeleteProfileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteProfileRequest.ProtoReflect.Descriptor instead.
+func (*DeleteProfileRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *DeleteProfileRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *DeleteProfileRequest) GetHardDelete() bool {
+	if x != nil {
+		return x.HardDelete
+	}
+	return false
+}
+
+type DeleteProfileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Deleted       bool                   `protobuf:"varint,1,opt,name=deleted,proto3" json:"deleted,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteProfileResponse) Reset() {
+	*x = DeleteProfileResponse{}
+	mi := &file_user_user_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteProfileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteProfileResponse) ProtoMessage() {}
+
+func (x *DeleteProfileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteProfileResponse.ProtoReflect.Descriptor instead.
+func (*DeleteProfileResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *DeleteProfileResponse) GetDeleted() bool {
+	if x != nil {
+		return x.Deleted
+	}
+	return false
+}
+
+type GetOnboardingStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOnboardingStatusRequest) Reset() {
+	*x = GetOnboardingStatusRequest{}
+	mi := &file_user_user_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOnboardingStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOnboardingStatusRequest) ProtoMessage() {}
+
+func (x *GetOnboardingStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOnboardingStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetOnboardingStatusRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetOnboardingStatusRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type GetOnboardingStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Completeness  *ProfileCompleteness   `protobuf:"bytes,1,opt,name=completeness,proto3" json:"completeness,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetOnboardingStatusResponse) Reset() {
+	*x = GetOnboardingStatusResponse{}
+	mi := &file_user_user_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetOnboardingStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetOnboardingStatusResponse) ProtoMessage() {}
+
+func (x *GetOnboardingStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetOnboardingStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetOnboardingStatusResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetOnboardingStatusResponse) GetCompleteness() *ProfileCompleteness {
+	if x != nil {
+		return x.Completeness
+	}
+	return nil
+}
+
+type UploadAvatarRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	FileName      string                 `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	ContentType   string                 `protobuf:"bytes,3,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	Content       []byte                 `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadAvatarRequest) Reset() {
+	*x = UploadAvatarRequest{}
+	mi := &file_user_user_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadAvatarRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadAvatarRequest) ProtoMessage() {}
+
+func (x *UploadAvatarRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadAvatarRequest.ProtoReflect.Descriptor instead.
+func (*UploadAvatarRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UploadAvatarRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UploadAvatarRequest) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *UploadAvatarRequest) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
+}
+
+func (x *UploadAvatarRequest) GetContent() []byte {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+type UploadAvatarResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AvatarUrl     string                 `protobuf:"bytes,1,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	PreviewUrl    string                 `protobuf:"bytes,2,opt,name=preview_url,json=previewUrl,proto3" json:"preview_url,omitempty"`
+	ContentType   string                 `protobuf:"bytes,3,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	SizeBytes     int64                  `protobuf:"varint,4,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	Width         int32                  `protobuf:"varint,5,opt,name=width,proto3" json:"width,omitempty"`
+	Height        int32                  `protobuf:"varint,6,opt,name=height,proto3" json:"height,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UploadAvatarResponse) Reset() {
+	*x = UploadAvatarResponse{}
+	mi := &file_user_user_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UploadAvatarResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UploadAvatarResponse) ProtoMessage() {}
+
+func (x *UploadAvatarResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UploadAvatarResponse.ProtoReflect.Descriptor instead.
+func (*UploadAvatarResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UploadAvatarResponse) GetAvatarUrl() string {
+	if x != nil {
+		return x.AvatarUrl
+	}
+	return ""
+}
+
+func (x *UploadAvatarResponse) GetPreviewUrl() string {
+	if x != nil {
+		return x.PreviewUrl
+	}
+	return ""
+}
+
+func (x *UploadAvatarResponse) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
+}
+
+func (x *UploadAvatarResponse) GetSizeBytes() int64 {
+	if x != nil {
+		return x.SizeBytes
+	}
+	return 0
+}
+
+func (x *UploadAvatarResponse) GetWidth() int32 {
+	if x != nil {
+		return x.Width
+	}
+	return 0
+}
+
+func (x *UploadAvatarResponse) GetHeight() int32 {
+	if x != nil {
+		return x.Height
+	}
+	return 0
+}
+
+type GetAvatarRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAvatarRequest) Reset() {
+	*x = GetAvatarRequest{}
+	mi := &file_user_user_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAvatarRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAvatarRequest) ProtoMessage() {}
+
+func (x *GetAvatarRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAvatarRequest.ProtoReflect.Descriptor instead.
+func (*GetAvatarRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetAvatarRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type GetAvatarResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FileName      string                 `protobuf:"bytes,1,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	ContentType   string                 `protobuf:"bytes,2,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	Content       []byte                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAvatarResponse) Reset() {
+	*x = GetAvatarResponse{}
+	mi := &file_user_user_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAvatarResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAvatarResponse) ProtoMessage() {}
+
+func (x *GetAvatarResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAvatarResponse.ProtoReflect.Descriptor instead.
+func (*GetAvatarResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetAvatarResponse) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *GetAvatarResponse) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
+}
+
+func (x *GetAvatarResponse) GetContent() []byte {
+	if x != nil {
+		return x.Content
+	}
+	return nil
+}
+
+type RemoveAvatarRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveAvatarRequest) Reset() {
+	*x = RemoveAvatarRequest{}
+	mi := &file_user_user_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveAvatarRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveAvatarRequest) ProtoMessage() {}
+
+func (x *RemoveAvatarRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveAvatarRequest.ProtoReflect.Descriptor instead.
+func (*RemoveAvatarRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *RemoveAvatarRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type RemoveAvatarResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Removed       bool                   `protobuf:"varint,1,opt,name=removed,proto3" json:"removed,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RemoveAvatarResponse) Reset() {
+	*x = RemoveAvatarResponse{}
+	mi := &file_user_user_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RemoveAvatarResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RemoveAvatarResponse) ProtoMessage() {}
+
+func (x *RemoveAvatarResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RemoveAvatarResponse.ProtoReflect.Descriptor instead.
+func (*RemoveAvatarResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *RemoveAvatarResponse) GetRemoved() bool {
+	if x != nil {
+		return x.Removed
+	}
+	return false
+}
+
+type Profile struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Id            int64                   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId        string                  `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Role          string                  `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	FirstName     string                  `protobuf:"bytes,4,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName      string                  `protobuf:"bytes,5,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	DisplayName   string                  `protobuf:"bytes,6,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	AvatarUrl     string                  `protobuf:"bytes,7,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Language      string                  `protobuf:"bytes,8,opt,name=language,proto3" json:"language,omitempty"`
+	ContactEmail  string                  `protobuf:"bytes,9,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
+	ContactPhone  string                  `protobuf:"bytes,10,opt,name=contact_phone,json=contactPhone,proto3" json:"contact_phone,omitempty"`
+	Bio           string                  `protobuf:"bytes,11,opt,name=bio,proto3" json:"bio,omitempty"`
+	Deleted       bool                    `protobuf:"varint,12,opt,name=deleted,proto3" json:"deleted,omitempty"`
+	Client        *ClientProfileInput     `protobuf:"bytes,13,opt,name=client,proto3" json:"client,omitempty"`
+	Freelancer    *FreelancerProfileInput `protobuf:"bytes,14,opt,name=freelancer,proto3" json:"freelancer,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Profile) Reset() {
+	*x = Profile{}
+	mi := &file_user_user_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Profile) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Profile) ProtoMessage() {}
+
+func (x *Profile) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Profile.ProtoReflect.Descriptor instead.
+func (*Profile) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *Profile) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Profile) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *Profile) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *Profile) GetFirstName() string {
+	if x != nil {
+		return x.FirstName
+	}
+	return ""
+}
+
+func (x *Profile) GetLastName() string {
+	if x != nil {
+		return x.LastName
+	}
+	return ""
+}
+
+func (x *Profile) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *Profile) GetAvatarUrl() string {
+	if x != nil {
+		return x.AvatarUrl
+	}
+	return ""
+}
+
+func (x *Profile) GetLanguage() string {
+	if x != nil {
+		return x.Language
+	}
+	return ""
+}
+
+func (x *Profile) GetContactEmail() string {
+	if x != nil {
+		return x.ContactEmail
+	}
+	return ""
+}
+
+func (x *Profile) GetContactPhone() string {
+	if x != nil {
+		return x.ContactPhone
+	}
+	return ""
+}
+
+func (x *Profile) GetBio() string {
+	if x != nil {
+		return x.Bio
+	}
+	return ""
+}
+
+func (x *Profile) GetDeleted() bool {
+	if x != nil {
+		return x.Deleted
+	}
+	return false
+}
+
+func (x *Profile) GetClient() *ClientProfileInput {
+	if x != nil {
+		return x.Client
+	}
+	return nil
+}
+
+func (x *Profile) GetFreelancer() *FreelancerProfileInput {
+	if x != nil {
+		return x.Freelancer
+	}
+	return nil
+}
+
+type ProfileCompleteness struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Percent               uint32                 `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
+	MissingRequiredFields []string               `protobuf:"bytes,2,rep,name=missing_required_fields,json=missingRequiredFields,proto3" json:"missing_required_fields,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *ProfileCompleteness) Reset() {
+	*x = ProfileCompleteness{}
+	mi := &file_user_user_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProfileCompleteness) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProfileCompleteness) ProtoMessage() {}
+
+func (x *ProfileCompleteness) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProfileCompleteness.ProtoReflect.Descriptor instead.
+func (*ProfileCompleteness) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ProfileCompleteness) GetPercent() uint32 {
+	if x != nil {
+		return x.Percent
+	}
+	return 0
+}
+
+func (x *ProfileCompleteness) GetMissingRequiredFields() []string {
+	if x != nil {
+		return x.MissingRequiredFields
+	}
+	return nil
+}
+
 type ClientProfileInput struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	CompanyName        string                 `protobuf:"bytes,1,opt,name=company_name,json=companyName,proto3" json:"company_name,omitempty"`
@@ -216,7 +1240,7 @@ type ClientProfileInput struct {
 
 func (x *ClientProfileInput) Reset() {
 	*x = ClientProfileInput{}
-	mi := &file_user_user_proto_msgTypes[2]
+	mi := &file_user_user_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -228,7 +1252,7 @@ func (x *ClientProfileInput) String() string {
 func (*ClientProfileInput) ProtoMessage() {}
 
 func (x *ClientProfileInput) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[2]
+	mi := &file_user_user_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -241,7 +1265,7 @@ func (x *ClientProfileInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientProfileInput.ProtoReflect.Descriptor instead.
 func (*ClientProfileInput) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{2}
+	return file_user_user_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ClientProfileInput) GetCompanyName() string {
@@ -286,7 +1310,7 @@ type FreelancerProfileInput struct {
 
 func (x *FreelancerProfileInput) Reset() {
 	*x = FreelancerProfileInput{}
-	mi := &file_user_user_proto_msgTypes[3]
+	mi := &file_user_user_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -298,7 +1322,7 @@ func (x *FreelancerProfileInput) String() string {
 func (*FreelancerProfileInput) ProtoMessage() {}
 
 func (x *FreelancerProfileInput) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[3]
+	mi := &file_user_user_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -311,7 +1335,7 @@ func (x *FreelancerProfileInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FreelancerProfileInput.ProtoReflect.Descriptor instead.
 func (*FreelancerProfileInput) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{3}
+	return file_user_user_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *FreelancerProfileInput) GetHeadline() string {
@@ -378,7 +1402,106 @@ const file_user_user_proto_rawDesc = "" +
 	"\x15CreateProfileResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1d\n" +
 	"\n" +
-	"profile_id\x18\x02 \x01(\x03R\tprofileId\"\xa8\x01\n" +
+	"profile_id\x18\x02 \x01(\x03R\tprofileId\",\n" +
+	"\x11GetProfileRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"@\n" +
+	"\x12GetProfileResponse\x12*\n" +
+	"\aprofile\x18\x01 \x01(\v2\x10.user.v1.ProfileR\aprofile\"\xf0\x05\n" +
+	"\x14UpdateProfileRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12&\n" +
+	"\fdisplay_name\x18\x02 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"avatar_url\x18\x03 \x01(\tH\x01R\tavatarUrl\x88\x01\x01\x12\x1f\n" +
+	"\blanguage\x18\x04 \x01(\tH\x02R\blanguage\x88\x01\x01\x12(\n" +
+	"\rcontact_email\x18\x05 \x01(\tH\x03R\fcontactEmail\x88\x01\x01\x12(\n" +
+	"\rcontact_phone\x18\x06 \x01(\tH\x04R\fcontactPhone\x88\x01\x01\x12\x15\n" +
+	"\x03bio\x18\a \x01(\tH\x05R\x03bio\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"first_name\x18\b \x01(\tH\x06R\tfirstName\x88\x01\x01\x12 \n" +
+	"\tlast_name\x18\t \x01(\tH\aR\blastName\x88\x01\x01\x12&\n" +
+	"\fcompany_name\x18\n" +
+	" \x01(\tH\bR\vcompanyName\x88\x01\x01\x12,\n" +
+	"\x0fbilling_address\x18\v \x01(\tH\tR\x0ebillingAddress\x88\x01\x01\x12\x1a\n" +
+	"\x06tax_id\x18\f \x01(\tH\n" +
+	"R\x05taxId\x88\x01\x01\x12\x1f\n" +
+	"\bheadline\x18\r \x01(\tH\vR\bheadline\x88\x01\x01\x12\x16\n" +
+	"\x06skills\x18\x0e \x03(\tR\x06skills\x12.\n" +
+	"\x10experience_level\x18\x0f \x01(\tH\fR\x0fexperienceLevel\x88\x01\x01B\x0f\n" +
+	"\r_display_nameB\r\n" +
+	"\v_avatar_urlB\v\n" +
+	"\t_languageB\x10\n" +
+	"\x0e_contact_emailB\x10\n" +
+	"\x0e_contact_phoneB\x06\n" +
+	"\x04_bioB\r\n" +
+	"\v_first_nameB\f\n" +
+	"\n" +
+	"_last_nameB\x0f\n" +
+	"\r_company_nameB\x12\n" +
+	"\x10_billing_addressB\t\n" +
+	"\a_tax_idB\v\n" +
+	"\t_headlineB\x13\n" +
+	"\x11_experience_level\"\x85\x01\n" +
+	"\x15UpdateProfileResponse\x12*\n" +
+	"\aprofile\x18\x01 \x01(\v2\x10.user.v1.ProfileR\aprofile\x12@\n" +
+	"\fcompleteness\x18\x02 \x01(\v2\x1c.user.v1.ProfileCompletenessR\fcompleteness\"P\n" +
+	"\x14DeleteProfileRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1f\n" +
+	"\vhard_delete\x18\x02 \x01(\bR\n" +
+	"hardDelete\"1\n" +
+	"\x15DeleteProfileResponse\x12\x18\n" +
+	"\adeleted\x18\x01 \x01(\bR\adeleted\"5\n" +
+	"\x1aGetOnboardingStatusRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"_\n" +
+	"\x1bGetOnboardingStatusResponse\x12@\n" +
+	"\fcompleteness\x18\x01 \x01(\v2\x1c.user.v1.ProfileCompletenessR\fcompleteness\"\x88\x01\n" +
+	"\x13UploadAvatarRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
+	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12!\n" +
+	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\x12\x18\n" +
+	"\acontent\x18\x04 \x01(\fR\acontent\"\xc6\x01\n" +
+	"\x14UploadAvatarResponse\x12\x1d\n" +
+	"\n" +
+	"avatar_url\x18\x01 \x01(\tR\tavatarUrl\x12\x1f\n" +
+	"\vpreview_url\x18\x02 \x01(\tR\n" +
+	"previewUrl\x12!\n" +
+	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\x12\x1d\n" +
+	"\n" +
+	"size_bytes\x18\x04 \x01(\x03R\tsizeBytes\x12\x14\n" +
+	"\x05width\x18\x05 \x01(\x05R\x05width\x12\x16\n" +
+	"\x06height\x18\x06 \x01(\x05R\x06height\"+\n" +
+	"\x10GetAvatarRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"m\n" +
+	"\x11GetAvatarResponse\x12\x1b\n" +
+	"\tfile_name\x18\x01 \x01(\tR\bfileName\x12!\n" +
+	"\fcontent_type\x18\x02 \x01(\tR\vcontentType\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\fR\acontent\".\n" +
+	"\x13RemoveAvatarRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"0\n" +
+	"\x14RemoveAvatarResponse\x12\x18\n" +
+	"\aremoved\x18\x01 \x01(\bR\aremoved\"\xcc\x03\n" +
+	"\aProfile\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x1d\n" +
+	"\n" +
+	"first_name\x18\x04 \x01(\tR\tfirstName\x12\x1b\n" +
+	"\tlast_name\x18\x05 \x01(\tR\blastName\x12!\n" +
+	"\fdisplay_name\x18\x06 \x01(\tR\vdisplayName\x12\x1d\n" +
+	"\n" +
+	"avatar_url\x18\a \x01(\tR\tavatarUrl\x12\x1a\n" +
+	"\blanguage\x18\b \x01(\tR\blanguage\x12#\n" +
+	"\rcontact_email\x18\t \x01(\tR\fcontactEmail\x12#\n" +
+	"\rcontact_phone\x18\n" +
+	" \x01(\tR\fcontactPhone\x12\x10\n" +
+	"\x03bio\x18\v \x01(\tR\x03bio\x12\x18\n" +
+	"\adeleted\x18\f \x01(\bR\adeleted\x123\n" +
+	"\x06client\x18\r \x01(\v2\x1b.user.v1.ClientProfileInputR\x06client\x12?\n" +
+	"\n" +
+	"freelancer\x18\x0e \x01(\v2\x1f.user.v1.FreelancerProfileInputR\n" +
+	"freelancer\"g\n" +
+	"\x13ProfileCompleteness\x12\x18\n" +
+	"\apercent\x18\x01 \x01(\rR\apercent\x126\n" +
+	"\x17missing_required_fields\x18\x02 \x03(\tR\x15missingRequiredFields\"\xa8\x01\n" +
 	"\x12ClientProfileInput\x12!\n" +
 	"\fcompany_name\x18\x01 \x01(\tR\vcompanyName\x12'\n" +
 	"\x0fbilling_address\x18\x02 \x01(\tR\x0ebillingAddress\x12\x15\n" +
@@ -390,9 +1513,17 @@ const file_user_user_proto_rawDesc = "" +
 	"\x06skills\x18\x03 \x03(\tR\x06skills\x12)\n" +
 	"\x10experience_level\x18\x04 \x01(\tR\x0fexperienceLevel\x12\x16\n" +
 	"\x06rating\x18\x05 \x01(\x01R\x06rating\x12/\n" +
-	"\x13verification_status\x18\x06 \x01(\tR\x12verificationStatus2]\n" +
+	"\x13verification_status\x18\x06 \x01(\tR\x12verificationStatus2\x84\x05\n" +
 	"\vUserService\x12N\n" +
-	"\rCreateProfile\x12\x1d.user.v1.CreateProfileRequest\x1a\x1e.user.v1.CreateProfileResponseB$Z\"jobconnect/user/gen/user/v1;userv1b\x06proto3"
+	"\rCreateProfile\x12\x1d.user.v1.CreateProfileRequest\x1a\x1e.user.v1.CreateProfileResponse\x12E\n" +
+	"\n" +
+	"GetProfile\x12\x1a.user.v1.GetProfileRequest\x1a\x1b.user.v1.GetProfileResponse\x12N\n" +
+	"\rUpdateProfile\x12\x1d.user.v1.UpdateProfileRequest\x1a\x1e.user.v1.UpdateProfileResponse\x12N\n" +
+	"\rDeleteProfile\x12\x1d.user.v1.DeleteProfileRequest\x1a\x1e.user.v1.DeleteProfileResponse\x12`\n" +
+	"\x13GetOnboardingStatus\x12#.user.v1.GetOnboardingStatusRequest\x1a$.user.v1.GetOnboardingStatusResponse\x12K\n" +
+	"\fUploadAvatar\x12\x1c.user.v1.UploadAvatarRequest\x1a\x1d.user.v1.UploadAvatarResponse\x12B\n" +
+	"\tGetAvatar\x12\x19.user.v1.GetAvatarRequest\x1a\x1a.user.v1.GetAvatarResponse\x12K\n" +
+	"\fRemoveAvatar\x12\x1c.user.v1.RemoveAvatarRequest\x1a\x1d.user.v1.RemoveAvatarResponseB!Z\x1fjobconnect/user/gen/user;userv1b\x06proto3"
 
 var (
 	file_user_user_proto_rawDescOnce sync.Once
@@ -406,23 +1537,59 @@ func file_user_user_proto_rawDescGZIP() []byte {
 	return file_user_user_proto_rawDescData
 }
 
-var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_user_user_proto_goTypes = []any{
-	(*CreateProfileRequest)(nil),   // 0: user.v1.CreateProfileRequest
-	(*CreateProfileResponse)(nil),  // 1: user.v1.CreateProfileResponse
-	(*ClientProfileInput)(nil),     // 2: user.v1.ClientProfileInput
-	(*FreelancerProfileInput)(nil), // 3: user.v1.FreelancerProfileInput
+	(*CreateProfileRequest)(nil),        // 0: user.v1.CreateProfileRequest
+	(*CreateProfileResponse)(nil),       // 1: user.v1.CreateProfileResponse
+	(*GetProfileRequest)(nil),           // 2: user.v1.GetProfileRequest
+	(*GetProfileResponse)(nil),          // 3: user.v1.GetProfileResponse
+	(*UpdateProfileRequest)(nil),        // 4: user.v1.UpdateProfileRequest
+	(*UpdateProfileResponse)(nil),       // 5: user.v1.UpdateProfileResponse
+	(*DeleteProfileRequest)(nil),        // 6: user.v1.DeleteProfileRequest
+	(*DeleteProfileResponse)(nil),       // 7: user.v1.DeleteProfileResponse
+	(*GetOnboardingStatusRequest)(nil),  // 8: user.v1.GetOnboardingStatusRequest
+	(*GetOnboardingStatusResponse)(nil), // 9: user.v1.GetOnboardingStatusResponse
+	(*UploadAvatarRequest)(nil),         // 10: user.v1.UploadAvatarRequest
+	(*UploadAvatarResponse)(nil),        // 11: user.v1.UploadAvatarResponse
+	(*GetAvatarRequest)(nil),            // 12: user.v1.GetAvatarRequest
+	(*GetAvatarResponse)(nil),           // 13: user.v1.GetAvatarResponse
+	(*RemoveAvatarRequest)(nil),         // 14: user.v1.RemoveAvatarRequest
+	(*RemoveAvatarResponse)(nil),        // 15: user.v1.RemoveAvatarResponse
+	(*Profile)(nil),                     // 16: user.v1.Profile
+	(*ProfileCompleteness)(nil),         // 17: user.v1.ProfileCompleteness
+	(*ClientProfileInput)(nil),          // 18: user.v1.ClientProfileInput
+	(*FreelancerProfileInput)(nil),      // 19: user.v1.FreelancerProfileInput
 }
 var file_user_user_proto_depIdxs = []int32{
-	2, // 0: user.v1.CreateProfileRequest.client:type_name -> user.v1.ClientProfileInput
-	3, // 1: user.v1.CreateProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileInput
-	0, // 2: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
-	1, // 3: user.v1.UserService.CreateProfile:output_type -> user.v1.CreateProfileResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	18, // 0: user.v1.CreateProfileRequest.client:type_name -> user.v1.ClientProfileInput
+	19, // 1: user.v1.CreateProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileInput
+	16, // 2: user.v1.GetProfileResponse.profile:type_name -> user.v1.Profile
+	16, // 3: user.v1.UpdateProfileResponse.profile:type_name -> user.v1.Profile
+	17, // 4: user.v1.UpdateProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	17, // 5: user.v1.GetOnboardingStatusResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	18, // 6: user.v1.Profile.client:type_name -> user.v1.ClientProfileInput
+	19, // 7: user.v1.Profile.freelancer:type_name -> user.v1.FreelancerProfileInput
+	0,  // 8: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
+	2,  // 9: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
+	4,  // 10: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
+	6,  // 11: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
+	8,  // 12: user.v1.UserService.GetOnboardingStatus:input_type -> user.v1.GetOnboardingStatusRequest
+	10, // 13: user.v1.UserService.UploadAvatar:input_type -> user.v1.UploadAvatarRequest
+	12, // 14: user.v1.UserService.GetAvatar:input_type -> user.v1.GetAvatarRequest
+	14, // 15: user.v1.UserService.RemoveAvatar:input_type -> user.v1.RemoveAvatarRequest
+	1,  // 16: user.v1.UserService.CreateProfile:output_type -> user.v1.CreateProfileResponse
+	3,  // 17: user.v1.UserService.GetProfile:output_type -> user.v1.GetProfileResponse
+	5,  // 18: user.v1.UserService.UpdateProfile:output_type -> user.v1.UpdateProfileResponse
+	7,  // 19: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
+	9,  // 20: user.v1.UserService.GetOnboardingStatus:output_type -> user.v1.GetOnboardingStatusResponse
+	11, // 21: user.v1.UserService.UploadAvatar:output_type -> user.v1.UploadAvatarResponse
+	13, // 22: user.v1.UserService.GetAvatar:output_type -> user.v1.GetAvatarResponse
+	15, // 23: user.v1.UserService.RemoveAvatar:output_type -> user.v1.RemoveAvatarResponse
+	16, // [16:24] is the sub-list for method output_type
+	8,  // [8:16] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_user_user_proto_init() }
@@ -434,13 +1601,14 @@ func file_user_user_proto_init() {
 		(*CreateProfileRequest_Client)(nil),
 		(*CreateProfileRequest_Freelancer)(nil),
 	}
+	file_user_user_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

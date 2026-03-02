@@ -20,7 +20,7 @@ import (
 	"jobconnect/auth/internal/infrastructure/hasher"
 	"jobconnect/auth/internal/infrastructure/tokens"
 	"jobconnect/auth/internal/infrastructure/usergrpc"
-	userv1 "jobconnect/user/gen/user/v1"
+	userv1 "jobconnect/user/gen/user"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

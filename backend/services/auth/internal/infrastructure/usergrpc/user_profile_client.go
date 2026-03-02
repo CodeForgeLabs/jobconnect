@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"jobconnect/auth/internal/application"
-	userv1 "jobconnect/user/gen/user/v1"
+	userv1 "jobconnect/user/gen/user"
 )
 
 const (

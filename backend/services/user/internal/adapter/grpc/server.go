@@ -1,7 +1,7 @@
 package grpcadapter
 
 import (
-	userv1 "jobconnect/user/gen/user/v1"
+	userv1 "jobconnect/user/gen/user"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"

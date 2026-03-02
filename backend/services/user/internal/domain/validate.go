@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+const (
+	MaxAvatarSizeBytes = 5 * 1024 * 1024
+)
+
 func ValidateRole(role string) error {
 	switch strings.TrimSpace(role) {
 	case RoleClient, RoleFreelancer, RoleAdmin:
@@ -17,6 +21,40 @@ func ValidateRole(role string) error {
 func ValidateName(label, value string) error {
 	if strings.TrimSpace(value) == "" {
 		return fmt.Errorf("%s is required", label)
+	}
+	return nil
+}
+
+func ValidateOptionalName(label, value string) error {
+	if strings.TrimSpace(value) == "" {
+		return fmt.Errorf("%s cannot be empty", label)
+	}
+	return nil
+}
+
+func ValidateDisplayName(value string) error {
+	if strings.TrimSpace(value) == "" {
+		return fmt.Errorf("display_name cannot be empty")
+	}
+	return nil
+}
+
+func ValidateAvatarContentType(contentType string) error {
+	ct := strings.TrimSpace(strings.ToLower(contentType))
+	switch ct {
+	case "image/jpeg", "image/png", "image/webp":
+		return nil
+	default:
+		return fmt.Errorf("unsupported avatar content_type")
+	}
+}
+
+func ValidateAvatarSize(size int) error {
+	if size <= 0 {
+		return fmt.Errorf("avatar content is required")
+	}
+	if size > MaxAvatarSizeBytes {
+		return fmt.Errorf("avatar exceeds max size of 5MB")
 	}
 	return nil
 }

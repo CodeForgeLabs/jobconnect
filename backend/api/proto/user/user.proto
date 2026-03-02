@@ -1,34 +1,141 @@
 syntax = "proto3";
 
 package user.v1;
-option go_package = "jobconnect/user/gen/user/v1;userv1";
-
-enum Role {
-    ROLE_UNSPECIFIED = 0;
-    ROLE_CLIENT = 1;
-    ROLE_FREELANCER = 2;
-    ROLE_ADMIN = 3;
-}
+option go_package = "jobconnect/user/gen/user;userv1";
 
 service UserService {
     rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse);
+    rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+    rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+    rpc DeleteProfile(DeleteProfileRequest) returns (DeleteProfileResponse);
+    rpc GetOnboardingStatus(GetOnboardingStatusRequest) returns (GetOnboardingStatusResponse);
+    rpc UploadAvatar(UploadAvatarRequest) returns (UploadAvatarResponse);
+    rpc GetAvatar(GetAvatarRequest) returns (GetAvatarResponse);
+    rpc RemoveAvatar(RemoveAvatarRequest) returns (RemoveAvatarResponse);
 }
 
 message CreateProfileRequest {
     string user_id = 1;
-    Role role = 2;
-    string display_name = 3;
-    string avatar_url = 4;
+    // Matches AuthService role values: "client", "freelancer", "admin".
+    string role = 2;
+    string first_name = 3;
+    string last_name = 4;
+    string display_name = 5;
+    string avatar_url = 6;
 
     oneof role_details {
-        ClientProfileInput client = 5;
-        FreelancerProfileInput freelancer = 6;
+        ClientProfileInput client = 7;
+        FreelancerProfileInput freelancer = 8;
     }
 }
 
 message CreateProfileResponse {
     bool success = 1;
     int64 profile_id = 2;
+}
+
+message GetProfileRequest {
+    string user_id = 1;
+}
+
+message GetProfileResponse {
+    Profile profile = 1;
+}
+
+message UpdateProfileRequest {
+    string user_id = 1;
+    optional string display_name = 2;
+    optional string avatar_url = 3;
+    optional string language = 4;
+    optional string contact_email = 5;
+    optional string contact_phone = 6;
+    optional string bio = 7;
+    optional string first_name = 8;
+    optional string last_name = 9;
+    optional string company_name = 10;
+    optional string billing_address = 11;
+    optional string tax_id = 12;
+    optional string headline = 13;
+    repeated string skills = 14;
+    optional string experience_level = 15;
+}
+
+message UpdateProfileResponse {
+    Profile profile = 1;
+    ProfileCompleteness completeness = 2;
+}
+
+message DeleteProfileRequest {
+    string user_id = 1;
+    bool hard_delete = 2;
+}
+
+message DeleteProfileResponse {
+    bool deleted = 1;
+}
+
+message GetOnboardingStatusRequest {
+    string user_id = 1;
+}
+
+message GetOnboardingStatusResponse {
+    ProfileCompleteness completeness = 1;
+}
+
+message UploadAvatarRequest {
+    string user_id = 1;
+    string file_name = 2;
+    string content_type = 3;
+    bytes content = 4;
+}
+
+message UploadAvatarResponse {
+    string avatar_url = 1;
+    string preview_url = 2;
+    string content_type = 3;
+    int64 size_bytes = 4;
+    int32 width = 5;
+    int32 height = 6;
+}
+
+message GetAvatarRequest {
+    string user_id = 1;
+}
+
+message GetAvatarResponse {
+    string file_name = 1;
+    string content_type = 2;
+    bytes content = 3;
+}
+
+message RemoveAvatarRequest {
+    string user_id = 1;
+}
+
+message RemoveAvatarResponse {
+    bool removed = 1;
+}
+
+message Profile {
+    int64 id = 1;
+    string user_id = 2;
+    string role = 3;
+    string first_name = 4;
+    string last_name = 5;
+    string display_name = 6;
+    string avatar_url = 7;
+    string language = 8;
+    string contact_email = 9;
+    string contact_phone = 10;
+    string bio = 11;
+    bool deleted = 12;
+    ClientProfileInput client = 13;
+    FreelancerProfileInput freelancer = 14;
+}
+
+message ProfileCompleteness {
+    uint32 percent = 1;
+    repeated string missing_required_fields = 2;
 }
 
 message ClientProfileInput {

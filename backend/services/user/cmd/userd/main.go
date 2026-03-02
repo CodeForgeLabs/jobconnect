@@ -16,6 +16,7 @@ import (
 	"jobconnect/user/internal/config"
 	"jobconnect/user/internal/infrastructure/clock"
 	"jobconnect/user/internal/infrastructure/db"
+	"jobconnect/user/internal/infrastructure/media"
 
 	"google.golang.org/grpc"
 )
@@ -46,8 +47,29 @@ func main() {
 		Profiles: profileRepo,
 		Clock:    clockImpl,
 	}
+	getProfileUC := &application.GetProfile{Profiles: profileRepo}
+	updateProfileUC := &application.UpdateProfile{Profiles: profileRepo, Clock: clockImpl}
+	deleteProfileUC := &application.DeleteProfile{Profiles: profileRepo, Clock: clockImpl}
+	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo}
+	uploadAvatarUC := &application.UploadAvatar{
+		Profiles:  profileRepo,
+		Processor: media.NewAvatarProcessor(),
+		Moderator: media.NewBasicAvatarModerator(),
+		Clock:     clockImpl,
+	}
+	getAvatarUC := &application.GetAvatar{Profiles: profileRepo}
+	removeAvatarUC := &application.RemoveAvatar{Profiles: profileRepo}
 
-	userServer := grpcadapter.NewUserServer(createProfileUC)
+	userServer := grpcadapter.NewUserServer(
+		createProfileUC,
+		getProfileUC,
+		updateProfileUC,
+		deleteProfileUC,
+		getOnboardingStatusUC,
+		uploadAvatarUC,
+		getAvatarUC,
+		removeAvatarUC,
+	)
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
 	if err != nil {

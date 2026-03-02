@@ -50,16 +50,10 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 
 	switch in.Role {
 	case domain.RoleClient:
-		if in.Client == nil {
-			return CreateProfileOutput{}, fmt.Errorf("client details are required")
-		}
 		if in.Freelancer != nil {
 			return CreateProfileOutput{}, fmt.Errorf("freelancer details not allowed for client")
 		}
 	case domain.RoleFreelancer:
-		if in.Freelancer == nil {
-			return CreateProfileOutput{}, fmt.Errorf("freelancer details are required")
-		}
 		if in.Client != nil {
 			return CreateProfileOutput{}, fmt.Errorf("client details not allowed for freelancer")
 		}
@@ -86,7 +80,9 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 		LastName:    in.LastName,
 		DisplayName: displayName,
 		AvatarURL:   in.AvatarURL,
+		Language:    "en",
 		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	profileID, err := uc.Profiles.Create(ctx, profile, in.Client, in.Freelancer)
