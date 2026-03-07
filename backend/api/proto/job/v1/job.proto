@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+package job.v1;
+
+option go_package = "jobconnect/job/gen/job/v1;jobv1";
+
+service JobService {
+  rpc CreateJob(CreateJobRequest) returns (CreateJobResponse);
+  rpc GetJob(GetJobRequest) returns (GetJobResponse);
+  rpc ListMyJobs(ListMyJobsRequest) returns (ListMyJobsResponse);
+  rpc ListOpenJobs(ListOpenJobsRequest) returns (ListOpenJobsResponse);
+  rpc CloseJob(CloseJobRequest) returns (CloseJobResponse);
+}
+
+message CreateJobRequest {
+  string title = 1;
+  string description = 2;
+  repeated string required_skills = 3;
+  string job_type = 4; // fixed | hourly
+  double budget_fixed = 5;
+  double hourly_rate = 6;
+  string currency = 7;
+  int64 deadline_unix_seconds = 8;
+  repeated JobAttachment attachments = 9;
+}
+
+message CreateJobResponse {
+  Job job = 1;
+}
+
+message GetJobRequest {
+  int64 job_id = 1;
+}
+
+message GetJobResponse {
+  Job job = 1;
+}
+
+message ListMyJobsRequest {
+  string status = 1; // optional: open | closed
+  int32 page_size = 2;
+  string page_token = 3; // offset as string
+}
+
+message ListMyJobsResponse {
+  repeated Job jobs = 1;
+  string next_page_token = 2;
+}
+
+message ListOpenJobsRequest {
+  int32 page_size = 1;
+  string page_token = 2; // offset as string
+}
+
+message ListOpenJobsResponse {
+  repeated Job jobs = 1;
+  string next_page_token = 2;
+}
+
+message CloseJobRequest {
+  int64 job_id = 1;
+  string reason = 2;
+}
+
+message CloseJobResponse {
+  bool closed = 1;
+}
+
+message JobAttachment {
+  int64 id = 1;
+  string file_name = 2;
+  string content_type = 3;
+  string url = 4;
+  int64 size_bytes = 5;
+}
+
+message Job {
+  int64 id = 1;
+  string client_id = 2;
+  string title = 3;
+  string description = 4;
+  repeated string required_skills = 5;
+  string job_type = 6;
+  double budget_fixed = 7;
+  double hourly_rate = 8;
+  string currency = 9;
+  int64 deadline_unix_seconds = 10;
+  repeated JobAttachment attachments = 11;
+  string status = 12;
+  int64 created_at_unix_seconds = 13;
+  int64 updated_at_unix_seconds = 14;
+  int64 closed_at_unix_seconds = 15;
+}

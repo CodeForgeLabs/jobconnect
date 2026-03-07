@@ -1,0 +1,139 @@
+syntax = "proto3";
+
+package proposal.v1;
+
+option go_package = "jobconnect/proposal/gen/proposal/v1;proposalv1";
+
+service ProposalService {
+  rpc SubmitProposal(SubmitProposalRequest) returns (SubmitProposalResponse);
+  rpc ModifyProposal(ModifyProposalRequest) returns (ModifyProposalResponse);
+  rpc WithdrawProposal(WithdrawProposalRequest) returns (WithdrawProposalResponse);
+  rpc GetProposal(GetProposalRequest) returns (GetProposalResponse);
+  rpc ListProposalsByJob(ListProposalsByJobRequest) returns (ListProposalsByJobResponse);
+  rpc ListMyProposals(ListMyProposalsRequest) returns (ListMyProposalsResponse);
+  rpc SetProposalStatus(SetProposalStatusRequest) returns (SetProposalStatusResponse);
+}
+
+enum ProposalStatus {
+  PROPOSAL_STATUS_UNSPECIFIED = 0;
+  PROPOSAL_STATUS_SENT = 1;
+  PROPOSAL_STATUS_SHORTLISTED = 2;
+  PROPOSAL_STATUS_REJECTED = 3;
+  PROPOSAL_STATUS_HIRED = 4;
+  PROPOSAL_STATUS_WITHDRAWN = 5;
+}
+
+enum SortBy {
+  SORT_BY_UNSPECIFIED = 0;
+  SORT_BY_NEWEST = 1;
+  SORT_BY_OLDEST = 2;
+  SORT_BY_BID_HIGH = 3;
+  SORT_BY_BID_LOW = 4;
+}
+
+message ProposalAttachment {
+  int64 id = 1;
+  string file_name = 2;
+  string content_type = 3;
+  string url = 4;
+  int64 size_bytes = 5;
+}
+
+message Proposal {
+  int64 id = 1;
+  int64 job_id = 2;
+  string client_id = 3;
+  string freelancer_id = 4;
+  string cover_letter = 5;
+  string bid_type = 6; // fixed | hourly
+  double bid_amount = 7;
+  int32 estimated_days = 8;
+  repeated ProposalAttachment attachments = 9;
+  ProposalStatus status = 10;
+  string status_reason = 11;
+  int64 created_at_unix_seconds = 12;
+  int64 updated_at_unix_seconds = 13;
+  int64 shortlisted_at_unix_seconds = 14;
+  int64 rejected_at_unix_seconds = 15;
+  int64 hired_at_unix_seconds = 16;
+  int64 withdrawn_at_unix_seconds = 17;
+}
+
+message SubmitProposalRequest {
+  int64 job_id = 1;
+  string cover_letter = 2;
+  string bid_type = 3;
+  double bid_amount = 4;
+  int32 estimated_days = 5;
+  repeated ProposalAttachment attachments = 6;
+}
+
+message SubmitProposalResponse {
+  Proposal proposal = 1;
+}
+
+message ModifyProposalRequest {
+  int64 proposal_id = 1;
+  string cover_letter = 2;
+  double bid_amount = 3;
+  int32 estimated_days = 4;
+  repeated ProposalAttachment attachments = 5;
+}
+
+message ModifyProposalResponse {
+  Proposal proposal = 1;
+}
+
+message WithdrawProposalRequest {
+  int64 proposal_id = 1;
+  string reason = 2;
+}
+
+message WithdrawProposalResponse {
+  bool withdrawn = 1;
+}
+
+message GetProposalRequest {
+  int64 proposal_id = 1;
+}
+
+message GetProposalResponse {
+  Proposal proposal = 1;
+}
+
+message ListProposalsByJobRequest {
+  int64 job_id = 1;
+  repeated ProposalStatus status_filter = 2;
+  optional string freelancer_id_filter = 3;
+  SortBy sort_by = 4;
+  int32 page_size = 5;
+  string page_token = 6;
+}
+
+message ListProposalsByJobResponse {
+  repeated Proposal proposals = 1;
+  string next_page_token = 2;
+}
+
+message ListMyProposalsRequest {
+  repeated ProposalStatus status_filter = 1;
+  optional int64 job_id_filter = 2;
+  SortBy sort_by = 3;
+  int32 page_size = 4;
+  string page_token = 5;
+}
+
+message ListMyProposalsResponse {
+  repeated Proposal proposals = 1;
+  string next_page_token = 2;
+}
+
+message SetProposalStatusRequest {
+  int64 proposal_id = 1;
+  ProposalStatus status = 2; // shortlisted | rejected | hired
+  string reason = 3;
+}
+
+message SetProposalStatusResponse {
+  Proposal proposal = 1;
+}
