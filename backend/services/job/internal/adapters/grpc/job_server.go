@@ -2,7 +2,6 @@ package grpcadapter
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	jobv1 "jobconnect/job/gen/job/v1"
@@ -17,6 +16,7 @@ type JobServer struct {
 	jobv1.UnimplementedJobServiceServer
 	CreateJobUC    *application.CreateJob
 	GetJobUC       *application.GetJob
+	UpdateJobUC    *application.UpdateJob
 	ListMyJobsUC   *application.ListMyJobs
 	ListOpenJobsUC *application.ListOpenJobs
 	CloseJobUC     *application.CloseJob
@@ -26,6 +26,7 @@ type JobServer struct {
 func NewJobServer(
 	createJob *application.CreateJob,
 	getJob *application.GetJob,
+	updateJob *application.UpdateJob,
 	listMyJobs *application.ListMyJobs,
 	listOpenJobs *application.ListOpenJobs,
 	closeJob *application.CloseJob,
@@ -34,6 +35,7 @@ func NewJobServer(
 	return &JobServer{
 		CreateJobUC:    createJob,
 		GetJobUC:       getJob,
+		UpdateJobUC:    updateJob,
 		ListMyJobsUC:   listMyJobs,
 		ListOpenJobsUC: listOpenJobs,
 		CloseJobUC:     closeJob,
@@ -70,7 +72,6 @@ func (s *JobServer) CreateJob(ctx context.Context, req *jobv1.CreateJobRequest) 
 			SizeBytes:   a.SizeBytes,
 		})
 	}
-	fmt.Println(req.JobType)
 	out, err := s.CreateJobUC.Execute(ctx, application.CreateJobInput{
 		ClientID:       callerID,
 		Title:          req.Title,
@@ -108,6 +109,69 @@ func (s *JobServer) GetJob(ctx context.Context, req *jobv1.GetJobRequest) (*jobv
 	return &jobv1.GetJobResponse{Job: toProtoJob(out.Job)}, nil
 }
 
+func (s *JobServer) UpdateJob(ctx context.Context, req *jobv1.UpdateJobRequest) (*jobv1.UpdateJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	in := application.UpdateJobInput{
+		JobID:    req.JobId,
+		ClientID: callerID,
+	}
+	if req.Title != nil {
+		in.Title = req.Title
+	}
+	if req.Description != nil {
+		in.Description = req.Description
+	}
+	if len(req.RequiredSkills) > 0 {
+		in.RequiredSkills = req.RequiredSkills
+	}
+	if req.JobType != nil {
+		in.JobType = req.JobType
+	}
+	if req.BudgetFixed != nil {
+		in.BudgetFixed = req.BudgetFixed
+	}
+	if req.HourlyRate != nil {
+		in.HourlyRate = req.HourlyRate
+	}
+	if req.Currency != nil {
+		in.Currency = req.Currency
+	}
+	if req.DeadlineUnixSeconds != nil {
+		in.Deadline = req.DeadlineUnixSeconds
+	}
+	if len(req.Attachments) > 0 {
+		attachments := make([]domain.Attachment, 0, len(req.Attachments))
+		for _, a := range req.Attachments {
+			if a == nil {
+				continue
+			}
+			attachments = append(attachments, domain.Attachment{
+				FileName:    a.FileName,
+				ContentType: a.ContentType,
+				URL:         a.Url,
+				SizeBytes:   a.SizeBytes,
+			})
+		}
+		in.Attachments = attachments
+	}
+
+	out, err := s.UpdateJobUC.Execute(ctx, in)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.UpdateJobResponse{Job: toProtoJob(out.Job)}, nil
+}
+
 func (s *JobServer) ListMyJobs(ctx context.Context, req *jobv1.ListMyJobsRequest) (*jobv1.ListMyJobsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -140,7 +204,13 @@ func (s *JobServer) ListOpenJobs(ctx context.Context, req *jobv1.ListOpenJobsReq
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
-	out, err := s.ListOpenJobsUC.Execute(ctx, application.ListOpenJobsInput{PageSize: req.PageSize, PageToken: req.PageToken})
+	out, err := s.ListOpenJobsUC.Execute(ctx, application.ListOpenJobsInput{
+		PageSize:    req.PageSize,
+		PageToken:   req.PageToken,
+		SearchQuery: req.SearchQuery,
+		Skills:      req.Skills,
+		JobType:     req.JobType,
+	})
 	if err != nil {
 		return nil, toStatus(err)
 	}
