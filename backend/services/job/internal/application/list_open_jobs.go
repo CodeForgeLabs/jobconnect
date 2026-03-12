@@ -13,8 +13,11 @@ type ListOpenJobs struct {
 }
 
 type ListOpenJobsInput struct {
-	PageSize  int32
-	PageToken string
+	PageSize    int32
+	PageToken   string
+	SearchQuery string
+	Skills      []string
+	JobType     string
 }
 
 type ListOpenJobsOutput struct {
@@ -29,7 +32,20 @@ func (uc *ListOpenJobs) Execute(ctx context.Context, in ListOpenJobsInput) (List
 		return ListOpenJobsOutput{}, err
 	}
 
-	jobs, err := uc.Jobs.ListOpen(ctx, limit, offset)
+	hasFilter := in.SearchQuery != "" || len(in.Skills) > 0 || in.JobType != ""
+
+	var jobs []domain.Job
+	if hasFilter {
+		jobs, err = uc.Jobs.ListOpenFiltered(ctx, ListOpenFilter{
+			SearchQuery: in.SearchQuery,
+			Skills:      in.Skills,
+			JobType:     in.JobType,
+			Limit:       limit,
+			Offset:      offset,
+		})
+	} else {
+		jobs, err = uc.Jobs.ListOpen(ctx, limit, offset)
+	}
 	if err != nil {
 		return ListOpenJobsOutput{}, err
 	}

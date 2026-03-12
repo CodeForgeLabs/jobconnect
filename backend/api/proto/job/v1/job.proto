@@ -7,6 +7,7 @@ option go_package = "jobconnect/job/gen/job/v1;jobv1";
 service JobService {
   rpc CreateJob(CreateJobRequest) returns (CreateJobResponse);
   rpc GetJob(GetJobRequest) returns (GetJobResponse);
+  rpc UpdateJob(UpdateJobRequest) returns (UpdateJobResponse);
   rpc ListMyJobs(ListMyJobsRequest) returns (ListMyJobsResponse);
   rpc ListOpenJobs(ListOpenJobsRequest) returns (ListOpenJobsResponse);
   rpc CloseJob(CloseJobRequest) returns (CloseJobResponse);
@@ -50,6 +51,11 @@ message ListMyJobsResponse {
 message ListOpenJobsRequest {
   int32 page_size = 1;
   string page_token = 2; // offset as string
+
+  // Filters (all optional).
+  string search_query = 3;
+  repeated string skills = 4;
+  string job_type = 5; // fixed | hourly
 }
 
 message ListOpenJobsResponse {
@@ -64,6 +70,23 @@ message CloseJobRequest {
 
 message CloseJobResponse {
   bool closed = 1;
+}
+
+message UpdateJobRequest {
+  int64 job_id = 1;
+  optional string title = 2;
+  optional string description = 3;
+  repeated string required_skills = 4;
+  optional string job_type = 5; // fixed | hourly
+  optional double budget_fixed = 6;
+  optional double hourly_rate = 7;
+  optional string currency = 8;
+  optional int64 deadline_unix_seconds = 9;
+  repeated JobAttachment attachments = 10;
+}
+
+message UpdateJobResponse {
+  Job job = 1;
 }
 
 message JobAttachment {
