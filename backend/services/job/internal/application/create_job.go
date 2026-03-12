@@ -34,7 +34,6 @@ type CreateJobOutput struct {
 }
 
 func (uc *CreateJob) Execute(ctx context.Context, in CreateJobInput) (CreateJobOutput, error) {
-	fmt.Println("job type", in.JobType)
 	now := uc.Clock.Now()
 	job := domain.Job{
 		ClientID:       in.ClientID,
