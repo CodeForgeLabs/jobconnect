@@ -1,0 +1,167 @@
+package main
+
+import (
+	"bufio"
+	"context"
+	"log"
+	"net"
+	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
+
+	grpcadapter "jobconnect/contract/internal/adapters/grpc"
+	"jobconnect/contract/internal/application"
+	"jobconnect/contract/internal/config"
+	"jobconnect/contract/internal/infrastructure/clock"
+	"jobconnect/contract/internal/infrastructure/db"
+	"jobconnect/contract/internal/infrastructure/jobgrpc"
+	"jobconnect/contract/internal/infrastructure/proposalgrpc"
+	"jobconnect/contract/internal/infrastructure/tokens"
+
+	proposalv1 "jobconnect/proposal/gen/proposal/v1"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+)
+
+func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := loadDotEnv(".env"); err != nil && !os.IsNotExist(err) {
+		log.Fatalf("load .env: %v", err)
+	}
+
+	cfg, err := config.LoadFromEnv()
+	if err != nil {
+		log.Fatalf("config: %v", err)
+	}
+
+	pool, err := db.NewPool(ctx, cfg.PostgresURL)
+	if err != nil {
+		log.Fatalf("postgres: %v", err)
+	}
+	defer pool.Close()
+
+	proposalConn, err := grpc.NewClient(cfg.ProposalServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("proposal service dial: %v", err)
+	}
+	defer proposalConn.Close()
+
+	repo := db.NewContractRepo(pool)
+	clockImpl := clock.NewRealClock()
+	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
+	jwtIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
+	proposalClient := proposalgrpc.NewProposalClient(proposalv1.NewProposalServiceClient(proposalConn), jwtIssuer)
+	jobClient := jobgrpc.NewNoopJobClient()
+
+	createUC := &application.CreateContract{Contracts: repo, Clock: clockImpl}
+	getUC := &application.GetContract{Contracts: repo}
+	listUC := &application.ListMyContracts{Contracts: repo}
+	acceptUC := &application.AcceptContract{Contracts: repo, Proposals: proposalClient, Jobs: jobClient, Clock: clockImpl}
+	declineUC := &application.DeclineContract{Contracts: repo, Clock: clockImpl}
+	updateMilestoneStatusUC := &application.UpdateMilestoneStatus{Contracts: repo, Clock: clockImpl}
+	logHourlyWorkUC := &application.LogHourlyWork{Contracts: repo, Clock: clockImpl}
+	listHourlyLogsUC := &application.ListHourlyLogs{Contracts: repo}
+	reviewHourlyLogUC := &application.ReviewHourlyLog{Contracts: repo, Clock: clockImpl}
+	proposeAmendmentUC := &application.ProposeAmendment{Contracts: repo, Clock: clockImpl}
+	respondAmendmentUC := &application.RespondAmendment{Contracts: repo, Clock: clockImpl}
+	listAmendmentsUC := &application.ListAmendments{Contracts: repo}
+	pauseUC := &application.PauseContract{Contracts: repo, Clock: clockImpl}
+	resumeUC := &application.ResumeContract{Contracts: repo, Clock: clockImpl}
+	endUC := &application.EndContract{Contracts: repo, Clock: clockImpl}
+	getStatusHistoryUC := &application.GetStatusHistory{Contracts: repo}
+
+	contractServer := grpcadapter.NewContractServer(
+		createUC,
+		getUC,
+		listUC,
+		acceptUC,
+		declineUC,
+		updateMilestoneStatusUC,
+		logHourlyWorkUC,
+		listHourlyLogsUC,
+		reviewHourlyLogUC,
+		proposeAmendmentUC,
+		respondAmendmentUC,
+		listAmendmentsUC,
+		pauseUC,
+		resumeUC,
+		endUC,
+		getStatusHistoryUC,
+		jwtParser,
+	)
+
+	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
+	if err != nil {
+		log.Fatalf("listen: %v", err)
+	}
+
+	grpcServer := grpc.NewServer()
+	grpcadapter.NewServer(contractServer).Register(grpcServer)
+
+	go func() {
+		log.Printf("contract gRPC listening on %s", cfg.GRPCListenAddr)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Printf("serve: %v", err)
+			cancel()
+		}
+	}()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	select {
+	case <-sigCh:
+		log.Printf("shutdown requested")
+	case <-ctx.Done():
+	}
+
+	gracefulStop(grpcServer)
+}
+
+func gracefulStop(srv *grpc.Server) {
+	stopped := make(chan struct{})
+	go func() {
+		srv.GracefulStop()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(5 * time.Second):
+		srv.Stop()
+	}
+}
+
+func loadDotEnv(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, val, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		val = strings.TrimSpace(val)
+		val = strings.Trim(val, "\"'")
+		if key == "" {
+			continue
+		}
+		if _, exists := os.LookupEnv(key); !exists {
+			_ = os.Setenv(key, val)
+		}
+	}
+
+	return scanner.Err()
+}

@@ -1,0 +1,314 @@
+syntax = "proto3";
+
+package contract.v1;
+
+option go_package = "jobconnect/contract/gen/contract/v1;contractv1";
+
+service ContractService {
+  rpc CreateContract(CreateContractRequest) returns (CreateContractResponse);
+  rpc GetContract(GetContractRequest) returns (GetContractResponse);
+  rpc ListMyContracts(ListMyContractsRequest) returns (ListMyContractsResponse);
+
+  rpc AcceptContract(AcceptContractRequest) returns (AcceptContractResponse);
+  rpc DeclineContract(DeclineContractRequest) returns (DeclineContractResponse);
+
+  rpc UpdateMilestoneStatus(UpdateMilestoneStatusRequest) returns (UpdateMilestoneStatusResponse);
+
+  rpc LogHourlyWork(LogHourlyWorkRequest) returns (LogHourlyWorkResponse);
+  rpc ListHourlyLogs(ListHourlyLogsRequest) returns (ListHourlyLogsResponse);
+  rpc ReviewHourlyLog(ReviewHourlyLogRequest) returns (ReviewHourlyLogResponse);
+
+  rpc ProposeAmendment(ProposeAmendmentRequest) returns (ProposeAmendmentResponse);
+  rpc RespondAmendment(RespondAmendmentRequest) returns (RespondAmendmentResponse);
+  rpc ListAmendments(ListAmendmentsRequest) returns (ListAmendmentsResponse);
+
+  rpc PauseContract(PauseContractRequest) returns (PauseContractResponse);
+  rpc ResumeContract(ResumeContractRequest) returns (ResumeContractResponse);
+  rpc EndContract(EndContractRequest) returns (EndContractResponse);
+
+  rpc GetStatusHistory(GetStatusHistoryRequest) returns (GetStatusHistoryResponse);
+}
+
+enum ContractType {
+  CONTRACT_TYPE_UNSPECIFIED = 0;
+  CONTRACT_TYPE_FIXED = 1;
+  CONTRACT_TYPE_HOURLY = 2;
+}
+
+enum ContractStatus {
+  CONTRACT_STATUS_UNSPECIFIED = 0;
+  CONTRACT_STATUS_PENDING_ACCEPTANCE = 1;
+  CONTRACT_STATUS_ACTIVE = 2;
+  CONTRACT_STATUS_DECLINED = 3;
+  CONTRACT_STATUS_PAUSED = 4;
+  CONTRACT_STATUS_ENDED = 5;
+}
+
+enum MilestoneStatus {
+  MILESTONE_STATUS_UNSPECIFIED = 0;
+  MILESTONE_STATUS_PENDING = 1;
+  MILESTONE_STATUS_SUBMITTED = 2;
+  MILESTONE_STATUS_CHANGES_REQUESTED = 3;
+  MILESTONE_STATUS_APPROVED = 4;
+}
+
+enum HourlyLogStatus {
+  HOURLY_LOG_STATUS_UNSPECIFIED = 0;
+  HOURLY_LOG_STATUS_PENDING = 1;
+  HOURLY_LOG_STATUS_APPROVED = 2;
+  HOURLY_LOG_STATUS_REJECTED = 3;
+}
+
+enum AmendmentStatus {
+  AMENDMENT_STATUS_UNSPECIFIED = 0;
+  AMENDMENT_STATUS_PENDING = 1;
+  AMENDMENT_STATUS_ACCEPTED = 2;
+  AMENDMENT_STATUS_REJECTED = 3;
+  AMENDMENT_STATUS_EXPIRED = 4;
+}
+
+message Milestone {
+  int64 id = 1;
+  string title = 2;
+  string description = 3;
+  double amount = 4;
+  string currency = 5;
+  int64 due_at_unix_seconds = 6;
+  MilestoneStatus status = 7;
+  string submission_note = 8;
+  repeated string submission_urls = 9;
+  int64 submitted_at_unix_seconds = 10;
+  string review_note = 11;
+  int64 reviewed_at_unix_seconds = 12;
+  int32 revision_count = 13;
+}
+
+message HourlyLog {
+  int64 id = 1;
+  int64 contract_id = 2;
+  string freelancer_id = 3;
+  int64 work_date_unix_seconds = 4;
+  int64 start_at_unix_seconds = 5;
+  int64 end_at_unix_seconds = 6;
+  int32 duration_minutes = 7;
+  string note = 8;
+  HourlyLogStatus status = 9;
+  string review_note = 10;
+  int64 created_at_unix_seconds = 11;
+  int64 reviewed_at_unix_seconds = 12;
+}
+
+message Amendment {
+  int64 id = 1;
+  int64 contract_id = 2;
+  string proposed_by = 3;
+  string summary = 4;
+  string payload_json = 5;
+  AmendmentStatus status = 6;
+  int64 expires_at_unix_seconds = 7;
+  int64 responded_at_unix_seconds = 8;
+  int64 created_at_unix_seconds = 9;
+}
+
+message StatusHistoryEntry {
+  int64 id = 1;
+  int64 contract_id = 2;
+  ContractStatus status = 3;
+  string reason = 4;
+  string actor_id = 5;
+  int64 created_at_unix_seconds = 6;
+}
+
+message Contract {
+  int64 id = 1;
+  string client_id = 2;
+  string freelancer_id = 3;
+  int64 job_id = 4;
+  int64 proposal_id = 5;
+  ContractType contract_type = 6;
+  ContractStatus status = 7;
+
+  string title = 8;
+  string description = 9;
+  string currency = 10;
+  double hourly_rate = 11;
+  double fixed_total = 12;
+  int32 weekly_hour_limit = 13;
+
+  repeated Milestone milestones = 14;
+
+  int64 created_at_unix_seconds = 15;
+  int64 updated_at_unix_seconds = 16;
+  int64 activated_at_unix_seconds = 17;
+  int64 declined_at_unix_seconds = 18;
+  int64 paused_at_unix_seconds = 19;
+  int64 ended_at_unix_seconds = 20;
+}
+
+message CreateContractRequest {
+  string freelancer_id = 1;
+  int64 job_id = 2;
+  int64 proposal_id = 3;
+  ContractType contract_type = 4;
+  string title = 5;
+  string description = 6;
+  string currency = 7;
+  double hourly_rate = 8;
+  double fixed_total = 9;
+  int32 weekly_hour_limit = 10;
+  repeated Milestone milestones = 11;
+}
+
+message CreateContractResponse {
+  Contract contract = 1;
+}
+
+message GetContractRequest {
+  int64 contract_id = 1;
+}
+
+message GetContractResponse {
+  Contract contract = 1;
+}
+
+message ListMyContractsRequest {
+  ContractStatus status = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListMyContractsResponse {
+  repeated Contract contracts = 1;
+  string next_page_token = 2;
+}
+
+message AcceptContractRequest {
+  int64 contract_id = 1;
+}
+
+message AcceptContractResponse {
+  Contract contract = 1;
+}
+
+message DeclineContractRequest {
+  int64 contract_id = 1;
+  string reason = 2;
+}
+
+message DeclineContractResponse {
+  Contract contract = 1;
+}
+
+message UpdateMilestoneStatusRequest {
+  int64 contract_id = 1;
+  int64 milestone_id = 2;
+  MilestoneStatus status = 3;
+  string submission_note = 5;
+  repeated string submission_urls = 6;
+  string review_note = 7;
+}
+
+message UpdateMilestoneStatusResponse {
+  Contract contract = 1;
+}
+
+message LogHourlyWorkRequest {
+  int64 contract_id = 1;
+  int64 start_at_unix_seconds = 2;
+  int64 end_at_unix_seconds = 3;
+  string note = 4;
+}
+
+message LogHourlyWorkResponse {
+  HourlyLog hourly_log = 1;
+}
+
+message ListHourlyLogsRequest {
+  int64 contract_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListHourlyLogsResponse {
+  repeated HourlyLog hourly_logs = 1;
+  string next_page_token = 2;
+}
+
+message ReviewHourlyLogRequest {
+  int64 hourly_log_id = 1;
+  HourlyLogStatus status = 2;
+  string review_note = 3;
+}
+
+message ReviewHourlyLogResponse {
+  HourlyLog hourly_log = 1;
+}
+
+message ProposeAmendmentRequest {
+  int64 contract_id = 1;
+  string summary = 2;
+  string payload_json = 3;
+  int64 expires_at_unix_seconds = 4;
+}
+
+message ProposeAmendmentResponse {
+  Amendment amendment = 1;
+}
+
+message RespondAmendmentRequest {
+  int64 amendment_id = 1;
+  AmendmentStatus status = 2;
+}
+
+message RespondAmendmentResponse {
+  Amendment amendment = 1;
+}
+
+message ListAmendmentsRequest {
+  int64 contract_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListAmendmentsResponse {
+  repeated Amendment amendments = 1;
+  string next_page_token = 2;
+}
+
+message PauseContractRequest {
+  int64 contract_id = 1;
+  string reason = 2;
+}
+
+message PauseContractResponse {
+  Contract contract = 1;
+}
+
+message ResumeContractRequest {
+  int64 contract_id = 1;
+  string reason = 2;
+}
+
+message ResumeContractResponse {
+  Contract contract = 1;
+}
+
+message EndContractRequest {
+  int64 contract_id = 1;
+  string reason = 2;
+}
+
+message EndContractResponse {
+  Contract contract = 1;
+}
+
+message GetStatusHistoryRequest {
+  int64 contract_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message GetStatusHistoryResponse {
+  repeated StatusHistoryEntry entries = 1;
+  string next_page_token = 2;
+}
