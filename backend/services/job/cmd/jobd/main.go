@@ -25,7 +25,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := loadDotEnv(".env"); err != nil && !os.IsNotExist(err) {
+	if err := loadDotEnv(".env", "../../.env", "../../../.env"); err != nil {
 		log.Fatalf("load .env: %v", err)
 	}
 
@@ -101,7 +101,20 @@ func gracefulStop(srv *grpc.Server) {
 	}
 }
 
-func loadDotEnv(path string) error {
+func loadDotEnv(paths ...string) error {
+	for _, path := range paths {
+		if err := loadDotEnvFile(path); err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func loadDotEnvFile(path string) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return err

@@ -1,0 +1,200 @@
+services:
+  auth-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: auth
+      POSTGRES_PASSWORD: auth
+      POSTGRES_DB: jobconnect_auth
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth -d jobconnect_auth"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  user-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+      POSTGRES_DB: jobconnect_user
+    ports:
+      - "5433:5432"
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d jobconnect_user"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  job-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: job
+      POSTGRES_PASSWORD: job
+      POSTGRES_DB: jobconnect_job
+    ports:
+      - "5434:5432"
+    volumes:
+      - job-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U job -d jobconnect_job"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  proposal-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: proposal
+      POSTGRES_PASSWORD: proposal
+      POSTGRES_DB: jobconnect_proposal
+    ports:
+      - "5435:5432"
+    volumes:
+      - proposal-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proposal -d jobconnect_proposal"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  contract-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: contract
+      POSTGRES_PASSWORD: contract
+      POSTGRES_DB: jobconnect_contract
+    ports:
+      - "5436:5432"
+    volumes:
+      - contract-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U contract -d jobconnect_contract"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  wallet-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: wallet
+      POSTGRES_PASSWORD: wallet
+      POSTGRES_DB: jobconnect_wallet
+    ports:
+      - "5437:5432"
+    volumes:
+      - wallet-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wallet -d jobconnect_wallet"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  user:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: user
+        CMD_PATH: ./cmd/userd
+    env_file:
+      - .env
+    ports:
+      - "50052:50052"
+    depends_on:
+      user-db:
+        condition: service_healthy
+
+  auth:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: auth
+        CMD_PATH: ./cmd/authd
+    env_file:
+      - .env
+    ports:
+      - "50051:50051"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+      user:
+        condition: service_started
+
+  job:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: job
+        CMD_PATH: ./cmd/jobd
+    env_file:
+      - .env
+    ports:
+      - "50053:50053"
+    depends_on:
+      job-db:
+        condition: service_healthy
+
+  proposal:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: proposal
+        CMD_PATH: ./cmd/proposald
+    env_file:
+      - .env
+    ports:
+      - "50054:50054"
+    depends_on:
+      proposal-db:
+        condition: service_healthy
+      job:
+        condition: service_started
+
+  contract:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: contract
+        CMD_PATH: ./cmd/contractd
+    env_file:
+      - .env
+    ports:
+      - "50055:50055"
+    depends_on:
+      contract-db:
+        condition: service_healthy
+      proposal:
+        condition: service_started
+
+  wallet:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: wallet
+        CMD_PATH: ./cmd/walletd
+    env_file:
+      - .env
+    ports:
+      - "50059:50059"
+    depends_on:
+      wallet-db:
+        condition: service_healthy
+
+volumes:
+  auth-db-data:
+  user-db-data:
+  job-db-data:
+  proposal-db-data:
+  contract-db-data:
+  wallet-db-data:
