@@ -1,8 +1,8 @@
 version: v2
 plugins:
-  - local: protoc-gen-go
+  - plugin: go
     out: services/job/gen
     opt: paths=source_relative
-  - local: protoc-gen-go-grpc
+  - plugin: go-grpc
     out: services/job/gen
     opt: paths=source_relative
