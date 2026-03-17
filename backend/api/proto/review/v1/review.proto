@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package review.v1;
+
+option go_package = "jobconnect/review/gen/review/v1;reviewv1";
+
+service ReviewService {
+  rpc CreateReview(CreateReviewRequest) returns (CreateReviewResponse);
+  rpc GetReview(GetReviewRequest) returns (GetReviewResponse);
+  rpc ListReviewsByUser(ListReviewsByUserRequest) returns (ListReviewsByUserResponse);
+  rpc ListReviewsByContract(ListReviewsByContractRequest) returns (ListReviewsByContractResponse);
+  rpc GetUserRatingSummary(GetUserRatingSummaryRequest) returns (GetUserRatingSummaryResponse);
+
+  rpc UpdateReview(UpdateReviewRequest) returns (UpdateReviewResponse);
+  rpc DeleteReview(DeleteReviewRequest) returns (DeleteReviewResponse);
+  rpc ReplyToReview(ReplyToReviewRequest) returns (ReplyToReviewResponse);
+}
+
+message CreateReviewRequest {
+  int64 contract_id = 1;
+  string reviewee_id = 2;        // UUID of the person being reviewed
+  int32 rating = 3;              // 1–5
+  string title = 4;
+  string comment = 5;
+}
+
+message CreateReviewResponse {
+  Review review = 1;
+}
+
+message GetReviewRequest {
+  int64 review_id = 1;
+}
+
+message GetReviewResponse {
+  Review review = 1;
+}
+
+message ListReviewsByUserRequest {
+  string user_id = 1;            // reviews *received* by this user
+  int32 page_size = 2;
+  string page_token = 3;         // offset as string
+}
+
+message ListReviewsByUserResponse {
+  repeated Review reviews = 1;
+  string next_page_token = 2;
+}
+
+message ListReviewsByContractRequest {
+  int64 contract_id = 1;
+}
+
+message ListReviewsByContractResponse {
+  repeated Review reviews = 1;
+}
+
+message GetUserRatingSummaryRequest {
+  string user_id = 1;
+}
+
+message GetUserRatingSummaryResponse {
+  double average_rating = 1;
+  int64 total_reviews = 2;
+}
+
+message UpdateReviewRequest {
+  int64 review_id = 1;
+  optional int32 rating = 2;              // 1–5
+  optional string title = 3;
+  optional string comment = 4;
+}
+
+message UpdateReviewResponse {
+  Review review = 1;
+}
+
+message DeleteReviewRequest {
+  int64 review_id = 1;
+}
+
+message DeleteReviewResponse {
+  bool deleted = 1;
+}
+
+message ReplyToReviewRequest {
+  int64 review_id = 1;
+  string reply_comment = 2;
+}
+
+message ReplyToReviewResponse {
+  Review review = 1;
+}
+
+message Review {
+  int64 id = 1;
+  int64 contract_id = 2;
+  string reviewer_id = 3;
+  string reviewee_id = 4;
+  string reviewer_role = 5;      // "client" or "freelancer"
+  int32 rating = 6;
+  string title = 7;
+  string comment = 8;
+  int64 created_at_unix_seconds = 9;
+  optional int64 updated_at_unix_seconds = 10;
+  optional string reply_comment = 11;
+  optional int64 replied_at_unix_seconds = 12;
+}
