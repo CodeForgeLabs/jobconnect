@@ -29,14 +29,14 @@ Optional dry run:
 ## 3) Start backend services
 
 ```powershell
-docker compose up -d --build user auth job proposal contract wallet
+docker compose up -d --build user auth job proposal contract wallet gateway
 ```
 
 ## 4) Check status and logs
 
 ```powershell
 docker compose ps
-docker compose logs -f auth user job proposal contract wallet
+docker compose logs -f gateway auth user job proposal contract wallet
 ```
 
 ## 5) Stop stack

@@ -12,3 +12,7 @@ func NewNoopSender() *NoopSender {
 func (NoopSender) SendVerifyEmailOTP(ctx context.Context, email, otp string) error {
 	return nil
 }
+
+func (NoopSender) SendPasswordResetOTP(ctx context.Context, email, otp string) error {
+	return nil
+}
