@@ -55,6 +55,12 @@ func (r *fakeCredRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (strin
 	return r.hash, r.found, r.err
 }
 
+func (r *fakeCredRepo) UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error {
+	r.hash = passwordHash
+	r.found = true
+	return nil
+}
+
 type fakeOTPRepo struct {
 	consumeOK  bool
 	consumeErr error
@@ -84,6 +90,10 @@ func (r *fakeSessionRepo) GetByRefreshTokenHash(ctx context.Context, refreshToke
 
 func (r *fakeSessionRepo) GetByID(ctx context.Context, sessionID uuid.UUID) (uuid.UUID, time.Time, bool, error) {
 	return uuid.Nil, time.Time{}, false, nil
+}
+
+func (r *fakeSessionRepo) ListByUserID(ctx context.Context, userID uuid.UUID) ([]application.SessionSummary, error) {
+	return nil, nil
 }
 
 func (r *fakeSessionRepo) RevokeByUserID(ctx context.Context, userID uuid.UUID) error {
@@ -142,6 +152,10 @@ func (fakeTOSRepo) Create(ctx context.Context, userID uuid.UUID, termsVersion, p
 type fakeEmailSender struct{}
 
 func (fakeEmailSender) SendVerifyEmailOTP(ctx context.Context, email, otp string) error {
+	return nil
+}
+
+func (fakeEmailSender) SendPasswordResetOTP(ctx context.Context, email, otp string) error {
 	return nil
 }
 

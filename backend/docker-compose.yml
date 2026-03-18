@@ -191,6 +191,20 @@ services:
       wallet-db:
         condition: service_healthy
 
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      auth:
+        condition: service_started
+      user:
+        condition: service_started
+
 volumes:
   auth-db-data:
   user-db-data:

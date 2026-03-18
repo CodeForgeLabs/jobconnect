@@ -12,6 +12,10 @@ service AuthService {
   rpc Refresh(RefreshRequest) returns (RefreshResponse);
   // Log out current session (by refresh token).
   rpc LogoutEverywhere(LogoutEverywhereRequest) returns (LogoutEverywhereResponse);
+  rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse);
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse);
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
 }
 
 message RegisterRequest {
@@ -65,6 +69,49 @@ message LogoutEverywhereRequest {
 }
 
 message LogoutEverywhereResponse {
+  bool ok = 1;
+}
+
+message ForgotPasswordRequest {
+  string email = 1;
+}
+
+message ForgotPasswordResponse {
+  // Always true for anti-enumeration behavior.
+  bool accepted = 1;
+}
+
+message ResetPasswordRequest {
+  string email = 1;
+  string otp = 2;
+  string new_password = 3;
+}
+
+message ResetPasswordResponse {
+  bool ok = 1;
+}
+
+message ListSessionsRequest {
+  string user_id = 1;
+}
+
+message Session {
+  string session_id = 1;
+  string created_at = 2;
+  string expires_at = 3;
+  string last_used_at = 4;
+}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+}
+
+message RevokeSessionRequest {
+  string user_id = 1;
+  string session_id = 2;
+}
+
+message RevokeSessionResponse {
   bool ok = 1;
 }
 

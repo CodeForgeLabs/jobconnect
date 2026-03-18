@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"jobconnect/auth/internal/application"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -52,6 +54,32 @@ func (r *SessionRepo) GetByID(ctx context.Context, sessionID uuid.UUID) (userID 
 		return uuid.Nil, time.Time{}, false, err
 	}
 	return userID, expiresAt, revokedAt != nil, nil
+}
+
+func (r *SessionRepo) ListByUserID(ctx context.Context, userID uuid.UUID) ([]application.SessionSummary, error) {
+	rows, err := r.pool.Query(ctx, `
+		select id, created_at, expires_at, last_used_at
+		from sessions
+		where user_id = $1 and revoked_at is null and expires_at > now()
+		order by created_at desc
+	`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make([]application.SessionSummary, 0)
+	for rows.Next() {
+		var s application.SessionSummary
+		if err := rows.Scan(&s.ID, &s.CreatedAt, &s.ExpiresAt, &s.LastUsedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, s)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (r *SessionRepo) RevokeByUserID(ctx context.Context, userID uuid.UUID) error {

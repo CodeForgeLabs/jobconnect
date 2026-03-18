@@ -36,6 +36,7 @@ type UserProfileService interface {
 type CredentialRepository interface {
 	Create(ctx context.Context, userID uuid.UUID, passwordHash string) error
 	GetByUserID(ctx context.Context, userID uuid.UUID) (passwordHash string, found bool, err error)
+	UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error
 }
 
 // OTPRepository stores hashed OTPs for email verification / password reset.
@@ -50,9 +51,17 @@ type SessionRepository interface {
 	Create(ctx context.Context, userID uuid.UUID, refreshTokenHash string, expiresAt time.Time) (sessionID uuid.UUID, err error)
 	GetByRefreshTokenHash(ctx context.Context, refreshTokenHash string) (found bool, sessionID uuid.UUID, userID uuid.UUID, expiresAt time.Time, revoked bool, err error)
 	GetByID(ctx context.Context, sessionID uuid.UUID) (userID uuid.UUID, expiresAt time.Time, revoked bool, err error)
+	ListByUserID(ctx context.Context, userID uuid.UUID) ([]SessionSummary, error)
 	RevokeByUserID(ctx context.Context, userID uuid.UUID) error
 	RevokeByID(ctx context.Context, sessionID uuid.UUID) error
 	UpdateLastUsed(ctx context.Context, sessionID uuid.UUID, at time.Time) error
+}
+
+type SessionSummary struct {
+	ID         uuid.UUID
+	CreatedAt  time.Time
+	ExpiresAt  time.Time
+	LastUsedAt *time.Time
 }
 
 // Clock provides current time (testable).
@@ -76,4 +85,5 @@ type TOSRepository interface {
 // EmailSender sends emails (e.g. OTP). No-op stub is fine for now.
 type EmailSender interface {
 	SendVerifyEmailOTP(ctx context.Context, email, otp string) error
+	SendPasswordResetOTP(ctx context.Context, email, otp string) error
 }

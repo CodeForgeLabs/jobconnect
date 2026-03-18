@@ -111,8 +111,29 @@ func main() {
 		Sessions: sessionRepo,
 		Tokens:   tokenIssuer,
 	}
+	forgotPasswordUC := &application.ForgotPassword{
+		Users:     userRepo,
+		OTPs:      otpRepo,
+		Hasher:    hasherImpl,
+		Clock:     clockImpl,
+		EmailSend: emailSender,
+		OTPTTL:    cfg.OTPTTL,
+	}
+	resetPasswordUC := &application.ResetPassword{
+		Users:    userRepo,
+		Creds:    credRepo,
+		OTPs:     otpRepo,
+		Sessions: sessionRepo,
+		Hasher:   hasherImpl,
+	}
+	listSessionsUC := &application.ListSessions{Sessions: sessionRepo}
+	revokeSessionUC := &application.RevokeSession{Sessions: sessionRepo, Clock: clockImpl}
 
 	authServer := grpcadapter.NewAuthServer(registerUC, verifyOTPUC, loginUC, refreshUC, logoutUC)
+	authServer.ForgotPasswordUC = forgotPasswordUC
+	authServer.ResetPasswordUC = resetPasswordUC
+	authServer.ListSessionsUC = listSessionsUC
+	authServer.RevokeSessionUC = revokeSessionUC
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
 	if err != nil {
