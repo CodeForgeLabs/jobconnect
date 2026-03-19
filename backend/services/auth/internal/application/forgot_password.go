@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"math/big"
 	"time"
 
@@ -56,7 +57,9 @@ func (uc *ForgotPassword) Execute(ctx context.Context, in ForgotPasswordInput) (
 	}
 
 	if uc.EmailSend != nil {
-		_ = uc.EmailSend.SendPasswordResetOTP(ctx, email, otp)
+		if err := uc.EmailSend.SendPasswordResetOTP(ctx, email, otp); err != nil {
+			log.Printf("forgot-password otp email send failed email=%s: %v", email, err)
+		}
 	}
 
 	return ForgotPasswordOutput{Accepted: true}, nil
