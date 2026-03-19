@@ -1,12 +1,15 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	authv1 "jobconnect/auth/gen/auth/v1"
 	"jobconnect/gateway/internal/config"
 	"jobconnect/gateway/internal/middleware"
+	"jobconnect/gateway/internal/oauth"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,10 +17,15 @@ import (
 type AuthHandler struct {
 	cfg    config.Config
 	client authv1.AuthServiceClient
+	http   *http.Client
 }
 
 func NewAuthHandler(cfg config.Config, client authv1.AuthServiceClient) *AuthHandler {
-	return &AuthHandler{cfg: cfg, client: client}
+	return &AuthHandler{
+		cfg:    cfg,
+		client: client,
+		http:   &http.Client{Timeout: 15 * time.Second},
+	}
 }
 
 type registerRequest struct {
@@ -47,6 +55,14 @@ type resetPasswordRequest struct {
 	Email       string `json:"email" binding:"required,email"`
 	OTP         string `json:"otp" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required"`
+}
+
+type requestEmailChangeRequest struct {
+	NewEmail string `json:"new_email" binding:"required,email"`
+}
+
+type confirmEmailChangeRequest struct {
+	OTP string `json:"otp" binding:"required"`
 }
 
 type challengeRequest struct {
@@ -194,44 +210,133 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 }
 
 func (h *AuthHandler) RequestEmailChange(c *gin.Context) {
-	_, hasUser := c.Get(middleware.ContextUserID)
+	userIDVal, hasUser := c.Get(middleware.ContextUserID)
 	if !hasUser {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		return
 	}
-	notImplemented(c, "email-change/request", "auth service RPC not implemented yet")
+	userID, _ := userIDVal.(string)
+
+	var req requestEmailChangeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := h.client.RequestEmailChange(c.Request.Context(), &authv1.RequestEmailChangeRequest{
+		UserId:   userID,
+		NewEmail: req.NewEmail,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"otp_sent": resp.GetOtpSent()})
 }
 
 func (h *AuthHandler) ConfirmEmailChange(c *gin.Context) {
-	_, hasUser := c.Get(middleware.ContextUserID)
+	userIDVal, hasUser := c.Get(middleware.ContextUserID)
 	if !hasUser {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
 		return
 	}
-	notImplemented(c, "email-change/confirm", "auth service RPC not implemented yet")
+	userID, _ := userIDVal.(string)
+
+	var req confirmEmailChangeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := h.client.ConfirmEmailChange(c.Request.Context(), &authv1.ConfirmEmailChangeRequest{
+		UserId: userID,
+		Otp:    req.OTP,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"ok": resp.GetOk()})
 }
 
 func (h *AuthHandler) OAuthStart(c *gin.Context) {
-	provider := c.Param("provider")
+	provider := strings.ToLower(strings.TrimSpace(c.Param("provider")))
 	if provider == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "provider is required"})
 		return
 	}
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error":    "oauth start is not implemented yet",
-		"provider": provider,
-	})
+
+	providerCfg, err := h.providerConfig(provider)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	role := strings.TrimSpace(c.Query("role"))
+	state, err := oauth.IssueState(h.cfg.OAuthStateSecret, provider, role, 10*time.Minute)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to issue oauth state"})
+		return
+	}
+	authURL, err := oauth.AuthURL(provider, providerCfg, state)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.Redirect(http.StatusFound, authURL)
 }
 
 func (h *AuthHandler) OAuthCallback(c *gin.Context) {
-	provider := c.Param("provider")
+	provider := strings.ToLower(strings.TrimSpace(c.Param("provider")))
 	if provider == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "provider is required"})
 		return
 	}
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"error":    "oauth callback is not implemented yet",
-		"provider": provider,
+
+	state := c.Query("state")
+	code := c.Query("code")
+	if state == "" || code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "missing oauth code/state"})
+		return
+	}
+
+	claims, err := oauth.ParseState(h.cfg.OAuthStateSecret, state, provider)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid oauth state"})
+		return
+	}
+
+	providerCfg, err := h.providerConfig(provider)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	providerUser, err := oauth.ExchangeAndFetchUser(h.http, provider, providerCfg, code)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "oauth exchange failed"})
+		return
+	}
+
+	resp, err := h.client.OAuthLogin(c.Request.Context(), &authv1.OAuthLoginRequest{
+		Provider:       provider,
+		ProviderUserId: providerUser.ProviderUserID,
+		Email:          providerUser.Email,
+		FirstName:      providerUser.FirstName,
+		LastName:       providerUser.LastName,
+		DisplayName:    providerUser.DisplayName,
+		Role:           claims.Role,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	h.setRefreshCookie(c, resp.GetRefreshToken(), int(h.cfg.RefreshCookieMaxAge.Seconds()))
+	c.JSON(http.StatusOK, gin.H{
+		"access_token":                    resp.GetAccessToken(),
+		"access_token_expires_in_seconds": resp.GetAccessTokenExpiresInSeconds(),
+		"is_new_user":                     resp.GetIsNewUser(),
 	})
 }
 
@@ -333,4 +438,29 @@ func notImplemented(c *gin.Context, endpoint string, reason string) {
 		"endpoint": endpoint,
 		"reason":   reason,
 	})
+}
+
+func (h *AuthHandler) providerConfig(provider string) (oauth.ProviderConfig, error) {
+	switch provider {
+	case "google":
+		if h.cfg.OAuthGoogleClientID == "" || h.cfg.OAuthGoogleClientSecret == "" || h.cfg.OAuthGoogleRedirectURI == "" {
+			return oauth.ProviderConfig{}, fmt.Errorf("google oauth is not configured")
+		}
+		return oauth.ProviderConfig{
+			ClientID:     h.cfg.OAuthGoogleClientID,
+			ClientSecret: h.cfg.OAuthGoogleClientSecret,
+			RedirectURI:  h.cfg.OAuthGoogleRedirectURI,
+		}, nil
+	case "github":
+		if h.cfg.OAuthGitHubClientID == "" || h.cfg.OAuthGitHubClientSecret == "" || h.cfg.OAuthGitHubRedirectURI == "" {
+			return oauth.ProviderConfig{}, fmt.Errorf("github oauth is not configured")
+		}
+		return oauth.ProviderConfig{
+			ClientID:     h.cfg.OAuthGitHubClientID,
+			ClientSecret: h.cfg.OAuthGitHubClientSecret,
+			RedirectURI:  h.cfg.OAuthGitHubRedirectURI,
+		}, nil
+	default:
+		return oauth.ProviderConfig{}, fmt.Errorf("unsupported provider")
+	}
 }

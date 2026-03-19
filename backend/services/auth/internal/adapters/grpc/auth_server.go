@@ -19,15 +19,18 @@ import (
 type AuthServer struct {
 	authv1.UnimplementedAuthServiceServer
 
-	RegisterUC         *application.RegisterUser
-	VerifyEmailOTPUC   *application.VerifyEmailOTP
-	LoginUC            *application.Login
-	RefreshUC          *application.Refresh
-	LogoutEverywhereUC *application.Logout
-	ForgotPasswordUC   *application.ForgotPassword
-	ResetPasswordUC    *application.ResetPassword
-	ListSessionsUC     *application.ListSessions
-	RevokeSessionUC    *application.RevokeSession
+	RegisterUC           *application.RegisterUser
+	VerifyEmailOTPUC     *application.VerifyEmailOTP
+	LoginUC              *application.Login
+	RefreshUC            *application.Refresh
+	LogoutEverywhereUC   *application.Logout
+	ForgotPasswordUC     *application.ForgotPassword
+	ResetPasswordUC      *application.ResetPassword
+	RequestEmailChangeUC *application.RequestEmailChange
+	ConfirmEmailChangeUC *application.ConfirmEmailChange
+	OAuthLoginUC         *application.OAuthLogin
+	ListSessionsUC       *application.ListSessions
+	RevokeSessionUC      *application.RevokeSession
 }
 
 // NewAuthServer returns an AuthServer with the given use-cases.
@@ -37,13 +40,27 @@ func NewAuthServer(
 	login *application.Login,
 	refresh *application.Refresh,
 	logout *application.Logout,
+	forgotPassword *application.ForgotPassword,
+	resetPassword *application.ResetPassword,
+	requestEmailChange *application.RequestEmailChange,
+	confirmEmailChange *application.ConfirmEmailChange,
+	oauthLogin *application.OAuthLogin,
+	listSessions *application.ListSessions,
+	revokeSession *application.RevokeSession,
 ) *AuthServer {
 	return &AuthServer{
-		RegisterUC:         register,
-		VerifyEmailOTPUC:   verifyOTP,
-		LoginUC:            login,
-		RefreshUC:          refresh,
-		LogoutEverywhereUC: logout,
+		RegisterUC:           register,
+		VerifyEmailOTPUC:     verifyOTP,
+		LoginUC:              login,
+		RefreshUC:            refresh,
+		LogoutEverywhereUC:   logout,
+		ForgotPasswordUC:     forgotPassword,
+		ResetPasswordUC:      resetPassword,
+		RequestEmailChangeUC: requestEmailChange,
+		ConfirmEmailChangeUC: confirmEmailChange,
+		OAuthLoginUC:         oauthLogin,
+		ListSessionsUC:       listSessions,
+		RevokeSessionUC:      revokeSession,
 	}
 }
 
@@ -160,6 +177,71 @@ func (s *AuthServer) ResetPassword(ctx context.Context, req *authv1.ResetPasswor
 	return &authv1.ResetPasswordResponse{Ok: true}, nil
 }
 
+func (s *AuthServer) RequestEmailChange(ctx context.Context, req *authv1.RequestEmailChangeRequest) (*authv1.RequestEmailChangeResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if s.RequestEmailChangeUC == nil {
+		return nil, status.Error(codes.Unimplemented, "request email change is not configured")
+	}
+	userID, err := uuid.Parse(strings.TrimSpace(req.UserId))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.RequestEmailChangeUC.Execute(ctx, application.RequestEmailChangeInput{
+		UserID:   userID,
+		NewEmail: req.NewEmail,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &authv1.RequestEmailChangeResponse{OtpSent: out.OTPSent}, nil
+}
+
+func (s *AuthServer) ConfirmEmailChange(ctx context.Context, req *authv1.ConfirmEmailChangeRequest) (*authv1.ConfirmEmailChangeResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if s.ConfirmEmailChangeUC == nil {
+		return nil, status.Error(codes.Unimplemented, "confirm email change is not configured")
+	}
+	userID, err := uuid.Parse(strings.TrimSpace(req.UserId))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if err := s.ConfirmEmailChangeUC.Execute(ctx, application.ConfirmEmailChangeInput{UserID: userID, OTP: req.Otp}); err != nil {
+		return nil, toStatus(err)
+	}
+	return &authv1.ConfirmEmailChangeResponse{Ok: true}, nil
+}
+
+func (s *AuthServer) OAuthLogin(ctx context.Context, req *authv1.OAuthLoginRequest) (*authv1.OAuthLoginResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if s.OAuthLoginUC == nil {
+		return nil, status.Error(codes.Unimplemented, "oauth login is not configured")
+	}
+	out, err := s.OAuthLoginUC.Execute(ctx, application.OAuthLoginInput{
+		Provider:       req.Provider,
+		ProviderUserID: req.ProviderUserId,
+		Email:          req.Email,
+		FirstName:      req.FirstName,
+		LastName:       req.LastName,
+		DisplayName:    req.DisplayName,
+		Role:           req.Role,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &authv1.OAuthLoginResponse{
+		AccessToken:                 out.AccessToken,
+		RefreshToken:                out.RefreshToken,
+		AccessTokenExpiresInSeconds: out.ExpiresInSec,
+		IsNewUser:                   out.IsNewUser,
+	}, nil
+}
+
 func (s *AuthServer) ListSessions(ctx context.Context, req *authv1.ListSessionsRequest) (*authv1.ListSessionsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -222,13 +304,13 @@ func toStatus(err error) error {
 	switch {
 	case contains(msg, "already registered"), contains(msg, "email already"):
 		return status.Error(codes.AlreadyExists, msg)
-	case contains(msg, "invalid email"), contains(msg, "password"), contains(msg, "display name"), contains(msg, "first name"), contains(msg, "last name"), contains(msg, "role"), contains(msg, "terms"), contains(msg, "refresh token required"), contains(msg, "otp is required"), contains(msg, "invalid user_id"), contains(msg, "invalid session_id"):
+	case contains(msg, "invalid email"), contains(msg, "password"), contains(msg, "display name"), contains(msg, "first name"), contains(msg, "last name"), contains(msg, "role"), contains(msg, "terms"), contains(msg, "refresh token required"), contains(msg, "otp is required"), contains(msg, "invalid user_id"), contains(msg, "invalid session_id"), contains(msg, "provider is required"), contains(msg, "provider_user_id is required"):
 		return status.Error(codes.InvalidArgument, msg)
 	case contains(msg, "invalid refresh token"), contains(msg, "refresh token expired"), contains(msg, "session revoked"), contains(msg, "invalid email or password"), contains(msg, "invalid reset credentials"), contains(msg, "invalid or expired otp"):
 		return status.Error(codes.Unauthenticated, msg)
 	case contains(msg, "forbidden session access"):
 		return status.Error(codes.PermissionDenied, msg)
-	case contains(msg, "session not found"):
+	case contains(msg, "session not found"), contains(msg, "oauth identity user not found"):
 		return status.Error(codes.NotFound, msg)
 	default:
 		return status.Error(codes.Internal, fmt.Sprintf("internal error: %v", err))

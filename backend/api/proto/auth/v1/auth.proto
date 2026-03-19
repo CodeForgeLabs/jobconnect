@@ -14,6 +14,9 @@ service AuthService {
   rpc LogoutEverywhere(LogoutEverywhereRequest) returns (LogoutEverywhereResponse);
   rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse);
   rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse);
+  rpc RequestEmailChange(RequestEmailChangeRequest) returns (RequestEmailChangeResponse);
+  rpc ConfirmEmailChange(ConfirmEmailChangeRequest) returns (ConfirmEmailChangeResponse);
+  rpc OAuthLogin(OAuthLoginRequest) returns (OAuthLoginResponse);
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
   rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
 }
@@ -89,6 +92,42 @@ message ResetPasswordRequest {
 
 message ResetPasswordResponse {
   bool ok = 1;
+}
+
+message RequestEmailChangeRequest {
+  string user_id = 1;
+  string new_email = 2;
+}
+
+message RequestEmailChangeResponse {
+  bool otp_sent = 1;
+}
+
+message ConfirmEmailChangeRequest {
+  string user_id = 1;
+  string otp = 2;
+}
+
+message ConfirmEmailChangeResponse {
+  bool ok = 1;
+}
+
+message OAuthLoginRequest {
+  string provider = 1;
+  string provider_user_id = 2;
+  string email = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string display_name = 6;
+  // Optional for first time signup. Defaults to client when omitted.
+  string role = 7;
+}
+
+message OAuthLoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 access_token_expires_in_seconds = 3;
+  bool is_new_user = 4;
 }
 
 message ListSessionsRequest {

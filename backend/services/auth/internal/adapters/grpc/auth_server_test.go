@@ -39,6 +39,10 @@ func (r *fakeUserRepo) SetEmailVerified(ctx context.Context, userID uuid.UUID, a
 	return nil
 }
 
+func (r *fakeUserRepo) UpdateEmail(ctx context.Context, userID uuid.UUID, newEmail string, at time.Time) error {
+	return nil
+}
+
 type fakeCredRepo struct {
 	hash  string
 	found bool
@@ -159,6 +163,10 @@ func (fakeEmailSender) SendPasswordResetOTP(ctx context.Context, email, otp stri
 	return nil
 }
 
+func (fakeEmailSender) SendEmailChangeOTP(ctx context.Context, email, otp string) error {
+	return nil
+}
+
 // --- Tests ---
 
 func TestAuthServer_Login_Success(t *testing.T) {
@@ -191,6 +199,13 @@ func TestAuthServer_Login_Success(t *testing.T) {
 		loginUC,
 		&application.Refresh{},
 		&application.Logout{},
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
 	)
 
 	resp, err := srv.Login(context.Background(), &authv1.LoginRequest{
@@ -236,6 +251,13 @@ func TestAuthServer_Register_Success(t *testing.T) {
 		&application.Login{},
 		&application.Refresh{},
 		&application.Logout{},
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
 	)
 
 	resp, err := srv.Register(context.Background(), &authv1.RegisterRequest{

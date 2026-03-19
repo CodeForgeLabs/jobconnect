@@ -16,3 +16,7 @@ func (NoopSender) SendVerifyEmailOTP(ctx context.Context, email, otp string) err
 func (NoopSender) SendPasswordResetOTP(ctx context.Context, email, otp string) error {
 	return nil
 }
+
+func (NoopSender) SendEmailChangeOTP(ctx context.Context, email, otp string) error {
+	return nil
+}

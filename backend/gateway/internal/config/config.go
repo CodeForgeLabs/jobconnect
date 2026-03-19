@@ -13,6 +13,15 @@ type Config struct {
 	HTTPListenAddr      string
 	AuthServiceGRPCAddr string
 	JWTSecret           []byte
+	OAuthStateSecret    []byte
+
+	OAuthGoogleClientID     string
+	OAuthGoogleClientSecret string
+	OAuthGoogleRedirectURI  string
+
+	OAuthGitHubClientID     string
+	OAuthGitHubClientSecret string
+	OAuthGitHubRedirectURI  string
 
 	RefreshCookieName     string
 	RefreshCookieDomain   string
@@ -30,16 +39,23 @@ func LoadFromEnv() (Config, error) {
 	}
 
 	cfg := Config{
-		HTTPListenAddr:        getEnv("GATEWAY_HTTP_LISTEN_ADDR", ":8080"),
-		AuthServiceGRPCAddr:   getEnv("AUTH_SERVICE_GRPC_ADDR", "auth:50051"),
-		JWTSecret:             []byte(secret),
-		RefreshCookieName:     getEnv("GATEWAY_REFRESH_COOKIE_NAME", "jc_refresh_token"),
-		RefreshCookieDomain:   os.Getenv("GATEWAY_REFRESH_COOKIE_DOMAIN"),
-		RefreshCookieSecure:   getEnvBool("GATEWAY_REFRESH_COOKIE_SECURE", false),
-		RefreshCookieHTTPOnly: getEnvBool("GATEWAY_REFRESH_COOKIE_HTTP_ONLY", true),
-		RefreshCookiePath:     getEnv("GATEWAY_REFRESH_COOKIE_PATH", "/"),
-		RefreshCookieSameSite: parseSameSite(getEnv("GATEWAY_REFRESH_COOKIE_SAME_SITE", "lax")),
-		RefreshCookieMaxAge:   getEnvDurationSeconds("AUTH_REFRESH_TOKEN_TTL_SECONDS", 30*24*60*60),
+		HTTPListenAddr:          getEnv("GATEWAY_HTTP_LISTEN_ADDR", ":8080"),
+		AuthServiceGRPCAddr:     getEnv("AUTH_SERVICE_GRPC_ADDR", "auth:50051"),
+		JWTSecret:               []byte(secret),
+		OAuthStateSecret:        []byte(getEnv("GATEWAY_OAUTH_STATE_SECRET", secret)),
+		OAuthGoogleClientID:     os.Getenv("GATEWAY_OAUTH_GOOGLE_CLIENT_ID"),
+		OAuthGoogleClientSecret: os.Getenv("GATEWAY_OAUTH_GOOGLE_CLIENT_SECRET"),
+		OAuthGoogleRedirectURI:  os.Getenv("GATEWAY_OAUTH_GOOGLE_REDIRECT_URI"),
+		OAuthGitHubClientID:     os.Getenv("GATEWAY_OAUTH_GITHUB_CLIENT_ID"),
+		OAuthGitHubClientSecret: os.Getenv("GATEWAY_OAUTH_GITHUB_CLIENT_SECRET"),
+		OAuthGitHubRedirectURI:  os.Getenv("GATEWAY_OAUTH_GITHUB_REDIRECT_URI"),
+		RefreshCookieName:       getEnv("GATEWAY_REFRESH_COOKIE_NAME", "jc_refresh_token"),
+		RefreshCookieDomain:     os.Getenv("GATEWAY_REFRESH_COOKIE_DOMAIN"),
+		RefreshCookieSecure:     getEnvBool("GATEWAY_REFRESH_COOKIE_SECURE", false),
+		RefreshCookieHTTPOnly:   getEnvBool("GATEWAY_REFRESH_COOKIE_HTTP_ONLY", true),
+		RefreshCookiePath:       getEnv("GATEWAY_REFRESH_COOKIE_PATH", "/"),
+		RefreshCookieSameSite:   parseSameSite(getEnv("GATEWAY_REFRESH_COOKIE_SAME_SITE", "lax")),
+		RefreshCookieMaxAge:     getEnvDurationSeconds("AUTH_REFRESH_TOKEN_TTL_SECONDS", 30*24*60*60),
 	}
 
 	if cfg.AuthServiceGRPCAddr == "" {
