@@ -25,7 +25,7 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler) *gin.Engine {
 	jwtParser := auth.NewJWTParser(cfg.JWTSecret)
 	engine.Use(middleware.OptionalAuth(jwtParser))
 
-	sensitiveLimiter := middleware.NewInMemoryLimiter(rate.Limit(1), 5, 15*time.Minute)
+	sensitiveLimiter := middleware.NewInMemoryLimiter(rate.Limit(1), 5, 15*time.Minute, cfg.ChallengeProofSecret)
 
 	api := engine.Group("/api/v1")
 	authRoutes := api.Group("/auth")
@@ -44,7 +44,7 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler) *gin.Engine {
 	authRoutes.GET("/oauth/:provider/callback", authHandler.OAuthCallback)
 	authRoutes.GET("/sessions", middleware.RequireAuth(jwtParser), authHandler.ListSessions)
 	authRoutes.DELETE("/sessions/:sessionId", middleware.RequireAuth(jwtParser), authHandler.RevokeSession)
-	authRoutes.POST("/challenge", sensitiveLimiter.Middleware(), authHandler.Challenge)
+	authRoutes.POST("/challenge", authHandler.Challenge)
 
 	return engine
 }

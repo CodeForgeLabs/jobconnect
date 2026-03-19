@@ -10,10 +10,16 @@ import (
 )
 
 type Config struct {
-	HTTPListenAddr      string
-	AuthServiceGRPCAddr string
-	JWTSecret           []byte
-	OAuthStateSecret    []byte
+	HTTPListenAddr       string
+	AuthServiceGRPCAddr  string
+	JWTSecret            []byte
+	OAuthStateSecret     []byte
+	ChallengeProofSecret []byte
+	ChallengeProofTTL    time.Duration
+	RecaptchaSecretKey   string
+	RecaptchaMinScore    float64
+	RecaptchaDevBypass   bool
+	RecaptchaBypassToken string
 
 	OAuthGoogleClientID     string
 	OAuthGoogleClientSecret string
@@ -43,6 +49,12 @@ func LoadFromEnv() (Config, error) {
 		AuthServiceGRPCAddr:     getEnv("AUTH_SERVICE_GRPC_ADDR", "auth:50051"),
 		JWTSecret:               []byte(secret),
 		OAuthStateSecret:        []byte(getEnv("GATEWAY_OAUTH_STATE_SECRET", secret)),
+		ChallengeProofSecret:    []byte(getEnv("GATEWAY_CHALLENGE_PROOF_SECRET", secret)),
+		ChallengeProofTTL:       getEnvDurationSeconds("GATEWAY_CHALLENGE_PROOF_TTL_SECONDS", 120),
+		RecaptchaSecretKey:      os.Getenv("GATEWAY_RECAPTCHA_SECRET_KEY"),
+		RecaptchaMinScore:       getEnvFloat("GATEWAY_RECAPTCHA_MIN_SCORE", 0.5),
+		RecaptchaDevBypass:      getEnvBool("GATEWAY_RECAPTCHA_DEV_BYPASS", false),
+		RecaptchaBypassToken:    getEnv("GATEWAY_RECAPTCHA_BYPASS_TOKEN", "dev-human"),
 		OAuthGoogleClientID:     os.Getenv("GATEWAY_OAUTH_GOOGLE_CLIENT_ID"),
 		OAuthGoogleClientSecret: os.Getenv("GATEWAY_OAUTH_GOOGLE_CLIENT_SECRET"),
 		OAuthGoogleRedirectURI:  os.Getenv("GATEWAY_OAUTH_GOOGLE_REDIRECT_URI"),
@@ -93,6 +105,18 @@ func getEnvDurationSeconds(key string, defSeconds int) time.Duration {
 		return time.Duration(defSeconds) * time.Second
 	}
 	return time.Duration(n) * time.Second
+}
+
+func getEnvFloat(key string, def float64) float64 {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	n, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		return def
+	}
+	return n
 }
 
 func parseSameSite(v string) http.SameSite {

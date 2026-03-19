@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"jobconnect/gateway/internal/challenge"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 )
@@ -15,19 +17,21 @@ type keyLimiter struct {
 }
 
 type InMemoryLimiter struct {
-	mu      sync.Mutex
-	entries map[string]*keyLimiter
-	rate    rate.Limit
-	burst   int
-	ttl     time.Duration
+	mu          sync.Mutex
+	entries     map[string]*keyLimiter
+	rate        rate.Limit
+	burst       int
+	ttl         time.Duration
+	proofSecret []byte
 }
 
-func NewInMemoryLimiter(rps rate.Limit, burst int, ttl time.Duration) *InMemoryLimiter {
+func NewInMemoryLimiter(rps rate.Limit, burst int, ttl time.Duration, proofSecret []byte) *InMemoryLimiter {
 	return &InMemoryLimiter{
-		entries: make(map[string]*keyLimiter),
-		rate:    rps,
-		burst:   burst,
-		ttl:     ttl,
+		entries:     make(map[string]*keyLimiter),
+		rate:        rps,
+		burst:       burst,
+		ttl:         ttl,
+		proofSecret: proofSecret,
 	}
 }
 
@@ -36,6 +40,12 @@ func (l *InMemoryLimiter) Middleware() gin.HandlerFunc {
 		key := c.ClientIP()
 		if key == "" {
 			key = "unknown"
+		}
+
+		proof := c.GetHeader("X-Challenge-Proof")
+		if proof != "" && challenge.VerifyProof(l.proofSecret, proof, key, time.Now().UTC()) {
+			c.Next()
+			return
 		}
 
 		if !l.allow(key) {

@@ -60,6 +60,24 @@ When `AUTH_SMTP_HOST` is empty, auth falls back to a no-op sender (no email deli
 - `implicit`: SMTPS style connection (commonly port 465)
 - `none`: plain SMTP (only for trusted local/dev SMTP)
 
+## 4.2) Optional: Enable gateway reCAPTCHA challenge
+
+Set these variables in `backend/.env` (used by `gateway` service):
+
+```powershell
+GATEWAY_RECAPTCHA_SECRET_KEY=your_recaptcha_secret
+GATEWAY_RECAPTCHA_MIN_SCORE=0.5
+GATEWAY_CHALLENGE_PROOF_SECRET=your_random_secret
+GATEWAY_CHALLENGE_PROOF_TTL_SECONDS=120
+```
+
+Challenge flow:
+1. If rate limited, auth endpoints return `challenge_required=true`.
+2. Call `POST /api/v1/auth/challenge` with JSON:
+	- `challenge_id`
+	- `recaptcha_token`
+3. Use returned `challenge_proof` in header `X-Challenge-Proof` on subsequent auth requests.
+
 ## 5) Stop stack
 
 ```powershell
