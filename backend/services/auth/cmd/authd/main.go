@@ -60,7 +60,21 @@ func main() {
 	hasherImpl := hasher.NewArgon2Hasher()
 	clockImpl := clock.NewRealClock()
 	tokenIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
-	emailSender := email.NewNoopSender()
+	var emailSender application.EmailSender = email.NewNoopSender()
+	if cfg.SMTPHost != "" {
+		emailSender = email.NewSMTPSender(
+			cfg.SMTPHost,
+			cfg.SMTPPort,
+			cfg.SMTPTLSMode,
+			cfg.SMTPUsername,
+			cfg.SMTPPassword,
+			cfg.SMTPFromAddress,
+			cfg.SMTPFromName,
+		)
+		log.Printf("smtp email sender enabled host=%s port=%d tls_mode=%s from=%s", cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPTLSMode, cfg.SMTPFromAddress)
+	} else {
+		log.Printf("smtp email sender disabled; using noop sender")
+	}
 
 	userConn, err := grpc.NewClient(cfg.UserServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {

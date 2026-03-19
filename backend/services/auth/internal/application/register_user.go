@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"math/big"
 	"strings"
 	"time"
@@ -136,7 +137,7 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 	otpSent := false
 	if uc.EmailSend != nil {
 		if err := uc.EmailSend.SendVerifyEmailOTP(ctx, email, otp); err != nil {
-			// log but don't fail registration
+			log.Printf("register otp email send failed email=%s: %v", email, err)
 			otpSent = false
 		} else {
 			otpSent = true

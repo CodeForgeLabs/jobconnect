@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"jobconnect/auth/internal/domain"
@@ -62,6 +63,8 @@ func (uc *RequestEmailChange) Execute(ctx context.Context, in RequestEmailChange
 	if uc.EmailSend != nil {
 		if err := uc.EmailSend.SendEmailChangeOTP(ctx, newEmail, otp); err == nil {
 			otpSent = true
+		} else {
+			log.Printf("email-change otp email send failed email=%s: %v", newEmail, err)
 		}
 	}
 
