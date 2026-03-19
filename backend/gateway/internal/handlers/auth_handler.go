@@ -1,12 +1,17 @@
 package handlers
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	authv1 "jobconnect/auth/gen/auth/v1"
+	"jobconnect/gateway/internal/challenge"
 	"jobconnect/gateway/internal/config"
 	"jobconnect/gateway/internal/middleware"
 	"jobconnect/gateway/internal/oauth"
@@ -66,8 +71,8 @@ type confirmEmailChangeRequest struct {
 }
 
 type challengeRequest struct {
-	ChallengeID string `json:"challenge_id" binding:"required"`
-	Response    string `json:"response" binding:"required"`
+	ChallengeID    string `json:"challenge_id" binding:"required"`
+	RecaptchaToken string `json:"recaptcha_token" binding:"required"`
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -387,20 +392,89 @@ func (h *AuthHandler) Challenge(c *gin.Context) {
 		return
 	}
 
-	if req.Response != "human" {
+	passed := false
+	score := 0.0
+	if h.cfg.RecaptchaDevBypass && strings.TrimSpace(req.RecaptchaToken) == h.cfg.RecaptchaBypassToken {
+		passed = true
+		score = 1.0
+	} else {
+		if strings.TrimSpace(h.cfg.RecaptchaSecretKey) == "" {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "recaptcha is not configured"})
+			return
+		}
+
+		var err error
+		passed, score, err = h.verifyRecaptcha(c.Request.Context(), req.RecaptchaToken, c.ClientIP())
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "challenge verification failed"})
+			return
+		}
+	}
+	if !passed {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":            "challenge failed",
 			"challenge_passed": false,
+			"score":            score,
 		})
 		return
 	}
 
-	expiresAt := time.Now().Add(2 * time.Minute).UTC()
+	proof, expiresAt, err := challenge.IssueProof(h.cfg.ChallengeProofSecret, c.ClientIP(), h.cfg.ChallengeProofTTL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to issue challenge proof"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"challenge_passed": true,
-		"challenge_proof":  req.ChallengeID + ":ok",
+		"challenge_proof":  proof,
+		"challenge_id":     req.ChallengeID,
+		"score":            score,
 		"expires_at":       expiresAt.Format(time.RFC3339),
 	})
+}
+
+func (h *AuthHandler) verifyRecaptcha(ctx context.Context, token string, remoteIP string) (bool, float64, error) {
+	form := url.Values{}
+	form.Set("secret", h.cfg.RecaptchaSecretKey)
+	form.Set("response", strings.TrimSpace(token))
+	if remoteIP != "" {
+		form.Set("remoteip", remoteIP)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://www.google.com/recaptcha/api/siteverify", strings.NewReader(form.Encode()))
+	if err != nil {
+		return false, 0, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := h.http.Do(req)
+	if err != nil {
+		return false, 0, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		return false, 0, fmt.Errorf("recaptcha verify http %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return false, 0, err
+	}
+	var out struct {
+		Success bool     `json:"success"`
+		Score   float64  `json:"score"`
+		Errors  []string `json:"error-codes"`
+	}
+	if err := json.Unmarshal(body, &out); err != nil {
+		return false, 0, err
+	}
+	if !out.Success {
+		return false, out.Score, fmt.Errorf("recaptcha rejected")
+	}
+	if out.Score > 0 && out.Score < h.cfg.RecaptchaMinScore {
+		return false, out.Score, nil
+	}
+	return true, out.Score, nil
 }
 
 func (h *AuthHandler) setRefreshCookie(c *gin.Context, token string, maxAgeSeconds int) {
