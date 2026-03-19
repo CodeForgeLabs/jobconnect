@@ -53,6 +53,8 @@ func main() {
 	otpRepo := db.NewOTPRepo(pool)
 	sessionRepo := db.NewSessionRepo(pool)
 	tosRepo := db.NewTOSRepo(pool)
+	emailChangeRepo := db.NewEmailChangeRepo(pool)
+	oauthIdentityRepo := db.NewOAuthIdentityRepo(pool)
 
 	// Infrastructure
 	hasherImpl := hasher.NewArgon2Hasher()
@@ -126,14 +128,47 @@ func main() {
 		Sessions: sessionRepo,
 		Hasher:   hasherImpl,
 	}
+	requestEmailChangeUC := &application.RequestEmailChange{
+		Users:          userRepo,
+		EmailChanges:   emailChangeRepo,
+		Hasher:         hasherImpl,
+		Clock:          clockImpl,
+		EmailSend:      emailSender,
+		EmailOTPExpiry: cfg.OTPTTL,
+	}
+	confirmEmailChangeUC := &application.ConfirmEmailChange{
+		Users:        userRepo,
+		EmailChanges: emailChangeRepo,
+		Hasher:       hasherImpl,
+		Clock:        clockImpl,
+	}
+	oauthLoginUC := &application.OAuthLogin{
+		Users:        userRepo,
+		Identities:   oauthIdentityRepo,
+		Sessions:     sessionRepo,
+		Tokens:       tokenIssuer,
+		Clock:        clockImpl,
+		UserProfiles: userProfiles,
+		AccessTTL:    cfg.AccessTokenTTL,
+		RefreshTTL:   cfg.RefreshTokenTTL,
+	}
 	listSessionsUC := &application.ListSessions{Sessions: sessionRepo}
 	revokeSessionUC := &application.RevokeSession{Sessions: sessionRepo, Clock: clockImpl}
 
-	authServer := grpcadapter.NewAuthServer(registerUC, verifyOTPUC, loginUC, refreshUC, logoutUC)
-	authServer.ForgotPasswordUC = forgotPasswordUC
-	authServer.ResetPasswordUC = resetPasswordUC
-	authServer.ListSessionsUC = listSessionsUC
-	authServer.RevokeSessionUC = revokeSessionUC
+	authServer := grpcadapter.NewAuthServer(
+		registerUC,
+		verifyOTPUC,
+		loginUC,
+		refreshUC,
+		logoutUC,
+		forgotPasswordUC,
+		resetPasswordUC,
+		requestEmailChangeUC,
+		confirmEmailChangeUC,
+		oauthLoginUC,
+		listSessionsUC,
+		revokeSessionUC,
+	)
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
 	if err != nil {

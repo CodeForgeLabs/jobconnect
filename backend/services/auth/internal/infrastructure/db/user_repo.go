@@ -76,3 +76,10 @@ func (r *UserRepo) SetEmailVerified(ctx context.Context, userID uuid.UUID, at ti
 	`, userID, at)
 	return err
 }
+
+func (r *UserRepo) UpdateEmail(ctx context.Context, userID uuid.UUID, newEmail string, at time.Time) error {
+	_, err := r.pool.Exec(ctx, `
+		update users set email = $2, updated_at = $3 where id = $1
+	`, userID, newEmail, at)
+	return err
+}

@@ -35,6 +35,10 @@ func (r *fakeUserRepo) SetEmailVerified(ctx context.Context, userID uuid.UUID, a
 	return errors.New("not implemented")
 }
 
+func (r *fakeUserRepo) UpdateEmail(ctx context.Context, userID uuid.UUID, newEmail string, at time.Time) error {
+	return errors.New("not implemented")
+}
+
 type fakeCredRepo struct {
 	hash  string
 	found bool
