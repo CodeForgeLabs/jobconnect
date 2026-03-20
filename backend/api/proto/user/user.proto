@@ -166,6 +166,15 @@ message Profile {
     AccountStatus status = 15;
     string suspension_reason = 16;
     ProfileVisibility visibility = 17;
+    CapabilityFlags capabilities = 18;
+}
+
+message CapabilityFlags {
+    bool can_apply_jobs = 1;
+    bool can_post_jobs = 2;
+    bool can_withdraw_funds = 3;
+    bool can_message = 4;
+    bool can_be_discovered = 5;
 }
 
 message ProfileCompleteness {
