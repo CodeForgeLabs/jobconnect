@@ -11,8 +11,10 @@ import (
 )
 
 type CloseJob struct {
-	Jobs  JobRepository
-	Clock Clock
+	Jobs      JobRepository
+	Proposals ProposalClient
+	Connects  ConnectsClient
+	Clock     Clock
 }
 
 type CloseJobInput struct {
@@ -40,5 +42,26 @@ func (uc *CloseJob) Execute(ctx context.Context, in CloseJobInput) (CloseJobOutp
 	if err != nil {
 		return CloseJobOutput{}, err
 	}
+
+	// Refund Connects (Best effort refund loop for MVP)
+	// In production, this might be handled via an async event/message queue
+	// to avoid blocking the client request and ensure strict retry semantics on the consumer side.
+	if in.Reason == domain.CloseReasonCanceled {
+		proposals, err := uc.Proposals.ListProposalsByJob(ctx, in.JobID)
+		if err == nil {
+			for _, p := range proposals {
+				if p.ConnectsSpent > 0 {
+					refID := fmt.Sprintf("job_canceled_%d_proposal_%d", in.JobID, p.ID)
+					// We ignore errors on individual refunds for MVP to not fail the loop.
+					// A real implementation would queue these.
+					_ = uc.Connects.RefundConnects(ctx, p.FreelancerID, p.ConnectsSpent, refID)
+				}
+			}
+		} else {
+			// Log error, but job is already closed
+			fmt.Printf("failed to fetch proposals for refunds: %v\n", err)
+		}
+	}
+
 	return CloseJobOutput{Closed: true}, nil
 }

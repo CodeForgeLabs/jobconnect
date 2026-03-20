@@ -29,6 +29,20 @@ type ListOpenFilter struct {
 	Offset      int
 }
 
+type ConnectsClient interface {
+	RefundConnects(ctx context.Context, userID string, amount int32, referenceID string) error
+}
+
+type Proposal struct {
+	ID            int64
+	FreelancerID  string
+	ConnectsSpent int32
+}
+
+type ProposalClient interface {
+	ListProposalsByJob(ctx context.Context, jobID int64) ([]Proposal, error)
+}
+
 type Clock interface {
 	Now() time.Time
 }
