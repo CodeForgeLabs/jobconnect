@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -61,15 +62,85 @@ func (uc *OAuthLogin) Execute(ctx context.Context, in OAuthLoginInput) (OAuthLog
 	var user domain.User
 	isNewUser := false
 	if foundIdentity {
-		user, _, err = uc.Users.GetByID(ctx, identity.UserID)
+		var foundUserByID bool
+		user, foundUserByID, err = uc.Users.GetByID(ctx, identity.UserID)
 		if err != nil {
 			return OAuthLoginOutput{}, err
 		}
-		if user.ID == uuid.Nil {
-			return OAuthLoginOutput{}, fmt.Errorf("oauth identity user not found")
+		if !foundUserByID || user.ID == uuid.Nil {
+			// Attempt self-heal: resolve by email and relink provider identity.
+			var foundByEmail bool
+			var userByEmail domain.User
+			userByEmail, foundByEmail, err = uc.Users.GetByEmail(ctx, email)
+			if err != nil {
+				return OAuthLoginOutput{}, err
+			}
+			if foundByEmail {
+				user = userByEmail
+			} else {
+				role := strings.TrimSpace(in.Role)
+				if role == "" {
+					role = domain.RoleClient
+				}
+				if err := domain.ValidateRole(role); err != nil {
+					return OAuthLoginOutput{}, err
+				}
+
+				firstName := strings.TrimSpace(in.FirstName)
+				if firstName == "" {
+					firstName = "User"
+				}
+				lastName := strings.TrimSpace(in.LastName)
+				if lastName == "" {
+					lastName = "OAuth"
+				}
+				displayName := strings.TrimSpace(in.DisplayName)
+				if displayName == "" {
+					displayName = strings.TrimSpace(firstName + " " + lastName)
+				}
+
+				now := uc.Clock.Now()
+				user, err = uc.Users.Create(ctx, domain.User{
+					ID:              uuid.New(),
+					Email:           email,
+					Role:            role,
+					FirstName:       firstName,
+					LastName:        lastName,
+					DisplayName:     displayName,
+					EmailVerifiedAt: &now,
+					CreatedAt:       now,
+					UpdatedAt:       now,
+				})
+				if err != nil {
+					return OAuthLoginOutput{}, err
+				}
+				if uc.UserProfiles != nil {
+					if err := uc.UserProfiles.CreateProfile(ctx, CreateProfileInput{
+						UserID:      user.ID,
+						Role:        user.Role,
+						FirstName:   user.FirstName,
+						LastName:    user.LastName,
+						DisplayName: user.DisplayName,
+						AvatarURL:   "",
+					}); err != nil {
+						return OAuthLoginOutput{}, err
+					}
+				}
+				isNewUser = true
+			}
+
+			if err := uc.Identities.Create(ctx, OAuthIdentity{
+				UserID:         user.ID,
+				Provider:       provider,
+				ProviderUserID: providerUserID,
+				Email:          email,
+			}); err != nil {
+				return OAuthLoginOutput{}, err
+			}
 		}
 	} else {
-		user, foundUser, err := uc.Users.GetByEmail(ctx, email)
+		var foundUser bool
+		user, foundUser, err = uc.Users.GetByEmail(ctx, email)
 		if err != nil {
 			return OAuthLoginOutput{}, err
 		}
@@ -141,6 +212,7 @@ func (uc *OAuthLogin) Execute(ctx context.Context, in OAuthLoginInput) (OAuthLog
 	}
 	now := uc.Clock.Now()
 	if _, err := uc.Sessions.Create(ctx, user.ID, refreshHash, now.Add(uc.RefreshTTL)); err != nil {
+		log.Printf("oauth session create failed provider=%s provider_user_id=%s user_id=%s email=%s: %v", provider, providerUserID, user.ID.String(), email, err)
 		return OAuthLoginOutput{}, err
 	}
 	accessToken, err := uc.Tokens.IssueAccessToken(user.ID, user.Role, uc.AccessTTL)

@@ -43,7 +43,9 @@ func (r *OAuthIdentityRepo) Create(ctx context.Context, identity application.OAu
 	_, err := r.pool.Exec(ctx, `
 		insert into oauth_identities (user_id, provider, provider_user_id, email)
 		values ($1, $2, $3, $4)
-		on conflict (provider, provider_user_id) do nothing
+		on conflict (provider, provider_user_id) do update
+		set user_id = excluded.user_id,
+		    email = excluded.email
 	`, identity.UserID, identity.Provider, identity.ProviderUserID, identity.Email)
 	return err
 }
