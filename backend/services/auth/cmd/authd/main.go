@@ -12,6 +12,7 @@ import (
 	"time"
 
 	grpcadapter "jobconnect/auth/internal/adapters/grpc"
+	"jobconnect/auth/internal/adapters/grpc/clients"
 	"jobconnect/auth/internal/application"
 	"jobconnect/auth/internal/config"
 	"jobconnect/auth/internal/infrastructure/clock"
@@ -85,6 +86,16 @@ func main() {
 	userClient := userv1.NewUserServiceClient(userConn)
 	userProfiles := usergrpc.NewProfileClient(userClient)
 
+	// Connects Client
+	connectsAddr := os.Getenv("CONNECTS_SERVICE_ADDR")
+	if connectsAddr == "" {
+		connectsAddr = "localhost:50058"
+	}
+	connectsCli, err := clients.NewConnectsClient(connectsAddr)
+	if err != nil {
+		log.Fatalf("connects service dial: %v", err)
+	}
+
 	// Use-cases
 	registerUC := &application.RegisterUser{
 		Users:          userRepo,
@@ -92,6 +103,7 @@ func main() {
 		OTPs:           otpRepo,
 		TOS:            tosRepo,
 		UserProfiles:   userProfiles,
+		Connects:       connectsCli,
 		Hasher:         hasherImpl,
 		Clock:          clockImpl,
 		EmailSend:      emailSender,

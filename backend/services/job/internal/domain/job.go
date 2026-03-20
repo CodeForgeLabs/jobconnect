@@ -16,6 +16,8 @@ const (
 
 	JobStatusOpen   = "open"
 	JobStatusClosed = "closed"
+
+	CloseReasonCanceled = "canceled"
 )
 
 type Attachment struct {

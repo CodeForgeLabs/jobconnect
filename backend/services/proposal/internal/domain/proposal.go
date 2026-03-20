@@ -53,6 +53,8 @@ type Proposal struct {
 	RejectedAt    *time.Time
 	HiredAt       *time.Time
 	WithdrawnAt   *time.Time
+
+	ConnectsSpent int32
 }
 
 func ValidateBidType(v string) error {

@@ -33,12 +33,12 @@ func (r *ProposalRepo) Create(ctx context.Context, p domain.Proposal) (int64, er
 	err = tx.QueryRow(ctx, `
 		insert into proposals (
 			job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
-			status, status_reason, created_at, updated_at
+			status, status_reason, created_at, updated_at, connects_spent
 		)
-		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
 		returning id
 	`, p.JobID, p.ClientID, p.FreelancerID, p.CoverLetter, p.BidType, p.BidAmount, p.EstimatedDays,
-		p.Status, p.StatusReason, p.CreatedAt, p.UpdatedAt).Scan(&id)
+		p.Status, p.StatusReason, p.CreatedAt, p.UpdatedAt, p.ConnectsSpent).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -153,7 +153,7 @@ func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJ
 	idx := 3
 	query := `
 		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
-			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at
+			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at, connects_spent
 		from proposals
 		where client_id = $1 and job_id = $2
 	`
@@ -201,7 +201,7 @@ func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.
 	idx := 2
 	query := `
 		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
-			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at
+			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at, connects_spent
 		from proposals
 		where freelancer_id = $1
 	`
@@ -246,7 +246,7 @@ func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.
 func (r *ProposalRepo) getByWhere(ctx context.Context, where string, args ...any) (domain.Proposal, error) {
 	query := fmt.Sprintf(`
 		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
-			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at
+			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at, connects_spent
 		from proposals
 		%s
 	`, where)
@@ -345,6 +345,7 @@ func scanProposal(scanner rowScanner) (domain.Proposal, error) {
 		&p.RejectedAt,
 		&p.HiredAt,
 		&p.WithdrawnAt,
+		&p.ConnectsSpent,
 	)
 	if err != nil {
 		return domain.Proposal{}, err

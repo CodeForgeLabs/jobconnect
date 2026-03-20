@@ -28,6 +28,10 @@ type JobReader interface {
 	GetJobSummary(ctx context.Context, jobID int64) (JobSummary, error)
 }
 
+type ConnectsClient interface {
+	DeductConnects(ctx context.Context, userID uuid.UUID, amount int32, referenceID string) error
+}
+
 type Clock interface {
 	Now() time.Time
 }

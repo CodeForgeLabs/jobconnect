@@ -69,6 +69,7 @@ func (s *ProposalServer) SubmitProposal(ctx context.Context, req *proposalv1.Sub
 		BidAmount:     req.BidAmount,
 		EstimatedDays: req.EstimatedDays,
 		Attachments:   fromProtoAttachments(req.Attachments),
+		ConnectsSpent: req.ConnectsSpent,
 	})
 	if err != nil {
 		return nil, toStatus(err)
@@ -355,6 +356,7 @@ func toProtoProposal(in domain.Proposal) *proposalv1.Proposal {
 		Attachments:          toProtoAttachments(in.Attachments),
 		Status:               toProtoStatus(in.Status),
 		StatusReason:         in.StatusReason,
+		ConnectsSpent:        in.ConnectsSpent,
 		CreatedAtUnixSeconds: in.CreatedAt.Unix(),
 		UpdatedAtUnixSeconds: in.UpdatedAt.Unix(),
 	}

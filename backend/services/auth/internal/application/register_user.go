@@ -37,6 +37,7 @@ type RegisterUser struct {
 	OTPs           OTPRepository
 	TOS            TOSRepository
 	UserProfiles   UserProfileService
+	Connects       ConnectsClient
 	Hasher         domain.PasswordHasher
 	Clock          Clock
 	EmailSend      EmailSender
@@ -118,6 +119,14 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 			AvatarURL:   "",
 		}); err != nil {
 			return RegisterUserOutput{}, err
+		}
+	}
+
+	// Grant initial connects to freelancers
+	if uc.Connects != nil && strings.ToLower(in.Role) == "freelancer" {
+		if err := uc.Connects.GrantInitialConnects(ctx, u.ID); err != nil {
+			// Do not block registration if promotion fails, but log it
+			fmt.Printf("failed to grant initial connects for user %s: %v\n", u.ID, err)
 		}
 	}
 

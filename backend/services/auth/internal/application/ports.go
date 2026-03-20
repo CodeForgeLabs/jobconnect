@@ -107,3 +107,8 @@ type EmailSender interface {
 	SendPasswordResetOTP(ctx context.Context, email, otp string) error
 	SendEmailChangeOTP(ctx context.Context, email, otp string) error
 }
+
+// ConnectsClient grants virtual currency.
+type ConnectsClient interface {
+	GrantInitialConnects(ctx context.Context, userID uuid.UUID) error
+}
