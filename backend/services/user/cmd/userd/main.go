@@ -71,6 +71,14 @@ func main() {
 		uploadAvatarUC,
 		getAvatarUC,
 		removeAvatarUC,
+		grpcadapter.CapabilityPolicy{
+			MinSkillsForDiscovery:        cfg.CapabilityMinSkillsForDiscovery,
+			RequireVerifiedForWithdraw:   cfg.CapabilityRequireVerifiedForWithdraw,
+			RequirePublicForDiscovery:    cfg.CapabilityRequirePublicForDiscovery,
+			RequireHeadlineForFreelancer: cfg.CapabilityRequireHeadlineForFreelancer,
+			RequireCompanyNameForClient:  cfg.CapabilityRequireCompanyNameForClient,
+			AllowMessagingWhenSuspended:  cfg.CapabilityAllowMessagingWhenSuspended,
+		},
 	)
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)

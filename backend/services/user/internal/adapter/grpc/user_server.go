@@ -24,6 +24,33 @@ type UserServer struct {
 	UploadAvatarUC        *application.UploadAvatar
 	GetAvatarUC           *application.GetAvatar
 	RemoveAvatarUC        *application.RemoveAvatar
+	CapabilityPolicy      CapabilityPolicy
+}
+
+type CapabilityPolicy struct {
+	MinSkillsForDiscovery        int
+	RequireVerifiedForWithdraw   bool
+	RequirePublicForDiscovery    bool
+	RequireHeadlineForFreelancer bool
+	RequireCompanyNameForClient  bool
+	AllowMessagingWhenSuspended  bool
+}
+
+func (p CapabilityPolicy) withDefaults() CapabilityPolicy {
+	if p.MinSkillsForDiscovery < 0 {
+		p.MinSkillsForDiscovery = 0
+	}
+	if !p.RequireVerifiedForWithdraw && !p.RequirePublicForDiscovery && !p.RequireHeadlineForFreelancer && !p.RequireCompanyNameForClient && !p.AllowMessagingWhenSuspended && p.MinSkillsForDiscovery == 0 {
+		return CapabilityPolicy{
+			MinSkillsForDiscovery:        1,
+			RequireVerifiedForWithdraw:   true,
+			RequirePublicForDiscovery:    true,
+			RequireHeadlineForFreelancer: true,
+			RequireCompanyNameForClient:  true,
+			AllowMessagingWhenSuspended:  false,
+		}
+	}
+	return p
 }
 
 func NewUserServer(
@@ -36,6 +63,7 @@ func NewUserServer(
 	uploadAvatar *application.UploadAvatar,
 	getAvatar *application.GetAvatar,
 	removeAvatar *application.RemoveAvatar,
+	capabilityPolicy CapabilityPolicy,
 ) *UserServer {
 	return &UserServer{
 		CreateProfileUC:       createProfile,
@@ -47,6 +75,7 @@ func NewUserServer(
 		UploadAvatarUC:        uploadAvatar,
 		GetAvatarUC:           getAvatar,
 		RemoveAvatarUC:        removeAvatar,
+		CapabilityPolicy:      capabilityPolicy.withDefaults(),
 	}
 }
 
@@ -109,7 +138,7 @@ func (s *UserServer) GetProfile(ctx context.Context, req *userv1.GetProfileReque
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.GetProfileResponse{Profile: toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
+	return &userv1.GetProfileResponse{Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
 }
 
 func (s *UserServer) UpdateProfile(ctx context.Context, req *userv1.UpdateProfileRequest) (*userv1.UpdateProfileResponse, error) {
@@ -143,7 +172,7 @@ func (s *UserServer) UpdateProfile(ctx context.Context, req *userv1.UpdateProfil
 	}
 
 	return &userv1.UpdateProfileResponse{
-		Profile: toProtoProfile(out.Profile, out.Client, out.Freelancer),
+		Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer),
 		Completeness: &userv1.ProfileCompleteness{
 			Percent:               out.Completeness,
 			MissingRequiredFields: out.Missing,
@@ -212,7 +241,7 @@ func (s *UserServer) UpdateAccountStatus(ctx context.Context, req *userv1.Update
 		return nil, toStatus(err)
 	}
 
-	return &userv1.UpdateAccountStatusResponse{Profile: toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
+	return &userv1.UpdateAccountStatusResponse{Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
 }
 
 func (s *UserServer) UploadAvatar(ctx context.Context, req *userv1.UploadAvatarRequest) (*userv1.UploadAvatarResponse, error) {
@@ -272,7 +301,7 @@ func (s *UserServer) RemoveAvatar(ctx context.Context, req *userv1.RemoveAvatarR
 	return &userv1.RemoveAvatarResponse{Removed: out.Removed}, nil
 }
 
-func toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.Profile {
+func (s *UserServer) toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.Profile {
 	out := &userv1.Profile{
 		Id:               p.ID,
 		UserId:           p.UserID.String(),
@@ -289,7 +318,7 @@ func toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *
 		Status:           mapAccountStatusToProto(p.AccountStatus),
 		SuspensionReason: p.SuspensionReason,
 		Visibility:       mapVisibilityToProto(p.Visibility),
-		Capabilities:     toProtoCapabilities(p, client, freelancer),
+		Capabilities:     toProtoCapabilities(s.CapabilityPolicy, p, client, freelancer),
 	}
 	if client != nil {
 		out.Client = &userv1.ClientProfileInput{
@@ -344,7 +373,7 @@ func mapVisibilityToProto(visibility string) userv1.ProfileVisibility {
 	}
 }
 
-func toProtoCapabilities(p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.CapabilityFlags {
+func toProtoCapabilities(policy CapabilityPolicy, p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.CapabilityFlags {
 	active := strings.EqualFold(strings.TrimPrefix(strings.TrimSpace(p.AccountStatus), "ACCOUNT_STATUS_"), domain.AccountStatusActive)
 	publicVisible := strings.EqualFold(strings.TrimPrefix(strings.TrimSpace(p.Visibility), "PROFILE_VISIBILITY_"), domain.ProfileVisibilityPublic)
 
@@ -352,21 +381,23 @@ func toProtoCapabilities(p domain.Profile, client *domain.ClientProfile, freelan
 	isClient := p.Role == domain.RoleClient
 
 	freelancerVerified := freelancer != nil && strings.EqualFold(strings.TrimSpace(freelancer.VerificationStatus), "verified")
-	hasDiscoverableFreelancerProfile := freelancer != nil && strings.TrimSpace(freelancer.Headline) != "" && len(freelancer.Skills) > 0
-	hasDiscoverableClientProfile := client != nil && strings.TrimSpace(client.CompanyName) != ""
+	hasHeadline := freelancer != nil && strings.TrimSpace(freelancer.Headline) != ""
+	hasEnoughSkills := freelancer != nil && len(freelancer.Skills) >= policy.MinSkillsForDiscovery
+	hasDiscoverableFreelancerProfile := freelancer != nil && hasEnoughSkills && (!policy.RequireHeadlineForFreelancer || hasHeadline)
+	hasDiscoverableClientProfile := client != nil && (!policy.RequireCompanyNameForClient || strings.TrimSpace(client.CompanyName) != "")
 
 	canApplyJobs := active && isFreelancer
 	canPostJobs := active && isClient
-	canWithdrawFunds := active && isFreelancer && freelancerVerified
-	canMessage := active
-	canBeDiscovered := active && publicVisible && (hasDiscoverableFreelancerProfile || hasDiscoverableClientProfile)
+	canWithdrawFunds := active && isFreelancer && (!policy.RequireVerifiedForWithdraw || freelancerVerified)
+	canMessage := active || policy.AllowMessagingWhenSuspended
+	canBeDiscovered := active && (!policy.RequirePublicForDiscovery || publicVisible) && (hasDiscoverableFreelancerProfile || hasDiscoverableClientProfile)
 
 	return &userv1.CapabilityFlags{
-		CanApplyJobs:    canApplyJobs,
-		CanPostJobs:     canPostJobs,
+		CanApplyJobs:     canApplyJobs,
+		CanPostJobs:      canPostJobs,
 		CanWithdrawFunds: canWithdrawFunds,
-		CanMessage:      canMessage,
-		CanBeDiscovered: canBeDiscovered,
+		CanMessage:       canMessage,
+		CanBeDiscovered:  canBeDiscovered,
 	}
 }
 
