@@ -24,13 +24,13 @@ type LoginOutput struct {
 // Login verifies credentials and issues access + refresh tokens.
 type Login struct {
 	Users      UserRepository
-	Creds       CredentialRepository
-	Sessions    SessionRepository
-	Hasher      domain.PasswordHasher // Ensure domain.PasswordHasher is properly defined or imported
-	Tokens      TokenIssuer
-	Clock       Clock
-	AccessTTL   time.Duration
-	RefreshTTL  time.Duration
+	Creds      CredentialRepository
+	Sessions   SessionRepository
+	Hasher     domain.PasswordHasher // Ensure domain.PasswordHasher is properly defined or imported
+	Tokens     TokenIssuer
+	Clock      Clock
+	AccessTTL  time.Duration
+	RefreshTTL time.Duration
 }
 
 // Execute runs the Login use-case.

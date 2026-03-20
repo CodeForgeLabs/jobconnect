@@ -45,7 +45,11 @@ function Is-MigrationApplied {
         throw "Failed checking migration state for $Container on $FileName"
     }
 
-    return ($result.Trim() -eq "1")
+    $resultText = ""
+    if ($null -ne $result) {
+        $resultText = ($result | Out-String).Trim()
+    }
+    return ($resultText -eq "1")
 }
 
 function Mark-MigrationApplied {
