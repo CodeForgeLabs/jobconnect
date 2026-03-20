@@ -9,9 +9,29 @@ service UserService {
     rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
     rpc DeleteProfile(DeleteProfileRequest) returns (DeleteProfileResponse);
     rpc GetOnboardingStatus(GetOnboardingStatusRequest) returns (GetOnboardingStatusResponse);
+    rpc UpdateAccountStatus(UpdateAccountStatusRequest) returns (UpdateAccountStatusResponse);
     rpc UploadAvatar(UploadAvatarRequest) returns (UploadAvatarResponse);
     rpc GetAvatar(GetAvatarRequest) returns (GetAvatarResponse);
     rpc RemoveAvatar(RemoveAvatarRequest) returns (RemoveAvatarResponse);
+}
+
+enum AccountStatus {
+    ACCOUNT_STATUS_UNSPECIFIED = 0;
+    ACCOUNT_STATUS_ACTIVE = 1;
+    ACCOUNT_STATUS_SUSPENDED = 2;
+    ACCOUNT_STATUS_DELETED = 3;
+}
+
+enum ProfileVisibility {
+    PROFILE_VISIBILITY_UNSPECIFIED = 0;
+    PROFILE_VISIBILITY_PUBLIC = 1;
+    PROFILE_VISIBILITY_PRIVATE = 2;
+}
+
+enum OnboardingStepStatus {
+    ONBOARDING_STEP_STATUS_UNSPECIFIED = 0;
+    ONBOARDING_STEP_STATUS_NOT_STARTED = 1;
+    ONBOARDING_STEP_STATUS_COMPLETED = 2;
 }
 
 message CreateProfileRequest {
@@ -80,6 +100,18 @@ message GetOnboardingStatusRequest {
 
 message GetOnboardingStatusResponse {
     ProfileCompleteness completeness = 1;
+    repeated OnboardingStep steps = 2;
+}
+
+message UpdateAccountStatusRequest {
+    string user_id = 1;
+    AccountStatus status = 2;
+    optional string suspension_reason = 3;
+    ProfileVisibility visibility = 4;
+}
+
+message UpdateAccountStatusResponse {
+    Profile profile = 1;
 }
 
 message UploadAvatarRequest {
@@ -131,11 +163,19 @@ message Profile {
     bool deleted = 12;
     ClientProfileInput client = 13;
     FreelancerProfileInput freelancer = 14;
+    AccountStatus status = 15;
+    string suspension_reason = 16;
+    ProfileVisibility visibility = 17;
 }
 
 message ProfileCompleteness {
     uint32 percent = 1;
     repeated string missing_required_fields = 2;
+}
+
+message OnboardingStep {
+    string key = 1;
+    OnboardingStepStatus status = 2;
 }
 
 message ClientProfileInput {

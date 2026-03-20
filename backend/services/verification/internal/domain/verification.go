@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	StatusUnverified            = "unverified"
-	StatusPendingReview         = "pending_review"
-	StatusVerified              = "verified"
-	StatusRejected              = "rejected"
+	StatusUnverified             = "unverified"
+	StatusPendingReview          = "pending_review"
+	StatusVerified               = "verified"
+	StatusRejected               = "rejected"
 	StatusReverificationRequired = "reverification_required"
 )
 

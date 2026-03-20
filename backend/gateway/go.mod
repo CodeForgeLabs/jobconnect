@@ -9,6 +9,7 @@ require (
 	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.79.1
 	jobconnect/auth v0.0.0
+	jobconnect/verification v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -47,3 +48,5 @@ require (
 )
 
 replace jobconnect/auth => ../services/auth
+
+replace jobconnect/verification => ../services/verification

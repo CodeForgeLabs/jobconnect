@@ -13,10 +13,10 @@ import (
 )
 
 type RequestReverificationInput struct {
-	UserID          uuid.UUID
-	ReviewerUserID  uuid.UUID
-	Reason          string
-	ReverifyDueAt   time.Time
+	UserID         uuid.UUID
+	ReviewerUserID uuid.UUID
+	Reason         string
+	ReverifyDueAt  time.Time
 }
 
 type RequestReverification struct {

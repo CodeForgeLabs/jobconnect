@@ -21,6 +21,156 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type AccountStatus int32
+
+const (
+	AccountStatus_ACCOUNT_STATUS_UNSPECIFIED AccountStatus = 0
+	AccountStatus_ACCOUNT_STATUS_ACTIVE      AccountStatus = 1
+	AccountStatus_ACCOUNT_STATUS_SUSPENDED   AccountStatus = 2
+	AccountStatus_ACCOUNT_STATUS_DELETED     AccountStatus = 3
+)
+
+// Enum value maps for AccountStatus.
+var (
+	AccountStatus_name = map[int32]string{
+		0: "ACCOUNT_STATUS_UNSPECIFIED",
+		1: "ACCOUNT_STATUS_ACTIVE",
+		2: "ACCOUNT_STATUS_SUSPENDED",
+		3: "ACCOUNT_STATUS_DELETED",
+	}
+	AccountStatus_value = map[string]int32{
+		"ACCOUNT_STATUS_UNSPECIFIED": 0,
+		"ACCOUNT_STATUS_ACTIVE":      1,
+		"ACCOUNT_STATUS_SUSPENDED":   2,
+		"ACCOUNT_STATUS_DELETED":     3,
+	}
+)
+
+func (x AccountStatus) Enum() *AccountStatus {
+	p := new(AccountStatus)
+	*p = x
+	return p
+}
+
+func (x AccountStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (AccountStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_user_user_proto_enumTypes[0].Descriptor()
+}
+
+func (AccountStatus) Type() protoreflect.EnumType {
+	return &file_user_user_proto_enumTypes[0]
+}
+
+func (x AccountStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use AccountStatus.Descriptor instead.
+func (AccountStatus) EnumDescriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{0}
+}
+
+type ProfileVisibility int32
+
+const (
+	ProfileVisibility_PROFILE_VISIBILITY_UNSPECIFIED ProfileVisibility = 0
+	ProfileVisibility_PROFILE_VISIBILITY_PUBLIC      ProfileVisibility = 1
+	ProfileVisibility_PROFILE_VISIBILITY_PRIVATE     ProfileVisibility = 2
+)
+
+// Enum value maps for ProfileVisibility.
+var (
+	ProfileVisibility_name = map[int32]string{
+		0: "PROFILE_VISIBILITY_UNSPECIFIED",
+		1: "PROFILE_VISIBILITY_PUBLIC",
+		2: "PROFILE_VISIBILITY_PRIVATE",
+	}
+	ProfileVisibility_value = map[string]int32{
+		"PROFILE_VISIBILITY_UNSPECIFIED": 0,
+		"PROFILE_VISIBILITY_PUBLIC":      1,
+		"PROFILE_VISIBILITY_PRIVATE":     2,
+	}
+)
+
+func (x ProfileVisibility) Enum() *ProfileVisibility {
+	p := new(ProfileVisibility)
+	*p = x
+	return p
+}
+
+func (x ProfileVisibility) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ProfileVisibility) Descriptor() protoreflect.EnumDescriptor {
+	return file_user_user_proto_enumTypes[1].Descriptor()
+}
+
+func (ProfileVisibility) Type() protoreflect.EnumType {
+	return &file_user_user_proto_enumTypes[1]
+}
+
+func (x ProfileVisibility) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ProfileVisibility.Descriptor instead.
+func (ProfileVisibility) EnumDescriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{1}
+}
+
+type OnboardingStepStatus int32
+
+const (
+	OnboardingStepStatus_ONBOARDING_STEP_STATUS_UNSPECIFIED OnboardingStepStatus = 0
+	OnboardingStepStatus_ONBOARDING_STEP_STATUS_NOT_STARTED OnboardingStepStatus = 1
+	OnboardingStepStatus_ONBOARDING_STEP_STATUS_COMPLETED   OnboardingStepStatus = 2
+)
+
+// Enum value maps for OnboardingStepStatus.
+var (
+	OnboardingStepStatus_name = map[int32]string{
+		0: "ONBOARDING_STEP_STATUS_UNSPECIFIED",
+		1: "ONBOARDING_STEP_STATUS_NOT_STARTED",
+		2: "ONBOARDING_STEP_STATUS_COMPLETED",
+	}
+	OnboardingStepStatus_value = map[string]int32{
+		"ONBOARDING_STEP_STATUS_UNSPECIFIED": 0,
+		"ONBOARDING_STEP_STATUS_NOT_STARTED": 1,
+		"ONBOARDING_STEP_STATUS_COMPLETED":   2,
+	}
+)
+
+func (x OnboardingStepStatus) Enum() *OnboardingStepStatus {
+	p := new(OnboardingStepStatus)
+	*p = x
+	return p
+}
+
+func (x OnboardingStepStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (OnboardingStepStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_user_user_proto_enumTypes[2].Descriptor()
+}
+
+func (OnboardingStepStatus) Type() protoreflect.EnumType {
+	return &file_user_user_proto_enumTypes[2]
+}
+
+func (x OnboardingStepStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use OnboardingStepStatus.Descriptor instead.
+func (OnboardingStepStatus) EnumDescriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{2}
+}
+
 type CreateProfileRequest struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	UserId string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -643,6 +793,7 @@ func (x *GetOnboardingStatusRequest) GetUserId() string {
 type GetOnboardingStatusResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Completeness  *ProfileCompleteness   `protobuf:"bytes,1,opt,name=completeness,proto3" json:"completeness,omitempty"`
+	Steps         []*OnboardingStep      `protobuf:"bytes,2,rep,name=steps,proto3" json:"steps,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -684,6 +835,125 @@ func (x *GetOnboardingStatusResponse) GetCompleteness() *ProfileCompleteness {
 	return nil
 }
 
+func (x *GetOnboardingStatusResponse) GetSteps() []*OnboardingStep {
+	if x != nil {
+		return x.Steps
+	}
+	return nil
+}
+
+type UpdateAccountStatusRequest struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	UserId           string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Status           AccountStatus          `protobuf:"varint,2,opt,name=status,proto3,enum=user.v1.AccountStatus" json:"status,omitempty"`
+	SuspensionReason *string                `protobuf:"bytes,3,opt,name=suspension_reason,json=suspensionReason,proto3,oneof" json:"suspension_reason,omitempty"`
+	Visibility       ProfileVisibility      `protobuf:"varint,4,opt,name=visibility,proto3,enum=user.v1.ProfileVisibility" json:"visibility,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *UpdateAccountStatusRequest) Reset() {
+	*x = UpdateAccountStatusRequest{}
+	mi := &file_user_user_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAccountStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAccountStatusRequest) ProtoMessage() {}
+
+func (x *UpdateAccountStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAccountStatusRequest.ProtoReflect.Descriptor instead.
+func (*UpdateAccountStatusRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *UpdateAccountStatusRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UpdateAccountStatusRequest) GetStatus() AccountStatus {
+	if x != nil {
+		return x.Status
+	}
+	return AccountStatus_ACCOUNT_STATUS_UNSPECIFIED
+}
+
+func (x *UpdateAccountStatusRequest) GetSuspensionReason() string {
+	if x != nil && x.SuspensionReason != nil {
+		return *x.SuspensionReason
+	}
+	return ""
+}
+
+func (x *UpdateAccountStatusRequest) GetVisibility() ProfileVisibility {
+	if x != nil {
+		return x.Visibility
+	}
+	return ProfileVisibility_PROFILE_VISIBILITY_UNSPECIFIED
+}
+
+type UpdateAccountStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Profile       *Profile               `protobuf:"bytes,1,opt,name=profile,proto3" json:"profile,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateAccountStatusResponse) Reset() {
+	*x = UpdateAccountStatusResponse{}
+	mi := &file_user_user_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateAccountStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateAccountStatusResponse) ProtoMessage() {}
+
+func (x *UpdateAccountStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateAccountStatusResponse.ProtoReflect.Descriptor instead.
+func (*UpdateAccountStatusResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *UpdateAccountStatusResponse) GetProfile() *Profile {
+	if x != nil {
+		return x.Profile
+	}
+	return nil
+}
+
 type UploadAvatarRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -696,7 +966,7 @@ type UploadAvatarRequest struct {
 
 func (x *UploadAvatarRequest) Reset() {
 	*x = UploadAvatarRequest{}
-	mi := &file_user_user_proto_msgTypes[10]
+	mi := &file_user_user_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -708,7 +978,7 @@ func (x *UploadAvatarRequest) String() string {
 func (*UploadAvatarRequest) ProtoMessage() {}
 
 func (x *UploadAvatarRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[10]
+	mi := &file_user_user_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -721,7 +991,7 @@ func (x *UploadAvatarRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadAvatarRequest.ProtoReflect.Descriptor instead.
 func (*UploadAvatarRequest) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{10}
+	return file_user_user_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UploadAvatarRequest) GetUserId() string {
@@ -766,7 +1036,7 @@ type UploadAvatarResponse struct {
 
 func (x *UploadAvatarResponse) Reset() {
 	*x = UploadAvatarResponse{}
-	mi := &file_user_user_proto_msgTypes[11]
+	mi := &file_user_user_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -778,7 +1048,7 @@ func (x *UploadAvatarResponse) String() string {
 func (*UploadAvatarResponse) ProtoMessage() {}
 
 func (x *UploadAvatarResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[11]
+	mi := &file_user_user_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -791,7 +1061,7 @@ func (x *UploadAvatarResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadAvatarResponse.ProtoReflect.Descriptor instead.
 func (*UploadAvatarResponse) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{11}
+	return file_user_user_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *UploadAvatarResponse) GetAvatarUrl() string {
@@ -845,7 +1115,7 @@ type GetAvatarRequest struct {
 
 func (x *GetAvatarRequest) Reset() {
 	*x = GetAvatarRequest{}
-	mi := &file_user_user_proto_msgTypes[12]
+	mi := &file_user_user_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -857,7 +1127,7 @@ func (x *GetAvatarRequest) String() string {
 func (*GetAvatarRequest) ProtoMessage() {}
 
 func (x *GetAvatarRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[12]
+	mi := &file_user_user_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -870,7 +1140,7 @@ func (x *GetAvatarRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvatarRequest.ProtoReflect.Descriptor instead.
 func (*GetAvatarRequest) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{12}
+	return file_user_user_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetAvatarRequest) GetUserId() string {
@@ -891,7 +1161,7 @@ type GetAvatarResponse struct {
 
 func (x *GetAvatarResponse) Reset() {
 	*x = GetAvatarResponse{}
-	mi := &file_user_user_proto_msgTypes[13]
+	mi := &file_user_user_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -903,7 +1173,7 @@ func (x *GetAvatarResponse) String() string {
 func (*GetAvatarResponse) ProtoMessage() {}
 
 func (x *GetAvatarResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[13]
+	mi := &file_user_user_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -916,7 +1186,7 @@ func (x *GetAvatarResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetAvatarResponse.ProtoReflect.Descriptor instead.
 func (*GetAvatarResponse) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{13}
+	return file_user_user_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetAvatarResponse) GetFileName() string {
@@ -949,7 +1219,7 @@ type RemoveAvatarRequest struct {
 
 func (x *RemoveAvatarRequest) Reset() {
 	*x = RemoveAvatarRequest{}
-	mi := &file_user_user_proto_msgTypes[14]
+	mi := &file_user_user_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -961,7 +1231,7 @@ func (x *RemoveAvatarRequest) String() string {
 func (*RemoveAvatarRequest) ProtoMessage() {}
 
 func (x *RemoveAvatarRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[14]
+	mi := &file_user_user_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -974,7 +1244,7 @@ func (x *RemoveAvatarRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveAvatarRequest.ProtoReflect.Descriptor instead.
 func (*RemoveAvatarRequest) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{14}
+	return file_user_user_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *RemoveAvatarRequest) GetUserId() string {
@@ -993,7 +1263,7 @@ type RemoveAvatarResponse struct {
 
 func (x *RemoveAvatarResponse) Reset() {
 	*x = RemoveAvatarResponse{}
-	mi := &file_user_user_proto_msgTypes[15]
+	mi := &file_user_user_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1005,7 +1275,7 @@ func (x *RemoveAvatarResponse) String() string {
 func (*RemoveAvatarResponse) ProtoMessage() {}
 
 func (x *RemoveAvatarResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[15]
+	mi := &file_user_user_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1018,7 +1288,7 @@ func (x *RemoveAvatarResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveAvatarResponse.ProtoReflect.Descriptor instead.
 func (*RemoveAvatarResponse) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{15}
+	return file_user_user_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *RemoveAvatarResponse) GetRemoved() bool {
@@ -1029,28 +1299,31 @@ func (x *RemoveAvatarResponse) GetRemoved() bool {
 }
 
 type Profile struct {
-	state         protoimpl.MessageState  `protogen:"open.v1"`
-	Id            int64                   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	UserId        string                  `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Role          string                  `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
-	FirstName     string                  `protobuf:"bytes,4,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
-	LastName      string                  `protobuf:"bytes,5,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
-	DisplayName   string                  `protobuf:"bytes,6,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	AvatarUrl     string                  `protobuf:"bytes,7,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	Language      string                  `protobuf:"bytes,8,opt,name=language,proto3" json:"language,omitempty"`
-	ContactEmail  string                  `protobuf:"bytes,9,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
-	ContactPhone  string                  `protobuf:"bytes,10,opt,name=contact_phone,json=contactPhone,proto3" json:"contact_phone,omitempty"`
-	Bio           string                  `protobuf:"bytes,11,opt,name=bio,proto3" json:"bio,omitempty"`
-	Deleted       bool                    `protobuf:"varint,12,opt,name=deleted,proto3" json:"deleted,omitempty"`
-	Client        *ClientProfileInput     `protobuf:"bytes,13,opt,name=client,proto3" json:"client,omitempty"`
-	Freelancer    *FreelancerProfileInput `protobuf:"bytes,14,opt,name=freelancer,proto3" json:"freelancer,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState  `protogen:"open.v1"`
+	Id               int64                   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	UserId           string                  `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Role             string                  `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	FirstName        string                  `protobuf:"bytes,4,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName         string                  `protobuf:"bytes,5,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	DisplayName      string                  `protobuf:"bytes,6,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	AvatarUrl        string                  `protobuf:"bytes,7,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
+	Language         string                  `protobuf:"bytes,8,opt,name=language,proto3" json:"language,omitempty"`
+	ContactEmail     string                  `protobuf:"bytes,9,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
+	ContactPhone     string                  `protobuf:"bytes,10,opt,name=contact_phone,json=contactPhone,proto3" json:"contact_phone,omitempty"`
+	Bio              string                  `protobuf:"bytes,11,opt,name=bio,proto3" json:"bio,omitempty"`
+	Deleted          bool                    `protobuf:"varint,12,opt,name=deleted,proto3" json:"deleted,omitempty"`
+	Client           *ClientProfileInput     `protobuf:"bytes,13,opt,name=client,proto3" json:"client,omitempty"`
+	Freelancer       *FreelancerProfileInput `protobuf:"bytes,14,opt,name=freelancer,proto3" json:"freelancer,omitempty"`
+	Status           AccountStatus           `protobuf:"varint,15,opt,name=status,proto3,enum=user.v1.AccountStatus" json:"status,omitempty"`
+	SuspensionReason string                  `protobuf:"bytes,16,opt,name=suspension_reason,json=suspensionReason,proto3" json:"suspension_reason,omitempty"`
+	Visibility       ProfileVisibility       `protobuf:"varint,17,opt,name=visibility,proto3,enum=user.v1.ProfileVisibility" json:"visibility,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Profile) Reset() {
 	*x = Profile{}
-	mi := &file_user_user_proto_msgTypes[16]
+	mi := &file_user_user_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1062,7 +1335,7 @@ func (x *Profile) String() string {
 func (*Profile) ProtoMessage() {}
 
 func (x *Profile) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[16]
+	mi := &file_user_user_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1075,7 +1348,7 @@ func (x *Profile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Profile.ProtoReflect.Descriptor instead.
 func (*Profile) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{16}
+	return file_user_user_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Profile) GetId() int64 {
@@ -1176,6 +1449,27 @@ func (x *Profile) GetFreelancer() *FreelancerProfileInput {
 	return nil
 }
 
+func (x *Profile) GetStatus() AccountStatus {
+	if x != nil {
+		return x.Status
+	}
+	return AccountStatus_ACCOUNT_STATUS_UNSPECIFIED
+}
+
+func (x *Profile) GetSuspensionReason() string {
+	if x != nil {
+		return x.SuspensionReason
+	}
+	return ""
+}
+
+func (x *Profile) GetVisibility() ProfileVisibility {
+	if x != nil {
+		return x.Visibility
+	}
+	return ProfileVisibility_PROFILE_VISIBILITY_UNSPECIFIED
+}
+
 type ProfileCompleteness struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Percent               uint32                 `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
@@ -1186,7 +1480,7 @@ type ProfileCompleteness struct {
 
 func (x *ProfileCompleteness) Reset() {
 	*x = ProfileCompleteness{}
-	mi := &file_user_user_proto_msgTypes[17]
+	mi := &file_user_user_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1198,7 +1492,7 @@ func (x *ProfileCompleteness) String() string {
 func (*ProfileCompleteness) ProtoMessage() {}
 
 func (x *ProfileCompleteness) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[17]
+	mi := &file_user_user_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1211,7 +1505,7 @@ func (x *ProfileCompleteness) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProfileCompleteness.ProtoReflect.Descriptor instead.
 func (*ProfileCompleteness) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{17}
+	return file_user_user_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ProfileCompleteness) GetPercent() uint32 {
@@ -1228,6 +1522,58 @@ func (x *ProfileCompleteness) GetMissingRequiredFields() []string {
 	return nil
 }
 
+type OnboardingStep struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Status        OnboardingStepStatus   `protobuf:"varint,2,opt,name=status,proto3,enum=user.v1.OnboardingStepStatus" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OnboardingStep) Reset() {
+	*x = OnboardingStep{}
+	mi := &file_user_user_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OnboardingStep) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OnboardingStep) ProtoMessage() {}
+
+func (x *OnboardingStep) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OnboardingStep.ProtoReflect.Descriptor instead.
+func (*OnboardingStep) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *OnboardingStep) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *OnboardingStep) GetStatus() OnboardingStepStatus {
+	if x != nil {
+		return x.Status
+	}
+	return OnboardingStepStatus_ONBOARDING_STEP_STATUS_UNSPECIFIED
+}
+
 type ClientProfileInput struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	CompanyName        string                 `protobuf:"bytes,1,opt,name=company_name,json=companyName,proto3" json:"company_name,omitempty"`
@@ -1240,7 +1586,7 @@ type ClientProfileInput struct {
 
 func (x *ClientProfileInput) Reset() {
 	*x = ClientProfileInput{}
-	mi := &file_user_user_proto_msgTypes[18]
+	mi := &file_user_user_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1252,7 +1598,7 @@ func (x *ClientProfileInput) String() string {
 func (*ClientProfileInput) ProtoMessage() {}
 
 func (x *ClientProfileInput) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[18]
+	mi := &file_user_user_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1265,7 +1611,7 @@ func (x *ClientProfileInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientProfileInput.ProtoReflect.Descriptor instead.
 func (*ClientProfileInput) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{18}
+	return file_user_user_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ClientProfileInput) GetCompanyName() string {
@@ -1310,7 +1656,7 @@ type FreelancerProfileInput struct {
 
 func (x *FreelancerProfileInput) Reset() {
 	*x = FreelancerProfileInput{}
-	mi := &file_user_user_proto_msgTypes[19]
+	mi := &file_user_user_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1322,7 +1668,7 @@ func (x *FreelancerProfileInput) String() string {
 func (*FreelancerProfileInput) ProtoMessage() {}
 
 func (x *FreelancerProfileInput) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[19]
+	mi := &file_user_user_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1335,7 +1681,7 @@ func (x *FreelancerProfileInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FreelancerProfileInput.ProtoReflect.Descriptor instead.
 func (*FreelancerProfileInput) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{19}
+	return file_user_user_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *FreelancerProfileInput) GetHeadline() string {
@@ -1451,9 +1797,20 @@ const file_user_user_proto_rawDesc = "" +
 	"\x15DeleteProfileResponse\x12\x18\n" +
 	"\adeleted\x18\x01 \x01(\bR\adeleted\"5\n" +
 	"\x1aGetOnboardingStatusRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"_\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x8e\x01\n" +
 	"\x1bGetOnboardingStatusResponse\x12@\n" +
-	"\fcompleteness\x18\x01 \x01(\v2\x1c.user.v1.ProfileCompletenessR\fcompleteness\"\x88\x01\n" +
+	"\fcompleteness\x18\x01 \x01(\v2\x1c.user.v1.ProfileCompletenessR\fcompleteness\x12-\n" +
+	"\x05steps\x18\x02 \x03(\v2\x17.user.v1.OnboardingStepR\x05steps\"\xe9\x01\n" +
+	"\x1aUpdateAccountStatusRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12.\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x16.user.v1.AccountStatusR\x06status\x120\n" +
+	"\x11suspension_reason\x18\x03 \x01(\tH\x00R\x10suspensionReason\x88\x01\x01\x12:\n" +
+	"\n" +
+	"visibility\x18\x04 \x01(\x0e2\x1a.user.v1.ProfileVisibilityR\n" +
+	"visibilityB\x14\n" +
+	"\x12_suspension_reason\"I\n" +
+	"\x1bUpdateAccountStatusResponse\x12*\n" +
+	"\aprofile\x18\x01 \x01(\v2\x10.user.v1.ProfileR\aprofile\"\x88\x01\n" +
 	"\x13UploadAvatarRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
 	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12!\n" +
@@ -1478,7 +1835,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\x13RemoveAvatarRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"0\n" +
 	"\x14RemoveAvatarResponse\x12\x18\n" +
-	"\aremoved\x18\x01 \x01(\bR\aremoved\"\xcc\x03\n" +
+	"\aremoved\x18\x01 \x01(\bR\aremoved\"\xe5\x04\n" +
 	"\aProfile\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
@@ -1498,10 +1855,18 @@ const file_user_user_proto_rawDesc = "" +
 	"\x06client\x18\r \x01(\v2\x1b.user.v1.ClientProfileInputR\x06client\x12?\n" +
 	"\n" +
 	"freelancer\x18\x0e \x01(\v2\x1f.user.v1.FreelancerProfileInputR\n" +
-	"freelancer\"g\n" +
+	"freelancer\x12.\n" +
+	"\x06status\x18\x0f \x01(\x0e2\x16.user.v1.AccountStatusR\x06status\x12+\n" +
+	"\x11suspension_reason\x18\x10 \x01(\tR\x10suspensionReason\x12:\n" +
+	"\n" +
+	"visibility\x18\x11 \x01(\x0e2\x1a.user.v1.ProfileVisibilityR\n" +
+	"visibility\"g\n" +
 	"\x13ProfileCompleteness\x12\x18\n" +
 	"\apercent\x18\x01 \x01(\rR\apercent\x126\n" +
-	"\x17missing_required_fields\x18\x02 \x03(\tR\x15missingRequiredFields\"\xa8\x01\n" +
+	"\x17missing_required_fields\x18\x02 \x03(\tR\x15missingRequiredFields\"Y\n" +
+	"\x0eOnboardingStep\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x125\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x1d.user.v1.OnboardingStepStatusR\x06status\"\xa8\x01\n" +
 	"\x12ClientProfileInput\x12!\n" +
 	"\fcompany_name\x18\x01 \x01(\tR\vcompanyName\x12'\n" +
 	"\x0fbilling_address\x18\x02 \x01(\tR\x0ebillingAddress\x12\x15\n" +
@@ -1513,14 +1878,28 @@ const file_user_user_proto_rawDesc = "" +
 	"\x06skills\x18\x03 \x03(\tR\x06skills\x12)\n" +
 	"\x10experience_level\x18\x04 \x01(\tR\x0fexperienceLevel\x12\x16\n" +
 	"\x06rating\x18\x05 \x01(\x01R\x06rating\x12/\n" +
-	"\x13verification_status\x18\x06 \x01(\tR\x12verificationStatus2\x84\x05\n" +
+	"\x13verification_status\x18\x06 \x01(\tR\x12verificationStatus*\x84\x01\n" +
+	"\rAccountStatus\x12\x1e\n" +
+	"\x1aACCOUNT_STATUS_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15ACCOUNT_STATUS_ACTIVE\x10\x01\x12\x1c\n" +
+	"\x18ACCOUNT_STATUS_SUSPENDED\x10\x02\x12\x1a\n" +
+	"\x16ACCOUNT_STATUS_DELETED\x10\x03*v\n" +
+	"\x11ProfileVisibility\x12\"\n" +
+	"\x1ePROFILE_VISIBILITY_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19PROFILE_VISIBILITY_PUBLIC\x10\x01\x12\x1e\n" +
+	"\x1aPROFILE_VISIBILITY_PRIVATE\x10\x02*\x8c\x01\n" +
+	"\x14OnboardingStepStatus\x12&\n" +
+	"\"ONBOARDING_STEP_STATUS_UNSPECIFIED\x10\x00\x12&\n" +
+	"\"ONBOARDING_STEP_STATUS_NOT_STARTED\x10\x01\x12$\n" +
+	" ONBOARDING_STEP_STATUS_COMPLETED\x10\x022\xe6\x05\n" +
 	"\vUserService\x12N\n" +
 	"\rCreateProfile\x12\x1d.user.v1.CreateProfileRequest\x1a\x1e.user.v1.CreateProfileResponse\x12E\n" +
 	"\n" +
 	"GetProfile\x12\x1a.user.v1.GetProfileRequest\x1a\x1b.user.v1.GetProfileResponse\x12N\n" +
 	"\rUpdateProfile\x12\x1d.user.v1.UpdateProfileRequest\x1a\x1e.user.v1.UpdateProfileResponse\x12N\n" +
 	"\rDeleteProfile\x12\x1d.user.v1.DeleteProfileRequest\x1a\x1e.user.v1.DeleteProfileResponse\x12`\n" +
-	"\x13GetOnboardingStatus\x12#.user.v1.GetOnboardingStatusRequest\x1a$.user.v1.GetOnboardingStatusResponse\x12K\n" +
+	"\x13GetOnboardingStatus\x12#.user.v1.GetOnboardingStatusRequest\x1a$.user.v1.GetOnboardingStatusResponse\x12`\n" +
+	"\x13UpdateAccountStatus\x12#.user.v1.UpdateAccountStatusRequest\x1a$.user.v1.UpdateAccountStatusResponse\x12K\n" +
 	"\fUploadAvatar\x12\x1c.user.v1.UploadAvatarRequest\x1a\x1d.user.v1.UploadAvatarResponse\x12B\n" +
 	"\tGetAvatar\x12\x19.user.v1.GetAvatarRequest\x1a\x1a.user.v1.GetAvatarResponse\x12K\n" +
 	"\fRemoveAvatar\x12\x1c.user.v1.RemoveAvatarRequest\x1a\x1d.user.v1.RemoveAvatarResponseB!Z\x1fjobconnect/user/gen/user;userv1b\x06proto3"
@@ -1537,59 +1916,75 @@ func file_user_user_proto_rawDescGZIP() []byte {
 	return file_user_user_proto_rawDescData
 }
 
-var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_user_user_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_user_user_proto_goTypes = []any{
-	(*CreateProfileRequest)(nil),        // 0: user.v1.CreateProfileRequest
-	(*CreateProfileResponse)(nil),       // 1: user.v1.CreateProfileResponse
-	(*GetProfileRequest)(nil),           // 2: user.v1.GetProfileRequest
-	(*GetProfileResponse)(nil),          // 3: user.v1.GetProfileResponse
-	(*UpdateProfileRequest)(nil),        // 4: user.v1.UpdateProfileRequest
-	(*UpdateProfileResponse)(nil),       // 5: user.v1.UpdateProfileResponse
-	(*DeleteProfileRequest)(nil),        // 6: user.v1.DeleteProfileRequest
-	(*DeleteProfileResponse)(nil),       // 7: user.v1.DeleteProfileResponse
-	(*GetOnboardingStatusRequest)(nil),  // 8: user.v1.GetOnboardingStatusRequest
-	(*GetOnboardingStatusResponse)(nil), // 9: user.v1.GetOnboardingStatusResponse
-	(*UploadAvatarRequest)(nil),         // 10: user.v1.UploadAvatarRequest
-	(*UploadAvatarResponse)(nil),        // 11: user.v1.UploadAvatarResponse
-	(*GetAvatarRequest)(nil),            // 12: user.v1.GetAvatarRequest
-	(*GetAvatarResponse)(nil),           // 13: user.v1.GetAvatarResponse
-	(*RemoveAvatarRequest)(nil),         // 14: user.v1.RemoveAvatarRequest
-	(*RemoveAvatarResponse)(nil),        // 15: user.v1.RemoveAvatarResponse
-	(*Profile)(nil),                     // 16: user.v1.Profile
-	(*ProfileCompleteness)(nil),         // 17: user.v1.ProfileCompleteness
-	(*ClientProfileInput)(nil),          // 18: user.v1.ClientProfileInput
-	(*FreelancerProfileInput)(nil),      // 19: user.v1.FreelancerProfileInput
+	(AccountStatus)(0),                  // 0: user.v1.AccountStatus
+	(ProfileVisibility)(0),              // 1: user.v1.ProfileVisibility
+	(OnboardingStepStatus)(0),           // 2: user.v1.OnboardingStepStatus
+	(*CreateProfileRequest)(nil),        // 3: user.v1.CreateProfileRequest
+	(*CreateProfileResponse)(nil),       // 4: user.v1.CreateProfileResponse
+	(*GetProfileRequest)(nil),           // 5: user.v1.GetProfileRequest
+	(*GetProfileResponse)(nil),          // 6: user.v1.GetProfileResponse
+	(*UpdateProfileRequest)(nil),        // 7: user.v1.UpdateProfileRequest
+	(*UpdateProfileResponse)(nil),       // 8: user.v1.UpdateProfileResponse
+	(*DeleteProfileRequest)(nil),        // 9: user.v1.DeleteProfileRequest
+	(*DeleteProfileResponse)(nil),       // 10: user.v1.DeleteProfileResponse
+	(*GetOnboardingStatusRequest)(nil),  // 11: user.v1.GetOnboardingStatusRequest
+	(*GetOnboardingStatusResponse)(nil), // 12: user.v1.GetOnboardingStatusResponse
+	(*UpdateAccountStatusRequest)(nil),  // 13: user.v1.UpdateAccountStatusRequest
+	(*UpdateAccountStatusResponse)(nil), // 14: user.v1.UpdateAccountStatusResponse
+	(*UploadAvatarRequest)(nil),         // 15: user.v1.UploadAvatarRequest
+	(*UploadAvatarResponse)(nil),        // 16: user.v1.UploadAvatarResponse
+	(*GetAvatarRequest)(nil),            // 17: user.v1.GetAvatarRequest
+	(*GetAvatarResponse)(nil),           // 18: user.v1.GetAvatarResponse
+	(*RemoveAvatarRequest)(nil),         // 19: user.v1.RemoveAvatarRequest
+	(*RemoveAvatarResponse)(nil),        // 20: user.v1.RemoveAvatarResponse
+	(*Profile)(nil),                     // 21: user.v1.Profile
+	(*ProfileCompleteness)(nil),         // 22: user.v1.ProfileCompleteness
+	(*OnboardingStep)(nil),              // 23: user.v1.OnboardingStep
+	(*ClientProfileInput)(nil),          // 24: user.v1.ClientProfileInput
+	(*FreelancerProfileInput)(nil),      // 25: user.v1.FreelancerProfileInput
 }
 var file_user_user_proto_depIdxs = []int32{
-	18, // 0: user.v1.CreateProfileRequest.client:type_name -> user.v1.ClientProfileInput
-	19, // 1: user.v1.CreateProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileInput
-	16, // 2: user.v1.GetProfileResponse.profile:type_name -> user.v1.Profile
-	16, // 3: user.v1.UpdateProfileResponse.profile:type_name -> user.v1.Profile
-	17, // 4: user.v1.UpdateProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
-	17, // 5: user.v1.GetOnboardingStatusResponse.completeness:type_name -> user.v1.ProfileCompleteness
-	18, // 6: user.v1.Profile.client:type_name -> user.v1.ClientProfileInput
-	19, // 7: user.v1.Profile.freelancer:type_name -> user.v1.FreelancerProfileInput
-	0,  // 8: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
-	2,  // 9: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
-	4,  // 10: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
-	6,  // 11: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
-	8,  // 12: user.v1.UserService.GetOnboardingStatus:input_type -> user.v1.GetOnboardingStatusRequest
-	10, // 13: user.v1.UserService.UploadAvatar:input_type -> user.v1.UploadAvatarRequest
-	12, // 14: user.v1.UserService.GetAvatar:input_type -> user.v1.GetAvatarRequest
-	14, // 15: user.v1.UserService.RemoveAvatar:input_type -> user.v1.RemoveAvatarRequest
-	1,  // 16: user.v1.UserService.CreateProfile:output_type -> user.v1.CreateProfileResponse
-	3,  // 17: user.v1.UserService.GetProfile:output_type -> user.v1.GetProfileResponse
-	5,  // 18: user.v1.UserService.UpdateProfile:output_type -> user.v1.UpdateProfileResponse
-	7,  // 19: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
-	9,  // 20: user.v1.UserService.GetOnboardingStatus:output_type -> user.v1.GetOnboardingStatusResponse
-	11, // 21: user.v1.UserService.UploadAvatar:output_type -> user.v1.UploadAvatarResponse
-	13, // 22: user.v1.UserService.GetAvatar:output_type -> user.v1.GetAvatarResponse
-	15, // 23: user.v1.UserService.RemoveAvatar:output_type -> user.v1.RemoveAvatarResponse
-	16, // [16:24] is the sub-list for method output_type
-	8,  // [8:16] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	24, // 0: user.v1.CreateProfileRequest.client:type_name -> user.v1.ClientProfileInput
+	25, // 1: user.v1.CreateProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileInput
+	21, // 2: user.v1.GetProfileResponse.profile:type_name -> user.v1.Profile
+	21, // 3: user.v1.UpdateProfileResponse.profile:type_name -> user.v1.Profile
+	22, // 4: user.v1.UpdateProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	22, // 5: user.v1.GetOnboardingStatusResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	23, // 6: user.v1.GetOnboardingStatusResponse.steps:type_name -> user.v1.OnboardingStep
+	0,  // 7: user.v1.UpdateAccountStatusRequest.status:type_name -> user.v1.AccountStatus
+	1,  // 8: user.v1.UpdateAccountStatusRequest.visibility:type_name -> user.v1.ProfileVisibility
+	21, // 9: user.v1.UpdateAccountStatusResponse.profile:type_name -> user.v1.Profile
+	24, // 10: user.v1.Profile.client:type_name -> user.v1.ClientProfileInput
+	25, // 11: user.v1.Profile.freelancer:type_name -> user.v1.FreelancerProfileInput
+	0,  // 12: user.v1.Profile.status:type_name -> user.v1.AccountStatus
+	1,  // 13: user.v1.Profile.visibility:type_name -> user.v1.ProfileVisibility
+	2,  // 14: user.v1.OnboardingStep.status:type_name -> user.v1.OnboardingStepStatus
+	3,  // 15: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
+	5,  // 16: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
+	7,  // 17: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
+	9,  // 18: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
+	11, // 19: user.v1.UserService.GetOnboardingStatus:input_type -> user.v1.GetOnboardingStatusRequest
+	13, // 20: user.v1.UserService.UpdateAccountStatus:input_type -> user.v1.UpdateAccountStatusRequest
+	15, // 21: user.v1.UserService.UploadAvatar:input_type -> user.v1.UploadAvatarRequest
+	17, // 22: user.v1.UserService.GetAvatar:input_type -> user.v1.GetAvatarRequest
+	19, // 23: user.v1.UserService.RemoveAvatar:input_type -> user.v1.RemoveAvatarRequest
+	4,  // 24: user.v1.UserService.CreateProfile:output_type -> user.v1.CreateProfileResponse
+	6,  // 25: user.v1.UserService.GetProfile:output_type -> user.v1.GetProfileResponse
+	8,  // 26: user.v1.UserService.UpdateProfile:output_type -> user.v1.UpdateProfileResponse
+	10, // 27: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
+	12, // 28: user.v1.UserService.GetOnboardingStatus:output_type -> user.v1.GetOnboardingStatusResponse
+	14, // 29: user.v1.UserService.UpdateAccountStatus:output_type -> user.v1.UpdateAccountStatusResponse
+	16, // 30: user.v1.UserService.UploadAvatar:output_type -> user.v1.UploadAvatarResponse
+	18, // 31: user.v1.UserService.GetAvatar:output_type -> user.v1.GetAvatarResponse
+	20, // 32: user.v1.UserService.RemoveAvatar:output_type -> user.v1.RemoveAvatarResponse
+	24, // [24:33] is the sub-list for method output_type
+	15, // [15:24] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_user_user_proto_init() }
@@ -1602,18 +1997,20 @@ func file_user_user_proto_init() {
 		(*CreateProfileRequest_Freelancer)(nil),
 	}
 	file_user_user_proto_msgTypes[4].OneofWrappers = []any{}
+	file_user_user_proto_msgTypes[10].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   20,
+			NumEnums:      3,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_user_user_proto_goTypes,
 		DependencyIndexes: file_user_user_proto_depIdxs,
+		EnumInfos:         file_user_user_proto_enumTypes,
 		MessageInfos:      file_user_user_proto_msgTypes,
 	}.Build()
 	File_user_user_proto = out.File

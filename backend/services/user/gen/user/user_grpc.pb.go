@@ -24,6 +24,7 @@ const (
 	UserService_UpdateProfile_FullMethodName       = "/user.v1.UserService/UpdateProfile"
 	UserService_DeleteProfile_FullMethodName       = "/user.v1.UserService/DeleteProfile"
 	UserService_GetOnboardingStatus_FullMethodName = "/user.v1.UserService/GetOnboardingStatus"
+	UserService_UpdateAccountStatus_FullMethodName = "/user.v1.UserService/UpdateAccountStatus"
 	UserService_UploadAvatar_FullMethodName        = "/user.v1.UserService/UploadAvatar"
 	UserService_GetAvatar_FullMethodName           = "/user.v1.UserService/GetAvatar"
 	UserService_RemoveAvatar_FullMethodName        = "/user.v1.UserService/RemoveAvatar"
@@ -38,6 +39,7 @@ type UserServiceClient interface {
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*UpdateProfileResponse, error)
 	DeleteProfile(ctx context.Context, in *DeleteProfileRequest, opts ...grpc.CallOption) (*DeleteProfileResponse, error)
 	GetOnboardingStatus(ctx context.Context, in *GetOnboardingStatusRequest, opts ...grpc.CallOption) (*GetOnboardingStatusResponse, error)
+	UpdateAccountStatus(ctx context.Context, in *UpdateAccountStatusRequest, opts ...grpc.CallOption) (*UpdateAccountStatusResponse, error)
 	UploadAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error)
 	GetAvatar(ctx context.Context, in *GetAvatarRequest, opts ...grpc.CallOption) (*GetAvatarResponse, error)
 	RemoveAvatar(ctx context.Context, in *RemoveAvatarRequest, opts ...grpc.CallOption) (*RemoveAvatarResponse, error)
@@ -101,6 +103,16 @@ func (c *userServiceClient) GetOnboardingStatus(ctx context.Context, in *GetOnbo
 	return out, nil
 }
 
+func (c *userServiceClient) UpdateAccountStatus(ctx context.Context, in *UpdateAccountStatusRequest, opts ...grpc.CallOption) (*UpdateAccountStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateAccountStatusResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateAccountStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) UploadAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UploadAvatarResponse)
@@ -140,6 +152,7 @@ type UserServiceServer interface {
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*UpdateProfileResponse, error)
 	DeleteProfile(context.Context, *DeleteProfileRequest) (*DeleteProfileResponse, error)
 	GetOnboardingStatus(context.Context, *GetOnboardingStatusRequest) (*GetOnboardingStatusResponse, error)
+	UpdateAccountStatus(context.Context, *UpdateAccountStatusRequest) (*UpdateAccountStatusResponse, error)
 	UploadAvatar(context.Context, *UploadAvatarRequest) (*UploadAvatarResponse, error)
 	GetAvatar(context.Context, *GetAvatarRequest) (*GetAvatarResponse, error)
 	RemoveAvatar(context.Context, *RemoveAvatarRequest) (*RemoveAvatarResponse, error)
@@ -167,6 +180,9 @@ func (UnimplementedUserServiceServer) DeleteProfile(context.Context, *DeleteProf
 }
 func (UnimplementedUserServiceServer) GetOnboardingStatus(context.Context, *GetOnboardingStatusRequest) (*GetOnboardingStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetOnboardingStatus not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateAccountStatus(context.Context, *UpdateAccountStatusRequest) (*UpdateAccountStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateAccountStatus not implemented")
 }
 func (UnimplementedUserServiceServer) UploadAvatar(context.Context, *UploadAvatarRequest) (*UploadAvatarResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UploadAvatar not implemented")
@@ -288,6 +304,24 @@ func _UserService_GetOnboardingStatus_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_UpdateAccountStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAccountStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateAccountStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateAccountStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateAccountStatus(ctx, req.(*UpdateAccountStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_UploadAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UploadAvatarRequest)
 	if err := dec(in); err != nil {
@@ -368,6 +402,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOnboardingStatus",
 			Handler:    _UserService_GetOnboardingStatus_Handler,
+		},
+		{
+			MethodName: "UpdateAccountStatus",
+			Handler:    _UserService_UpdateAccountStatus_Handler,
 		},
 		{
 			MethodName: "UploadAvatar",

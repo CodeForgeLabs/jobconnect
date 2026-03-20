@@ -33,10 +33,10 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 
 	var profileID int64
 	err = tx.QueryRow(ctx, `
-		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, language, contact_email, contact_phone, bio, created_at, updated_at)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, language, contact_email, contact_phone, bio, account_status, suspension_reason, visibility, created_at, updated_at)
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 		returning id
-	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
+	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.AccountStatus, profile.SuspensionReason, profile.Visibility, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
 	if err != nil {
 		return 0, err
 	}
@@ -85,6 +85,9 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			coalesce(contact_email, ''),
 			coalesce(contact_phone, ''),
 			coalesce(bio, ''),
+			coalesce(account_status, 'ACTIVE'),
+			coalesce(suspension_reason, ''),
+			coalesce(visibility, 'PUBLIC'),
 			created_at,
 			updated_at,
 			deleted_at
@@ -102,6 +105,9 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 		&profile.ContactEmail,
 		&profile.ContactPhone,
 		&profile.Bio,
+		&profile.AccountStatus,
+		&profile.SuspensionReason,
+		&profile.Visibility,
 		&profile.CreatedAt,
 		&profile.UpdatedAt,
 		&deletedAt,
@@ -183,9 +189,12 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 			contact_email = $7,
 			contact_phone = $8,
 			bio = $9,
-			updated_at = $10
+			account_status = $10,
+			suspension_reason = $11,
+			visibility = $12,
+			updated_at = $13
 		where user_id = $1
-	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.UpdatedAt)
+	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.AccountStatus, profile.SuspensionReason, profile.Visibility, profile.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -300,6 +309,24 @@ func (r *ProfileRepo) RemoveAvatar(ctx context.Context, userID uuid.UUID) error 
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (r *ProfileRepo) UpdateAccountState(ctx context.Context, userID uuid.UUID, status, suspensionReason, visibility string, updatedAt time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
+	res, err := r.pool.Exec(ctx, `
+		update profiles
+		set account_status = $2,
+			suspension_reason = $3,
+			visibility = $4,
+			updated_at = $5
+		where user_id = $1
+	`, userID, status, suspensionReason, visibility, updatedAt)
+	if err != nil {
+		return domain.Profile{}, nil, nil, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Profile{}, nil, nil, ErrNotFound
+	}
+	return r.GetByUserID(ctx, userID)
 }
 
 func isNoRowsOrNotFound(err error) bool {

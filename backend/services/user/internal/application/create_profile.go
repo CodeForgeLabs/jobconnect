@@ -74,15 +74,17 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 	}
 
 	profile := domain.Profile{
-		UserID:      in.UserID,
-		Role:        in.Role,
-		FirstName:   in.FirstName,
-		LastName:    in.LastName,
-		DisplayName: displayName,
-		AvatarURL:   in.AvatarURL,
-		Language:    "en",
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		UserID:        in.UserID,
+		Role:          in.Role,
+		FirstName:     in.FirstName,
+		LastName:      in.LastName,
+		DisplayName:   displayName,
+		AvatarURL:     in.AvatarURL,
+		Language:      "en",
+		AccountStatus: domain.AccountStatusActive,
+		Visibility:    domain.ProfileVisibilityPublic,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}
 
 	profileID, err := uc.Profiles.Create(ctx, profile, in.Client, in.Freelancer)

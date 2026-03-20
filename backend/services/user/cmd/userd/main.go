@@ -51,6 +51,7 @@ func main() {
 	updateProfileUC := &application.UpdateProfile{Profiles: profileRepo, Clock: clockImpl}
 	deleteProfileUC := &application.DeleteProfile{Profiles: profileRepo, Clock: clockImpl}
 	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo}
+	updateAccountStatusUC := &application.UpdateAccountStatus{Profiles: profileRepo, Clock: clockImpl}
 	uploadAvatarUC := &application.UploadAvatar{
 		Profiles:  profileRepo,
 		Processor: media.NewAvatarProcessor(),
@@ -66,6 +67,7 @@ func main() {
 		updateProfileUC,
 		deleteProfileUC,
 		getOnboardingStatusUC,
+		updateAccountStatusUC,
 		uploadAvatarUC,
 		getAvatarUC,
 		removeAvatarUC,
