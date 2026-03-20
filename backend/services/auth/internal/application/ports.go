@@ -15,6 +15,7 @@ type UserRepository interface {
 	GetByEmail(ctx context.Context, email string) (domain.User, bool, error)
 	GetByID(ctx context.Context, id uuid.UUID) (domain.User, bool, error)
 	SetEmailVerified(ctx context.Context, userID uuid.UUID, at time.Time) error
+	UpdateEmail(ctx context.Context, userID uuid.UUID, newEmail string, at time.Time) error
 }
 
 // CreateProfileInput is the input for creating a user profile via user service.
@@ -36,6 +37,7 @@ type UserProfileService interface {
 type CredentialRepository interface {
 	Create(ctx context.Context, userID uuid.UUID, passwordHash string) error
 	GetByUserID(ctx context.Context, userID uuid.UUID) (passwordHash string, found bool, err error)
+	UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error
 }
 
 // OTPRepository stores hashed OTPs for email verification / password reset.
@@ -50,9 +52,35 @@ type SessionRepository interface {
 	Create(ctx context.Context, userID uuid.UUID, refreshTokenHash string, expiresAt time.Time) (sessionID uuid.UUID, err error)
 	GetByRefreshTokenHash(ctx context.Context, refreshTokenHash string) (found bool, sessionID uuid.UUID, userID uuid.UUID, expiresAt time.Time, revoked bool, err error)
 	GetByID(ctx context.Context, sessionID uuid.UUID) (userID uuid.UUID, expiresAt time.Time, revoked bool, err error)
+	ListByUserID(ctx context.Context, userID uuid.UUID) ([]SessionSummary, error)
 	RevokeByUserID(ctx context.Context, userID uuid.UUID) error
 	RevokeByID(ctx context.Context, sessionID uuid.UUID) error
 	UpdateLastUsed(ctx context.Context, sessionID uuid.UUID, at time.Time) error
+}
+
+type SessionSummary struct {
+	ID         uuid.UUID
+	CreatedAt  time.Time
+	ExpiresAt  time.Time
+	LastUsedAt *time.Time
+}
+
+type EmailChangeRequestRepository interface {
+	Upsert(ctx context.Context, userID uuid.UUID, newEmail, otpHash string, expiresAt time.Time) error
+	Consume(ctx context.Context, userID uuid.UUID, otpPlain string, hasher domain.PasswordHasher, now time.Time) (newEmail string, ok bool, err error)
+	MarkConfirmed(ctx context.Context, userID uuid.UUID, at time.Time) error
+}
+
+type OAuthIdentity struct {
+	UserID         uuid.UUID
+	Provider       string
+	ProviderUserID string
+	Email          string
+}
+
+type OAuthIdentityRepository interface {
+	GetByProviderUserID(ctx context.Context, provider, providerUserID string) (OAuthIdentity, bool, error)
+	Create(ctx context.Context, identity OAuthIdentity) error
 }
 
 // Clock provides current time (testable).
@@ -76,4 +104,6 @@ type TOSRepository interface {
 // EmailSender sends emails (e.g. OTP). No-op stub is fine for now.
 type EmailSender interface {
 	SendVerifyEmailOTP(ctx context.Context, email, otp string) error
+	SendPasswordResetOTP(ctx context.Context, email, otp string) error
+	SendEmailChangeOTP(ctx context.Context, email, otp string) error
 }

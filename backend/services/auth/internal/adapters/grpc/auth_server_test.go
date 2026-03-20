@@ -39,6 +39,10 @@ func (r *fakeUserRepo) SetEmailVerified(ctx context.Context, userID uuid.UUID, a
 	return nil
 }
 
+func (r *fakeUserRepo) UpdateEmail(ctx context.Context, userID uuid.UUID, newEmail string, at time.Time) error {
+	return nil
+}
+
 type fakeCredRepo struct {
 	hash  string
 	found bool
@@ -53,6 +57,12 @@ func (r *fakeCredRepo) Create(ctx context.Context, userID uuid.UUID, passwordHas
 
 func (r *fakeCredRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (string, bool, error) {
 	return r.hash, r.found, r.err
+}
+
+func (r *fakeCredRepo) UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error {
+	r.hash = passwordHash
+	r.found = true
+	return nil
 }
 
 type fakeOTPRepo struct {
@@ -84,6 +94,10 @@ func (r *fakeSessionRepo) GetByRefreshTokenHash(ctx context.Context, refreshToke
 
 func (r *fakeSessionRepo) GetByID(ctx context.Context, sessionID uuid.UUID) (uuid.UUID, time.Time, bool, error) {
 	return uuid.Nil, time.Time{}, false, nil
+}
+
+func (r *fakeSessionRepo) ListByUserID(ctx context.Context, userID uuid.UUID) ([]application.SessionSummary, error) {
+	return nil, nil
 }
 
 func (r *fakeSessionRepo) RevokeByUserID(ctx context.Context, userID uuid.UUID) error {
@@ -145,6 +159,14 @@ func (fakeEmailSender) SendVerifyEmailOTP(ctx context.Context, email, otp string
 	return nil
 }
 
+func (fakeEmailSender) SendPasswordResetOTP(ctx context.Context, email, otp string) error {
+	return nil
+}
+
+func (fakeEmailSender) SendEmailChangeOTP(ctx context.Context, email, otp string) error {
+	return nil
+}
+
 // --- Tests ---
 
 func TestAuthServer_Login_Success(t *testing.T) {
@@ -177,6 +199,13 @@ func TestAuthServer_Login_Success(t *testing.T) {
 		loginUC,
 		&application.Refresh{},
 		&application.Logout{},
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
 	)
 
 	resp, err := srv.Login(context.Background(), &authv1.LoginRequest{
@@ -222,6 +251,13 @@ func TestAuthServer_Register_Success(t *testing.T) {
 		&application.Login{},
 		&application.Refresh{},
 		&application.Logout{},
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
 	)
 
 	resp, err := srv.Register(context.Background(), &authv1.RegisterRequest{
