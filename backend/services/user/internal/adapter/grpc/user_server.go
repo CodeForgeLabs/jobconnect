@@ -20,6 +20,7 @@ type UserServer struct {
 	UpdateProfileUC       *application.UpdateProfile
 	DeleteProfileUC       *application.DeleteProfile
 	GetOnboardingStatusUC *application.GetOnboardingStatus
+	UpdateAccountStatusUC *application.UpdateAccountStatus
 	UploadAvatarUC        *application.UploadAvatar
 	GetAvatarUC           *application.GetAvatar
 	RemoveAvatarUC        *application.RemoveAvatar
@@ -31,6 +32,7 @@ func NewUserServer(
 	updateProfile *application.UpdateProfile,
 	deleteProfile *application.DeleteProfile,
 	getOnboardingStatus *application.GetOnboardingStatus,
+	updateAccountStatus *application.UpdateAccountStatus,
 	uploadAvatar *application.UploadAvatar,
 	getAvatar *application.GetAvatar,
 	removeAvatar *application.RemoveAvatar,
@@ -41,6 +43,7 @@ func NewUserServer(
 		UpdateProfileUC:       updateProfile,
 		DeleteProfileUC:       deleteProfile,
 		GetOnboardingStatusUC: getOnboardingStatus,
+		UpdateAccountStatusUC: updateAccountStatus,
 		UploadAvatarUC:        uploadAvatar,
 		GetAvatarUC:           getAvatar,
 		RemoveAvatarUC:        removeAvatar,
@@ -180,7 +183,36 @@ func (s *UserServer) GetOnboardingStatus(ctx context.Context, req *userv1.GetOnb
 			Percent:               out.Percent,
 			MissingRequiredFields: out.Missing,
 		},
+		Steps: toProtoOnboardingSteps(out.Steps),
 	}, nil
+}
+
+func (s *UserServer) UpdateAccountStatus(ctx context.Context, req *userv1.UpdateAccountStatusRequest) (*userv1.UpdateAccountStatusResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	var suspensionReason *string
+	if req.SuspensionReason != nil {
+		s := req.GetSuspensionReason()
+		suspensionReason = &s
+	}
+
+	out, err := s.UpdateAccountStatusUC.Execute(ctx, application.UpdateAccountStatusInput{
+		UserID:           userID,
+		Status:           req.GetStatus().String(),
+		SuspensionReason: suspensionReason,
+		Visibility:       req.GetVisibility().String(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.UpdateAccountStatusResponse{Profile: toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
 }
 
 func (s *UserServer) UploadAvatar(ctx context.Context, req *userv1.UploadAvatarRequest) (*userv1.UploadAvatarResponse, error) {
@@ -242,18 +274,21 @@ func (s *UserServer) RemoveAvatar(ctx context.Context, req *userv1.RemoveAvatarR
 
 func toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.Profile {
 	out := &userv1.Profile{
-		Id:           p.ID,
-		UserId:       p.UserID.String(),
-		Role:         p.Role,
-		FirstName:    p.FirstName,
-		LastName:     p.LastName,
-		DisplayName:  p.DisplayName,
-		AvatarUrl:    p.AvatarURL,
-		Language:     p.Language,
-		ContactEmail: p.ContactEmail,
-		ContactPhone: p.ContactPhone,
-		Bio:          p.Bio,
-		Deleted:      p.DeletedAt != nil,
+		Id:               p.ID,
+		UserId:           p.UserID.String(),
+		Role:             p.Role,
+		FirstName:        p.FirstName,
+		LastName:         p.LastName,
+		DisplayName:      p.DisplayName,
+		AvatarUrl:        p.AvatarURL,
+		Language:         p.Language,
+		ContactEmail:     p.ContactEmail,
+		ContactPhone:     p.ContactPhone,
+		Bio:              p.Bio,
+		Deleted:          p.DeletedAt != nil,
+		Status:           mapAccountStatusToProto(p.AccountStatus),
+		SuspensionReason: p.SuspensionReason,
+		Visibility:       mapVisibilityToProto(p.Visibility),
 	}
 	if client != nil {
 		out.Client = &userv1.ClientProfileInput{
@@ -274,6 +309,38 @@ func toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *
 		}
 	}
 	return out
+}
+
+func toProtoOnboardingSteps(steps []application.OnboardingStep) []*userv1.OnboardingStep {
+	out := make([]*userv1.OnboardingStep, 0, len(steps))
+	for _, step := range steps {
+		status := userv1.OnboardingStepStatus_ONBOARDING_STEP_STATUS_NOT_STARTED
+		if step.Completed {
+			status = userv1.OnboardingStepStatus_ONBOARDING_STEP_STATUS_COMPLETED
+		}
+		out = append(out, &userv1.OnboardingStep{Key: step.Key, Status: status})
+	}
+	return out
+}
+
+func mapAccountStatusToProto(status string) userv1.AccountStatus {
+	switch strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(status), "ACCOUNT_STATUS_")) {
+	case "SUSPENDED":
+		return userv1.AccountStatus_ACCOUNT_STATUS_SUSPENDED
+	case "DELETED":
+		return userv1.AccountStatus_ACCOUNT_STATUS_DELETED
+	default:
+		return userv1.AccountStatus_ACCOUNT_STATUS_ACTIVE
+	}
+}
+
+func mapVisibilityToProto(visibility string) userv1.ProfileVisibility {
+	switch strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(visibility), "PROFILE_VISIBILITY_")) {
+	case "PRIVATE":
+		return userv1.ProfileVisibility_PROFILE_VISIBILITY_PRIVATE
+	default:
+		return userv1.ProfileVisibility_PROFILE_VISIBILITY_PUBLIC
+	}
 }
 
 func toStatus(err error) error {

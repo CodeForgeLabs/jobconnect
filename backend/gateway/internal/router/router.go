@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -45,6 +45,18 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler) *gin.Engine {
 	authRoutes.GET("/sessions", middleware.RequireAuth(jwtParser), authHandler.ListSessions)
 	authRoutes.DELETE("/sessions/:sessionId", middleware.RequireAuth(jwtParser), authHandler.RevokeSession)
 	authRoutes.POST("/challenge", authHandler.Challenge)
+
+	verificationRoutes := api.Group("/verifications")
+	verificationRoutes.Use(middleware.RequireAuth(jwtParser))
+	verificationRoutes.POST("/submit", sensitiveLimiter.Middleware(), verificationHandler.Submit)
+	verificationRoutes.GET("/me", verificationHandler.GetMyStatus)
+
+	adminVerificationRoutes := api.Group("/admin/verifications")
+	adminVerificationRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
+	adminVerificationRoutes.GET("/pending", verificationHandler.ListPending)
+	adminVerificationRoutes.GET("/:requestId", verificationHandler.GetByID)
+	adminVerificationRoutes.POST("/:requestId/review", sensitiveLimiter.Middleware(), verificationHandler.Review)
+	adminVerificationRoutes.POST("/reverification", sensitiveLimiter.Middleware(), verificationHandler.RequestReverification)
 
 	return engine
 }

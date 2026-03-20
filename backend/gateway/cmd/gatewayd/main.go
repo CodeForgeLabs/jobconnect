@@ -39,9 +39,17 @@ func main() {
 	}
 	defer authConn.Close()
 
+	verificationConn, err := grpc.NewClient(cfg.VerificationServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("verification service dial: %v", err)
+	}
+	defer verificationConn.Close()
+
 	authClient := clients.NewAuthClient(authConn)
+	verificationClient := clients.NewVerificationClient(verificationConn)
 	authHandler := handlers.NewAuthHandler(cfg, authClient)
-	engine := router.New(cfg, authHandler)
+	verificationHandler := handlers.NewVerificationHandler(verificationClient)
+	engine := router.New(cfg, authHandler, verificationHandler)
 
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPListenAddr,

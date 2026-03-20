@@ -64,3 +64,25 @@ func BuildDisplayName(firstName, lastName string) string {
 	last := strings.TrimSpace(lastName)
 	return strings.TrimSpace(first + " " + last)
 }
+
+func ValidateAccountStatus(status string) error {
+	normalized := strings.TrimSpace(strings.ToUpper(status))
+	normalized = strings.TrimPrefix(normalized, "ACCOUNT_STATUS_")
+	switch normalized {
+	case AccountStatusActive, AccountStatusSuspended, AccountStatusDeleted:
+		return nil
+	default:
+		return fmt.Errorf("invalid account status")
+	}
+}
+
+func ValidateProfileVisibility(visibility string) error {
+	normalized := strings.TrimSpace(strings.ToUpper(visibility))
+	normalized = strings.TrimPrefix(normalized, "PROFILE_VISIBILITY_")
+	switch normalized {
+	case ProfileVisibilityPublic, ProfileVisibilityPrivate:
+		return nil
+	default:
+		return fmt.Errorf("invalid profile visibility")
+	}
+}
