@@ -1,5 +1,11 @@
 # Backend Runbook
 
+## API Reference
+
+Authentication API docs (Gateway HTTP + Auth gRPC):
+
+- `docs/auth-gateway-api.md`
+
 ## 1) Start databases
 
 Run from `backend`:
