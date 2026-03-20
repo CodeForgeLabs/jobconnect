@@ -1317,6 +1317,7 @@ type Profile struct {
 	Status           AccountStatus           `protobuf:"varint,15,opt,name=status,proto3,enum=user.v1.AccountStatus" json:"status,omitempty"`
 	SuspensionReason string                  `protobuf:"bytes,16,opt,name=suspension_reason,json=suspensionReason,proto3" json:"suspension_reason,omitempty"`
 	Visibility       ProfileVisibility       `protobuf:"varint,17,opt,name=visibility,proto3,enum=user.v1.ProfileVisibility" json:"visibility,omitempty"`
+	Capabilities     *CapabilityFlags        `protobuf:"bytes,18,opt,name=capabilities,proto3" json:"capabilities,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -1470,6 +1471,89 @@ func (x *Profile) GetVisibility() ProfileVisibility {
 	return ProfileVisibility_PROFILE_VISIBILITY_UNSPECIFIED
 }
 
+func (x *Profile) GetCapabilities() *CapabilityFlags {
+	if x != nil {
+		return x.Capabilities
+	}
+	return nil
+}
+
+type CapabilityFlags struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	CanApplyJobs     bool                   `protobuf:"varint,1,opt,name=can_apply_jobs,json=canApplyJobs,proto3" json:"can_apply_jobs,omitempty"`
+	CanPostJobs      bool                   `protobuf:"varint,2,opt,name=can_post_jobs,json=canPostJobs,proto3" json:"can_post_jobs,omitempty"`
+	CanWithdrawFunds bool                   `protobuf:"varint,3,opt,name=can_withdraw_funds,json=canWithdrawFunds,proto3" json:"can_withdraw_funds,omitempty"`
+	CanMessage       bool                   `protobuf:"varint,4,opt,name=can_message,json=canMessage,proto3" json:"can_message,omitempty"`
+	CanBeDiscovered  bool                   `protobuf:"varint,5,opt,name=can_be_discovered,json=canBeDiscovered,proto3" json:"can_be_discovered,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *CapabilityFlags) Reset() {
+	*x = CapabilityFlags{}
+	mi := &file_user_user_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CapabilityFlags) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CapabilityFlags) ProtoMessage() {}
+
+func (x *CapabilityFlags) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CapabilityFlags.ProtoReflect.Descriptor instead.
+func (*CapabilityFlags) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *CapabilityFlags) GetCanApplyJobs() bool {
+	if x != nil {
+		return x.CanApplyJobs
+	}
+	return false
+}
+
+func (x *CapabilityFlags) GetCanPostJobs() bool {
+	if x != nil {
+		return x.CanPostJobs
+	}
+	return false
+}
+
+func (x *CapabilityFlags) GetCanWithdrawFunds() bool {
+	if x != nil {
+		return x.CanWithdrawFunds
+	}
+	return false
+}
+
+func (x *CapabilityFlags) GetCanMessage() bool {
+	if x != nil {
+		return x.CanMessage
+	}
+	return false
+}
+
+func (x *CapabilityFlags) GetCanBeDiscovered() bool {
+	if x != nil {
+		return x.CanBeDiscovered
+	}
+	return false
+}
+
 type ProfileCompleteness struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Percent               uint32                 `protobuf:"varint,1,opt,name=percent,proto3" json:"percent,omitempty"`
@@ -1480,7 +1564,7 @@ type ProfileCompleteness struct {
 
 func (x *ProfileCompleteness) Reset() {
 	*x = ProfileCompleteness{}
-	mi := &file_user_user_proto_msgTypes[19]
+	mi := &file_user_user_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1492,7 +1576,7 @@ func (x *ProfileCompleteness) String() string {
 func (*ProfileCompleteness) ProtoMessage() {}
 
 func (x *ProfileCompleteness) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[19]
+	mi := &file_user_user_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1505,7 +1589,7 @@ func (x *ProfileCompleteness) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProfileCompleteness.ProtoReflect.Descriptor instead.
 func (*ProfileCompleteness) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{19}
+	return file_user_user_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ProfileCompleteness) GetPercent() uint32 {
@@ -1532,7 +1616,7 @@ type OnboardingStep struct {
 
 func (x *OnboardingStep) Reset() {
 	*x = OnboardingStep{}
-	mi := &file_user_user_proto_msgTypes[20]
+	mi := &file_user_user_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1544,7 +1628,7 @@ func (x *OnboardingStep) String() string {
 func (*OnboardingStep) ProtoMessage() {}
 
 func (x *OnboardingStep) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[20]
+	mi := &file_user_user_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1557,7 +1641,7 @@ func (x *OnboardingStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OnboardingStep.ProtoReflect.Descriptor instead.
 func (*OnboardingStep) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{20}
+	return file_user_user_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *OnboardingStep) GetKey() string {
@@ -1586,7 +1670,7 @@ type ClientProfileInput struct {
 
 func (x *ClientProfileInput) Reset() {
 	*x = ClientProfileInput{}
-	mi := &file_user_user_proto_msgTypes[21]
+	mi := &file_user_user_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1598,7 +1682,7 @@ func (x *ClientProfileInput) String() string {
 func (*ClientProfileInput) ProtoMessage() {}
 
 func (x *ClientProfileInput) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[21]
+	mi := &file_user_user_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1611,7 +1695,7 @@ func (x *ClientProfileInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientProfileInput.ProtoReflect.Descriptor instead.
 func (*ClientProfileInput) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{21}
+	return file_user_user_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ClientProfileInput) GetCompanyName() string {
@@ -1656,7 +1740,7 @@ type FreelancerProfileInput struct {
 
 func (x *FreelancerProfileInput) Reset() {
 	*x = FreelancerProfileInput{}
-	mi := &file_user_user_proto_msgTypes[22]
+	mi := &file_user_user_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1668,7 +1752,7 @@ func (x *FreelancerProfileInput) String() string {
 func (*FreelancerProfileInput) ProtoMessage() {}
 
 func (x *FreelancerProfileInput) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[22]
+	mi := &file_user_user_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1681,7 +1765,7 @@ func (x *FreelancerProfileInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FreelancerProfileInput.ProtoReflect.Descriptor instead.
 func (*FreelancerProfileInput) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{22}
+	return file_user_user_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *FreelancerProfileInput) GetHeadline() string {
@@ -1835,7 +1919,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\x13RemoveAvatarRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"0\n" +
 	"\x14RemoveAvatarResponse\x12\x18\n" +
-	"\aremoved\x18\x01 \x01(\bR\aremoved\"\xe5\x04\n" +
+	"\aremoved\x18\x01 \x01(\bR\aremoved\"\xa3\x05\n" +
 	"\aProfile\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
@@ -1860,7 +1944,15 @@ const file_user_user_proto_rawDesc = "" +
 	"\x11suspension_reason\x18\x10 \x01(\tR\x10suspensionReason\x12:\n" +
 	"\n" +
 	"visibility\x18\x11 \x01(\x0e2\x1a.user.v1.ProfileVisibilityR\n" +
-	"visibility\"g\n" +
+	"visibility\x12<\n" +
+	"\fcapabilities\x18\x12 \x01(\v2\x18.user.v1.CapabilityFlagsR\fcapabilities\"\xd6\x01\n" +
+	"\x0fCapabilityFlags\x12$\n" +
+	"\x0ecan_apply_jobs\x18\x01 \x01(\bR\fcanApplyJobs\x12\"\n" +
+	"\rcan_post_jobs\x18\x02 \x01(\bR\vcanPostJobs\x12,\n" +
+	"\x12can_withdraw_funds\x18\x03 \x01(\bR\x10canWithdrawFunds\x12\x1f\n" +
+	"\vcan_message\x18\x04 \x01(\bR\n" +
+	"canMessage\x12*\n" +
+	"\x11can_be_discovered\x18\x05 \x01(\bR\x0fcanBeDiscovered\"g\n" +
 	"\x13ProfileCompleteness\x12\x18\n" +
 	"\apercent\x18\x01 \x01(\rR\apercent\x126\n" +
 	"\x17missing_required_fields\x18\x02 \x03(\tR\x15missingRequiredFields\"Y\n" +
@@ -1917,7 +2009,7 @@ func file_user_user_proto_rawDescGZIP() []byte {
 }
 
 var file_user_user_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
+var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_user_user_proto_goTypes = []any{
 	(AccountStatus)(0),                  // 0: user.v1.AccountStatus
 	(ProfileVisibility)(0),              // 1: user.v1.ProfileVisibility
@@ -1941,50 +2033,52 @@ var file_user_user_proto_goTypes = []any{
 	(*RemoveAvatarRequest)(nil),         // 19: user.v1.RemoveAvatarRequest
 	(*RemoveAvatarResponse)(nil),        // 20: user.v1.RemoveAvatarResponse
 	(*Profile)(nil),                     // 21: user.v1.Profile
-	(*ProfileCompleteness)(nil),         // 22: user.v1.ProfileCompleteness
-	(*OnboardingStep)(nil),              // 23: user.v1.OnboardingStep
-	(*ClientProfileInput)(nil),          // 24: user.v1.ClientProfileInput
-	(*FreelancerProfileInput)(nil),      // 25: user.v1.FreelancerProfileInput
+	(*CapabilityFlags)(nil),             // 22: user.v1.CapabilityFlags
+	(*ProfileCompleteness)(nil),         // 23: user.v1.ProfileCompleteness
+	(*OnboardingStep)(nil),              // 24: user.v1.OnboardingStep
+	(*ClientProfileInput)(nil),          // 25: user.v1.ClientProfileInput
+	(*FreelancerProfileInput)(nil),      // 26: user.v1.FreelancerProfileInput
 }
 var file_user_user_proto_depIdxs = []int32{
-	24, // 0: user.v1.CreateProfileRequest.client:type_name -> user.v1.ClientProfileInput
-	25, // 1: user.v1.CreateProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileInput
+	25, // 0: user.v1.CreateProfileRequest.client:type_name -> user.v1.ClientProfileInput
+	26, // 1: user.v1.CreateProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileInput
 	21, // 2: user.v1.GetProfileResponse.profile:type_name -> user.v1.Profile
 	21, // 3: user.v1.UpdateProfileResponse.profile:type_name -> user.v1.Profile
-	22, // 4: user.v1.UpdateProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
-	22, // 5: user.v1.GetOnboardingStatusResponse.completeness:type_name -> user.v1.ProfileCompleteness
-	23, // 6: user.v1.GetOnboardingStatusResponse.steps:type_name -> user.v1.OnboardingStep
+	23, // 4: user.v1.UpdateProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	23, // 5: user.v1.GetOnboardingStatusResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	24, // 6: user.v1.GetOnboardingStatusResponse.steps:type_name -> user.v1.OnboardingStep
 	0,  // 7: user.v1.UpdateAccountStatusRequest.status:type_name -> user.v1.AccountStatus
 	1,  // 8: user.v1.UpdateAccountStatusRequest.visibility:type_name -> user.v1.ProfileVisibility
 	21, // 9: user.v1.UpdateAccountStatusResponse.profile:type_name -> user.v1.Profile
-	24, // 10: user.v1.Profile.client:type_name -> user.v1.ClientProfileInput
-	25, // 11: user.v1.Profile.freelancer:type_name -> user.v1.FreelancerProfileInput
+	25, // 10: user.v1.Profile.client:type_name -> user.v1.ClientProfileInput
+	26, // 11: user.v1.Profile.freelancer:type_name -> user.v1.FreelancerProfileInput
 	0,  // 12: user.v1.Profile.status:type_name -> user.v1.AccountStatus
 	1,  // 13: user.v1.Profile.visibility:type_name -> user.v1.ProfileVisibility
-	2,  // 14: user.v1.OnboardingStep.status:type_name -> user.v1.OnboardingStepStatus
-	3,  // 15: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
-	5,  // 16: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
-	7,  // 17: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
-	9,  // 18: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
-	11, // 19: user.v1.UserService.GetOnboardingStatus:input_type -> user.v1.GetOnboardingStatusRequest
-	13, // 20: user.v1.UserService.UpdateAccountStatus:input_type -> user.v1.UpdateAccountStatusRequest
-	15, // 21: user.v1.UserService.UploadAvatar:input_type -> user.v1.UploadAvatarRequest
-	17, // 22: user.v1.UserService.GetAvatar:input_type -> user.v1.GetAvatarRequest
-	19, // 23: user.v1.UserService.RemoveAvatar:input_type -> user.v1.RemoveAvatarRequest
-	4,  // 24: user.v1.UserService.CreateProfile:output_type -> user.v1.CreateProfileResponse
-	6,  // 25: user.v1.UserService.GetProfile:output_type -> user.v1.GetProfileResponse
-	8,  // 26: user.v1.UserService.UpdateProfile:output_type -> user.v1.UpdateProfileResponse
-	10, // 27: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
-	12, // 28: user.v1.UserService.GetOnboardingStatus:output_type -> user.v1.GetOnboardingStatusResponse
-	14, // 29: user.v1.UserService.UpdateAccountStatus:output_type -> user.v1.UpdateAccountStatusResponse
-	16, // 30: user.v1.UserService.UploadAvatar:output_type -> user.v1.UploadAvatarResponse
-	18, // 31: user.v1.UserService.GetAvatar:output_type -> user.v1.GetAvatarResponse
-	20, // 32: user.v1.UserService.RemoveAvatar:output_type -> user.v1.RemoveAvatarResponse
-	24, // [24:33] is the sub-list for method output_type
-	15, // [15:24] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	22, // 14: user.v1.Profile.capabilities:type_name -> user.v1.CapabilityFlags
+	2,  // 15: user.v1.OnboardingStep.status:type_name -> user.v1.OnboardingStepStatus
+	3,  // 16: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
+	5,  // 17: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
+	7,  // 18: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
+	9,  // 19: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
+	11, // 20: user.v1.UserService.GetOnboardingStatus:input_type -> user.v1.GetOnboardingStatusRequest
+	13, // 21: user.v1.UserService.UpdateAccountStatus:input_type -> user.v1.UpdateAccountStatusRequest
+	15, // 22: user.v1.UserService.UploadAvatar:input_type -> user.v1.UploadAvatarRequest
+	17, // 23: user.v1.UserService.GetAvatar:input_type -> user.v1.GetAvatarRequest
+	19, // 24: user.v1.UserService.RemoveAvatar:input_type -> user.v1.RemoveAvatarRequest
+	4,  // 25: user.v1.UserService.CreateProfile:output_type -> user.v1.CreateProfileResponse
+	6,  // 26: user.v1.UserService.GetProfile:output_type -> user.v1.GetProfileResponse
+	8,  // 27: user.v1.UserService.UpdateProfile:output_type -> user.v1.UpdateProfileResponse
+	10, // 28: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
+	12, // 29: user.v1.UserService.GetOnboardingStatus:output_type -> user.v1.GetOnboardingStatusResponse
+	14, // 30: user.v1.UserService.UpdateAccountStatus:output_type -> user.v1.UpdateAccountStatusResponse
+	16, // 31: user.v1.UserService.UploadAvatar:output_type -> user.v1.UploadAvatarResponse
+	18, // 32: user.v1.UserService.GetAvatar:output_type -> user.v1.GetAvatarResponse
+	20, // 33: user.v1.UserService.RemoveAvatar:output_type -> user.v1.RemoveAvatarResponse
+	25, // [25:34] is the sub-list for method output_type
+	16, // [16:25] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_user_user_proto_init() }
@@ -2004,7 +2098,7 @@ func file_user_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   23,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

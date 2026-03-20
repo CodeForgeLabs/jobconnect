@@ -289,6 +289,7 @@ func toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *
 		Status:           mapAccountStatusToProto(p.AccountStatus),
 		SuspensionReason: p.SuspensionReason,
 		Visibility:       mapVisibilityToProto(p.Visibility),
+		Capabilities:     toProtoCapabilities(p, client, freelancer),
 	}
 	if client != nil {
 		out.Client = &userv1.ClientProfileInput{
@@ -340,6 +341,32 @@ func mapVisibilityToProto(visibility string) userv1.ProfileVisibility {
 		return userv1.ProfileVisibility_PROFILE_VISIBILITY_PRIVATE
 	default:
 		return userv1.ProfileVisibility_PROFILE_VISIBILITY_PUBLIC
+	}
+}
+
+func toProtoCapabilities(p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.CapabilityFlags {
+	active := strings.EqualFold(strings.TrimPrefix(strings.TrimSpace(p.AccountStatus), "ACCOUNT_STATUS_"), domain.AccountStatusActive)
+	publicVisible := strings.EqualFold(strings.TrimPrefix(strings.TrimSpace(p.Visibility), "PROFILE_VISIBILITY_"), domain.ProfileVisibilityPublic)
+
+	isFreelancer := p.Role == domain.RoleFreelancer
+	isClient := p.Role == domain.RoleClient
+
+	freelancerVerified := freelancer != nil && strings.EqualFold(strings.TrimSpace(freelancer.VerificationStatus), "verified")
+	hasDiscoverableFreelancerProfile := freelancer != nil && strings.TrimSpace(freelancer.Headline) != "" && len(freelancer.Skills) > 0
+	hasDiscoverableClientProfile := client != nil && strings.TrimSpace(client.CompanyName) != ""
+
+	canApplyJobs := active && isFreelancer
+	canPostJobs := active && isClient
+	canWithdrawFunds := active && isFreelancer && freelancerVerified
+	canMessage := active
+	canBeDiscovered := active && publicVisible && (hasDiscoverableFreelancerProfile || hasDiscoverableClientProfile)
+
+	return &userv1.CapabilityFlags{
+		CanApplyJobs:    canApplyJobs,
+		CanPostJobs:     canPostJobs,
+		CanWithdrawFunds: canWithdrawFunds,
+		CanMessage:      canMessage,
+		CanBeDiscovered: canBeDiscovered,
 	}
 }
 
