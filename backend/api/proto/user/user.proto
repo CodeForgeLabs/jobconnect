@@ -5,7 +5,9 @@ option go_package = "jobconnect/user/gen/user;userv1";
 
 service UserService {
     rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse);
+    rpc GetUser(GetUserRequest) returns (GetUserResponse);
     rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+    rpc GetPublicProfile(GetPublicProfileRequest) returns (GetPublicProfileResponse);
     rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
     rpc DeleteProfile(DeleteProfileRequest) returns (DeleteProfileResponse);
     rpc GetOnboardingStatus(GetOnboardingStatusRequest) returns (GetOnboardingStatusResponse);
@@ -34,6 +36,22 @@ enum OnboardingStepStatus {
     ONBOARDING_STEP_STATUS_COMPLETED = 2;
 }
 
+enum VerificationStatus {
+    VERIFICATION_STATUS_UNSPECIFIED = 0;
+    VERIFICATION_STATUS_PENDING = 1;
+    VERIFICATION_STATUS_VERIFIED = 2;
+    VERIFICATION_STATUS_REJECTED = 3;
+    VERIFICATION_STATUS_EXPIRED = 4;
+}
+
+enum Availability {
+    AVAILABILITY_UNSPECIFIED = 0;
+    AVAILABILITY_FULL_TIME = 1;
+    AVAILABILITY_PART_TIME = 2;
+    AVAILABILITY_AS_NEEDED = 3;
+    AVAILABILITY_UNAVAILABLE = 4;
+}
+
 message CreateProfileRequest {
     string user_id = 1;
     // Matches AuthService role values: "client", "freelancer", "admin".
@@ -54,12 +72,28 @@ message CreateProfileResponse {
     int64 profile_id = 2;
 }
 
+message GetUserRequest {
+    string user_id = 1;
+}
+
+message GetUserResponse {
+    User user = 1;
+}
+
 message GetProfileRequest {
     string user_id = 1;
 }
 
 message GetProfileResponse {
     Profile profile = 1;
+}
+
+message GetPublicProfileRequest {
+    string user_id = 1;
+}
+
+message GetPublicProfileResponse {
+    PublicProfile profile = 1;
 }
 
 message UpdateProfileRequest {
@@ -78,6 +112,10 @@ message UpdateProfileRequest {
     optional string headline = 13;
     repeated string skills = 14;
     optional string experience_level = 15;
+    optional double hourly_rate = 16;
+    optional Availability availability = 17;
+    optional string location = 18;
+    optional int64 last_active_at_unix = 19;
 }
 
 message UpdateProfileResponse {
@@ -169,6 +207,35 @@ message Profile {
     CapabilityFlags capabilities = 18;
 }
 
+message User {
+    string user_id = 1;
+    string role = 2;
+    AccountStatus status = 3;
+    ProfileVisibility visibility = 4;
+    string first_name = 5;
+    string last_name = 6;
+    string display_name = 7;
+    string avatar_url = 8;
+    int64 created_at_unix = 9;
+    int64 updated_at_unix = 10;
+}
+
+message PublicProfile {
+    string user_id = 1;
+    string display_name = 2;
+    string avatar_url = 3;
+    string headline = 4;
+    string bio = 5;
+    repeated string skills = 6;
+    string experience_level = 7;
+    Reputation reputation = 8;
+    double hourly_rate = 9;
+    Availability availability = 10;
+    string location = 11;
+    int64 last_active_at_unix = 12;
+    VerificationStatus verification_status = 13;
+}
+
 message CapabilityFlags {
     bool can_apply_jobs = 1;
     bool can_post_jobs = 2;
@@ -187,11 +254,19 @@ message OnboardingStep {
     OnboardingStepStatus status = 2;
 }
 
+message Reputation {
+    double job_success_score = 1;
+    double avg_rating = 2;
+    uint32 total_reviews = 3;
+    uint32 total_jobs = 4;
+    double total_earnings_usd = 5;
+}
+
 message ClientProfileInput {
     string company_name = 1;
     string billing_address = 2;
     string tax_id = 3;
-    string verification_status = 4;
+    VerificationStatus verification_status = 4;
 }
 
 message FreelancerProfileInput {
@@ -200,6 +275,11 @@ message FreelancerProfileInput {
     repeated string skills = 3;
     string experience_level = 4;
     double rating = 5;
-    string verification_status = 6;
+    VerificationStatus verification_status = 6;
+    Reputation reputation = 7;
+    double hourly_rate = 8;
+    Availability availability = 9;
+    string location = 10;
+    int64 last_active_at_unix = 11;
 }
 

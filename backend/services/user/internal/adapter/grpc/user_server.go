@@ -3,6 +3,7 @@ package grpcadapter
 import (
 	"context"
 	"strings"
+	"time"
 
 	userv1 "jobconnect/user/gen/user"
 	"jobconnect/user/internal/application"
@@ -16,7 +17,9 @@ import (
 type UserServer struct {
 	userv1.UnimplementedUserServiceServer
 	CreateProfileUC       *application.CreateProfile
+	GetUserUC             *application.GetUser
 	GetProfileUC          *application.GetProfile
+	GetPublicProfileUC    *application.GetPublicProfile
 	UpdateProfileUC       *application.UpdateProfile
 	DeleteProfileUC       *application.DeleteProfile
 	GetOnboardingStatusUC *application.GetOnboardingStatus
@@ -55,7 +58,9 @@ func (p CapabilityPolicy) withDefaults() CapabilityPolicy {
 
 func NewUserServer(
 	createProfile *application.CreateProfile,
+	getUser *application.GetUser,
 	getProfile *application.GetProfile,
+	getPublicProfile *application.GetPublicProfile,
 	updateProfile *application.UpdateProfile,
 	deleteProfile *application.DeleteProfile,
 	getOnboardingStatus *application.GetOnboardingStatus,
@@ -67,7 +72,9 @@ func NewUserServer(
 ) *UserServer {
 	return &UserServer{
 		CreateProfileUC:       createProfile,
+		GetUserUC:             getUser,
 		GetProfileUC:          getProfile,
+		GetPublicProfileUC:    getPublicProfile,
 		UpdateProfileUC:       updateProfile,
 		DeleteProfileUC:       deleteProfile,
 		GetOnboardingStatusUC: getOnboardingStatus,
@@ -94,18 +101,34 @@ func (s *UserServer) CreateProfile(ctx context.Context, req *userv1.CreateProfil
 			CompanyName:        req.GetClient().CompanyName,
 			BillingAddress:     req.GetClient().BillingAddress,
 			TaxID:              req.GetClient().TaxId,
-			VerificationStatus: req.GetClient().VerificationStatus,
+			VerificationStatus: mapVerificationStatusFromProto(req.GetClient().VerificationStatus),
 		}
 	}
 	var freelancer *domain.FreelancerProfile
 	if req.GetFreelancer() != nil {
+		var lastActiveAt *time.Time
+		if req.GetFreelancer().LastActiveAtUnix > 0 {
+			t := fromUnix(req.GetFreelancer().LastActiveAtUnix)
+			lastActiveAt = &t
+		}
 		freelancer = &domain.FreelancerProfile{
 			Headline:           req.GetFreelancer().Headline,
 			Bio:                req.GetFreelancer().Bio,
 			Skills:             req.GetFreelancer().Skills,
 			ExperienceLevel:    req.GetFreelancer().ExperienceLevel,
 			Rating:             req.GetFreelancer().Rating,
-			VerificationStatus: req.GetFreelancer().VerificationStatus,
+			VerificationStatus: mapVerificationStatusFromProto(req.GetFreelancer().VerificationStatus),
+			Reputation: domain.Reputation{
+				JobSuccessScore:  req.GetFreelancer().GetReputation().GetJobSuccessScore(),
+				AvgRating:        req.GetFreelancer().GetReputation().GetAvgRating(),
+				TotalReviews:     req.GetFreelancer().GetReputation().GetTotalReviews(),
+				TotalJobs:        req.GetFreelancer().GetReputation().GetTotalJobs(),
+				TotalEarningsUSD: req.GetFreelancer().GetReputation().GetTotalEarningsUsd(),
+			},
+			HourlyRate:   req.GetFreelancer().HourlyRate,
+			Availability: mapAvailabilityFromProto(req.GetFreelancer().Availability),
+			Location:     req.GetFreelancer().Location,
+			LastActiveAt: lastActiveAt,
 		}
 	}
 
@@ -126,6 +149,21 @@ func (s *UserServer) CreateProfile(ctx context.Context, req *userv1.CreateProfil
 	return &userv1.CreateProfileResponse{Success: true, ProfileId: out.ProfileID}, nil
 }
 
+func (s *UserServer) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.GetUserUC.Execute(ctx, application.GetUserInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetUserResponse{User: toProtoUser(out.Profile)}, nil
+}
+
 func (s *UserServer) GetProfile(ctx context.Context, req *userv1.GetProfileRequest) (*userv1.GetProfileResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -141,6 +179,21 @@ func (s *UserServer) GetProfile(ctx context.Context, req *userv1.GetProfileReque
 	return &userv1.GetProfileResponse{Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
 }
 
+func (s *UserServer) GetPublicProfile(ctx context.Context, req *userv1.GetPublicProfileRequest) (*userv1.GetPublicProfileResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.GetPublicProfileUC.Execute(ctx, application.GetPublicProfileInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetPublicProfileResponse{Profile: toProtoPublicProfile(out.Profile, out.Freelancer)}, nil
+}
+
 func (s *UserServer) UpdateProfile(ctx context.Context, req *userv1.UpdateProfileRequest) (*userv1.UpdateProfileResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -150,22 +203,32 @@ func (s *UserServer) UpdateProfile(ctx context.Context, req *userv1.UpdateProfil
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
 
+	var availability *string
+	if req.Availability != nil {
+		value := mapAvailabilityFromProto(req.GetAvailability())
+		availability = &value
+	}
+
 	out, err := s.UpdateProfileUC.Execute(ctx, application.UpdateProfileInput{
-		UserID:          userID,
-		DisplayName:     req.DisplayName,
-		AvatarURL:       req.AvatarUrl,
-		Language:        req.Language,
-		ContactEmail:    req.ContactEmail,
-		ContactPhone:    req.ContactPhone,
-		Bio:             req.Bio,
-		FirstName:       req.FirstName,
-		LastName:        req.LastName,
-		CompanyName:     req.CompanyName,
-		BillingAddress:  req.BillingAddress,
-		TaxID:           req.TaxId,
-		Headline:        req.Headline,
-		Skills:          req.Skills,
-		ExperienceLevel: req.ExperienceLevel,
+		UserID:           userID,
+		DisplayName:      req.DisplayName,
+		AvatarURL:        req.AvatarUrl,
+		Language:         req.Language,
+		ContactEmail:     req.ContactEmail,
+		ContactPhone:     req.ContactPhone,
+		Bio:              req.Bio,
+		FirstName:        req.FirstName,
+		LastName:         req.LastName,
+		CompanyName:      req.CompanyName,
+		BillingAddress:   req.BillingAddress,
+		TaxID:            req.TaxId,
+		Headline:         req.Headline,
+		Skills:           req.Skills,
+		ExperienceLevel:  req.ExperienceLevel,
+		HourlyRate:       req.HourlyRate,
+		Availability:     availability,
+		Location:         req.Location,
+		LastActiveAtUnix: req.LastActiveAtUnix,
 	})
 	if err != nil {
 		return nil, toStatus(err)
@@ -325,20 +388,81 @@ func (s *UserServer) toProtoProfile(p domain.Profile, client *domain.ClientProfi
 			CompanyName:        client.CompanyName,
 			BillingAddress:     client.BillingAddress,
 			TaxId:              client.TaxID,
-			VerificationStatus: client.VerificationStatus,
+			VerificationStatus: mapVerificationStatusToProto(client.VerificationStatus),
 		}
 	}
 	if freelancer != nil {
+		var lastActiveUnix int64
+		if freelancer.LastActiveAt != nil {
+			lastActiveUnix = freelancer.LastActiveAt.Unix()
+		}
 		out.Freelancer = &userv1.FreelancerProfileInput{
 			Headline:           freelancer.Headline,
 			Bio:                freelancer.Bio,
 			Skills:             freelancer.Skills,
 			ExperienceLevel:    freelancer.ExperienceLevel,
 			Rating:             freelancer.Rating,
-			VerificationStatus: freelancer.VerificationStatus,
+			VerificationStatus: mapVerificationStatusToProto(freelancer.VerificationStatus),
+			Reputation: &userv1.Reputation{
+				JobSuccessScore:  freelancer.Reputation.JobSuccessScore,
+				AvgRating:        freelancer.Reputation.AvgRating,
+				TotalReviews:     freelancer.Reputation.TotalReviews,
+				TotalJobs:        freelancer.Reputation.TotalJobs,
+				TotalEarningsUsd: freelancer.Reputation.TotalEarningsUSD,
+			},
+			HourlyRate:       freelancer.HourlyRate,
+			Availability:     mapAvailabilityToProto(freelancer.Availability),
+			Location:         freelancer.Location,
+			LastActiveAtUnix: lastActiveUnix,
 		}
 	}
 	return out
+}
+
+func toProtoUser(p domain.Profile) *userv1.User {
+	return &userv1.User{
+		UserId:        p.UserID.String(),
+		Role:          p.Role,
+		Status:        mapAccountStatusToProto(p.AccountStatus),
+		Visibility:    mapVisibilityToProto(p.Visibility),
+		FirstName:     p.FirstName,
+		LastName:      p.LastName,
+		DisplayName:   p.DisplayName,
+		AvatarUrl:     p.AvatarURL,
+		CreatedAtUnix: p.CreatedAt.Unix(),
+		UpdatedAtUnix: p.UpdatedAt.Unix(),
+	}
+}
+
+func toProtoPublicProfile(p domain.Profile, freelancer *domain.FreelancerProfile) *userv1.PublicProfile {
+	if freelancer == nil {
+		return &userv1.PublicProfile{UserId: p.UserID.String()}
+	}
+	var lastActiveUnix int64
+	if freelancer.LastActiveAt != nil {
+		lastActiveUnix = freelancer.LastActiveAt.Unix()
+	}
+	return &userv1.PublicProfile{
+		UserId:          p.UserID.String(),
+		DisplayName:     p.DisplayName,
+		AvatarUrl:       p.AvatarURL,
+		Headline:        freelancer.Headline,
+		Bio:             freelancer.Bio,
+		Skills:          freelancer.Skills,
+		ExperienceLevel: freelancer.ExperienceLevel,
+		Reputation: &userv1.Reputation{
+			JobSuccessScore:  freelancer.Reputation.JobSuccessScore,
+			AvgRating:        freelancer.Reputation.AvgRating,
+			TotalReviews:     freelancer.Reputation.TotalReviews,
+			TotalJobs:        freelancer.Reputation.TotalJobs,
+			TotalEarningsUsd: freelancer.Reputation.TotalEarningsUSD,
+		},
+		HourlyRate:         freelancer.HourlyRate,
+		Availability:       mapAvailabilityToProto(freelancer.Availability),
+		Location:           freelancer.Location,
+		LastActiveAtUnix:   lastActiveUnix,
+		VerificationStatus: mapVerificationStatusToProto(freelancer.VerificationStatus),
+	}
 }
 
 func toProtoOnboardingSteps(steps []application.OnboardingStep) []*userv1.OnboardingStep {
@@ -373,6 +497,62 @@ func mapVisibilityToProto(visibility string) userv1.ProfileVisibility {
 	}
 }
 
+func mapVerificationStatusToProto(status string) userv1.VerificationStatus {
+	switch strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(status), "VERIFICATION_STATUS_")) {
+	case "VERIFIED":
+		return userv1.VerificationStatus_VERIFICATION_STATUS_VERIFIED
+	case "REJECTED":
+		return userv1.VerificationStatus_VERIFICATION_STATUS_REJECTED
+	case "EXPIRED":
+		return userv1.VerificationStatus_VERIFICATION_STATUS_EXPIRED
+	default:
+		return userv1.VerificationStatus_VERIFICATION_STATUS_PENDING
+	}
+}
+
+func mapVerificationStatusFromProto(status userv1.VerificationStatus) string {
+	switch status {
+	case userv1.VerificationStatus_VERIFICATION_STATUS_VERIFIED:
+		return domain.VerificationStatusVerified
+	case userv1.VerificationStatus_VERIFICATION_STATUS_REJECTED:
+		return domain.VerificationStatusRejected
+	case userv1.VerificationStatus_VERIFICATION_STATUS_EXPIRED:
+		return domain.VerificationStatusExpired
+	default:
+		return domain.VerificationStatusPending
+	}
+}
+
+func mapAvailabilityToProto(availability string) userv1.Availability {
+	switch strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(availability), "AVAILABILITY_")) {
+	case "FULL_TIME":
+		return userv1.Availability_AVAILABILITY_FULL_TIME
+	case "PART_TIME":
+		return userv1.Availability_AVAILABILITY_PART_TIME
+	case "UNAVAILABLE":
+		return userv1.Availability_AVAILABILITY_UNAVAILABLE
+	default:
+		return userv1.Availability_AVAILABILITY_AS_NEEDED
+	}
+}
+
+func mapAvailabilityFromProto(availability userv1.Availability) string {
+	switch availability {
+	case userv1.Availability_AVAILABILITY_FULL_TIME:
+		return domain.AvailabilityFullTime
+	case userv1.Availability_AVAILABILITY_PART_TIME:
+		return domain.AvailabilityPartTime
+	case userv1.Availability_AVAILABILITY_UNAVAILABLE:
+		return domain.AvailabilityUnavailable
+	default:
+		return domain.AvailabilityAsNeeded
+	}
+}
+
+func fromUnix(unixSec int64) time.Time {
+	return time.Unix(unixSec, 0).UTC()
+}
+
 func toProtoCapabilities(policy CapabilityPolicy, p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.CapabilityFlags {
 	active := strings.EqualFold(strings.TrimPrefix(strings.TrimSpace(p.AccountStatus), "ACCOUNT_STATUS_"), domain.AccountStatusActive)
 	publicVisible := strings.EqualFold(strings.TrimPrefix(strings.TrimSpace(p.Visibility), "PROFILE_VISIBILITY_"), domain.ProfileVisibilityPublic)
@@ -380,7 +560,7 @@ func toProtoCapabilities(policy CapabilityPolicy, p domain.Profile, client *doma
 	isFreelancer := p.Role == domain.RoleFreelancer
 	isClient := p.Role == domain.RoleClient
 
-	freelancerVerified := freelancer != nil && strings.EqualFold(strings.TrimSpace(freelancer.VerificationStatus), "verified")
+	freelancerVerified := freelancer != nil && strings.EqualFold(strings.TrimSpace(freelancer.VerificationStatus), domain.VerificationStatusVerified)
 	hasHeadline := freelancer != nil && strings.TrimSpace(freelancer.Headline) != ""
 	hasEnoughSkills := freelancer != nil && len(freelancer.Skills) >= policy.MinSkillsForDiscovery
 	hasDiscoverableFreelancerProfile := freelancer != nil && hasEnoughSkills && (!policy.RequireHeadlineForFreelancer || hasHeadline)

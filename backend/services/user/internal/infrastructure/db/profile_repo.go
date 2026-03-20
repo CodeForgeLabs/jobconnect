@@ -56,9 +56,25 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 			return 0, err
 		}
 		_, err = tx.Exec(ctx, `
-			insert into freelancer_profiles (profile_id, headline, bio, skills, experience_level, rating, verification_status)
-			values ($1, $2, $3, $4, $5, $6, $7)
-		`, profileID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus)
+			insert into freelancer_profiles (
+				profile_id,
+				headline,
+				bio,
+				skills,
+				experience_level,
+				rating,
+				verification_status,
+				job_success_score,
+				total_reviews,
+				total_jobs,
+				total_earnings_usd,
+				hourly_rate,
+				availability,
+				location,
+				last_active_at
+			)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		`, profileID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location, freelancer.LastActiveAt)
 		if err != nil {
 			return 0, err
 		}
@@ -144,16 +160,25 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 	if profile.Role == domain.RoleFreelancer {
 		fp := &domain.FreelancerProfile{}
 		var skillsRaw []byte
+		var lastActiveAt *time.Time
 		err = r.pool.QueryRow(ctx, `
 			select coalesce(headline, ''),
 				coalesce(bio, ''),
 				coalesce(skills, '[]'::jsonb),
 				coalesce(experience_level, ''),
 				coalesce(rating, 0),
-				coalesce(verification_status, '')
+				coalesce(verification_status, ''),
+				coalesce(job_success_score, 0),
+				coalesce(total_reviews, 0),
+				coalesce(total_jobs, 0),
+				coalesce(total_earnings_usd, 0),
+				coalesce(hourly_rate, 0),
+				coalesce(availability, 'AS_NEEDED'),
+				coalesce(location, ''),
+				last_active_at
 			from freelancer_profiles
 			where profile_id = $1
-		`, profile.ID).Scan(&fp.Headline, &fp.Bio, &skillsRaw, &fp.ExperienceLevel, &fp.Rating, &fp.VerificationStatus)
+		`, profile.ID).Scan(&fp.Headline, &fp.Bio, &skillsRaw, &fp.ExperienceLevel, &fp.Rating, &fp.VerificationStatus, &fp.Reputation.JobSuccessScore, &fp.Reputation.TotalReviews, &fp.Reputation.TotalJobs, &fp.Reputation.TotalEarningsUSD, &fp.HourlyRate, &fp.Availability, &fp.Location, &lastActiveAt)
 		if err != nil {
 			if !isNoRows(err) {
 				return domain.Profile{}, nil, nil, err
@@ -162,6 +187,8 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			if len(skillsRaw) > 0 {
 				_ = json.Unmarshal(skillsRaw, &fp.Skills)
 			}
+			fp.Reputation.AvgRating = fp.Rating
+			fp.LastActiveAt = lastActiveAt
 			freelancer = fp
 		}
 	}
@@ -220,16 +247,40 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 			return err
 		}
 		_, err = tx.Exec(ctx, `
-			insert into freelancer_profiles (profile_id, headline, bio, skills, experience_level, rating, verification_status)
-			values ($1, $2, $3, $4, $5, $6, $7)
+			insert into freelancer_profiles (
+				profile_id,
+				headline,
+				bio,
+				skills,
+				experience_level,
+				rating,
+				verification_status,
+				job_success_score,
+				total_reviews,
+				total_jobs,
+				total_earnings_usd,
+				hourly_rate,
+				availability,
+				location,
+				last_active_at
+			)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 			on conflict (profile_id) do update set
 				headline = excluded.headline,
 				bio = excluded.bio,
 				skills = excluded.skills,
 				experience_level = excluded.experience_level,
 				rating = excluded.rating,
-				verification_status = excluded.verification_status
-		`, profile.ID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus)
+				verification_status = excluded.verification_status,
+				job_success_score = excluded.job_success_score,
+				total_reviews = excluded.total_reviews,
+				total_jobs = excluded.total_jobs,
+				total_earnings_usd = excluded.total_earnings_usd,
+				hourly_rate = excluded.hourly_rate,
+				availability = excluded.availability,
+				location = excluded.location,
+				last_active_at = excluded.last_active_at
+		`, profile.ID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location, freelancer.LastActiveAt)
 		if err != nil {
 			return err
 		}
