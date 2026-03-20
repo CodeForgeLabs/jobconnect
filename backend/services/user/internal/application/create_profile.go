@@ -53,9 +53,20 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 		if in.Freelancer != nil {
 			return CreateProfileOutput{}, fmt.Errorf("freelancer details not allowed for client")
 		}
+		if in.Client != nil && in.Client.VerificationStatus == "" {
+			in.Client.VerificationStatus = domain.VerificationStatusPending
+		}
 	case domain.RoleFreelancer:
 		if in.Client != nil {
 			return CreateProfileOutput{}, fmt.Errorf("client details not allowed for freelancer")
+		}
+		if in.Freelancer != nil {
+			if in.Freelancer.VerificationStatus == "" {
+				in.Freelancer.VerificationStatus = domain.VerificationStatusPending
+			}
+			if in.Freelancer.Availability == "" {
+				in.Freelancer.Availability = domain.AvailabilityAsNeeded
+			}
 		}
 	case domain.RoleAdmin:
 		if in.Client != nil || in.Freelancer != nil {

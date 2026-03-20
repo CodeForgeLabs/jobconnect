@@ -47,7 +47,9 @@ func main() {
 		Profiles: profileRepo,
 		Clock:    clockImpl,
 	}
+	getUserUC := &application.GetUser{Profiles: profileRepo}
 	getProfileUC := &application.GetProfile{Profiles: profileRepo}
+	getPublicProfileUC := &application.GetPublicProfile{Profiles: profileRepo}
 	updateProfileUC := &application.UpdateProfile{Profiles: profileRepo, Clock: clockImpl}
 	deleteProfileUC := &application.DeleteProfile{Profiles: profileRepo, Clock: clockImpl}
 	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo}
@@ -63,7 +65,9 @@ func main() {
 
 	userServer := grpcadapter.NewUserServer(
 		createProfileUC,
+		getUserUC,
 		getProfileUC,
+		getPublicProfileUC,
 		updateProfileUC,
 		deleteProfileUC,
 		getOnboardingStatusUC,
