@@ -3,6 +3,8 @@ WORKDIR /src/gateway
 
 # Needed for replace jobconnect/auth => ../services/auth in gateway/go.mod.
 COPY services/auth /src/services/auth
+COPY services/user /src/services/user
+COPY services/verification /src/services/verification
 COPY gateway/go.mod gateway/go.sum ./
 RUN go mod download
 

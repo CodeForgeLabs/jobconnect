@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -50,6 +50,26 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	verificationRoutes.Use(middleware.RequireAuth(jwtParser))
 	verificationRoutes.POST("/submit", sensitiveLimiter.Middleware(), verificationHandler.Submit)
 	verificationRoutes.GET("/me", verificationHandler.GetMyStatus)
+
+	userRoutes := api.Group("/users")
+	userRoutes.Use(middleware.RequireAuth(jwtParser))
+	userRoutes.GET("/me", userHandler.GetMeUser)
+	userRoutes.GET("/me/profile", userHandler.GetMe)
+	userRoutes.PATCH("/me/profile", userHandler.UpdateMeProfile)
+	userRoutes.DELETE("/me/profile", userHandler.DeleteMeProfile)
+	userRoutes.GET("/me/onboarding-status", userHandler.GetMeOnboardingStatus)
+	userRoutes.POST("/me/avatar", userHandler.UploadMeAvatar)
+	userRoutes.GET("/me/avatar", userHandler.GetMeAvatar)
+	userRoutes.DELETE("/me/avatar", userHandler.RemoveMeAvatar)
+
+	adminUserRoutes := api.Group("/admin/users")
+	adminUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
+	adminUserRoutes.GET("/:userId", userHandler.GetUser)
+	adminUserRoutes.GET("/:userId/profile", userHandler.GetProfile)
+	adminUserRoutes.PATCH("/:userId/account-status", userHandler.UpdateAccountStatus)
+
+	publicRoutes := api.Group("/public")
+	publicRoutes.GET("/users/:userId/profile", userHandler.GetPublicProfile)
 
 	adminVerificationRoutes := api.Group("/admin/verifications")
 	adminVerificationRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
