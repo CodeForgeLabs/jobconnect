@@ -70,6 +70,9 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 	if err := domain.ValidateRole(in.Role); err != nil {
 		return RegisterUserOutput{}, err
 	}
+	if in.Role == domain.RoleAdmin {
+		return RegisterUserOutput{}, fmt.Errorf("admin role cannot be self-registered")
+	}
 
 	email := domain.NormalizeEmail(in.Email)
 	_, found, err := uc.Users.GetByEmail(ctx, email)
@@ -117,6 +120,7 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 			LastName:    u.LastName,
 			DisplayName: u.DisplayName,
 			AvatarURL:   "",
+			Email:       u.Email,
 		}); err != nil {
 			return RegisterUserOutput{}, err
 		}
