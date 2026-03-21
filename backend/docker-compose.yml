@@ -111,6 +111,23 @@ services:
       timeout: 5s
       retries: 20
 
+  minio:
+    image: minio/minio:RELEASE.2025-02-18T16-25-55Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${USER_AVATAR_STORAGE_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${USER_AVATAR_STORAGE_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   user:
     build:
       context: ./services
@@ -124,6 +141,8 @@ services:
       - "50052:50052"
     depends_on:
       user-db:
+        condition: service_healthy
+      minio:
         condition: service_healthy
 
   auth:
@@ -246,3 +265,4 @@ volumes:
   contract-db-data:
   wallet-db-data:
   verification-db-data:
+  minio-data:
