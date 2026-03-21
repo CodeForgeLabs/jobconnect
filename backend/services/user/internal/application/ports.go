@@ -33,7 +33,7 @@ type AvatarModerator interface {
 
 // AvatarObjectStore persists avatar binary content outside the primary database.
 type AvatarObjectStore interface {
-	PutAvatar(ctx context.Context, avatar domain.Avatar) (string, error)
+	PutAvatar(ctx context.Context, avatar domain.AvatarObject) error
 	GetAvatar(ctx context.Context, userID uuid.UUID, storageKey string) ([]byte, error)
 	DeleteAvatar(ctx context.Context, userID uuid.UUID, storageKey string) error
 }
