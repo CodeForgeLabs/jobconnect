@@ -119,6 +119,7 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 			LastName:    u.LastName,
 			DisplayName: u.DisplayName,
 			AvatarURL:   "",
+			Email:       u.Email,
 		}); err != nil {
 			return RegisterUserOutput{}, err
 		}
