@@ -39,6 +39,12 @@ func main() {
 	}
 	defer authConn.Close()
 
+	userConn, err := grpc.NewClient(cfg.UserServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("user service dial: %v", err)
+	}
+	defer userConn.Close()
+
 	verificationConn, err := grpc.NewClient(cfg.VerificationServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("verification service dial: %v", err)
@@ -46,10 +52,12 @@ func main() {
 	defer verificationConn.Close()
 
 	authClient := clients.NewAuthClient(authConn)
+	userClient := clients.NewUserClient(userConn)
 	verificationClient := clients.NewVerificationClient(verificationConn)
 	authHandler := handlers.NewAuthHandler(cfg, authClient)
+	userHandler := handlers.NewUserHandler(userClient)
 	verificationHandler := handlers.NewVerificationHandler(verificationClient)
-	engine := router.New(cfg, authHandler, verificationHandler)
+	engine := router.New(cfg, authHandler, verificationHandler, userHandler)
 
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPListenAddr,

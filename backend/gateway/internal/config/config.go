@@ -12,6 +12,7 @@ import (
 type Config struct {
 	HTTPListenAddr              string
 	AuthServiceGRPCAddr         string
+	UserServiceGRPCAddr         string
 	VerificationServiceGRPCAddr string
 	JWTSecret                   []byte
 	OAuthStateSecret            []byte
@@ -48,6 +49,7 @@ func LoadFromEnv() (Config, error) {
 	cfg := Config{
 		HTTPListenAddr:              getEnv("GATEWAY_HTTP_LISTEN_ADDR", ":8080"),
 		AuthServiceGRPCAddr:         getEnv("AUTH_SERVICE_GRPC_ADDR", "auth:50051"),
+		UserServiceGRPCAddr:         getEnv("USER_SERVICE_GRPC_ADDR", "user:50052"),
 		VerificationServiceGRPCAddr: getEnv("VERIFICATION_SERVICE_GRPC_ADDR", "verification:50060"),
 		JWTSecret:                   []byte(secret),
 		OAuthStateSecret:            []byte(getEnv("GATEWAY_OAUTH_STATE_SECRET", secret)),
@@ -74,6 +76,9 @@ func LoadFromEnv() (Config, error) {
 
 	if cfg.AuthServiceGRPCAddr == "" {
 		return Config{}, fmt.Errorf("AUTH_SERVICE_GRPC_ADDR is required")
+	}
+	if cfg.UserServiceGRPCAddr == "" {
+		return Config{}, fmt.Errorf("USER_SERVICE_GRPC_ADDR is required")
 	}
 	if cfg.VerificationServiceGRPCAddr == "" {
 		return Config{}, fmt.Errorf("VERIFICATION_SERVICE_GRPC_ADDR is required")
