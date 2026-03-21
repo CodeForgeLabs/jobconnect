@@ -122,6 +122,7 @@ func (uc *OAuthLogin) Execute(ctx context.Context, in OAuthLoginInput) (OAuthLog
 						LastName:    user.LastName,
 						DisplayName: user.DisplayName,
 						AvatarURL:   "",
+						Email:       user.Email,
 					}); err != nil {
 						return OAuthLoginOutput{}, err
 					}
@@ -189,6 +190,7 @@ func (uc *OAuthLogin) Execute(ctx context.Context, in OAuthLoginInput) (OAuthLog
 					LastName:    user.LastName,
 					DisplayName: user.DisplayName,
 					AvatarURL:   "",
+					Email:       user.Email,
 				}); err != nil {
 					return OAuthLoginOutput{}, err
 				}

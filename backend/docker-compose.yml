@@ -95,6 +95,22 @@ services:
       timeout: 5s
       retries: 20
 
+  verification-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: verification
+      POSTGRES_PASSWORD: verification
+      POSTGRES_DB: jobconnect_verification
+    ports:
+      - "5438:5432"
+    volumes:
+      - verification-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U verification -d jobconnect_verification"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   user:
     build:
       context: ./services
@@ -191,6 +207,21 @@ services:
       wallet-db:
         condition: service_healthy
 
+  verification:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: verification
+        CMD_PATH: ./cmd/verificationd
+    env_file:
+      - .env
+    ports:
+      - "50060:50060"
+    depends_on:
+      verification-db:
+        condition: service_healthy
+
   gateway:
     build:
       context: .
@@ -204,6 +235,8 @@ services:
         condition: service_started
       user:
         condition: service_started
+      verification:
+        condition: service_started
 
 volumes:
   auth-db-data:
@@ -212,3 +245,4 @@ volumes:
   proposal-db-data:
   contract-db-data:
   wallet-db-data:
+  verification-db-data:

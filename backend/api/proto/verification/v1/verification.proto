@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package verification.v1;
+
+option go_package = "jobconnect/verification/gen/verification/v1;verificationv1";
+
+service VerificationService {
+  rpc SubmitVerification(SubmitVerificationRequest) returns (SubmitVerificationResponse);
+  rpc GetMyVerificationStatus(GetMyVerificationStatusRequest) returns (GetMyVerificationStatusResponse);
+  rpc ListPendingVerifications(ListPendingVerificationsRequest) returns (ListPendingVerificationsResponse);
+  rpc GetVerificationRequest(GetVerificationRequestRequest) returns (GetVerificationRequestResponse);
+  rpc ReviewVerification(ReviewVerificationRequest) returns (ReviewVerificationResponse);
+  rpc RequestReverification(RequestReverificationRequest) returns (RequestReverificationResponse);
+}
+
+message SubmitVerificationRequest {
+  string user_id = 1;
+  string legal_name = 2;
+  string country_code = 3;
+  string document_type = 4;
+  string document_number_masked = 5;
+  repeated string evidence_urls = 6;
+  string submission_note = 7;
+}
+
+message SubmitVerificationResponse {
+  VerificationRequest request = 1;
+}
+
+message GetMyVerificationStatusRequest {
+  string user_id = 1;
+}
+
+message GetMyVerificationStatusResponse {
+  VerificationRequest request = 1;
+}
+
+message ListPendingVerificationsRequest {
+  int32 page_size = 1;
+  int32 page = 2;
+}
+
+message ListPendingVerificationsResponse {
+  repeated VerificationRequest requests = 1;
+}
+
+message GetVerificationRequestRequest {
+  int64 request_id = 1;
+}
+
+message GetVerificationRequestResponse {
+  VerificationRequest request = 1;
+}
+
+message ReviewVerificationRequest {
+  int64 request_id = 1;
+  string reviewer_user_id = 2;
+  string decision = 3; // "approve" or "reject"
+  string rejection_reason = 4;
+  string internal_note = 5;
+}
+
+message ReviewVerificationResponse {
+  VerificationRequest request = 1;
+}
+
+message RequestReverificationRequest {
+  string user_id = 1;
+  string reviewer_user_id = 2;
+  string reason = 3;
+  int64 reverify_due_at_unix = 4;
+}
+
+message RequestReverificationResponse {
+  VerificationRequest request = 1;
+}
+
+message VerificationRequest {
+  int64 id = 1;
+  string user_id = 2;
+  int32 request_version = 3;
+  string status = 4; // unverified|pending_review|verified|rejected|reverification_required
+  string legal_name = 5;
+  string country_code = 6;
+  string document_type = 7;
+  string document_number_masked = 8;
+  repeated string evidence_urls = 9;
+  string submission_note = 10;
+  string reviewer_user_id = 11;
+  string rejection_reason = 12;
+  string internal_note = 13;
+  int64 submitted_at_unix = 14;
+  int64 reviewed_at_unix = 15;
+  int64 reverify_due_at_unix = 16;
+}

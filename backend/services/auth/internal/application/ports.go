@@ -26,6 +26,7 @@ type CreateProfileInput struct {
 	LastName    string
 	DisplayName string
 	AvatarURL   string
+	Email       string
 }
 
 // UserProfileService creates profiles in the user service.

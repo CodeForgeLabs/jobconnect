@@ -47,10 +47,13 @@ func main() {
 		Profiles: profileRepo,
 		Clock:    clockImpl,
 	}
+	getUserUC := &application.GetUser{Profiles: profileRepo}
 	getProfileUC := &application.GetProfile{Profiles: profileRepo}
+	getPublicProfileUC := &application.GetPublicProfile{Profiles: profileRepo}
 	updateProfileUC := &application.UpdateProfile{Profiles: profileRepo, Clock: clockImpl}
 	deleteProfileUC := &application.DeleteProfile{Profiles: profileRepo, Clock: clockImpl}
 	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo}
+	updateAccountStatusUC := &application.UpdateAccountStatus{Profiles: profileRepo, Clock: clockImpl}
 	uploadAvatarUC := &application.UploadAvatar{
 		Profiles:  profileRepo,
 		Processor: media.NewAvatarProcessor(),
@@ -62,13 +65,24 @@ func main() {
 
 	userServer := grpcadapter.NewUserServer(
 		createProfileUC,
+		getUserUC,
 		getProfileUC,
+		getPublicProfileUC,
 		updateProfileUC,
 		deleteProfileUC,
 		getOnboardingStatusUC,
+		updateAccountStatusUC,
 		uploadAvatarUC,
 		getAvatarUC,
 		removeAvatarUC,
+		grpcadapter.CapabilityPolicy{
+			MinSkillsForDiscovery:        cfg.CapabilityMinSkillsForDiscovery,
+			RequireVerifiedForWithdraw:   cfg.CapabilityRequireVerifiedForWithdraw,
+			RequirePublicForDiscovery:    cfg.CapabilityRequirePublicForDiscovery,
+			RequireHeadlineForFreelancer: cfg.CapabilityRequireHeadlineForFreelancer,
+			RequireCompanyNameForClient:  cfg.CapabilityRequireCompanyNameForClient,
+			AllowMessagingWhenSuspended:  cfg.CapabilityAllowMessagingWhenSuspended,
+		},
 	)
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
