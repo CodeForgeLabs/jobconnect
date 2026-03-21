@@ -321,27 +321,27 @@ func (r *ProfileRepo) Delete(ctx context.Context, userID uuid.UUID, hardDelete b
 
 func (r *ProfileRepo) SaveAvatar(ctx context.Context, avatar domain.Avatar) error {
 	_, err := r.pool.Exec(ctx, `
-		insert into profile_avatars (user_id, file_name, content_type, content, width, height, size_bytes, updated_at)
+		insert into profile_avatars (user_id, file_name, content_type, storage_key, width, height, size_bytes, updated_at)
 		values ($1, $2, $3, $4, $5, $6, $7, $8)
 		on conflict (user_id) do update set
 			file_name = excluded.file_name,
 			content_type = excluded.content_type,
-			content = excluded.content,
+			storage_key = excluded.storage_key,
 			width = excluded.width,
 			height = excluded.height,
 			size_bytes = excluded.size_bytes,
 			updated_at = excluded.updated_at
-	`, avatar.UserID, avatar.FileName, avatar.ContentType, avatar.Content, avatar.Width, avatar.Height, avatar.SizeBytes, avatar.UpdatedAt)
+	`, avatar.UserID, avatar.FileName, avatar.ContentType, avatar.StorageKey, avatar.Width, avatar.Height, avatar.SizeBytes, avatar.UpdatedAt)
 	return err
 }
 
 func (r *ProfileRepo) GetAvatar(ctx context.Context, userID uuid.UUID) (domain.Avatar, error) {
 	var avatar domain.Avatar
 	err := r.pool.QueryRow(ctx, `
-		select user_id, file_name, content_type, content, width, height, size_bytes, updated_at
+		select user_id, file_name, content_type, storage_key, width, height, size_bytes, updated_at
 		from profile_avatars
 		where user_id = $1
-	`, userID).Scan(&avatar.UserID, &avatar.FileName, &avatar.ContentType, &avatar.Content, &avatar.Width, &avatar.Height, &avatar.SizeBytes, &avatar.UpdatedAt)
+	`, userID).Scan(&avatar.UserID, &avatar.FileName, &avatar.ContentType, &avatar.StorageKey, &avatar.Width, &avatar.Height, &avatar.SizeBytes, &avatar.UpdatedAt)
 	if err != nil {
 		if isNoRows(err) {
 			return domain.Avatar{}, ErrNotFound
