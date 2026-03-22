@@ -6,6 +6,11 @@ import (
 	"jobconnect/user/internal/domain"
 )
 
+func verificationCountsComplete(status string) bool {
+	normalized := strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(status), "VERIFICATION_STATUS_"))
+	return normalized == domain.VerificationStatusVerified || normalized == domain.VerificationStatusPending
+}
+
 func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) (uint32, []string) {
 	required := map[string]string{
 		"display_name":  profile.DisplayName,
