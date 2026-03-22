@@ -26,6 +26,14 @@ func completeClient(status string) *domain.ClientProfile {
 	}
 }
 
+func completeFreelancer(status string) *domain.FreelancerProfile {
+	return &domain.FreelancerProfile{
+		Headline:           "Backend Engineer",
+		Skills:             []string{"go", "grpc"},
+		VerificationStatus: status,
+	}
+}
+
 func hasMissing(missing []string, key string) bool {
 	for _, m := range missing {
 		if m == key {
@@ -78,5 +86,18 @@ func TestCompletenessClientExpiredIsMissingVerification(t *testing.T) {
 	percent, missing := computeCompleteness(profile, client, nil)
 	if !hasMissing(missing, "verification_status") {
 		t.Fatalf("expected verification_status missing for expired status, percent=%d missing=%v", percent, missing)
+	}
+}
+
+func TestCompletenessFreelancerVerifiedCountsComplete(t *testing.T) {
+	profile := baseProfile(domain.RoleFreelancer)
+	freelancer := completeFreelancer(domain.VerificationStatusVerified)
+
+	percent, missing := computeCompleteness(profile, nil, freelancer)
+	if percent != 100 {
+		t.Fatalf("expected 100 percent completeness, got %d", percent)
+	}
+	if hasMissing(missing, "verification_status") {
+		t.Fatalf("did not expect verification_status in missing fields: %v", missing)
 	}
 }
