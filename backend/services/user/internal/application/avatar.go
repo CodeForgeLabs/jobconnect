@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 	"time"
@@ -65,6 +66,10 @@ func (uc *UploadAvatar) Execute(ctx context.Context, in UploadAvatarInput) (Uplo
 
 	fileName := sanitizeAvatarFileName(in.FileName, contentType)
 	storageKey := buildAvatarStorageKey(in.UserID)
+	previousStorageKey := ""
+	if prior, err := uc.Profiles.GetAvatar(ctx, in.UserID); err == nil {
+		previousStorageKey = strings.TrimSpace(prior.StorageKey)
+	}
 	if err := uc.Store.PutAvatar(ctx, domain.AvatarObject{
 		UserID:      in.UserID,
 		StorageKey:  storageKey,
@@ -100,6 +105,11 @@ func (uc *UploadAvatar) Execute(ctx context.Context, in UploadAvatarInput) (Uplo
 	profile.AvatarURL = avatarURL
 	if err := uc.Profiles.Update(ctx, profile, client, freelancer); err != nil {
 		return UploadAvatarOutput{}, err
+	}
+	if previousStorageKey != "" && previousStorageKey != storageKey {
+		if err := uc.Store.DeleteAvatar(ctx, in.UserID, previousStorageKey); err != nil {
+			log.Printf("avatar cleanup warning user_id=%s key=%s: %v", in.UserID.String(), previousStorageKey, err)
+		}
 	}
 
 	return UploadAvatarOutput{
