@@ -136,6 +136,7 @@ const (
 	MilestoneStatus_MILESTONE_STATUS_SUBMITTED         MilestoneStatus = 2
 	MilestoneStatus_MILESTONE_STATUS_CHANGES_REQUESTED MilestoneStatus = 3
 	MilestoneStatus_MILESTONE_STATUS_APPROVED          MilestoneStatus = 4
+	MilestoneStatus_MILESTONE_STATUS_FUNDED            MilestoneStatus = 5
 )
 
 // Enum value maps for MilestoneStatus.
@@ -146,6 +147,7 @@ var (
 		2: "MILESTONE_STATUS_SUBMITTED",
 		3: "MILESTONE_STATUS_CHANGES_REQUESTED",
 		4: "MILESTONE_STATUS_APPROVED",
+		5: "MILESTONE_STATUS_FUNDED",
 	}
 	MilestoneStatus_value = map[string]int32{
 		"MILESTONE_STATUS_UNSPECIFIED":       0,
@@ -153,6 +155,7 @@ var (
 		"MILESTONE_STATUS_SUBMITTED":         2,
 		"MILESTONE_STATUS_CHANGES_REQUESTED": 3,
 		"MILESTONE_STATUS_APPROVED":          4,
+		"MILESTONE_STATUS_FUNDED":            5,
 	}
 )
 
@@ -2905,13 +2908,14 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\x16CONTRACT_STATUS_ACTIVE\x10\x02\x12\x1c\n" +
 	"\x18CONTRACT_STATUS_DECLINED\x10\x03\x12\x1a\n" +
 	"\x16CONTRACT_STATUS_PAUSED\x10\x04\x12\x19\n" +
-	"\x15CONTRACT_STATUS_ENDED\x10\x05*\xb8\x01\n" +
+	"\x15CONTRACT_STATUS_ENDED\x10\x05*\xd5\x01\n" +
 	"\x0fMilestoneStatus\x12 \n" +
 	"\x1cMILESTONE_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18MILESTONE_STATUS_PENDING\x10\x01\x12\x1e\n" +
 	"\x1aMILESTONE_STATUS_SUBMITTED\x10\x02\x12&\n" +
 	"\"MILESTONE_STATUS_CHANGES_REQUESTED\x10\x03\x12\x1d\n" +
-	"\x19MILESTONE_STATUS_APPROVED\x10\x04*\x93\x01\n" +
+	"\x19MILESTONE_STATUS_APPROVED\x10\x04\x12\x1b\n" +
+	"\x17MILESTONE_STATUS_FUNDED\x10\x05*\x93\x01\n" +
 	"\x0fHourlyLogStatus\x12!\n" +
 	"\x1dHOURLY_LOG_STATUS_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19HOURLY_LOG_STATUS_PENDING\x10\x01\x12\x1e\n" +
