@@ -43,6 +43,15 @@ func hasMissing(missing []string, key string) bool {
 	return false
 }
 
+func stepByKey(steps []OnboardingStep, key string) (OnboardingStep, bool) {
+	for _, s := range steps {
+		if s.Key == key {
+			return s, true
+		}
+	}
+	return OnboardingStep{}, false
+}
+
 func TestCompletenessClientVerifiedCountsComplete(t *testing.T) {
 	profile := baseProfile(domain.RoleClient)
 	client := completeClient(domain.VerificationStatusVerified)
@@ -144,5 +153,19 @@ func TestCompletenessAdminDoesNotRequireVerification(t *testing.T) {
 	}
 	if hasMissing(missing, "verification_status") {
 		t.Fatalf("did not expect verification_status in missing fields for admin: %v", missing)
+	}
+}
+
+func TestOnboardingClientIncludesKYCStep(t *testing.T) {
+	profile := baseProfile(domain.RoleClient)
+	client := completeClient(domain.VerificationStatusPending)
+
+	steps := computeOnboardingSteps(profile, client, nil)
+	step, ok := stepByKey(steps, "kyc_verified")
+	if !ok {
+		t.Fatalf("expected kyc_verified onboarding step, got steps=%v", steps)
+	}
+	if !step.Completed {
+		t.Fatalf("expected kyc_verified step completed for pending status")
 	}
 }
