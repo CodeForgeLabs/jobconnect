@@ -216,3 +216,32 @@ func TestUploadAvatarDeletesPreviousObjectWhenKeyChanges(t *testing.T) {
 		t.Fatalf("expected old key deletion, got %q", store.deletedKey)
 	}
 }
+
+func TestUploadAvatarDoesNotDeleteWhenKeyUnchanged(t *testing.T) {
+	userID := uuid.New()
+	repo := &avatarRepoMock{
+		storedAvatar:   domain.Avatar{UserID: userID, StorageKey: buildAvatarStorageKey(userID)},
+		updatedProfile: domain.Profile{UserID: userID},
+	}
+	store := &avatarStoreMock{}
+	uc := &UploadAvatar{
+		Profiles:  repo,
+		Store:     store,
+		Processor: &avatarProcessorMock{},
+		Clock:     avatarClockMock{now: time.Date(2026, 3, 22, 0, 0, 0, 0, time.UTC)},
+	}
+
+	_, err := uc.Execute(context.Background(), UploadAvatarInput{
+		UserID:      userID,
+		FileName:    "me.png",
+		ContentType: "image/png",
+		Content:     []byte("fake-image"),
+	})
+	if err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	if store.deletedKey != "" {
+		t.Fatalf("expected no delete call, got key %q", store.deletedKey)
+	}
+}
