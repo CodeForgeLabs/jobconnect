@@ -15,6 +15,11 @@ type Config struct {
 	TelebirrAppKey string
 	TelebirrAppID  string
 	
+	MinioEndpoint  string
+	MinioAccessKey string
+	MinioSecretKey string
+	MinioUseSSL    bool
+	
 	WalletSvcAddr       string
 	ContractSvcAddr     string
 	VerificationSvcAddr string
@@ -28,6 +33,10 @@ func LoadFromEnv() (Config, error) {
 		ChapaSecretKey: getEnv("CHAPA_SECRET_KEY", "sandbox_secret"),
 		TelebirrAppKey: getEnv("TELEBIRR_APP_KEY", "sandbox_key"),
 		TelebirrAppID:  getEnv("TELEBIRR_APP_ID", "sandbox_id"),
+		MinioEndpoint:  getEnv("MINIO_ENDPOINT", "localhost:9000"),
+		MinioAccessKey: getEnv("MINIO_ACCESS_KEY", "minioadmin"),
+		MinioSecretKey: getEnv("MINIO_SECRET_KEY", "minioadmin"),
+		MinioUseSSL:    false,
 		WalletSvcAddr:       getEnv("WALLET_SVC_ADDR", "wallet:50059"),
 		ContractSvcAddr:     getEnv("CONTRACT_SVC_ADDR", "contract:50055"),
 		VerificationSvcAddr: getEnv("VERIFICATION_SVC_ADDR", "verification:50060"),
