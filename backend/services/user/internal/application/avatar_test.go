@@ -12,13 +12,13 @@ import (
 )
 
 type avatarRepoMock struct {
-	savedAvatar   domain.Avatar
-	storedAvatar  domain.Avatar
-	saveErr       error
-	getAvatarErr  error
-	removeErr     error
+	savedAvatar    domain.Avatar
+	storedAvatar   domain.Avatar
+	saveErr        error
+	getAvatarErr   error
+	removeErr      error
 	updatedProfile domain.Profile
-	updated       bool
+	updated        bool
 }
 
 func (m *avatarRepoMock) Create(context.Context, domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile) (int64, error) {
@@ -72,12 +72,12 @@ func (m *avatarRepoMock) RemoveAvatar(_ context.Context, _ uuid.UUID) error {
 }
 
 type avatarStoreMock struct {
-	putAvatar    domain.AvatarObject
-	getContent   []byte
-	putErr       error
-	getErr       error
-	deleteErr    error
-	deletedKey   string
+	putAvatar  domain.AvatarObject
+	getContent []byte
+	putErr     error
+	getErr     error
+	deleteErr  error
+	deletedKey string
 }
 
 func (m *avatarStoreMock) PutAvatar(_ context.Context, avatar domain.AvatarObject) error {
