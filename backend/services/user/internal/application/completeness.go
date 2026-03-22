@@ -98,6 +98,10 @@ func computeOnboardingSteps(profile domain.Profile, client *domain.ClientProfile
 		completed := client != nil && verificationCountsComplete(client.VerificationStatus)
 		steps = append(steps, OnboardingStep{Key: "kyc_verified", Completed: completed})
 	}
+	if profile.Role == domain.RoleFreelancer {
+		completed := freelancer != nil && verificationCountsComplete(freelancer.VerificationStatus)
+		steps = append(steps, OnboardingStep{Key: "kyc_verified", Completed: completed})
+	}
 
 	return steps
 }
