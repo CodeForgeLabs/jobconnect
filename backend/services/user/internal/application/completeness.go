@@ -44,9 +44,15 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 			} else {
 				required["skills"] = "filled"
 			}
+			if verificationCountsComplete(freelancer.VerificationStatus) {
+				required["verification_status"] = "filled"
+			} else {
+				required["verification_status"] = ""
+			}
 		} else {
 			required["headline"] = ""
 			required["skills"] = ""
+			required["verification_status"] = ""
 		}
 	case domain.RoleAdmin:
 		// Keep admin onboarding intentionally minimal.
