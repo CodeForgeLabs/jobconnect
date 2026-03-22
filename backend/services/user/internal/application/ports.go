@@ -31,6 +31,13 @@ type AvatarModerator interface {
 	Moderate(ctx context.Context, content []byte, contentType string) error
 }
 
+// AvatarObjectStore persists avatar binary content outside the primary database.
+type AvatarObjectStore interface {
+	PutAvatar(ctx context.Context, avatar domain.AvatarObject) error
+	GetAvatar(ctx context.Context, userID uuid.UUID, storageKey string) ([]byte, error)
+	DeleteAvatar(ctx context.Context, userID uuid.UUID, storageKey string) error
+}
+
 // Clock provides current time (testable).
 type Clock interface {
 	Now() time.Time

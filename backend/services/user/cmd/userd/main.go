@@ -17,6 +17,7 @@ import (
 	"jobconnect/user/internal/infrastructure/clock"
 	"jobconnect/user/internal/infrastructure/db"
 	"jobconnect/user/internal/infrastructure/media"
+	"jobconnect/user/internal/infrastructure/storage"
 
 	"google.golang.org/grpc"
 )
@@ -42,6 +43,10 @@ func main() {
 
 	profileRepo := db.NewProfileRepo(pool)
 	clockImpl := clock.NewRealClock()
+	avatarStore, err := storage.NewAvatarStore(ctx, cfg.AvatarStorage)
+	if err != nil {
+		log.Fatalf("avatar storage: %v", err)
+	}
 
 	createProfileUC := &application.CreateProfile{
 		Profiles: profileRepo,
@@ -56,12 +61,13 @@ func main() {
 	updateAccountStatusUC := &application.UpdateAccountStatus{Profiles: profileRepo, Clock: clockImpl}
 	uploadAvatarUC := &application.UploadAvatar{
 		Profiles:  profileRepo,
+		Store:     avatarStore,
 		Processor: media.NewAvatarProcessor(),
 		Moderator: media.NewBasicAvatarModerator(),
 		Clock:     clockImpl,
 	}
-	getAvatarUC := &application.GetAvatar{Profiles: profileRepo}
-	removeAvatarUC := &application.RemoveAvatar{Profiles: profileRepo}
+	getAvatarUC := &application.GetAvatar{Profiles: profileRepo, Store: avatarStore}
+	removeAvatarUC := &application.RemoveAvatar{Profiles: profileRepo, Store: avatarStore}
 
 	userServer := grpcadapter.NewUserServer(
 		createProfileUC,

@@ -82,9 +82,16 @@ type Avatar struct {
 	UserID      uuid.UUID
 	FileName    string
 	ContentType string
-	Content     []byte
+	StorageKey  string
 	Width       int
 	Height      int
 	SizeBytes   int64
 	UpdatedAt   time.Time
+}
+
+type AvatarObject struct {
+	UserID      uuid.UUID
+	StorageKey  string
+	ContentType string
+	Content     []byte
 }
