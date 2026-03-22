@@ -36,7 +36,11 @@
   - `user` logs show normal startup (`user gRPC listening on :50052`).
 
 ## Step 4: Apply migration 0005
-- Pending.
+- Ran `./scripts/migrate-all.ps1` successfully.
+- User DB migration `0005_avatar_object_storage_cutover.up.sql` applied.
+- Migration output confirms hard cutover removed prior avatar rows (`DELETE 2`).
+- Verified `schema_migrations` now includes `0005_avatar_object_storage_cutover.up.sql`.
+- Verified `profile_avatars` schema now contains `storage_key` and no longer contains `content BYTEA`.
 
 ## Step 5: Post-cutover verification
 - Pending.
