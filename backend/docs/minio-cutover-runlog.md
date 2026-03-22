@@ -43,4 +43,13 @@
 - Verified `profile_avatars` schema now contains `storage_key` and no longer contains `content BYTEA`.
 
 ## Step 5: Post-cutover verification
-- Pending.
+- Performed authenticated upload against gateway endpoint `POST /api/v1/users/me/avatar` using a valid HS256 JWT for an existing profile user.
+- Final upload succeeded with HTTP 200 and response metadata:
+  - avatar_url `/profiles/9e61306a-a747-4f22-b97f-e081ddb6df5c/avatar`
+  - content_type `image/png`
+  - width `128`, height `128`, size_bytes `366`
+- Verified `profile_avatars` row now stores metadata + key (no blob column):
+  - storage_key `avatars/9e61306a-a747-4f22-b97f-e081ddb6df5c/current.png`
+- Verified MinIO object exists on disk path:
+  - `/data/jobconnect-avatars/avatars/9e61306a-a747-4f22-b97f-e081ddb6df5c/current.png`
+- During verification, observed one transient mismatch where old `user` container build still referenced `content` column; resolved by rebuilding and restarting `user` service.
