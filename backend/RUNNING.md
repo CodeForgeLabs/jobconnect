@@ -84,6 +84,24 @@ Challenge flow:
 	- `recaptcha_token`
 3. Use returned `challenge_proof` in header `X-Challenge-Proof` on subsequent auth requests.
 
+## 4.3) Required: Configure avatar object storage (user service)
+
+Set these variables in `backend/.env` (used by `user` and `minio` services):
+
+```powershell
+USER_AVATAR_STORAGE_PROVIDER=minio
+USER_AVATAR_STORAGE_BUCKET=jobconnect-avatars
+USER_AVATAR_STORAGE_ENDPOINT=minio:9000
+USER_AVATAR_STORAGE_REGION=us-east-1
+USER_AVATAR_STORAGE_ACCESS_KEY=minioadmin
+USER_AVATAR_STORAGE_SECRET_KEY=minioadmin
+USER_AVATAR_STORAGE_USE_SSL=false
+USER_AVATAR_STORAGE_PATH_STYLE=true
+USER_AVATAR_STORAGE_CREATE_BUCKET=true
+```
+
+The local compose stack now includes MinIO (`9000` API, `9001` console).
+
 ## 5) Stop stack
 
 ```powershell

@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"log"
 	"path/filepath"
 	"strings"
 	"time"
@@ -30,6 +31,7 @@ type UploadAvatarOutput struct {
 
 type UploadAvatar struct {
 	Profiles  ProfileRepository
+	Store     AvatarObjectStore
 	Processor AvatarProcessor
 	Moderator AvatarModerator
 	Clock     Clock
@@ -41,6 +43,9 @@ func (uc *UploadAvatar) Execute(ctx context.Context, in UploadAvatarInput) (Uplo
 	}
 	if uc.Processor == nil {
 		return UploadAvatarOutput{}, fmt.Errorf("avatar processor is not configured")
+	}
+	if uc.Store == nil {
+		return UploadAvatarOutput{}, fmt.Errorf("avatar object store is not configured")
 	}
 	if err := domain.ValidateAvatarSize(len(in.Content)); err != nil {
 		return UploadAvatarOutput{}, err
@@ -60,6 +65,19 @@ func (uc *UploadAvatar) Execute(ctx context.Context, in UploadAvatarInput) (Uplo
 	}
 
 	fileName := sanitizeAvatarFileName(in.FileName, contentType)
+	storageKey := buildAvatarStorageKey(in.UserID)
+	previousStorageKey := ""
+	if prior, err := uc.Profiles.GetAvatar(ctx, in.UserID); err == nil {
+		previousStorageKey = strings.TrimSpace(prior.StorageKey)
+	}
+	if err := uc.Store.PutAvatar(ctx, domain.AvatarObject{
+		UserID:      in.UserID,
+		StorageKey:  storageKey,
+		ContentType: contentType,
+		Content:     normalized,
+	}); err != nil {
+		return UploadAvatarOutput{}, err
+	}
 	avatarURL := buildAvatarURL(in.UserID)
 	updatedAt := time.Now().UTC()
 	if uc.Clock != nil {
@@ -69,7 +87,7 @@ func (uc *UploadAvatar) Execute(ctx context.Context, in UploadAvatarInput) (Uplo
 		UserID:      in.UserID,
 		FileName:    fileName,
 		ContentType: contentType,
-		Content:     normalized,
+		StorageKey:  storageKey,
 		Width:       width,
 		Height:      height,
 		SizeBytes:   int64(len(normalized)),
@@ -87,6 +105,11 @@ func (uc *UploadAvatar) Execute(ctx context.Context, in UploadAvatarInput) (Uplo
 	profile.AvatarURL = avatarURL
 	if err := uc.Profiles.Update(ctx, profile, client, freelancer); err != nil {
 		return UploadAvatarOutput{}, err
+	}
+	if previousStorageKey != "" && previousStorageKey != storageKey {
+		if err := uc.Store.DeleteAvatar(ctx, in.UserID, previousStorageKey); err != nil {
+			log.Printf("avatar cleanup warning user_id=%s key=%s: %v", in.UserID.String(), previousStorageKey, err)
+		}
 	}
 
 	return UploadAvatarOutput{
@@ -111,17 +134,25 @@ type GetAvatarOutput struct {
 
 type GetAvatar struct {
 	Profiles ProfileRepository
+	Store    AvatarObjectStore
 }
 
 func (uc *GetAvatar) Execute(ctx context.Context, in GetAvatarInput) (GetAvatarOutput, error) {
 	if in.UserID == uuid.Nil {
 		return GetAvatarOutput{}, fmt.Errorf("user_id is required")
 	}
+	if uc.Store == nil {
+		return GetAvatarOutput{}, fmt.Errorf("avatar object store is not configured")
+	}
 	avatar, err := uc.Profiles.GetAvatar(ctx, in.UserID)
 	if err != nil {
 		return GetAvatarOutput{}, err
 	}
-	return GetAvatarOutput{FileName: avatar.FileName, ContentType: avatar.ContentType, Content: avatar.Content}, nil
+	content, err := uc.Store.GetAvatar(ctx, in.UserID, avatar.StorageKey)
+	if err != nil {
+		return GetAvatarOutput{}, err
+	}
+	return GetAvatarOutput{FileName: avatar.FileName, ContentType: avatar.ContentType, Content: content}, nil
 }
 
 type RemoveAvatarInput struct {
@@ -134,11 +165,22 @@ type RemoveAvatarOutput struct {
 
 type RemoveAvatar struct {
 	Profiles ProfileRepository
+	Store    AvatarObjectStore
 }
 
 func (uc *RemoveAvatar) Execute(ctx context.Context, in RemoveAvatarInput) (RemoveAvatarOutput, error) {
 	if in.UserID == uuid.Nil {
 		return RemoveAvatarOutput{}, fmt.Errorf("user_id is required")
+	}
+	if uc.Store == nil {
+		return RemoveAvatarOutput{}, fmt.Errorf("avatar object store is not configured")
+	}
+	avatar, err := uc.Profiles.GetAvatar(ctx, in.UserID)
+	if err != nil {
+		return RemoveAvatarOutput{}, err
+	}
+	if err := uc.Store.DeleteAvatar(ctx, in.UserID, avatar.StorageKey); err != nil {
+		return RemoveAvatarOutput{}, err
 	}
 	if err := uc.Profiles.RemoveAvatar(ctx, in.UserID); err != nil {
 		return RemoveAvatarOutput{}, err
@@ -157,6 +199,23 @@ func (uc *RemoveAvatar) Execute(ctx context.Context, in RemoveAvatarInput) (Remo
 
 func buildAvatarURL(userID uuid.UUID) string {
 	return "/profiles/" + userID.String() + "/avatar"
+}
+
+func buildAvatarStorageKey(userID uuid.UUID) string {
+	return "avatars/" + userID.String() + "/current"
+}
+
+func avatarFileExtension(contentType string) string {
+	switch contentType {
+	case "image/jpeg":
+		return ".jpg"
+	case "image/png":
+		return ".png"
+	case "image/webp":
+		return ".webp"
+	default:
+		return ".bin"
+	}
 }
 
 func sanitizeAvatarFileName(name, contentType string) string {

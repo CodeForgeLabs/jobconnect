@@ -8,6 +8,7 @@ require (
 	github.com/google/uuid v1.6.0
 	golang.org/x/time v0.15.0
 	google.golang.org/grpc v1.79.1
+	google.golang.org/protobuf v1.36.11
 	jobconnect/auth v0.0.0
 	jobconnect/user v0.0.0
 	jobconnect/verification v0.0.0-00010101000000-000000000000
@@ -22,7 +23,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.27.0 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
@@ -45,7 +46,6 @@ require (
 	golang.org/x/text v0.32.0 // indirect
 	golang.org/x/tools v0.39.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
 )
 
 replace jobconnect/auth => ../services/auth
