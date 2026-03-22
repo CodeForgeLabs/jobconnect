@@ -169,3 +169,17 @@ func TestOnboardingClientIncludesKYCStep(t *testing.T) {
 		t.Fatalf("expected kyc_verified step completed for pending status")
 	}
 }
+
+func TestOnboardingFreelancerIncludesKYCStep(t *testing.T) {
+	profile := baseProfile(domain.RoleFreelancer)
+	freelancer := completeFreelancer(domain.VerificationStatusVerified)
+
+	steps := computeOnboardingSteps(profile, nil, freelancer)
+	step, ok := stepByKey(steps, "kyc_verified")
+	if !ok {
+		t.Fatalf("expected kyc_verified onboarding step, got steps=%v", steps)
+	}
+	if !step.Completed {
+		t.Fatalf("expected kyc_verified step completed for verified status")
+	}
+}
