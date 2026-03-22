@@ -134,3 +134,15 @@ func TestCompletenessFreelancerExpiredIsMissingVerification(t *testing.T) {
 		t.Fatalf("expected verification_status missing for expired status, percent=%d missing=%v", percent, missing)
 	}
 }
+
+func TestCompletenessAdminDoesNotRequireVerification(t *testing.T) {
+	profile := baseProfile(domain.RoleAdmin)
+
+	percent, missing := computeCompleteness(profile, nil, nil)
+	if percent != 100 {
+		t.Fatalf("expected 100 percent completeness for admin baseline, got %d", percent)
+	}
+	if hasMissing(missing, "verification_status") {
+		t.Fatalf("did not expect verification_status in missing fields for admin: %v", missing)
+	}
+}
