@@ -111,6 +111,22 @@ services:
       timeout: 5s
       retries: 20
 
+  payment-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: payment
+      POSTGRES_PASSWORD: payment
+      POSTGRES_DB: jobconnect_payment
+    ports:
+      - "5439:5432"
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payment -d jobconnect_payment"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   minio:
     image: minio/minio:RELEASE.2025-02-18T16-25-55Z
     command: server /data --console-address ":9001"
@@ -241,6 +257,30 @@ services:
       verification-db:
         condition: service_healthy
 
+  payment:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: payment
+        CMD_PATH: ./cmd/paymentd
+    env_file:
+      - .env
+    ports:
+      - "50061:50061"
+      - "8081:8081"
+    depends_on:
+      payment-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      wallet:
+        condition: service_started
+      contract:
+        condition: service_started
+      verification:
+        condition: service_started
+
   gateway:
     build:
       context: .
@@ -256,6 +296,8 @@ services:
         condition: service_started
       verification:
         condition: service_started
+      payment:
+        condition: service_started
 
 volumes:
   auth-db-data:
@@ -265,4 +307,5 @@ volumes:
   contract-db-data:
   wallet-db-data:
   verification-db-data:
+  payment-db-data:
   minio-data:
