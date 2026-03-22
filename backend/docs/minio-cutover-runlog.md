@@ -53,3 +53,14 @@
 - Verified MinIO object exists on disk path:
   - `/data/jobconnect-avatars/avatars/9e61306a-a747-4f22-b97f-e081ddb6df5c/current.png`
 - During verification, observed one transient mismatch where old `user` container build still referenced `content` column; resolved by rebuilding and restarting `user` service.
+
+## Step 6: Final handoff summary
+- Cutover status: complete.
+- Evidence snapshot:
+  - MinIO service healthy and running with ports `9000` (API) and `9001` (console).
+  - User DB migration level includes `0005_avatar_object_storage_cutover.up.sql`.
+  - `profile_avatars` schema uses `storage_key` and no longer has `content BYTEA`.
+  - Gateway upload endpoint returned HTTP 200 and persisted avatar metadata.
+  - MinIO object path exists for uploaded avatar under `/data/jobconnect-avatars/avatars/{user_id}/current.png`.
+- Rollback caveat:
+  - Down migration can reintroduce `content BYTEA` schema, but it cannot restore avatar rows deleted by hard-cutover migration `0005`.
