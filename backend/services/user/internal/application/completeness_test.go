@@ -114,3 +114,13 @@ func TestCompletenessFreelancerPendingCountsComplete(t *testing.T) {
 		t.Fatalf("did not expect verification_status in missing fields: %v", missing)
 	}
 }
+
+func TestCompletenessFreelancerRejectedIsMissingVerification(t *testing.T) {
+	profile := baseProfile(domain.RoleFreelancer)
+	freelancer := completeFreelancer(domain.VerificationStatusRejected)
+
+	percent, missing := computeCompleteness(profile, nil, freelancer)
+	if !hasMissing(missing, "verification_status") {
+		t.Fatalf("expected verification_status missing for rejected status, percent=%d missing=%v", percent, missing)
+	}
+}
