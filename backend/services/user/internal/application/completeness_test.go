@@ -47,3 +47,16 @@ func TestCompletenessClientVerifiedCountsComplete(t *testing.T) {
 		t.Fatalf("did not expect verification_status in missing fields: %v", missing)
 	}
 }
+
+func TestCompletenessClientPendingCountsComplete(t *testing.T) {
+	profile := baseProfile(domain.RoleClient)
+	client := completeClient(domain.VerificationStatusPending)
+
+	percent, missing := computeCompleteness(profile, client, nil)
+	if percent != 100 {
+		t.Fatalf("expected 100 percent completeness for pending verification, got %d", percent)
+	}
+	if hasMissing(missing, "verification_status") {
+		t.Fatalf("did not expect verification_status in missing fields: %v", missing)
+	}
+}
