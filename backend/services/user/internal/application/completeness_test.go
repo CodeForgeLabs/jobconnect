@@ -183,3 +183,12 @@ func TestOnboardingFreelancerIncludesKYCStep(t *testing.T) {
 		t.Fatalf("expected kyc_verified step completed for verified status")
 	}
 }
+
+func TestOnboardingAdminExcludesKYCStep(t *testing.T) {
+	profile := baseProfile(domain.RoleAdmin)
+
+	steps := computeOnboardingSteps(profile, nil, nil)
+	if _, ok := stepByKey(steps, "kyc_verified"); ok {
+		t.Fatalf("did not expect kyc_verified step for admin, got steps=%v", steps)
+	}
+}
