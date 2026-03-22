@@ -70,3 +70,13 @@ func TestCompletenessClientRejectedIsMissingVerification(t *testing.T) {
 		t.Fatalf("expected verification_status missing for rejected status, percent=%d missing=%v", percent, missing)
 	}
 }
+
+func TestCompletenessClientExpiredIsMissingVerification(t *testing.T) {
+	profile := baseProfile(domain.RoleClient)
+	client := completeClient(domain.VerificationStatusExpired)
+
+	percent, missing := computeCompleteness(profile, client, nil)
+	if !hasMissing(missing, "verification_status") {
+		t.Fatalf("expected verification_status missing for expired status, percent=%d missing=%v", percent, missing)
+	}
+}
