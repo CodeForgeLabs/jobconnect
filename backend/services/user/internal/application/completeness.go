@@ -24,10 +24,16 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 			required["company_name"] = client.CompanyName
 			required["billing_address"] = client.BillingAddress
 			required["tax_id"] = client.TaxID
+			if verificationCountsComplete(client.VerificationStatus) {
+				required["verification_status"] = "filled"
+			} else {
+				required["verification_status"] = ""
+			}
 		} else {
 			required["company_name"] = ""
 			required["billing_address"] = ""
 			required["tax_id"] = ""
+			required["verification_status"] = ""
 		}
 	case domain.RoleFreelancer:
 		required["bio"] = profile.Bio
