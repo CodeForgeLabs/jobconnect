@@ -187,3 +187,32 @@ func TestBuildAvatarStorageKeyStableAcrossTypes(t *testing.T) {
 		t.Fatalf("expected same key across content types, got png=%q jpg=%q webp=%q", pngKey, jpgKey, webpKey)
 	}
 }
+
+func TestUploadAvatarDeletesPreviousObjectWhenKeyChanges(t *testing.T) {
+	userID := uuid.New()
+	repo := &avatarRepoMock{
+		storedAvatar:   domain.Avatar{UserID: userID, StorageKey: "avatars/" + userID.String() + "/current.png"},
+		updatedProfile: domain.Profile{UserID: userID},
+	}
+	store := &avatarStoreMock{}
+	uc := &UploadAvatar{
+		Profiles:  repo,
+		Store:     store,
+		Processor: &avatarProcessorMock{},
+		Clock:     avatarClockMock{now: time.Date(2026, 3, 22, 0, 0, 0, 0, time.UTC)},
+	}
+
+	_, err := uc.Execute(context.Background(), UploadAvatarInput{
+		UserID:      userID,
+		FileName:    "me.jpg",
+		ContentType: "image/jpeg",
+		Content:     []byte("fake-image"),
+	})
+	if err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+
+	if store.deletedKey != "avatars/"+userID.String()+"/current.png" {
+		t.Fatalf("expected old key deletion, got %q", store.deletedKey)
+	}
+}
