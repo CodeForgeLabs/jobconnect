@@ -64,7 +64,7 @@ func (uc *UploadAvatar) Execute(ctx context.Context, in UploadAvatarInput) (Uplo
 	}
 
 	fileName := sanitizeAvatarFileName(in.FileName, contentType)
-	storageKey := buildAvatarStorageKey(in.UserID, contentType)
+	storageKey := buildAvatarStorageKey(in.UserID)
 	if err := uc.Store.PutAvatar(ctx, domain.AvatarObject{
 		UserID:      in.UserID,
 		StorageKey:  storageKey,
@@ -191,8 +191,8 @@ func buildAvatarURL(userID uuid.UUID) string {
 	return "/profiles/" + userID.String() + "/avatar"
 }
 
-func buildAvatarStorageKey(userID uuid.UUID, contentType string) string {
-	return "avatars/" + userID.String() + "/current" + avatarFileExtension(contentType)
+func buildAvatarStorageKey(userID uuid.UUID) string {
+	return "avatars/" + userID.String() + "/current"
 }
 
 func avatarFileExtension(contentType string) string {

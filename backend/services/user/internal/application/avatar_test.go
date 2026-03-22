@@ -179,9 +179,9 @@ func TestRemoveAvatarDeletesObjectThenMetadata(t *testing.T) {
 
 func TestBuildAvatarStorageKeyStableAcrossTypes(t *testing.T) {
 	userID := uuid.New()
-	pngKey := buildAvatarStorageKey(userID, "image/png")
-	jpgKey := buildAvatarStorageKey(userID, "image/jpeg")
-	webpKey := buildAvatarStorageKey(userID, "image/webp")
+	pngKey := buildAvatarStorageKey(userID)
+	jpgKey := buildAvatarStorageKey(userID)
+	webpKey := buildAvatarStorageKey(userID)
 
 	if pngKey != jpgKey || jpgKey != webpKey {
 		t.Fatalf("expected same key across content types, got png=%q jpg=%q webp=%q", pngKey, jpgKey, webpKey)
