@@ -21,21 +21,21 @@ type Config struct {
 }
 
 type AvatarStorageConfig struct {
-	Provider   string
-	Bucket     string
-	Endpoint   string
-	Region     string
-	AccessKey  string
-	SecretKey  string
-	UseSSL     bool
-	PathStyle  bool
+	Provider     string
+	Bucket       string
+	Endpoint     string
+	Region       string
+	AccessKey    string
+	SecretKey    string
+	UseSSL       bool
+	PathStyle    bool
 	CreateBucket bool
 }
 
 func LoadFromEnv() (Config, error) {
 	cfg := Config{
-		GRPCListenAddr:                         getEnv("USER_GRPC_LISTEN_ADDR", ":50052"),
-		PostgresURL:                            os.Getenv("USER_POSTGRES_URL"),
+		GRPCListenAddr: getEnv("USER_GRPC_LISTEN_ADDR", ":50052"),
+		PostgresURL:    os.Getenv("USER_POSTGRES_URL"),
 		AvatarStorage: AvatarStorageConfig{
 			Provider:     strings.ToLower(strings.TrimSpace(getEnv("USER_AVATAR_STORAGE_PROVIDER", "minio"))),
 			Bucket:       strings.TrimSpace(getEnv("USER_AVATAR_STORAGE_BUCKET", "jobconnect-avatars")),
