@@ -53,6 +53,10 @@ service UserService {
     rpc UpdatePrivacySettings(UpdatePrivacySettingsRequest) returns (UpdatePrivacySettingsResponse);
     rpc GetNotificationSettings(GetNotificationSettingsRequest) returns (GetNotificationSettingsResponse);
     rpc UpdateNotificationSettings(UpdateNotificationSettingsRequest) returns (UpdateNotificationSettingsResponse);
+
+    // Optional internal lightweight read-model endpoints.
+    rpc GetInternalUserBasic(GetInternalUserBasicRequest) returns (GetInternalUserBasicResponse);
+    rpc GetInternalUserProfile(GetInternalUserProfileRequest) returns (GetInternalUserProfileResponse);
 }
 
 enum AccountStatus {
@@ -697,6 +701,22 @@ message UpdateNotificationSettingsRequest {
 
 message UpdateNotificationSettingsResponse {
     NotificationSettings settings = 1;
+}
+
+message GetInternalUserBasicRequest {
+    string user_id = 1;
+}
+
+message GetInternalUserBasicResponse {
+    User user = 1;
+}
+
+message GetInternalUserProfileRequest {
+    string user_id = 1;
+}
+
+message GetInternalUserProfileResponse {
+    Profile profile = 1;
 }
 
 message Profile {
