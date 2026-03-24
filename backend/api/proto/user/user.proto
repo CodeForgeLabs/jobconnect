@@ -78,6 +78,11 @@ service UserService {
     rpc RemoveSavedFreelancer(RemoveSavedFreelancerRequest) returns (RemoveSavedFreelancerResponse);
     rpc UpsertFreelancerNote(UpsertFreelancerNoteRequest) returns (UpsertFreelancerNoteResponse);
     rpc GetFreelancerNote(GetFreelancerNoteRequest) returns (GetFreelancerNoteResponse);
+
+    // Admin endpoints.
+    rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+    rpc CreateImpersonationToken(CreateImpersonationTokenRequest) returns (CreateImpersonationTokenResponse);
+    rpc GetUserAuditSummary(GetUserAuditSummaryRequest) returns (GetUserAuditSummaryResponse);
 }
 
 enum AccountStatus {
@@ -948,6 +953,51 @@ message GetFreelancerNoteRequest {
 
 message GetFreelancerNoteResponse {
     FreelancerNote note = 1;
+}
+
+message UserAuditSummary {
+    string user_id = 1;
+    AccountStatus status = 2;
+    ProfileVisibility visibility = 3;
+    int64 profile_updated_at_unix = 4;
+    int64 avatar_updated_at_unix = 5;
+    uint32 saved_freelancers_count = 6;
+    uint32 portfolio_items_count = 7;
+}
+
+message ListUsersRequest {
+    string requester_user_id = 1;
+    string q = 2;
+    string role = 3;
+    string status = 4;
+    uint32 page_size = 5;
+    string page_token = 6;
+}
+
+message ListUsersResponse {
+    repeated User users = 1;
+    string next_page_token = 2;
+}
+
+message CreateImpersonationTokenRequest {
+    string requester_user_id = 1;
+    string target_user_id = 2;
+    string reason = 3;
+    uint32 ttl_seconds = 4;
+}
+
+message CreateImpersonationTokenResponse {
+    string token = 1;
+    int64 expires_at_unix = 2;
+}
+
+message GetUserAuditSummaryRequest {
+    string requester_user_id = 1;
+    string target_user_id = 2;
+}
+
+message GetUserAuditSummaryResponse {
+    UserAuditSummary summary = 1;
 }
 
 message Profile {
