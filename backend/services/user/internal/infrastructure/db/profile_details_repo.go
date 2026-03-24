@@ -59,6 +59,22 @@ func (r *ProfileRepo) freelancerProfileID(ctx context.Context, userID uuid.UUID,
 	return profileID, nil
 }
 
+func (r *ProfileRepo) clientProfileID(ctx context.Context, userID uuid.UUID) (int64, error) {
+	query := `
+		select id
+		from profiles
+		where user_id = $1 and role = $2 and deleted_at is null
+	`
+	var profileID int64
+	if err := r.pool.QueryRow(ctx, query, userID, domain.RoleClient).Scan(&profileID); err != nil {
+		if isNoRows(err) {
+			return 0, ErrNotFound
+		}
+		return 0, err
+	}
+	return profileID, nil
+}
+
 func (r *ProfileRepo) CreatePortfolioItem(ctx context.Context, userID uuid.UUID, in application.PortfolioItem) (application.PortfolioItem, error) {
 	profileID, err := r.freelancerProfileID(ctx, userID, false)
 	if err != nil {
@@ -963,5 +979,261 @@ func (r *ProfileRepo) GetWorkPreferences(ctx context.Context, userID uuid.UUID) 
 		_ = json.Unmarshal(rawContractTypes, &out.ContractTypes)
 	}
 
+	return out, nil
+}
+
+func (r *ProfileRepo) GetClientProfile(ctx context.Context, userID uuid.UUID) (application.ClientProfileSettings, error) {
+	profileID, err := r.clientProfileID(ctx, userID)
+	if err != nil {
+		return application.ClientProfileSettings{}, err
+	}
+
+	out := application.ClientProfileSettings{}
+	err = r.pool.QueryRow(ctx, `
+		select
+			coalesce(company_name, ''),
+			coalesce(billing_address, ''),
+			coalesce(tax_id, ''),
+			coalesce(verification_status, '')
+		from client_profiles
+		where profile_id = $1
+	`, profileID).Scan(&out.CompanyName, &out.BillingAddress, &out.TaxID, &out.VerificationStatus)
+	if err != nil {
+		if isNoRows(err) {
+			return out, nil
+		}
+		return application.ClientProfileSettings{}, err
+	}
+	return out, nil
+}
+
+func (r *ProfileRepo) UpdateClientProfile(ctx context.Context, userID uuid.UUID, in application.ClientProfileSettings) (application.ClientProfileSettings, error) {
+	profileID, err := r.clientProfileID(ctx, userID)
+	if err != nil {
+		return application.ClientProfileSettings{}, err
+	}
+
+	if _, err := r.pool.Exec(ctx, `
+		insert into client_profiles (profile_id, company_name, billing_address, tax_id, verification_status)
+		values ($1, $2, $3, $4, $5)
+		on conflict (profile_id) do update set
+			company_name = excluded.company_name,
+			billing_address = excluded.billing_address,
+			tax_id = excluded.tax_id,
+			verification_status = excluded.verification_status
+	`, profileID, strings.TrimSpace(in.CompanyName), strings.TrimSpace(in.BillingAddress), strings.TrimSpace(in.TaxID), strings.TrimSpace(in.VerificationStatus)); err != nil {
+		return application.ClientProfileSettings{}, err
+	}
+
+	return r.GetClientProfile(ctx, userID)
+}
+
+func (r *ProfileRepo) GetCompany(ctx context.Context, userID uuid.UUID) (application.CompanySettings, error) {
+	profile, err := r.GetClientProfile(ctx, userID)
+	if err != nil {
+		return application.CompanySettings{}, err
+	}
+	return application.CompanySettings{CompanyName: profile.CompanyName, BillingAddress: profile.BillingAddress, TaxID: profile.TaxID}, nil
+}
+
+func (r *ProfileRepo) UpdateCompany(ctx context.Context, userID uuid.UUID, in application.CompanySettings) (application.CompanySettings, error) {
+	current, err := r.GetClientProfile(ctx, userID)
+	if err != nil {
+		return application.CompanySettings{}, err
+	}
+	updated, err := r.UpdateClientProfile(ctx, userID, application.ClientProfileSettings{
+		CompanyName:        in.CompanyName,
+		BillingAddress:     in.BillingAddress,
+		TaxID:              in.TaxID,
+		VerificationStatus: current.VerificationStatus,
+	})
+	if err != nil {
+		return application.CompanySettings{}, err
+	}
+	return application.CompanySettings{CompanyName: updated.CompanyName, BillingAddress: updated.BillingAddress, TaxID: updated.TaxID}, nil
+}
+
+func (r *ProfileRepo) GetHiringPreferences(ctx context.Context, userID uuid.UUID) (application.HiringPreferences, error) {
+	profileID, err := r.clientProfileID(ctx, userID)
+	if err != nil {
+		return application.HiringPreferences{}, err
+	}
+
+	out := application.HiringPreferences{}
+	var rawLevels []byte
+	var rawLocations []byte
+	err = r.pool.QueryRow(ctx, `
+		select
+			coalesce(min_hourly_rate, 0),
+			coalesce(max_hourly_rate, 0),
+			coalesce(preferred_experience_levels, '[]'::jsonb),
+			coalesce(preferred_locations, '[]'::jsonb)
+		from client_hiring_preferences
+		where profile_id = $1
+	`, profileID).Scan(&out.MinHourlyRate, &out.MaxHourlyRate, &rawLevels, &rawLocations)
+	if err != nil {
+		if isNoRows(err) {
+			return out, nil
+		}
+		return application.HiringPreferences{}, err
+	}
+	if len(rawLevels) > 0 {
+		_ = json.Unmarshal(rawLevels, &out.PreferredExperienceLevels)
+	}
+	if len(rawLocations) > 0 {
+		_ = json.Unmarshal(rawLocations, &out.PreferredLocations)
+	}
+	return out, nil
+}
+
+func (r *ProfileRepo) UpdateHiringPreferences(ctx context.Context, userID uuid.UUID, in application.HiringPreferences) (application.HiringPreferences, error) {
+	profileID, err := r.clientProfileID(ctx, userID)
+	if err != nil {
+		return application.HiringPreferences{}, err
+	}
+
+	rawLevels, err := json.Marshal(in.PreferredExperienceLevels)
+	if err != nil {
+		return application.HiringPreferences{}, err
+	}
+	rawLocations, err := json.Marshal(in.PreferredLocations)
+	if err != nil {
+		return application.HiringPreferences{}, err
+	}
+
+	if _, err := r.pool.Exec(ctx, `
+		insert into client_hiring_preferences (profile_id, min_hourly_rate, max_hourly_rate, preferred_experience_levels, preferred_locations)
+		values ($1, $2, $3, $4::jsonb, $5::jsonb)
+		on conflict (profile_id) do update set
+			min_hourly_rate = excluded.min_hourly_rate,
+			max_hourly_rate = excluded.max_hourly_rate,
+			preferred_experience_levels = excluded.preferred_experience_levels,
+			preferred_locations = excluded.preferred_locations,
+			updated_at = now()
+	`, profileID, in.MinHourlyRate, in.MaxHourlyRate, string(rawLevels), string(rawLocations)); err != nil {
+		return application.HiringPreferences{}, err
+	}
+
+	return r.GetHiringPreferences(ctx, userID)
+}
+
+func (r *ProfileRepo) SaveFreelancer(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (application.SavedFreelancer, error) {
+	profileID, err := r.clientProfileID(ctx, userID)
+	if err != nil {
+		return application.SavedFreelancer{}, err
+	}
+
+	var savedAt time.Time
+	err = r.pool.QueryRow(ctx, `
+		insert into client_saved_freelancers (profile_id, freelancer_user_id)
+		values ($1, $2)
+		on conflict (profile_id, freelancer_user_id) do update set
+			created_at = client_saved_freelancers.created_at
+		returning created_at
+	`, profileID, freelancerUserID).Scan(&savedAt)
+	if err != nil {
+		return application.SavedFreelancer{}, err
+	}
+
+	return application.SavedFreelancer{FreelancerUserID: freelancerUserID, SavedAt: savedAt}, nil
+}
+
+func (r *ProfileRepo) ListSavedFreelancers(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (application.ListResult[application.SavedFreelancer], error) {
+	profileID, err := r.clientProfileID(ctx, userID)
+	if err != nil {
+		return application.ListResult[application.SavedFreelancer]{}, err
+	}
+	limit, offset, err := parsePage(pageSize, pageToken)
+	if err != nil {
+		return application.ListResult[application.SavedFreelancer]{}, err
+	}
+
+	rows, err := r.pool.Query(ctx, `
+		select freelancer_user_id, created_at
+		from client_saved_freelancers
+		where profile_id = $1
+		order by created_at desc, freelancer_user_id asc
+		limit $2 offset $3
+	`, profileID, limit, offset)
+	if err != nil {
+		return application.ListResult[application.SavedFreelancer]{}, err
+	}
+	defer rows.Close()
+
+	items := make([]application.SavedFreelancer, 0, limit)
+	for rows.Next() {
+		var item application.SavedFreelancer
+		if err := rows.Scan(&item.FreelancerUserID, &item.SavedAt); err != nil {
+			return application.ListResult[application.SavedFreelancer]{}, err
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return application.ListResult[application.SavedFreelancer]{}, err
+	}
+
+	return application.ListResult[application.SavedFreelancer]{Items: items, NextPageToken: nextToken(limit, offset, len(items))}, nil
+}
+
+func (r *ProfileRepo) RemoveSavedFreelancer(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (bool, error) {
+	profileID, err := r.clientProfileID(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+
+	res, err := r.pool.Exec(ctx, `
+		delete from client_saved_freelancers
+		where profile_id = $1 and freelancer_user_id = $2
+	`, profileID, freelancerUserID)
+	if err != nil {
+		return false, err
+	}
+	if res.RowsAffected() == 0 {
+		return false, ErrNotFound
+	}
+	return true, nil
+}
+
+func (r *ProfileRepo) UpsertFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID, note string) (application.FreelancerNote, error) {
+	profileID, err := r.clientProfileID(ctx, userID)
+	if err != nil {
+		return application.FreelancerNote{}, err
+	}
+
+	var updatedAt time.Time
+	err = r.pool.QueryRow(ctx, `
+		insert into client_freelancer_notes (profile_id, freelancer_user_id, note)
+		values ($1, $2, $3)
+		on conflict (profile_id, freelancer_user_id) do update set
+			note = excluded.note,
+			updated_at = now()
+		returning updated_at
+	`, profileID, freelancerUserID, strings.TrimSpace(note)).Scan(&updatedAt)
+	if err != nil {
+		return application.FreelancerNote{}, err
+	}
+
+	return application.FreelancerNote{FreelancerUserID: freelancerUserID, Note: strings.TrimSpace(note), UpdatedAt: updatedAt}, nil
+}
+
+func (r *ProfileRepo) GetFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (application.FreelancerNote, error) {
+	profileID, err := r.clientProfileID(ctx, userID)
+	if err != nil {
+		return application.FreelancerNote{}, err
+	}
+
+	var out application.FreelancerNote
+	err = r.pool.QueryRow(ctx, `
+		select note, updated_at
+		from client_freelancer_notes
+		where profile_id = $1 and freelancer_user_id = $2
+	`, profileID, freelancerUserID).Scan(&out.Note, &out.UpdatedAt)
+	if err != nil {
+		if isNoRows(err) {
+			return application.FreelancerNote{}, ErrNotFound
+		}
+		return application.FreelancerNote{}, err
+	}
+	out.FreelancerUserID = freelancerUserID
 	return out, nil
 }
