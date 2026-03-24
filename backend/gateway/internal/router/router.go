@@ -106,9 +106,12 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 
 	adminUserRoutes := api.Group("/admin/users")
 	adminUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
+	adminUserRoutes.GET("", userHandler.ListUsers)
 	adminUserRoutes.GET("/:userId", userHandler.GetUser)
 	adminUserRoutes.GET("/:userId/profile", userHandler.GetProfile)
 	adminUserRoutes.PATCH("/:userId/account-status", userHandler.UpdateAccountStatus)
+	adminUserRoutes.POST("/:userId/impersonation-token", userHandler.CreateImpersonationToken)
+	adminUserRoutes.GET("/:userId/audit-summary", userHandler.GetUserAuditSummary)
 
 	internalUserRoutes := api.Group("/internal/users")
 	internalUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
