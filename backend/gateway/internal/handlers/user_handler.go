@@ -1218,6 +1218,237 @@ func (h *UserHandler) GetMeWorkPreferences(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
 }
 
+func (h *UserHandler) GetMeClientProfile(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetClientProfile(c.Request.Context(), &userv1.GetClientProfileRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
+}
+
+func (h *UserHandler) UpdateMeClientProfile(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	req := &userv1.UpdateClientProfileRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.UpdateClientProfile(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
+}
+
+func (h *UserHandler) GetMeCompany(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetCompany(c.Request.Context(), &userv1.GetCompanyRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "company", resp.GetCompany())
+}
+
+func (h *UserHandler) UpdateMeCompany(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	req := &userv1.UpdateCompanyRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.UpdateCompany(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "company", resp.GetCompany())
+}
+
+func (h *UserHandler) GetMeHiringPreferences(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetHiringPreferences(c.Request.Context(), &userv1.GetHiringPreferencesRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "preferences", resp.GetPreferences())
+}
+
+func (h *UserHandler) UpdateMeHiringPreferences(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	req := &userv1.UpdateHiringPreferencesRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.UpdateHiringPreferences(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "preferences", resp.GetPreferences())
+}
+
+func (h *UserHandler) SaveMeFreelancer(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	freelancerID := strings.TrimSpace(c.Param("freelancerId"))
+	if freelancerID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "freelancerId is required"})
+		return
+	}
+
+	resp, err := h.client.SaveFreelancer(c.Request.Context(), &userv1.SaveFreelancerRequest{UserId: userID, FreelancerUserId: freelancerID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "saved", resp.GetSaved())
+}
+
+func (h *UserHandler) ListMeSavedFreelancers(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	pageSize, pageToken, err := parsePagination(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := h.client.ListSavedFreelancers(c.Request.Context(), &userv1.ListSavedFreelancersRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	itemsPayload, err := protoSliceToAny(resp.GetFreelancers())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"freelancers": itemsPayload, "next_page_token": resp.GetNextPageToken()})
+}
+
+func (h *UserHandler) RemoveMeSavedFreelancer(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	freelancerID := strings.TrimSpace(c.Param("freelancerId"))
+	if freelancerID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "freelancerId is required"})
+		return
+	}
+
+	resp, err := h.client.RemoveSavedFreelancer(c.Request.Context(), &userv1.RemoveSavedFreelancerRequest{UserId: userID, FreelancerUserId: freelancerID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"removed": resp.GetRemoved()})
+}
+
+func (h *UserHandler) UpsertMeFreelancerNote(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	freelancerID := strings.TrimSpace(c.Param("freelancerId"))
+	if freelancerID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "freelancerId is required"})
+		return
+	}
+
+	req := &userv1.UpsertFreelancerNoteRequest{UserId: userID, FreelancerUserId: freelancerID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.UpsertFreelancerNote(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "note", resp.GetNote())
+}
+
+func (h *UserHandler) GetMeFreelancerNote(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	freelancerID := strings.TrimSpace(c.Param("freelancerId"))
+	if freelancerID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "freelancerId is required"})
+		return
+	}
+
+	resp, err := h.client.GetFreelancerNote(c.Request.Context(), &userv1.GetFreelancerNoteRequest{UserId: userID, FreelancerUserId: freelancerID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "note", resp.GetNote())
+}
+
 func parseInt64PathParam(c *gin.Context, param string) (int64, error) {
 	raw := strings.TrimSpace(c.Param(param))
 	if raw == "" {
