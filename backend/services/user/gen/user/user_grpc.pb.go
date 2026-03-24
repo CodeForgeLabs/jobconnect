@@ -62,6 +62,12 @@ const (
 	UserService_UpdateNotificationSettings_FullMethodName = "/user.v1.UserService/UpdateNotificationSettings"
 	UserService_GetInternalUserBasic_FullMethodName       = "/user.v1.UserService/GetInternalUserBasic"
 	UserService_GetInternalUserProfile_FullMethodName     = "/user.v1.UserService/GetInternalUserProfile"
+	UserService_SetAvailability_FullMethodName            = "/user.v1.UserService/SetAvailability"
+	UserService_GetAvailability_FullMethodName            = "/user.v1.UserService/GetAvailability"
+	UserService_SetRates_FullMethodName                   = "/user.v1.UserService/SetRates"
+	UserService_GetRates_FullMethodName                   = "/user.v1.UserService/GetRates"
+	UserService_SetWorkPreferences_FullMethodName         = "/user.v1.UserService/SetWorkPreferences"
+	UserService_GetWorkPreferences_FullMethodName         = "/user.v1.UserService/GetWorkPreferences"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -116,6 +122,13 @@ type UserServiceClient interface {
 	// Optional internal lightweight read-model endpoints.
 	GetInternalUserBasic(ctx context.Context, in *GetInternalUserBasicRequest, opts ...grpc.CallOption) (*GetInternalUserBasicResponse, error)
 	GetInternalUserProfile(ctx context.Context, in *GetInternalUserProfileRequest, opts ...grpc.CallOption) (*GetInternalUserProfileResponse, error)
+	// Freelancer preference endpoints.
+	SetAvailability(ctx context.Context, in *SetAvailabilityRequest, opts ...grpc.CallOption) (*SetAvailabilityResponse, error)
+	GetAvailability(ctx context.Context, in *GetAvailabilityRequest, opts ...grpc.CallOption) (*GetAvailabilityResponse, error)
+	SetRates(ctx context.Context, in *SetRatesRequest, opts ...grpc.CallOption) (*SetRatesResponse, error)
+	GetRates(ctx context.Context, in *GetRatesRequest, opts ...grpc.CallOption) (*GetRatesResponse, error)
+	SetWorkPreferences(ctx context.Context, in *SetWorkPreferencesRequest, opts ...grpc.CallOption) (*SetWorkPreferencesResponse, error)
+	GetWorkPreferences(ctx context.Context, in *GetWorkPreferencesRequest, opts ...grpc.CallOption) (*GetWorkPreferencesResponse, error)
 }
 
 type userServiceClient struct {
@@ -556,6 +569,66 @@ func (c *userServiceClient) GetInternalUserProfile(ctx context.Context, in *GetI
 	return out, nil
 }
 
+func (c *userServiceClient) SetAvailability(ctx context.Context, in *SetAvailabilityRequest, opts ...grpc.CallOption) (*SetAvailabilityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetAvailabilityResponse)
+	err := c.cc.Invoke(ctx, UserService_SetAvailability_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetAvailability(ctx context.Context, in *GetAvailabilityRequest, opts ...grpc.CallOption) (*GetAvailabilityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAvailabilityResponse)
+	err := c.cc.Invoke(ctx, UserService_GetAvailability_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) SetRates(ctx context.Context, in *SetRatesRequest, opts ...grpc.CallOption) (*SetRatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetRatesResponse)
+	err := c.cc.Invoke(ctx, UserService_SetRates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetRates(ctx context.Context, in *GetRatesRequest, opts ...grpc.CallOption) (*GetRatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRatesResponse)
+	err := c.cc.Invoke(ctx, UserService_GetRates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) SetWorkPreferences(ctx context.Context, in *SetWorkPreferencesRequest, opts ...grpc.CallOption) (*SetWorkPreferencesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetWorkPreferencesResponse)
+	err := c.cc.Invoke(ctx, UserService_SetWorkPreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetWorkPreferences(ctx context.Context, in *GetWorkPreferencesRequest, opts ...grpc.CallOption) (*GetWorkPreferencesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetWorkPreferencesResponse)
+	err := c.cc.Invoke(ctx, UserService_GetWorkPreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -608,6 +681,13 @@ type UserServiceServer interface {
 	// Optional internal lightweight read-model endpoints.
 	GetInternalUserBasic(context.Context, *GetInternalUserBasicRequest) (*GetInternalUserBasicResponse, error)
 	GetInternalUserProfile(context.Context, *GetInternalUserProfileRequest) (*GetInternalUserProfileResponse, error)
+	// Freelancer preference endpoints.
+	SetAvailability(context.Context, *SetAvailabilityRequest) (*SetAvailabilityResponse, error)
+	GetAvailability(context.Context, *GetAvailabilityRequest) (*GetAvailabilityResponse, error)
+	SetRates(context.Context, *SetRatesRequest) (*SetRatesResponse, error)
+	GetRates(context.Context, *GetRatesRequest) (*GetRatesResponse, error)
+	SetWorkPreferences(context.Context, *SetWorkPreferencesRequest) (*SetWorkPreferencesResponse, error)
+	GetWorkPreferences(context.Context, *GetWorkPreferencesRequest) (*GetWorkPreferencesResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -746,6 +826,24 @@ func (UnimplementedUserServiceServer) GetInternalUserBasic(context.Context, *Get
 }
 func (UnimplementedUserServiceServer) GetInternalUserProfile(context.Context, *GetInternalUserProfileRequest) (*GetInternalUserProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetInternalUserProfile not implemented")
+}
+func (UnimplementedUserServiceServer) SetAvailability(context.Context, *SetAvailabilityRequest) (*SetAvailabilityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetAvailability not implemented")
+}
+func (UnimplementedUserServiceServer) GetAvailability(context.Context, *GetAvailabilityRequest) (*GetAvailabilityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAvailability not implemented")
+}
+func (UnimplementedUserServiceServer) SetRates(context.Context, *SetRatesRequest) (*SetRatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetRates not implemented")
+}
+func (UnimplementedUserServiceServer) GetRates(context.Context, *GetRatesRequest) (*GetRatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRates not implemented")
+}
+func (UnimplementedUserServiceServer) SetWorkPreferences(context.Context, *SetWorkPreferencesRequest) (*SetWorkPreferencesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetWorkPreferences not implemented")
+}
+func (UnimplementedUserServiceServer) GetWorkPreferences(context.Context, *GetWorkPreferencesRequest) (*GetWorkPreferencesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWorkPreferences not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -1542,6 +1640,114 @@ func _UserService_GetInternalUserProfile_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_SetAvailability_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAvailabilityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SetAvailability(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SetAvailability_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SetAvailability(ctx, req.(*SetAvailabilityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetAvailability_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAvailabilityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetAvailability(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetAvailability_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetAvailability(ctx, req.(*GetAvailabilityRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_SetRates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetRatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SetRates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SetRates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SetRates(ctx, req.(*SetRatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetRates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetRates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetRates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetRates(ctx, req.(*GetRatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_SetWorkPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetWorkPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SetWorkPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SetWorkPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SetWorkPreferences(ctx, req.(*SetWorkPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetWorkPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetWorkPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetWorkPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetWorkPreferences(ctx, req.(*GetWorkPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1720,6 +1926,30 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetInternalUserProfile",
 			Handler:    _UserService_GetInternalUserProfile_Handler,
+		},
+		{
+			MethodName: "SetAvailability",
+			Handler:    _UserService_SetAvailability_Handler,
+		},
+		{
+			MethodName: "GetAvailability",
+			Handler:    _UserService_GetAvailability_Handler,
+		},
+		{
+			MethodName: "SetRates",
+			Handler:    _UserService_SetRates_Handler,
+		},
+		{
+			MethodName: "GetRates",
+			Handler:    _UserService_GetRates_Handler,
+		},
+		{
+			MethodName: "SetWorkPreferences",
+			Handler:    _UserService_SetWorkPreferences_Handler,
+		},
+		{
+			MethodName: "GetWorkPreferences",
+			Handler:    _UserService_GetWorkPreferences_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
