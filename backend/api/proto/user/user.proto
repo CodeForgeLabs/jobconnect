@@ -65,6 +65,19 @@ service UserService {
     rpc GetRates(GetRatesRequest) returns (GetRatesResponse);
     rpc SetWorkPreferences(SetWorkPreferencesRequest) returns (SetWorkPreferencesResponse);
     rpc GetWorkPreferences(GetWorkPreferencesRequest) returns (GetWorkPreferencesResponse);
+
+    // Client-specific endpoints.
+    rpc GetClientProfile(GetClientProfileRequest) returns (GetClientProfileResponse);
+    rpc UpdateClientProfile(UpdateClientProfileRequest) returns (UpdateClientProfileResponse);
+    rpc GetCompany(GetCompanyRequest) returns (GetCompanyResponse);
+    rpc UpdateCompany(UpdateCompanyRequest) returns (UpdateCompanyResponse);
+    rpc GetHiringPreferences(GetHiringPreferencesRequest) returns (GetHiringPreferencesResponse);
+    rpc UpdateHiringPreferences(UpdateHiringPreferencesRequest) returns (UpdateHiringPreferencesResponse);
+    rpc SaveFreelancer(SaveFreelancerRequest) returns (SaveFreelancerResponse);
+    rpc ListSavedFreelancers(ListSavedFreelancersRequest) returns (ListSavedFreelancersResponse);
+    rpc RemoveSavedFreelancer(RemoveSavedFreelancerRequest) returns (RemoveSavedFreelancerResponse);
+    rpc UpsertFreelancerNote(UpsertFreelancerNoteRequest) returns (UpsertFreelancerNoteResponse);
+    rpc GetFreelancerNote(GetFreelancerNoteRequest) returns (GetFreelancerNoteResponse);
 }
 
 enum AccountStatus {
@@ -798,6 +811,143 @@ message GetWorkPreferencesRequest {
 
 message GetWorkPreferencesResponse {
     WorkPreferences settings = 1;
+}
+
+message ClientProfileSettings {
+    string company_name = 1;
+    string billing_address = 2;
+    string tax_id = 3;
+    VerificationStatus verification_status = 4;
+}
+
+message CompanySettings {
+    string company_name = 1;
+    string billing_address = 2;
+    string tax_id = 3;
+}
+
+message HiringPreferences {
+    double min_hourly_rate = 1;
+    double max_hourly_rate = 2;
+    repeated string preferred_experience_levels = 3;
+    repeated string preferred_locations = 4;
+}
+
+message SavedFreelancer {
+    string freelancer_user_id = 1;
+    int64 saved_at_unix = 2;
+}
+
+message FreelancerNote {
+    string freelancer_user_id = 1;
+    string note = 2;
+    int64 updated_at_unix = 3;
+}
+
+message GetClientProfileRequest {
+    string user_id = 1;
+}
+
+message GetClientProfileResponse {
+    ClientProfileSettings profile = 1;
+}
+
+message UpdateClientProfileRequest {
+    string user_id = 1;
+    optional string company_name = 2;
+    optional string billing_address = 3;
+    optional string tax_id = 4;
+}
+
+message UpdateClientProfileResponse {
+    ClientProfileSettings profile = 1;
+}
+
+message GetCompanyRequest {
+    string user_id = 1;
+}
+
+message GetCompanyResponse {
+    CompanySettings company = 1;
+}
+
+message UpdateCompanyRequest {
+    string user_id = 1;
+    optional string company_name = 2;
+    optional string billing_address = 3;
+    optional string tax_id = 4;
+}
+
+message UpdateCompanyResponse {
+    CompanySettings company = 1;
+}
+
+message GetHiringPreferencesRequest {
+    string user_id = 1;
+}
+
+message GetHiringPreferencesResponse {
+    HiringPreferences preferences = 1;
+}
+
+message UpdateHiringPreferencesRequest {
+    string user_id = 1;
+    optional double min_hourly_rate = 2;
+    optional double max_hourly_rate = 3;
+    repeated string preferred_experience_levels = 4;
+    repeated string preferred_locations = 5;
+}
+
+message UpdateHiringPreferencesResponse {
+    HiringPreferences preferences = 1;
+}
+
+message SaveFreelancerRequest {
+    string user_id = 1;
+    string freelancer_user_id = 2;
+}
+
+message SaveFreelancerResponse {
+    SavedFreelancer saved = 1;
+}
+
+message ListSavedFreelancersRequest {
+    string user_id = 1;
+    uint32 page_size = 2;
+    string page_token = 3;
+}
+
+message ListSavedFreelancersResponse {
+    repeated SavedFreelancer freelancers = 1;
+    string next_page_token = 2;
+}
+
+message RemoveSavedFreelancerRequest {
+    string user_id = 1;
+    string freelancer_user_id = 2;
+}
+
+message RemoveSavedFreelancerResponse {
+    bool removed = 1;
+}
+
+message UpsertFreelancerNoteRequest {
+    string user_id = 1;
+    string freelancer_user_id = 2;
+    string note = 3;
+}
+
+message UpsertFreelancerNoteResponse {
+    FreelancerNote note = 1;
+}
+
+message GetFreelancerNoteRequest {
+    string user_id = 1;
+    string freelancer_user_id = 2;
+}
+
+message GetFreelancerNoteResponse {
+    FreelancerNote note = 1;
 }
 
 message Profile {
