@@ -108,6 +108,37 @@ type WorkPreferences struct {
 	ContractTypes          []string
 }
 
+type ClientProfileSettings struct {
+	CompanyName        string
+	BillingAddress     string
+	TaxID              string
+	VerificationStatus string
+}
+
+type CompanySettings struct {
+	CompanyName    string
+	BillingAddress string
+	TaxID          string
+}
+
+type HiringPreferences struct {
+	MinHourlyRate             float64
+	MaxHourlyRate             float64
+	PreferredExperienceLevels []string
+	PreferredLocations        []string
+}
+
+type SavedFreelancer struct {
+	FreelancerUserID uuid.UUID
+	SavedAt          time.Time
+}
+
+type FreelancerNote struct {
+	FreelancerUserID uuid.UUID
+	Note             string
+	UpdatedAt        time.Time
+}
+
 type ListResult[T any] struct {
 	Items         []T
 	NextPageToken string
@@ -154,4 +185,16 @@ type ProfileDetailsRepository interface {
 	GetRates(ctx context.Context, userID uuid.UUID) (RateSettings, error)
 	SetWorkPreferences(ctx context.Context, userID uuid.UUID, in WorkPreferences) (WorkPreferences, error)
 	GetWorkPreferences(ctx context.Context, userID uuid.UUID) (WorkPreferences, error)
+
+	GetClientProfile(ctx context.Context, userID uuid.UUID) (ClientProfileSettings, error)
+	UpdateClientProfile(ctx context.Context, userID uuid.UUID, in ClientProfileSettings) (ClientProfileSettings, error)
+	GetCompany(ctx context.Context, userID uuid.UUID) (CompanySettings, error)
+	UpdateCompany(ctx context.Context, userID uuid.UUID, in CompanySettings) (CompanySettings, error)
+	GetHiringPreferences(ctx context.Context, userID uuid.UUID) (HiringPreferences, error)
+	UpdateHiringPreferences(ctx context.Context, userID uuid.UUID, in HiringPreferences) (HiringPreferences, error)
+	SaveFreelancer(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (SavedFreelancer, error)
+	ListSavedFreelancers(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[SavedFreelancer], error)
+	RemoveSavedFreelancer(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (bool, error)
+	UpsertFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID, note string) (FreelancerNote, error)
+	GetFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (FreelancerNote, error)
 }
