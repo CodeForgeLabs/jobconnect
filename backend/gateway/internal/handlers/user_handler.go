@@ -517,6 +517,89 @@ func (h *UserHandler) UpdateAccountStatus(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
 }
 
+func (h *UserHandler) ListUsers(c *gin.Context) {
+	requesterID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	pageSize, pageToken, err := parsePagination(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := h.client.ListUsers(c.Request.Context(), &userv1.ListUsersRequest{
+		RequesterUserId: requesterID,
+		Q:               strings.TrimSpace(c.Query("q")),
+		Role:            strings.TrimSpace(c.Query("role")),
+		Status:          strings.TrimSpace(c.Query("status")),
+		PageSize:        pageSize,
+		PageToken:       pageToken,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	itemsPayload, err := protoSliceToAny(resp.GetUsers())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"users": itemsPayload, "next_page_token": resp.GetNextPageToken()})
+}
+
+func (h *UserHandler) CreateImpersonationToken(c *gin.Context) {
+	requesterID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	targetID := strings.TrimSpace(c.Param("userId"))
+	if targetID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
+		return
+	}
+
+	req := &userv1.CreateImpersonationTokenRequest{RequesterUserId: requesterID, TargetUserId: targetID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.CreateImpersonationToken(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": resp.GetToken(), "expires_at_unix": resp.GetExpiresAtUnix()})
+}
+
+func (h *UserHandler) GetUserAuditSummary(c *gin.Context) {
+	requesterID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	targetID := strings.TrimSpace(c.Param("userId"))
+	if targetID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
+		return
+	}
+
+	resp, err := h.client.GetUserAuditSummary(c.Request.Context(), &userv1.GetUserAuditSummaryRequest{RequesterUserId: requesterID, TargetUserId: targetID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "summary", resp.GetSummary())
+}
+
 func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
