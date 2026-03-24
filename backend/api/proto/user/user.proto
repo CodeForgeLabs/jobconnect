@@ -57,6 +57,14 @@ service UserService {
     // Optional internal lightweight read-model endpoints.
     rpc GetInternalUserBasic(GetInternalUserBasicRequest) returns (GetInternalUserBasicResponse);
     rpc GetInternalUserProfile(GetInternalUserProfileRequest) returns (GetInternalUserProfileResponse);
+
+    // Freelancer preference endpoints.
+    rpc SetAvailability(SetAvailabilityRequest) returns (SetAvailabilityResponse);
+    rpc GetAvailability(GetAvailabilityRequest) returns (GetAvailabilityResponse);
+    rpc SetRates(SetRatesRequest) returns (SetRatesResponse);
+    rpc GetRates(GetRatesRequest) returns (GetRatesResponse);
+    rpc SetWorkPreferences(SetWorkPreferencesRequest) returns (SetWorkPreferencesResponse);
+    rpc GetWorkPreferences(GetWorkPreferencesRequest) returns (GetWorkPreferencesResponse);
 }
 
 enum AccountStatus {
@@ -717,6 +725,79 @@ message GetInternalUserProfileRequest {
 
 message GetInternalUserProfileResponse {
     Profile profile = 1;
+}
+
+message AvailabilitySettings {
+    Availability availability = 1;
+    uint32 weekly_capacity_hours = 2;
+}
+
+message RateSettings {
+    double hourly_rate = 1;
+    string currency = 2;
+}
+
+message WorkPreferences {
+    string preferred_project_length = 1;
+    double min_budget_usd = 2;
+    double max_budget_usd = 3;
+    repeated string contract_types = 4;
+}
+
+message SetAvailabilityRequest {
+    string user_id = 1;
+    Availability availability = 2;
+    uint32 weekly_capacity_hours = 3;
+}
+
+message SetAvailabilityResponse {
+    AvailabilitySettings settings = 1;
+}
+
+message GetAvailabilityRequest {
+    string user_id = 1;
+}
+
+message GetAvailabilityResponse {
+    AvailabilitySettings settings = 1;
+}
+
+message SetRatesRequest {
+    string user_id = 1;
+    double hourly_rate = 2;
+    string currency = 3;
+}
+
+message SetRatesResponse {
+    RateSettings settings = 1;
+}
+
+message GetRatesRequest {
+    string user_id = 1;
+}
+
+message GetRatesResponse {
+    RateSettings settings = 1;
+}
+
+message SetWorkPreferencesRequest {
+    string user_id = 1;
+    string preferred_project_length = 2;
+    double min_budget_usd = 3;
+    double max_budget_usd = 4;
+    repeated string contract_types = 5;
+}
+
+message SetWorkPreferencesResponse {
+    WorkPreferences settings = 1;
+}
+
+message GetWorkPreferencesRequest {
+    string user_id = 1;
+}
+
+message GetWorkPreferencesResponse {
+    WorkPreferences settings = 1;
 }
 
 message Profile {
