@@ -340,6 +340,76 @@ func (s *UserServer) UpdateAccountStatus(ctx context.Context, req *userv1.Update
 	return &userv1.UpdateAccountStatusResponse{Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
 }
 
+func (s *UserServer) ListUsers(ctx context.Context, req *userv1.ListUsersRequest) (*userv1.ListUsersResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	requesterID, err := uuid.Parse(req.GetRequesterUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid requester_user_id")
+	}
+
+	out, err := s.ProfileDetailsRepo.ListUsers(ctx, requesterID, application.ListUsersFilter{
+		Q:         strings.TrimSpace(req.GetQ()),
+		Role:      strings.TrimSpace(req.GetRole()),
+		Status:    strings.TrimSpace(req.GetStatus()),
+		PageSize:  req.GetPageSize(),
+		PageToken: req.GetPageToken(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	users := make([]*userv1.User, 0, len(out.Items))
+	for _, item := range out.Items {
+		users = append(users, toProtoUserSummary(item))
+	}
+
+	return &userv1.ListUsersResponse{Users: users, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *UserServer) CreateImpersonationToken(ctx context.Context, req *userv1.CreateImpersonationTokenRequest) (*userv1.CreateImpersonationTokenResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	requesterID, err := uuid.Parse(req.GetRequesterUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid requester_user_id")
+	}
+	targetUserID, err := uuid.Parse(req.GetTargetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid target_user_id")
+	}
+
+	out, err := s.ProfileDetailsRepo.CreateImpersonationToken(ctx, requesterID, targetUserID, req.GetReason(), req.GetTtlSeconds())
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.CreateImpersonationTokenResponse{Token: out.Token, ExpiresAtUnix: out.ExpiresAt.Unix()}, nil
+}
+
+func (s *UserServer) GetUserAuditSummary(ctx context.Context, req *userv1.GetUserAuditSummaryRequest) (*userv1.GetUserAuditSummaryResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	requesterID, err := uuid.Parse(req.GetRequesterUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid requester_user_id")
+	}
+	targetUserID, err := uuid.Parse(req.GetTargetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid target_user_id")
+	}
+
+	out, err := s.ProfileDetailsRepo.GetUserAuditSummary(ctx, requesterID, targetUserID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.GetUserAuditSummaryResponse{Summary: toProtoUserAuditSummary(out)}, nil
+}
+
 func (s *UserServer) UploadAvatar(ctx context.Context, req *userv1.UploadAvatarRequest) (*userv1.UploadAvatarResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1735,6 +1805,37 @@ func toProtoFreelancerNote(in application.FreelancerNote) *userv1.FreelancerNote
 		FreelancerUserId: in.FreelancerUserID.String(),
 		Note:             in.Note,
 		UpdatedAtUnix:    in.UpdatedAt.Unix(),
+	}
+}
+
+func toProtoUserSummary(in application.UserSummary) *userv1.User {
+	return &userv1.User{
+		UserId:      in.UserID.String(),
+		Role:        in.Role,
+		Status:      mapAccountStatusToProto(in.Status),
+		Visibility:  mapVisibilityToProto(in.Visibility),
+		FirstName:   in.FirstName,
+		LastName:    in.LastName,
+		DisplayName: in.DisplayName,
+		AvatarUrl:   in.AvatarURL,
+		CreatedAtUnix: in.CreatedAt.Unix(),
+		UpdatedAtUnix: in.UpdatedAt.Unix(),
+	}
+}
+
+func toProtoUserAuditSummary(in application.UserAuditSummary) *userv1.UserAuditSummary {
+	avatarUpdatedAtUnix := int64(0)
+	if in.AvatarUpdatedAt != nil {
+		avatarUpdatedAtUnix = in.AvatarUpdatedAt.Unix()
+	}
+	return &userv1.UserAuditSummary{
+		UserId:                in.UserID.String(),
+		Status:                mapAccountStatusToProto(in.Status),
+		Visibility:            mapVisibilityToProto(in.Visibility),
+		ProfileUpdatedAtUnix:  in.ProfileUpdatedAt.Unix(),
+		AvatarUpdatedAtUnix:   avatarUpdatedAtUnix,
+		SavedFreelancersCount: in.SavedFreelancersCount,
+		PortfolioItemsCount:   in.PortfolioItemsCount,
 	}
 }
 
