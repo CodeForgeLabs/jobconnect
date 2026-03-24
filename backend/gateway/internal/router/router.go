@@ -93,6 +93,11 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	adminUserRoutes.GET("/:userId/profile", userHandler.GetProfile)
 	adminUserRoutes.PATCH("/:userId/account-status", userHandler.UpdateAccountStatus)
 
+	internalUserRoutes := api.Group("/internal/users")
+	internalUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
+	internalUserRoutes.GET("/:userId/basic", userHandler.GetInternalUserBasic)
+	internalUserRoutes.GET("/:userId/profile", userHandler.GetInternalUserProfile)
+
 	publicRoutes := api.Group("/public")
 	publicRoutes.GET("/users/:userId/profile", userHandler.GetPublicProfile)
 	publicRoutes.GET("/users/:userId/portfolio", userHandler.ListPublicPortfolioItems)
