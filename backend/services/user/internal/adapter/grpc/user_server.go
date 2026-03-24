@@ -683,6 +683,239 @@ func (s *UserServer) GetWorkPreferences(ctx context.Context, req *userv1.GetWork
 	return &userv1.GetWorkPreferencesResponse{Settings: toProtoWorkPreferences(out)}, nil
 }
 
+func (s *UserServer) GetClientProfile(ctx context.Context, req *userv1.GetClientProfileRequest) (*userv1.GetClientProfileResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.ProfileDetailsRepo.GetClientProfile(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetClientProfileResponse{Profile: toProtoClientProfileSettings(out)}, nil
+}
+
+func (s *UserServer) UpdateClientProfile(ctx context.Context, req *userv1.UpdateClientProfileRequest) (*userv1.UpdateClientProfileResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	current, err := s.ProfileDetailsRepo.GetClientProfile(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	if req.CompanyName != nil {
+		current.CompanyName = strings.TrimSpace(req.GetCompanyName())
+	}
+	if req.BillingAddress != nil {
+		current.BillingAddress = strings.TrimSpace(req.GetBillingAddress())
+	}
+	if req.TaxId != nil {
+		current.TaxID = strings.TrimSpace(req.GetTaxId())
+	}
+	out, err := s.ProfileDetailsRepo.UpdateClientProfile(ctx, userID, current)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.UpdateClientProfileResponse{Profile: toProtoClientProfileSettings(out)}, nil
+}
+
+func (s *UserServer) GetCompany(ctx context.Context, req *userv1.GetCompanyRequest) (*userv1.GetCompanyResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.ProfileDetailsRepo.GetCompany(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetCompanyResponse{Company: toProtoCompanySettings(out)}, nil
+}
+
+func (s *UserServer) UpdateCompany(ctx context.Context, req *userv1.UpdateCompanyRequest) (*userv1.UpdateCompanyResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	current, err := s.ProfileDetailsRepo.GetCompany(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	if req.CompanyName != nil {
+		current.CompanyName = strings.TrimSpace(req.GetCompanyName())
+	}
+	if req.BillingAddress != nil {
+		current.BillingAddress = strings.TrimSpace(req.GetBillingAddress())
+	}
+	if req.TaxId != nil {
+		current.TaxID = strings.TrimSpace(req.GetTaxId())
+	}
+	out, err := s.ProfileDetailsRepo.UpdateCompany(ctx, userID, current)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.UpdateCompanyResponse{Company: toProtoCompanySettings(out)}, nil
+}
+
+func (s *UserServer) GetHiringPreferences(ctx context.Context, req *userv1.GetHiringPreferencesRequest) (*userv1.GetHiringPreferencesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.ProfileDetailsRepo.GetHiringPreferences(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetHiringPreferencesResponse{Preferences: toProtoHiringPreferences(out)}, nil
+}
+
+func (s *UserServer) UpdateHiringPreferences(ctx context.Context, req *userv1.UpdateHiringPreferencesRequest) (*userv1.UpdateHiringPreferencesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	current, err := s.ProfileDetailsRepo.GetHiringPreferences(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	if req.MinHourlyRate != nil {
+		current.MinHourlyRate = req.GetMinHourlyRate()
+	}
+	if req.MaxHourlyRate != nil {
+		current.MaxHourlyRate = req.GetMaxHourlyRate()
+	}
+	if len(req.GetPreferredExperienceLevels()) > 0 {
+		current.PreferredExperienceLevels = req.GetPreferredExperienceLevels()
+	}
+	if len(req.GetPreferredLocations()) > 0 {
+		current.PreferredLocations = req.GetPreferredLocations()
+	}
+	if current.MinHourlyRate < 0 || current.MaxHourlyRate < 0 {
+		return nil, status.Error(codes.InvalidArgument, "hourly rates must be greater than or equal to 0")
+	}
+	if current.MaxHourlyRate > 0 && current.MinHourlyRate > current.MaxHourlyRate {
+		return nil, status.Error(codes.InvalidArgument, "min_hourly_rate cannot be greater than max_hourly_rate")
+	}
+	out, err := s.ProfileDetailsRepo.UpdateHiringPreferences(ctx, userID, current)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.UpdateHiringPreferencesResponse{Preferences: toProtoHiringPreferences(out)}, nil
+}
+
+func (s *UserServer) SaveFreelancer(ctx context.Context, req *userv1.SaveFreelancerRequest) (*userv1.SaveFreelancerResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	freelancerID, err := uuid.Parse(req.GetFreelancerUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
+	}
+	out, err := s.ProfileDetailsRepo.SaveFreelancer(ctx, userID, freelancerID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.SaveFreelancerResponse{Saved: toProtoSavedFreelancer(out)}, nil
+}
+
+func (s *UserServer) ListSavedFreelancers(ctx context.Context, req *userv1.ListSavedFreelancersRequest) (*userv1.ListSavedFreelancersResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.ProfileDetailsRepo.ListSavedFreelancers(ctx, userID, req.GetPageSize(), req.GetPageToken())
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	items := make([]*userv1.SavedFreelancer, 0, len(out.Items))
+	for _, item := range out.Items {
+		items = append(items, toProtoSavedFreelancer(item))
+	}
+	return &userv1.ListSavedFreelancersResponse{Freelancers: items, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *UserServer) RemoveSavedFreelancer(ctx context.Context, req *userv1.RemoveSavedFreelancerRequest) (*userv1.RemoveSavedFreelancerResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	freelancerID, err := uuid.Parse(req.GetFreelancerUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
+	}
+	removed, err := s.ProfileDetailsRepo.RemoveSavedFreelancer(ctx, userID, freelancerID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.RemoveSavedFreelancerResponse{Removed: removed}, nil
+}
+
+func (s *UserServer) UpsertFreelancerNote(ctx context.Context, req *userv1.UpsertFreelancerNoteRequest) (*userv1.UpsertFreelancerNoteResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	freelancerID, err := uuid.Parse(req.GetFreelancerUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
+	}
+	out, err := s.ProfileDetailsRepo.UpsertFreelancerNote(ctx, userID, freelancerID, req.GetNote())
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.UpsertFreelancerNoteResponse{Note: toProtoFreelancerNote(out)}, nil
+}
+
+func (s *UserServer) GetFreelancerNote(ctx context.Context, req *userv1.GetFreelancerNoteRequest) (*userv1.GetFreelancerNoteResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	freelancerID, err := uuid.Parse(req.GetFreelancerUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
+	}
+	out, err := s.ProfileDetailsRepo.GetFreelancerNote(ctx, userID, freelancerID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetFreelancerNoteResponse{Note: toProtoFreelancerNote(out)}, nil
+}
+
 func (s *UserServer) CreatePortfolioItem(ctx context.Context, req *userv1.CreatePortfolioItemRequest) (*userv1.CreatePortfolioItemResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1461,6 +1694,47 @@ func toProtoWorkPreferences(in application.WorkPreferences) *userv1.WorkPreferen
 		MinBudgetUsd:           in.MinBudgetUSD,
 		MaxBudgetUsd:           in.MaxBudgetUSD,
 		ContractTypes:          in.ContractTypes,
+	}
+}
+
+func toProtoClientProfileSettings(in application.ClientProfileSettings) *userv1.ClientProfileSettings {
+	return &userv1.ClientProfileSettings{
+		CompanyName:        in.CompanyName,
+		BillingAddress:     in.BillingAddress,
+		TaxId:              in.TaxID,
+		VerificationStatus: mapVerificationStatusToProto(in.VerificationStatus),
+	}
+}
+
+func toProtoCompanySettings(in application.CompanySettings) *userv1.CompanySettings {
+	return &userv1.CompanySettings{
+		CompanyName:    in.CompanyName,
+		BillingAddress: in.BillingAddress,
+		TaxId:          in.TaxID,
+	}
+}
+
+func toProtoHiringPreferences(in application.HiringPreferences) *userv1.HiringPreferences {
+	return &userv1.HiringPreferences{
+		MinHourlyRate:             in.MinHourlyRate,
+		MaxHourlyRate:             in.MaxHourlyRate,
+		PreferredExperienceLevels: in.PreferredExperienceLevels,
+		PreferredLocations:        in.PreferredLocations,
+	}
+}
+
+func toProtoSavedFreelancer(in application.SavedFreelancer) *userv1.SavedFreelancer {
+	return &userv1.SavedFreelancer{
+		FreelancerUserId: in.FreelancerUserID.String(),
+		SavedAtUnix:      in.SavedAt.Unix(),
+	}
+}
+
+func toProtoFreelancerNote(in application.FreelancerNote) *userv1.FreelancerNote {
+	return &userv1.FreelancerNote{
+		FreelancerUserId: in.FreelancerUserID.String(),
+		Note:             in.Note,
+		UpdatedAtUnix:    in.UpdatedAt.Unix(),
 	}
 }
 
