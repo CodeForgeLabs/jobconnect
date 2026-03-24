@@ -166,13 +166,13 @@ type ImpersonationToken struct {
 }
 
 type UserAuditSummary struct {
-	UserID                 uuid.UUID
-	Status                 string
-	Visibility             string
-	ProfileUpdatedAt       time.Time
-	AvatarUpdatedAt        *time.Time
-	SavedFreelancersCount  uint32
-	PortfolioItemsCount    uint32
+	UserID                uuid.UUID
+	Status                string
+	Visibility            string
+	ProfileUpdatedAt      time.Time
+	AvatarUpdatedAt       *time.Time
+	SavedFreelancersCount uint32
+	PortfolioItemsCount   uint32
 }
 
 type ListResult[T any] struct {
