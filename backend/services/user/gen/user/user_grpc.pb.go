@@ -19,17 +19,41 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_CreateProfile_FullMethodName       = "/user.v1.UserService/CreateProfile"
-	UserService_GetUser_FullMethodName             = "/user.v1.UserService/GetUser"
-	UserService_GetProfile_FullMethodName          = "/user.v1.UserService/GetProfile"
-	UserService_GetPublicProfile_FullMethodName    = "/user.v1.UserService/GetPublicProfile"
-	UserService_UpdateProfile_FullMethodName       = "/user.v1.UserService/UpdateProfile"
-	UserService_DeleteProfile_FullMethodName       = "/user.v1.UserService/DeleteProfile"
-	UserService_GetOnboardingStatus_FullMethodName = "/user.v1.UserService/GetOnboardingStatus"
-	UserService_UpdateAccountStatus_FullMethodName = "/user.v1.UserService/UpdateAccountStatus"
-	UserService_UploadAvatar_FullMethodName        = "/user.v1.UserService/UploadAvatar"
-	UserService_GetAvatar_FullMethodName           = "/user.v1.UserService/GetAvatar"
-	UserService_RemoveAvatar_FullMethodName        = "/user.v1.UserService/RemoveAvatar"
+	UserService_CreateProfile_FullMethodName            = "/user.v1.UserService/CreateProfile"
+	UserService_GetUser_FullMethodName                  = "/user.v1.UserService/GetUser"
+	UserService_GetProfile_FullMethodName               = "/user.v1.UserService/GetProfile"
+	UserService_GetPublicProfile_FullMethodName         = "/user.v1.UserService/GetPublicProfile"
+	UserService_UpdateProfile_FullMethodName            = "/user.v1.UserService/UpdateProfile"
+	UserService_DeleteProfile_FullMethodName            = "/user.v1.UserService/DeleteProfile"
+	UserService_GetOnboardingStatus_FullMethodName      = "/user.v1.UserService/GetOnboardingStatus"
+	UserService_UpdateAccountStatus_FullMethodName      = "/user.v1.UserService/UpdateAccountStatus"
+	UserService_UploadAvatar_FullMethodName             = "/user.v1.UserService/UploadAvatar"
+	UserService_GetAvatar_FullMethodName                = "/user.v1.UserService/GetAvatar"
+	UserService_RemoveAvatar_FullMethodName             = "/user.v1.UserService/RemoveAvatar"
+	UserService_CreatePortfolioItem_FullMethodName      = "/user.v1.UserService/CreatePortfolioItem"
+	UserService_UpdatePortfolioItem_FullMethodName      = "/user.v1.UserService/UpdatePortfolioItem"
+	UserService_DeletePortfolioItem_FullMethodName      = "/user.v1.UserService/DeletePortfolioItem"
+	UserService_ListMyPortfolioItems_FullMethodName     = "/user.v1.UserService/ListMyPortfolioItems"
+	UserService_ListPublicPortfolioItems_FullMethodName = "/user.v1.UserService/ListPublicPortfolioItems"
+	UserService_ReorderPortfolioItems_FullMethodName    = "/user.v1.UserService/ReorderPortfolioItems"
+	UserService_CreateEmployment_FullMethodName         = "/user.v1.UserService/CreateEmployment"
+	UserService_UpdateEmployment_FullMethodName         = "/user.v1.UserService/UpdateEmployment"
+	UserService_DeleteEmployment_FullMethodName         = "/user.v1.UserService/DeleteEmployment"
+	UserService_ListMyEmployment_FullMethodName         = "/user.v1.UserService/ListMyEmployment"
+	UserService_ListPublicEmployment_FullMethodName     = "/user.v1.UserService/ListPublicEmployment"
+	UserService_CreateEducation_FullMethodName          = "/user.v1.UserService/CreateEducation"
+	UserService_UpdateEducation_FullMethodName          = "/user.v1.UserService/UpdateEducation"
+	UserService_DeleteEducation_FullMethodName          = "/user.v1.UserService/DeleteEducation"
+	UserService_ListMyEducation_FullMethodName          = "/user.v1.UserService/ListMyEducation"
+	UserService_ListPublicEducation_FullMethodName      = "/user.v1.UserService/ListPublicEducation"
+	UserService_CreateCertification_FullMethodName      = "/user.v1.UserService/CreateCertification"
+	UserService_UpdateCertification_FullMethodName      = "/user.v1.UserService/UpdateCertification"
+	UserService_DeleteCertification_FullMethodName      = "/user.v1.UserService/DeleteCertification"
+	UserService_ListMyCertifications_FullMethodName     = "/user.v1.UserService/ListMyCertifications"
+	UserService_ListPublicCertifications_FullMethodName = "/user.v1.UserService/ListPublicCertifications"
+	UserService_UpsertLanguages_FullMethodName          = "/user.v1.UserService/UpsertLanguages"
+	UserService_GetMyLanguages_FullMethodName           = "/user.v1.UserService/GetMyLanguages"
+	UserService_GetPublicLanguages_FullMethodName       = "/user.v1.UserService/GetPublicLanguages"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -47,6 +71,33 @@ type UserServiceClient interface {
 	UploadAvatar(ctx context.Context, in *UploadAvatarRequest, opts ...grpc.CallOption) (*UploadAvatarResponse, error)
 	GetAvatar(ctx context.Context, in *GetAvatarRequest, opts ...grpc.CallOption) (*GetAvatarResponse, error)
 	RemoveAvatar(ctx context.Context, in *RemoveAvatarRequest, opts ...grpc.CallOption) (*RemoveAvatarResponse, error)
+	// B: portfolio endpoints.
+	CreatePortfolioItem(ctx context.Context, in *CreatePortfolioItemRequest, opts ...grpc.CallOption) (*CreatePortfolioItemResponse, error)
+	UpdatePortfolioItem(ctx context.Context, in *UpdatePortfolioItemRequest, opts ...grpc.CallOption) (*UpdatePortfolioItemResponse, error)
+	DeletePortfolioItem(ctx context.Context, in *DeletePortfolioItemRequest, opts ...grpc.CallOption) (*DeletePortfolioItemResponse, error)
+	ListMyPortfolioItems(ctx context.Context, in *ListMyPortfolioItemsRequest, opts ...grpc.CallOption) (*ListMyPortfolioItemsResponse, error)
+	ListPublicPortfolioItems(ctx context.Context, in *ListPublicPortfolioItemsRequest, opts ...grpc.CallOption) (*ListPublicPortfolioItemsResponse, error)
+	ReorderPortfolioItems(ctx context.Context, in *ReorderPortfolioItemsRequest, opts ...grpc.CallOption) (*ReorderPortfolioItemsResponse, error)
+	// C: employment and education endpoints.
+	CreateEmployment(ctx context.Context, in *CreateEmploymentRequest, opts ...grpc.CallOption) (*CreateEmploymentResponse, error)
+	UpdateEmployment(ctx context.Context, in *UpdateEmploymentRequest, opts ...grpc.CallOption) (*UpdateEmploymentResponse, error)
+	DeleteEmployment(ctx context.Context, in *DeleteEmploymentRequest, opts ...grpc.CallOption) (*DeleteEmploymentResponse, error)
+	ListMyEmployment(ctx context.Context, in *ListMyEmploymentRequest, opts ...grpc.CallOption) (*ListMyEmploymentResponse, error)
+	ListPublicEmployment(ctx context.Context, in *ListPublicEmploymentRequest, opts ...grpc.CallOption) (*ListPublicEmploymentResponse, error)
+	CreateEducation(ctx context.Context, in *CreateEducationRequest, opts ...grpc.CallOption) (*CreateEducationResponse, error)
+	UpdateEducation(ctx context.Context, in *UpdateEducationRequest, opts ...grpc.CallOption) (*UpdateEducationResponse, error)
+	DeleteEducation(ctx context.Context, in *DeleteEducationRequest, opts ...grpc.CallOption) (*DeleteEducationResponse, error)
+	ListMyEducation(ctx context.Context, in *ListMyEducationRequest, opts ...grpc.CallOption) (*ListMyEducationResponse, error)
+	ListPublicEducation(ctx context.Context, in *ListPublicEducationRequest, opts ...grpc.CallOption) (*ListPublicEducationResponse, error)
+	// D: certifications and languages endpoints.
+	CreateCertification(ctx context.Context, in *CreateCertificationRequest, opts ...grpc.CallOption) (*CreateCertificationResponse, error)
+	UpdateCertification(ctx context.Context, in *UpdateCertificationRequest, opts ...grpc.CallOption) (*UpdateCertificationResponse, error)
+	DeleteCertification(ctx context.Context, in *DeleteCertificationRequest, opts ...grpc.CallOption) (*DeleteCertificationResponse, error)
+	ListMyCertifications(ctx context.Context, in *ListMyCertificationsRequest, opts ...grpc.CallOption) (*ListMyCertificationsResponse, error)
+	ListPublicCertifications(ctx context.Context, in *ListPublicCertificationsRequest, opts ...grpc.CallOption) (*ListPublicCertificationsResponse, error)
+	UpsertLanguages(ctx context.Context, in *UpsertLanguagesRequest, opts ...grpc.CallOption) (*UpsertLanguagesResponse, error)
+	GetMyLanguages(ctx context.Context, in *GetMyLanguagesRequest, opts ...grpc.CallOption) (*GetMyLanguagesResponse, error)
+	GetPublicLanguages(ctx context.Context, in *GetPublicLanguagesRequest, opts ...grpc.CallOption) (*GetPublicLanguagesResponse, error)
 }
 
 type userServiceClient struct {
@@ -167,6 +218,246 @@ func (c *userServiceClient) RemoveAvatar(ctx context.Context, in *RemoveAvatarRe
 	return out, nil
 }
 
+func (c *userServiceClient) CreatePortfolioItem(ctx context.Context, in *CreatePortfolioItemRequest, opts ...grpc.CallOption) (*CreatePortfolioItemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreatePortfolioItemResponse)
+	err := c.cc.Invoke(ctx, UserService_CreatePortfolioItem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdatePortfolioItem(ctx context.Context, in *UpdatePortfolioItemRequest, opts ...grpc.CallOption) (*UpdatePortfolioItemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatePortfolioItemResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdatePortfolioItem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) DeletePortfolioItem(ctx context.Context, in *DeletePortfolioItemRequest, opts ...grpc.CallOption) (*DeletePortfolioItemResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePortfolioItemResponse)
+	err := c.cc.Invoke(ctx, UserService_DeletePortfolioItem_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListMyPortfolioItems(ctx context.Context, in *ListMyPortfolioItemsRequest, opts ...grpc.CallOption) (*ListMyPortfolioItemsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyPortfolioItemsResponse)
+	err := c.cc.Invoke(ctx, UserService_ListMyPortfolioItems_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListPublicPortfolioItems(ctx context.Context, in *ListPublicPortfolioItemsRequest, opts ...grpc.CallOption) (*ListPublicPortfolioItemsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPublicPortfolioItemsResponse)
+	err := c.cc.Invoke(ctx, UserService_ListPublicPortfolioItems_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ReorderPortfolioItems(ctx context.Context, in *ReorderPortfolioItemsRequest, opts ...grpc.CallOption) (*ReorderPortfolioItemsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReorderPortfolioItemsResponse)
+	err := c.cc.Invoke(ctx, UserService_ReorderPortfolioItems_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CreateEmployment(ctx context.Context, in *CreateEmploymentRequest, opts ...grpc.CallOption) (*CreateEmploymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateEmploymentResponse)
+	err := c.cc.Invoke(ctx, UserService_CreateEmployment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateEmployment(ctx context.Context, in *UpdateEmploymentRequest, opts ...grpc.CallOption) (*UpdateEmploymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateEmploymentResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateEmployment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) DeleteEmployment(ctx context.Context, in *DeleteEmploymentRequest, opts ...grpc.CallOption) (*DeleteEmploymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteEmploymentResponse)
+	err := c.cc.Invoke(ctx, UserService_DeleteEmployment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListMyEmployment(ctx context.Context, in *ListMyEmploymentRequest, opts ...grpc.CallOption) (*ListMyEmploymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyEmploymentResponse)
+	err := c.cc.Invoke(ctx, UserService_ListMyEmployment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListPublicEmployment(ctx context.Context, in *ListPublicEmploymentRequest, opts ...grpc.CallOption) (*ListPublicEmploymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPublicEmploymentResponse)
+	err := c.cc.Invoke(ctx, UserService_ListPublicEmployment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CreateEducation(ctx context.Context, in *CreateEducationRequest, opts ...grpc.CallOption) (*CreateEducationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateEducationResponse)
+	err := c.cc.Invoke(ctx, UserService_CreateEducation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateEducation(ctx context.Context, in *UpdateEducationRequest, opts ...grpc.CallOption) (*UpdateEducationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateEducationResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateEducation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) DeleteEducation(ctx context.Context, in *DeleteEducationRequest, opts ...grpc.CallOption) (*DeleteEducationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteEducationResponse)
+	err := c.cc.Invoke(ctx, UserService_DeleteEducation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListMyEducation(ctx context.Context, in *ListMyEducationRequest, opts ...grpc.CallOption) (*ListMyEducationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyEducationResponse)
+	err := c.cc.Invoke(ctx, UserService_ListMyEducation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListPublicEducation(ctx context.Context, in *ListPublicEducationRequest, opts ...grpc.CallOption) (*ListPublicEducationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPublicEducationResponse)
+	err := c.cc.Invoke(ctx, UserService_ListPublicEducation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CreateCertification(ctx context.Context, in *CreateCertificationRequest, opts ...grpc.CallOption) (*CreateCertificationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateCertificationResponse)
+	err := c.cc.Invoke(ctx, UserService_CreateCertification_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateCertification(ctx context.Context, in *UpdateCertificationRequest, opts ...grpc.CallOption) (*UpdateCertificationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateCertificationResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateCertification_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) DeleteCertification(ctx context.Context, in *DeleteCertificationRequest, opts ...grpc.CallOption) (*DeleteCertificationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteCertificationResponse)
+	err := c.cc.Invoke(ctx, UserService_DeleteCertification_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListMyCertifications(ctx context.Context, in *ListMyCertificationsRequest, opts ...grpc.CallOption) (*ListMyCertificationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListMyCertificationsResponse)
+	err := c.cc.Invoke(ctx, UserService_ListMyCertifications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListPublicCertifications(ctx context.Context, in *ListPublicCertificationsRequest, opts ...grpc.CallOption) (*ListPublicCertificationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPublicCertificationsResponse)
+	err := c.cc.Invoke(ctx, UserService_ListPublicCertifications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpsertLanguages(ctx context.Context, in *UpsertLanguagesRequest, opts ...grpc.CallOption) (*UpsertLanguagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpsertLanguagesResponse)
+	err := c.cc.Invoke(ctx, UserService_UpsertLanguages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetMyLanguages(ctx context.Context, in *GetMyLanguagesRequest, opts ...grpc.CallOption) (*GetMyLanguagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMyLanguagesResponse)
+	err := c.cc.Invoke(ctx, UserService_GetMyLanguages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetPublicLanguages(ctx context.Context, in *GetPublicLanguagesRequest, opts ...grpc.CallOption) (*GetPublicLanguagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPublicLanguagesResponse)
+	err := c.cc.Invoke(ctx, UserService_GetPublicLanguages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -182,6 +473,33 @@ type UserServiceServer interface {
 	UploadAvatar(context.Context, *UploadAvatarRequest) (*UploadAvatarResponse, error)
 	GetAvatar(context.Context, *GetAvatarRequest) (*GetAvatarResponse, error)
 	RemoveAvatar(context.Context, *RemoveAvatarRequest) (*RemoveAvatarResponse, error)
+	// B: portfolio endpoints.
+	CreatePortfolioItem(context.Context, *CreatePortfolioItemRequest) (*CreatePortfolioItemResponse, error)
+	UpdatePortfolioItem(context.Context, *UpdatePortfolioItemRequest) (*UpdatePortfolioItemResponse, error)
+	DeletePortfolioItem(context.Context, *DeletePortfolioItemRequest) (*DeletePortfolioItemResponse, error)
+	ListMyPortfolioItems(context.Context, *ListMyPortfolioItemsRequest) (*ListMyPortfolioItemsResponse, error)
+	ListPublicPortfolioItems(context.Context, *ListPublicPortfolioItemsRequest) (*ListPublicPortfolioItemsResponse, error)
+	ReorderPortfolioItems(context.Context, *ReorderPortfolioItemsRequest) (*ReorderPortfolioItemsResponse, error)
+	// C: employment and education endpoints.
+	CreateEmployment(context.Context, *CreateEmploymentRequest) (*CreateEmploymentResponse, error)
+	UpdateEmployment(context.Context, *UpdateEmploymentRequest) (*UpdateEmploymentResponse, error)
+	DeleteEmployment(context.Context, *DeleteEmploymentRequest) (*DeleteEmploymentResponse, error)
+	ListMyEmployment(context.Context, *ListMyEmploymentRequest) (*ListMyEmploymentResponse, error)
+	ListPublicEmployment(context.Context, *ListPublicEmploymentRequest) (*ListPublicEmploymentResponse, error)
+	CreateEducation(context.Context, *CreateEducationRequest) (*CreateEducationResponse, error)
+	UpdateEducation(context.Context, *UpdateEducationRequest) (*UpdateEducationResponse, error)
+	DeleteEducation(context.Context, *DeleteEducationRequest) (*DeleteEducationResponse, error)
+	ListMyEducation(context.Context, *ListMyEducationRequest) (*ListMyEducationResponse, error)
+	ListPublicEducation(context.Context, *ListPublicEducationRequest) (*ListPublicEducationResponse, error)
+	// D: certifications and languages endpoints.
+	CreateCertification(context.Context, *CreateCertificationRequest) (*CreateCertificationResponse, error)
+	UpdateCertification(context.Context, *UpdateCertificationRequest) (*UpdateCertificationResponse, error)
+	DeleteCertification(context.Context, *DeleteCertificationRequest) (*DeleteCertificationResponse, error)
+	ListMyCertifications(context.Context, *ListMyCertificationsRequest) (*ListMyCertificationsResponse, error)
+	ListPublicCertifications(context.Context, *ListPublicCertificationsRequest) (*ListPublicCertificationsResponse, error)
+	UpsertLanguages(context.Context, *UpsertLanguagesRequest) (*UpsertLanguagesResponse, error)
+	GetMyLanguages(context.Context, *GetMyLanguagesRequest) (*GetMyLanguagesResponse, error)
+	GetPublicLanguages(context.Context, *GetPublicLanguagesRequest) (*GetPublicLanguagesResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -224,6 +542,78 @@ func (UnimplementedUserServiceServer) GetAvatar(context.Context, *GetAvatarReque
 }
 func (UnimplementedUserServiceServer) RemoveAvatar(context.Context, *RemoveAvatarRequest) (*RemoveAvatarResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveAvatar not implemented")
+}
+func (UnimplementedUserServiceServer) CreatePortfolioItem(context.Context, *CreatePortfolioItemRequest) (*CreatePortfolioItemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreatePortfolioItem not implemented")
+}
+func (UnimplementedUserServiceServer) UpdatePortfolioItem(context.Context, *UpdatePortfolioItemRequest) (*UpdatePortfolioItemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePortfolioItem not implemented")
+}
+func (UnimplementedUserServiceServer) DeletePortfolioItem(context.Context, *DeletePortfolioItemRequest) (*DeletePortfolioItemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeletePortfolioItem not implemented")
+}
+func (UnimplementedUserServiceServer) ListMyPortfolioItems(context.Context, *ListMyPortfolioItemsRequest) (*ListMyPortfolioItemsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyPortfolioItems not implemented")
+}
+func (UnimplementedUserServiceServer) ListPublicPortfolioItems(context.Context, *ListPublicPortfolioItemsRequest) (*ListPublicPortfolioItemsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPublicPortfolioItems not implemented")
+}
+func (UnimplementedUserServiceServer) ReorderPortfolioItems(context.Context, *ReorderPortfolioItemsRequest) (*ReorderPortfolioItemsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReorderPortfolioItems not implemented")
+}
+func (UnimplementedUserServiceServer) CreateEmployment(context.Context, *CreateEmploymentRequest) (*CreateEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateEmployment not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateEmployment(context.Context, *UpdateEmploymentRequest) (*UpdateEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateEmployment not implemented")
+}
+func (UnimplementedUserServiceServer) DeleteEmployment(context.Context, *DeleteEmploymentRequest) (*DeleteEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteEmployment not implemented")
+}
+func (UnimplementedUserServiceServer) ListMyEmployment(context.Context, *ListMyEmploymentRequest) (*ListMyEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyEmployment not implemented")
+}
+func (UnimplementedUserServiceServer) ListPublicEmployment(context.Context, *ListPublicEmploymentRequest) (*ListPublicEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPublicEmployment not implemented")
+}
+func (UnimplementedUserServiceServer) CreateEducation(context.Context, *CreateEducationRequest) (*CreateEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateEducation not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateEducation(context.Context, *UpdateEducationRequest) (*UpdateEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateEducation not implemented")
+}
+func (UnimplementedUserServiceServer) DeleteEducation(context.Context, *DeleteEducationRequest) (*DeleteEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteEducation not implemented")
+}
+func (UnimplementedUserServiceServer) ListMyEducation(context.Context, *ListMyEducationRequest) (*ListMyEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyEducation not implemented")
+}
+func (UnimplementedUserServiceServer) ListPublicEducation(context.Context, *ListPublicEducationRequest) (*ListPublicEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPublicEducation not implemented")
+}
+func (UnimplementedUserServiceServer) CreateCertification(context.Context, *CreateCertificationRequest) (*CreateCertificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateCertification not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateCertification(context.Context, *UpdateCertificationRequest) (*UpdateCertificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateCertification not implemented")
+}
+func (UnimplementedUserServiceServer) DeleteCertification(context.Context, *DeleteCertificationRequest) (*DeleteCertificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteCertification not implemented")
+}
+func (UnimplementedUserServiceServer) ListMyCertifications(context.Context, *ListMyCertificationsRequest) (*ListMyCertificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListMyCertifications not implemented")
+}
+func (UnimplementedUserServiceServer) ListPublicCertifications(context.Context, *ListPublicCertificationsRequest) (*ListPublicCertificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPublicCertifications not implemented")
+}
+func (UnimplementedUserServiceServer) UpsertLanguages(context.Context, *UpsertLanguagesRequest) (*UpsertLanguagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpsertLanguages not implemented")
+}
+func (UnimplementedUserServiceServer) GetMyLanguages(context.Context, *GetMyLanguagesRequest) (*GetMyLanguagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMyLanguages not implemented")
+}
+func (UnimplementedUserServiceServer) GetPublicLanguages(context.Context, *GetPublicLanguagesRequest) (*GetPublicLanguagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPublicLanguages not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -444,6 +834,438 @@ func _UserService_RemoveAvatar_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_CreatePortfolioItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePortfolioItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreatePortfolioItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CreatePortfolioItem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreatePortfolioItem(ctx, req.(*CreatePortfolioItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdatePortfolioItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePortfolioItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdatePortfolioItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdatePortfolioItem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdatePortfolioItem(ctx, req.(*UpdatePortfolioItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_DeletePortfolioItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePortfolioItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).DeletePortfolioItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_DeletePortfolioItem_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).DeletePortfolioItem(ctx, req.(*DeletePortfolioItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListMyPortfolioItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyPortfolioItemsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListMyPortfolioItems(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListMyPortfolioItems_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListMyPortfolioItems(ctx, req.(*ListMyPortfolioItemsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListPublicPortfolioItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPublicPortfolioItemsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListPublicPortfolioItems(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListPublicPortfolioItems_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListPublicPortfolioItems(ctx, req.(*ListPublicPortfolioItemsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ReorderPortfolioItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReorderPortfolioItemsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ReorderPortfolioItems(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ReorderPortfolioItems_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ReorderPortfolioItems(ctx, req.(*ReorderPortfolioItemsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CreateEmployment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateEmploymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateEmployment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CreateEmployment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateEmployment(ctx, req.(*CreateEmploymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateEmployment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateEmploymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateEmployment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateEmployment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateEmployment(ctx, req.(*UpdateEmploymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_DeleteEmployment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteEmploymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).DeleteEmployment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_DeleteEmployment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).DeleteEmployment(ctx, req.(*DeleteEmploymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListMyEmployment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyEmploymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListMyEmployment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListMyEmployment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListMyEmployment(ctx, req.(*ListMyEmploymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListPublicEmployment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPublicEmploymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListPublicEmployment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListPublicEmployment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListPublicEmployment(ctx, req.(*ListPublicEmploymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CreateEducation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateEducationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateEducation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CreateEducation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateEducation(ctx, req.(*CreateEducationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateEducation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateEducationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateEducation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateEducation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateEducation(ctx, req.(*UpdateEducationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_DeleteEducation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteEducationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).DeleteEducation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_DeleteEducation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).DeleteEducation(ctx, req.(*DeleteEducationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListMyEducation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyEducationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListMyEducation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListMyEducation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListMyEducation(ctx, req.(*ListMyEducationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListPublicEducation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPublicEducationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListPublicEducation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListPublicEducation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListPublicEducation(ctx, req.(*ListPublicEducationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CreateCertification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCertificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateCertification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CreateCertification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateCertification(ctx, req.(*CreateCertificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateCertification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCertificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateCertification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateCertification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateCertification(ctx, req.(*UpdateCertificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_DeleteCertification_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCertificationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).DeleteCertification(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_DeleteCertification_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).DeleteCertification(ctx, req.(*DeleteCertificationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListMyCertifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListMyCertificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListMyCertifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListMyCertifications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListMyCertifications(ctx, req.(*ListMyCertificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListPublicCertifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPublicCertificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListPublicCertifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListPublicCertifications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListPublicCertifications(ctx, req.(*ListPublicCertificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpsertLanguages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertLanguagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpsertLanguages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpsertLanguages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpsertLanguages(ctx, req.(*UpsertLanguagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetMyLanguages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyLanguagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetMyLanguages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetMyLanguages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetMyLanguages(ctx, req.(*GetMyLanguagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetPublicLanguages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicLanguagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetPublicLanguages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetPublicLanguages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetPublicLanguages(ctx, req.(*GetPublicLanguagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -494,6 +1316,102 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveAvatar",
 			Handler:    _UserService_RemoveAvatar_Handler,
+		},
+		{
+			MethodName: "CreatePortfolioItem",
+			Handler:    _UserService_CreatePortfolioItem_Handler,
+		},
+		{
+			MethodName: "UpdatePortfolioItem",
+			Handler:    _UserService_UpdatePortfolioItem_Handler,
+		},
+		{
+			MethodName: "DeletePortfolioItem",
+			Handler:    _UserService_DeletePortfolioItem_Handler,
+		},
+		{
+			MethodName: "ListMyPortfolioItems",
+			Handler:    _UserService_ListMyPortfolioItems_Handler,
+		},
+		{
+			MethodName: "ListPublicPortfolioItems",
+			Handler:    _UserService_ListPublicPortfolioItems_Handler,
+		},
+		{
+			MethodName: "ReorderPortfolioItems",
+			Handler:    _UserService_ReorderPortfolioItems_Handler,
+		},
+		{
+			MethodName: "CreateEmployment",
+			Handler:    _UserService_CreateEmployment_Handler,
+		},
+		{
+			MethodName: "UpdateEmployment",
+			Handler:    _UserService_UpdateEmployment_Handler,
+		},
+		{
+			MethodName: "DeleteEmployment",
+			Handler:    _UserService_DeleteEmployment_Handler,
+		},
+		{
+			MethodName: "ListMyEmployment",
+			Handler:    _UserService_ListMyEmployment_Handler,
+		},
+		{
+			MethodName: "ListPublicEmployment",
+			Handler:    _UserService_ListPublicEmployment_Handler,
+		},
+		{
+			MethodName: "CreateEducation",
+			Handler:    _UserService_CreateEducation_Handler,
+		},
+		{
+			MethodName: "UpdateEducation",
+			Handler:    _UserService_UpdateEducation_Handler,
+		},
+		{
+			MethodName: "DeleteEducation",
+			Handler:    _UserService_DeleteEducation_Handler,
+		},
+		{
+			MethodName: "ListMyEducation",
+			Handler:    _UserService_ListMyEducation_Handler,
+		},
+		{
+			MethodName: "ListPublicEducation",
+			Handler:    _UserService_ListPublicEducation_Handler,
+		},
+		{
+			MethodName: "CreateCertification",
+			Handler:    _UserService_CreateCertification_Handler,
+		},
+		{
+			MethodName: "UpdateCertification",
+			Handler:    _UserService_UpdateCertification_Handler,
+		},
+		{
+			MethodName: "DeleteCertification",
+			Handler:    _UserService_DeleteCertification_Handler,
+		},
+		{
+			MethodName: "ListMyCertifications",
+			Handler:    _UserService_ListMyCertifications_Handler,
+		},
+		{
+			MethodName: "ListPublicCertifications",
+			Handler:    _UserService_ListPublicCertifications_Handler,
+		},
+		{
+			MethodName: "UpsertLanguages",
+			Handler:    _UserService_UpsertLanguages_Handler,
+		},
+		{
+			MethodName: "GetMyLanguages",
+			Handler:    _UserService_GetMyLanguages_Handler,
+		},
+		{
+			MethodName: "GetPublicLanguages",
+			Handler:    _UserService_GetPublicLanguages_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
