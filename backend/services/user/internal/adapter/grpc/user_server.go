@@ -182,6 +182,36 @@ func (s *UserServer) GetProfile(ctx context.Context, req *userv1.GetProfileReque
 	return &userv1.GetProfileResponse{Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
 }
 
+func (s *UserServer) GetInternalUserBasic(ctx context.Context, req *userv1.GetInternalUserBasicRequest) (*userv1.GetInternalUserBasicResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.GetUserUC.Execute(ctx, application.GetUserInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetInternalUserBasicResponse{User: toProtoUser(out.Profile)}, nil
+}
+
+func (s *UserServer) GetInternalUserProfile(ctx context.Context, req *userv1.GetInternalUserProfileRequest) (*userv1.GetInternalUserProfileResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetInternalUserProfileResponse{Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
+}
+
 func (s *UserServer) GetPublicProfile(ctx context.Context, req *userv1.GetPublicProfileRequest) (*userv1.GetPublicProfileResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
