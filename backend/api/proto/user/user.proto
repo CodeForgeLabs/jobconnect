@@ -35,6 +35,16 @@ service UserService {
     rpc DeleteEducation(DeleteEducationRequest) returns (DeleteEducationResponse);
     rpc ListMyEducation(ListMyEducationRequest) returns (ListMyEducationResponse);
     rpc ListPublicEducation(ListPublicEducationRequest) returns (ListPublicEducationResponse);
+
+    // D: certifications and languages endpoints.
+    rpc CreateCertification(CreateCertificationRequest) returns (CreateCertificationResponse);
+    rpc UpdateCertification(UpdateCertificationRequest) returns (UpdateCertificationResponse);
+    rpc DeleteCertification(DeleteCertificationRequest) returns (DeleteCertificationResponse);
+    rpc ListMyCertifications(ListMyCertificationsRequest) returns (ListMyCertificationsResponse);
+    rpc ListPublicCertifications(ListPublicCertificationsRequest) returns (ListPublicCertificationsResponse);
+    rpc UpsertLanguages(UpsertLanguagesRequest) returns (UpsertLanguagesResponse);
+    rpc GetMyLanguages(GetMyLanguagesRequest) returns (GetMyLanguagesResponse);
+    rpc GetPublicLanguages(GetPublicLanguagesRequest) returns (GetPublicLanguagesResponse);
 }
 
 enum AccountStatus {
@@ -480,6 +490,116 @@ message ListPublicEducationRequest {
 message ListPublicEducationResponse {
     repeated Education education = 1;
     string next_page_token = 2;
+}
+
+message Certification {
+    int64 id = 1;
+    string user_id = 2;
+    string name = 3;
+    string issuing_organization = 4;
+    string credential_id = 5;
+    string credential_url = 6;
+    int64 issue_date_unix = 7;
+    int64 expiration_date_unix = 8;
+    bool does_not_expire = 9;
+    ProfileVisibility visibility = 10;
+    int64 created_at_unix = 11;
+    int64 updated_at_unix = 12;
+}
+
+message LanguageProficiency {
+    string language_code = 1;
+    string proficiency = 2;
+    ProfileVisibility visibility = 3;
+}
+
+message CreateCertificationRequest {
+    string user_id = 1;
+    string name = 2;
+    string issuing_organization = 3;
+    string credential_id = 4;
+    string credential_url = 5;
+    int64 issue_date_unix = 6;
+    int64 expiration_date_unix = 7;
+    bool does_not_expire = 8;
+    ProfileVisibility visibility = 9;
+}
+
+message CreateCertificationResponse {
+    Certification certification = 1;
+}
+
+message UpdateCertificationRequest {
+    string user_id = 1;
+    int64 certification_id = 2;
+    optional string name = 3;
+    optional string issuing_organization = 4;
+    optional string credential_id = 5;
+    optional string credential_url = 6;
+    optional int64 issue_date_unix = 7;
+    optional int64 expiration_date_unix = 8;
+    optional bool does_not_expire = 9;
+    optional ProfileVisibility visibility = 10;
+}
+
+message UpdateCertificationResponse {
+    Certification certification = 1;
+}
+
+message DeleteCertificationRequest {
+    string user_id = 1;
+    int64 certification_id = 2;
+}
+
+message DeleteCertificationResponse {
+    bool deleted = 1;
+}
+
+message ListMyCertificationsRequest {
+    string user_id = 1;
+    uint32 page_size = 2;
+    string page_token = 3;
+}
+
+message ListMyCertificationsResponse {
+    repeated Certification certifications = 1;
+    string next_page_token = 2;
+}
+
+message ListPublicCertificationsRequest {
+    string user_id = 1;
+    uint32 page_size = 2;
+    string page_token = 3;
+}
+
+message ListPublicCertificationsResponse {
+    repeated Certification certifications = 1;
+    string next_page_token = 2;
+}
+
+message UpsertLanguagesRequest {
+    string user_id = 1;
+    repeated LanguageProficiency languages = 2;
+}
+
+message UpsertLanguagesResponse {
+    repeated LanguageProficiency languages = 1;
+}
+
+message GetMyLanguagesRequest {
+    string user_id = 1;
+}
+
+message GetMyLanguagesResponse {
+    repeated LanguageProficiency languages = 1;
+}
+
+message GetPublicLanguagesRequest {
+    string user_id = 1;
+}
+
+message GetPublicLanguagesResponse {
+    repeated LanguageProficiency languages = 1;
 }
 
 message Profile {
