@@ -68,6 +68,17 @@ const (
 	UserService_GetRates_FullMethodName                   = "/user.v1.UserService/GetRates"
 	UserService_SetWorkPreferences_FullMethodName         = "/user.v1.UserService/SetWorkPreferences"
 	UserService_GetWorkPreferences_FullMethodName         = "/user.v1.UserService/GetWorkPreferences"
+	UserService_GetClientProfile_FullMethodName           = "/user.v1.UserService/GetClientProfile"
+	UserService_UpdateClientProfile_FullMethodName        = "/user.v1.UserService/UpdateClientProfile"
+	UserService_GetCompany_FullMethodName                 = "/user.v1.UserService/GetCompany"
+	UserService_UpdateCompany_FullMethodName              = "/user.v1.UserService/UpdateCompany"
+	UserService_GetHiringPreferences_FullMethodName       = "/user.v1.UserService/GetHiringPreferences"
+	UserService_UpdateHiringPreferences_FullMethodName    = "/user.v1.UserService/UpdateHiringPreferences"
+	UserService_SaveFreelancer_FullMethodName             = "/user.v1.UserService/SaveFreelancer"
+	UserService_ListSavedFreelancers_FullMethodName       = "/user.v1.UserService/ListSavedFreelancers"
+	UserService_RemoveSavedFreelancer_FullMethodName      = "/user.v1.UserService/RemoveSavedFreelancer"
+	UserService_UpsertFreelancerNote_FullMethodName       = "/user.v1.UserService/UpsertFreelancerNote"
+	UserService_GetFreelancerNote_FullMethodName          = "/user.v1.UserService/GetFreelancerNote"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -129,6 +140,18 @@ type UserServiceClient interface {
 	GetRates(ctx context.Context, in *GetRatesRequest, opts ...grpc.CallOption) (*GetRatesResponse, error)
 	SetWorkPreferences(ctx context.Context, in *SetWorkPreferencesRequest, opts ...grpc.CallOption) (*SetWorkPreferencesResponse, error)
 	GetWorkPreferences(ctx context.Context, in *GetWorkPreferencesRequest, opts ...grpc.CallOption) (*GetWorkPreferencesResponse, error)
+	// Client-specific endpoints.
+	GetClientProfile(ctx context.Context, in *GetClientProfileRequest, opts ...grpc.CallOption) (*GetClientProfileResponse, error)
+	UpdateClientProfile(ctx context.Context, in *UpdateClientProfileRequest, opts ...grpc.CallOption) (*UpdateClientProfileResponse, error)
+	GetCompany(ctx context.Context, in *GetCompanyRequest, opts ...grpc.CallOption) (*GetCompanyResponse, error)
+	UpdateCompany(ctx context.Context, in *UpdateCompanyRequest, opts ...grpc.CallOption) (*UpdateCompanyResponse, error)
+	GetHiringPreferences(ctx context.Context, in *GetHiringPreferencesRequest, opts ...grpc.CallOption) (*GetHiringPreferencesResponse, error)
+	UpdateHiringPreferences(ctx context.Context, in *UpdateHiringPreferencesRequest, opts ...grpc.CallOption) (*UpdateHiringPreferencesResponse, error)
+	SaveFreelancer(ctx context.Context, in *SaveFreelancerRequest, opts ...grpc.CallOption) (*SaveFreelancerResponse, error)
+	ListSavedFreelancers(ctx context.Context, in *ListSavedFreelancersRequest, opts ...grpc.CallOption) (*ListSavedFreelancersResponse, error)
+	RemoveSavedFreelancer(ctx context.Context, in *RemoveSavedFreelancerRequest, opts ...grpc.CallOption) (*RemoveSavedFreelancerResponse, error)
+	UpsertFreelancerNote(ctx context.Context, in *UpsertFreelancerNoteRequest, opts ...grpc.CallOption) (*UpsertFreelancerNoteResponse, error)
+	GetFreelancerNote(ctx context.Context, in *GetFreelancerNoteRequest, opts ...grpc.CallOption) (*GetFreelancerNoteResponse, error)
 }
 
 type userServiceClient struct {
@@ -629,6 +652,116 @@ func (c *userServiceClient) GetWorkPreferences(ctx context.Context, in *GetWorkP
 	return out, nil
 }
 
+func (c *userServiceClient) GetClientProfile(ctx context.Context, in *GetClientProfileRequest, opts ...grpc.CallOption) (*GetClientProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetClientProfileResponse)
+	err := c.cc.Invoke(ctx, UserService_GetClientProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateClientProfile(ctx context.Context, in *UpdateClientProfileRequest, opts ...grpc.CallOption) (*UpdateClientProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateClientProfileResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateClientProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetCompany(ctx context.Context, in *GetCompanyRequest, opts ...grpc.CallOption) (*GetCompanyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCompanyResponse)
+	err := c.cc.Invoke(ctx, UserService_GetCompany_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateCompany(ctx context.Context, in *UpdateCompanyRequest, opts ...grpc.CallOption) (*UpdateCompanyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateCompanyResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateCompany_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetHiringPreferences(ctx context.Context, in *GetHiringPreferencesRequest, opts ...grpc.CallOption) (*GetHiringPreferencesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetHiringPreferencesResponse)
+	err := c.cc.Invoke(ctx, UserService_GetHiringPreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateHiringPreferences(ctx context.Context, in *UpdateHiringPreferencesRequest, opts ...grpc.CallOption) (*UpdateHiringPreferencesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateHiringPreferencesResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateHiringPreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) SaveFreelancer(ctx context.Context, in *SaveFreelancerRequest, opts ...grpc.CallOption) (*SaveFreelancerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveFreelancerResponse)
+	err := c.cc.Invoke(ctx, UserService_SaveFreelancer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListSavedFreelancers(ctx context.Context, in *ListSavedFreelancersRequest, opts ...grpc.CallOption) (*ListSavedFreelancersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSavedFreelancersResponse)
+	err := c.cc.Invoke(ctx, UserService_ListSavedFreelancers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) RemoveSavedFreelancer(ctx context.Context, in *RemoveSavedFreelancerRequest, opts ...grpc.CallOption) (*RemoveSavedFreelancerResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveSavedFreelancerResponse)
+	err := c.cc.Invoke(ctx, UserService_RemoveSavedFreelancer_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpsertFreelancerNote(ctx context.Context, in *UpsertFreelancerNoteRequest, opts ...grpc.CallOption) (*UpsertFreelancerNoteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpsertFreelancerNoteResponse)
+	err := c.cc.Invoke(ctx, UserService_UpsertFreelancerNote_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetFreelancerNote(ctx context.Context, in *GetFreelancerNoteRequest, opts ...grpc.CallOption) (*GetFreelancerNoteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFreelancerNoteResponse)
+	err := c.cc.Invoke(ctx, UserService_GetFreelancerNote_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -688,6 +821,18 @@ type UserServiceServer interface {
 	GetRates(context.Context, *GetRatesRequest) (*GetRatesResponse, error)
 	SetWorkPreferences(context.Context, *SetWorkPreferencesRequest) (*SetWorkPreferencesResponse, error)
 	GetWorkPreferences(context.Context, *GetWorkPreferencesRequest) (*GetWorkPreferencesResponse, error)
+	// Client-specific endpoints.
+	GetClientProfile(context.Context, *GetClientProfileRequest) (*GetClientProfileResponse, error)
+	UpdateClientProfile(context.Context, *UpdateClientProfileRequest) (*UpdateClientProfileResponse, error)
+	GetCompany(context.Context, *GetCompanyRequest) (*GetCompanyResponse, error)
+	UpdateCompany(context.Context, *UpdateCompanyRequest) (*UpdateCompanyResponse, error)
+	GetHiringPreferences(context.Context, *GetHiringPreferencesRequest) (*GetHiringPreferencesResponse, error)
+	UpdateHiringPreferences(context.Context, *UpdateHiringPreferencesRequest) (*UpdateHiringPreferencesResponse, error)
+	SaveFreelancer(context.Context, *SaveFreelancerRequest) (*SaveFreelancerResponse, error)
+	ListSavedFreelancers(context.Context, *ListSavedFreelancersRequest) (*ListSavedFreelancersResponse, error)
+	RemoveSavedFreelancer(context.Context, *RemoveSavedFreelancerRequest) (*RemoveSavedFreelancerResponse, error)
+	UpsertFreelancerNote(context.Context, *UpsertFreelancerNoteRequest) (*UpsertFreelancerNoteResponse, error)
+	GetFreelancerNote(context.Context, *GetFreelancerNoteRequest) (*GetFreelancerNoteResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -844,6 +989,39 @@ func (UnimplementedUserServiceServer) SetWorkPreferences(context.Context, *SetWo
 }
 func (UnimplementedUserServiceServer) GetWorkPreferences(context.Context, *GetWorkPreferencesRequest) (*GetWorkPreferencesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetWorkPreferences not implemented")
+}
+func (UnimplementedUserServiceServer) GetClientProfile(context.Context, *GetClientProfileRequest) (*GetClientProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetClientProfile not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateClientProfile(context.Context, *UpdateClientProfileRequest) (*UpdateClientProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateClientProfile not implemented")
+}
+func (UnimplementedUserServiceServer) GetCompany(context.Context, *GetCompanyRequest) (*GetCompanyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCompany not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateCompany(context.Context, *UpdateCompanyRequest) (*UpdateCompanyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateCompany not implemented")
+}
+func (UnimplementedUserServiceServer) GetHiringPreferences(context.Context, *GetHiringPreferencesRequest) (*GetHiringPreferencesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetHiringPreferences not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateHiringPreferences(context.Context, *UpdateHiringPreferencesRequest) (*UpdateHiringPreferencesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateHiringPreferences not implemented")
+}
+func (UnimplementedUserServiceServer) SaveFreelancer(context.Context, *SaveFreelancerRequest) (*SaveFreelancerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveFreelancer not implemented")
+}
+func (UnimplementedUserServiceServer) ListSavedFreelancers(context.Context, *ListSavedFreelancersRequest) (*ListSavedFreelancersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSavedFreelancers not implemented")
+}
+func (UnimplementedUserServiceServer) RemoveSavedFreelancer(context.Context, *RemoveSavedFreelancerRequest) (*RemoveSavedFreelancerResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveSavedFreelancer not implemented")
+}
+func (UnimplementedUserServiceServer) UpsertFreelancerNote(context.Context, *UpsertFreelancerNoteRequest) (*UpsertFreelancerNoteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpsertFreelancerNote not implemented")
+}
+func (UnimplementedUserServiceServer) GetFreelancerNote(context.Context, *GetFreelancerNoteRequest) (*GetFreelancerNoteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFreelancerNote not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -1748,6 +1926,204 @@ func _UserService_GetWorkPreferences_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetClientProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetClientProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetClientProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetClientProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetClientProfile(ctx, req.(*GetClientProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateClientProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateClientProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateClientProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateClientProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateClientProfile(ctx, req.(*UpdateClientProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetCompany_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCompanyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetCompany(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetCompany_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetCompany(ctx, req.(*GetCompanyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateCompany_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCompanyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateCompany(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateCompany_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateCompany(ctx, req.(*UpdateCompanyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetHiringPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHiringPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetHiringPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetHiringPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetHiringPreferences(ctx, req.(*GetHiringPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateHiringPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateHiringPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateHiringPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateHiringPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateHiringPreferences(ctx, req.(*UpdateHiringPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_SaveFreelancer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveFreelancerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).SaveFreelancer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_SaveFreelancer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).SaveFreelancer(ctx, req.(*SaveFreelancerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListSavedFreelancers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSavedFreelancersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListSavedFreelancers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListSavedFreelancers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListSavedFreelancers(ctx, req.(*ListSavedFreelancersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_RemoveSavedFreelancer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveSavedFreelancerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).RemoveSavedFreelancer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_RemoveSavedFreelancer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).RemoveSavedFreelancer(ctx, req.(*RemoveSavedFreelancerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpsertFreelancerNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertFreelancerNoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpsertFreelancerNote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpsertFreelancerNote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpsertFreelancerNote(ctx, req.(*UpsertFreelancerNoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetFreelancerNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFreelancerNoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetFreelancerNote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetFreelancerNote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetFreelancerNote(ctx, req.(*GetFreelancerNoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1950,6 +2326,50 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWorkPreferences",
 			Handler:    _UserService_GetWorkPreferences_Handler,
+		},
+		{
+			MethodName: "GetClientProfile",
+			Handler:    _UserService_GetClientProfile_Handler,
+		},
+		{
+			MethodName: "UpdateClientProfile",
+			Handler:    _UserService_UpdateClientProfile_Handler,
+		},
+		{
+			MethodName: "GetCompany",
+			Handler:    _UserService_GetCompany_Handler,
+		},
+		{
+			MethodName: "UpdateCompany",
+			Handler:    _UserService_UpdateCompany_Handler,
+		},
+		{
+			MethodName: "GetHiringPreferences",
+			Handler:    _UserService_GetHiringPreferences_Handler,
+		},
+		{
+			MethodName: "UpdateHiringPreferences",
+			Handler:    _UserService_UpdateHiringPreferences_Handler,
+		},
+		{
+			MethodName: "SaveFreelancer",
+			Handler:    _UserService_SaveFreelancer_Handler,
+		},
+		{
+			MethodName: "ListSavedFreelancers",
+			Handler:    _UserService_ListSavedFreelancers_Handler,
+		},
+		{
+			MethodName: "RemoveSavedFreelancer",
+			Handler:    _UserService_RemoveSavedFreelancer_Handler,
+		},
+		{
+			MethodName: "UpsertFreelancerNote",
+			Handler:    _UserService_UpsertFreelancerNote_Handler,
+		},
+		{
+			MethodName: "GetFreelancerNote",
+			Handler:    _UserService_GetFreelancerNote_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
