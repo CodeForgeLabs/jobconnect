@@ -249,6 +249,117 @@ func (h *UserHandler) GetMeOnboardingStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"completeness": completenessPayload, "steps": stepsPayload})
 }
 
+func (h *UserHandler) GetMeAccountSettings(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetAccountSettings(c.Request.Context(), &userv1.GetAccountSettingsRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	req := &userv1.UpdateAccountSettingsRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.UpdateAccountSettings(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) GetMePrivacySettings(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetPrivacySettings(c.Request.Context(), &userv1.GetPrivacySettingsRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) UpdateMePrivacySettings(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	req := &userv1.UpdatePrivacySettingsRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.UpdatePrivacySettings(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) GetMeNotificationSettings(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetNotificationSettings(c.Request.Context(), &userv1.GetNotificationSettingsRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) UpdateMeNotificationSettings(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	req := &userv1.UpdateNotificationSettingsRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.UpdateNotificationSettings(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
 func (h *UserHandler) UploadMeAvatar(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
