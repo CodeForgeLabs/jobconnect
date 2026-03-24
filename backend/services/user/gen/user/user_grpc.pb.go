@@ -60,6 +60,8 @@ const (
 	UserService_UpdatePrivacySettings_FullMethodName      = "/user.v1.UserService/UpdatePrivacySettings"
 	UserService_GetNotificationSettings_FullMethodName    = "/user.v1.UserService/GetNotificationSettings"
 	UserService_UpdateNotificationSettings_FullMethodName = "/user.v1.UserService/UpdateNotificationSettings"
+	UserService_GetInternalUserBasic_FullMethodName       = "/user.v1.UserService/GetInternalUserBasic"
+	UserService_GetInternalUserProfile_FullMethodName     = "/user.v1.UserService/GetInternalUserProfile"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -111,6 +113,9 @@ type UserServiceClient interface {
 	UpdatePrivacySettings(ctx context.Context, in *UpdatePrivacySettingsRequest, opts ...grpc.CallOption) (*UpdatePrivacySettingsResponse, error)
 	GetNotificationSettings(ctx context.Context, in *GetNotificationSettingsRequest, opts ...grpc.CallOption) (*GetNotificationSettingsResponse, error)
 	UpdateNotificationSettings(ctx context.Context, in *UpdateNotificationSettingsRequest, opts ...grpc.CallOption) (*UpdateNotificationSettingsResponse, error)
+	// Optional internal lightweight read-model endpoints.
+	GetInternalUserBasic(ctx context.Context, in *GetInternalUserBasicRequest, opts ...grpc.CallOption) (*GetInternalUserBasicResponse, error)
+	GetInternalUserProfile(ctx context.Context, in *GetInternalUserProfileRequest, opts ...grpc.CallOption) (*GetInternalUserProfileResponse, error)
 }
 
 type userServiceClient struct {
@@ -531,6 +536,26 @@ func (c *userServiceClient) UpdateNotificationSettings(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *userServiceClient) GetInternalUserBasic(ctx context.Context, in *GetInternalUserBasicRequest, opts ...grpc.CallOption) (*GetInternalUserBasicResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInternalUserBasicResponse)
+	err := c.cc.Invoke(ctx, UserService_GetInternalUserBasic_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetInternalUserProfile(ctx context.Context, in *GetInternalUserProfileRequest, opts ...grpc.CallOption) (*GetInternalUserProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInternalUserProfileResponse)
+	err := c.cc.Invoke(ctx, UserService_GetInternalUserProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -580,6 +605,9 @@ type UserServiceServer interface {
 	UpdatePrivacySettings(context.Context, *UpdatePrivacySettingsRequest) (*UpdatePrivacySettingsResponse, error)
 	GetNotificationSettings(context.Context, *GetNotificationSettingsRequest) (*GetNotificationSettingsResponse, error)
 	UpdateNotificationSettings(context.Context, *UpdateNotificationSettingsRequest) (*UpdateNotificationSettingsResponse, error)
+	// Optional internal lightweight read-model endpoints.
+	GetInternalUserBasic(context.Context, *GetInternalUserBasicRequest) (*GetInternalUserBasicResponse, error)
+	GetInternalUserProfile(context.Context, *GetInternalUserProfileRequest) (*GetInternalUserProfileResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -712,6 +740,12 @@ func (UnimplementedUserServiceServer) GetNotificationSettings(context.Context, *
 }
 func (UnimplementedUserServiceServer) UpdateNotificationSettings(context.Context, *UpdateNotificationSettingsRequest) (*UpdateNotificationSettingsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateNotificationSettings not implemented")
+}
+func (UnimplementedUserServiceServer) GetInternalUserBasic(context.Context, *GetInternalUserBasicRequest) (*GetInternalUserBasicResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInternalUserBasic not implemented")
+}
+func (UnimplementedUserServiceServer) GetInternalUserProfile(context.Context, *GetInternalUserProfileRequest) (*GetInternalUserProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInternalUserProfile not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -1472,6 +1506,42 @@ func _UserService_UpdateNotificationSettings_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetInternalUserBasic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInternalUserBasicRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetInternalUserBasic(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetInternalUserBasic_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetInternalUserBasic(ctx, req.(*GetInternalUserBasicRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetInternalUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInternalUserProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetInternalUserProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetInternalUserProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetInternalUserProfile(ctx, req.(*GetInternalUserProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1642,6 +1712,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateNotificationSettings",
 			Handler:    _UserService_UpdateNotificationSettings_Handler,
+		},
+		{
+			MethodName: "GetInternalUserBasic",
+			Handler:    _UserService_GetInternalUserBasic_Handler,
+		},
+		{
+			MethodName: "GetInternalUserProfile",
+			Handler:    _UserService_GetInternalUserProfile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
