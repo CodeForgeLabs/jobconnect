@@ -428,6 +428,38 @@ func (s *UserServer) ListPublicEducation(context.Context, *userv1.ListPublicEduc
 	return nil, status.Error(codes.Unimplemented, "ListPublicEducation not implemented")
 }
 
+func (s *UserServer) CreateCertification(context.Context, *userv1.CreateCertificationRequest) (*userv1.CreateCertificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "CreateCertification not implemented")
+}
+
+func (s *UserServer) UpdateCertification(context.Context, *userv1.UpdateCertificationRequest) (*userv1.UpdateCertificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "UpdateCertification not implemented")
+}
+
+func (s *UserServer) DeleteCertification(context.Context, *userv1.DeleteCertificationRequest) (*userv1.DeleteCertificationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "DeleteCertification not implemented")
+}
+
+func (s *UserServer) ListMyCertifications(context.Context, *userv1.ListMyCertificationsRequest) (*userv1.ListMyCertificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ListMyCertifications not implemented")
+}
+
+func (s *UserServer) ListPublicCertifications(context.Context, *userv1.ListPublicCertificationsRequest) (*userv1.ListPublicCertificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ListPublicCertifications not implemented")
+}
+
+func (s *UserServer) UpsertLanguages(context.Context, *userv1.UpsertLanguagesRequest) (*userv1.UpsertLanguagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "UpsertLanguages not implemented")
+}
+
+func (s *UserServer) GetMyLanguages(context.Context, *userv1.GetMyLanguagesRequest) (*userv1.GetMyLanguagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "GetMyLanguages not implemented")
+}
+
+func (s *UserServer) GetPublicLanguages(context.Context, *userv1.GetPublicLanguagesRequest) (*userv1.GetPublicLanguagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "GetPublicLanguages not implemented")
+}
+
 func (s *UserServer) toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.Profile {
 	out := &userv1.Profile{
 		Id:               p.ID,
