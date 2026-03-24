@@ -367,6 +367,174 @@ func (s *UserServer) RemoveAvatar(ctx context.Context, req *userv1.RemoveAvatarR
 	return &userv1.RemoveAvatarResponse{Removed: out.Removed}, nil
 }
 
+func (s *UserServer) GetAccountSettings(ctx context.Context, req *userv1.GetAccountSettingsRequest) (*userv1.GetAccountSettingsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	settings := &userv1.AccountSettings{
+		Language:     out.Profile.Language,
+		ContactEmail: out.Profile.ContactEmail,
+		ContactPhone: out.Profile.ContactPhone,
+	}
+
+	return &userv1.GetAccountSettingsResponse{Settings: settings}, nil
+}
+
+func (s *UserServer) UpdateAccountSettings(ctx context.Context, req *userv1.UpdateAccountSettingsRequest) (*userv1.UpdateAccountSettingsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if req.Locale != nil || req.Timezone != nil {
+		return nil, status.Error(codes.InvalidArgument, "locale and timezone are not supported yet")
+	}
+
+	out, err := s.UpdateProfileUC.Execute(ctx, application.UpdateProfileInput{
+		UserID:       userID,
+		Language:     req.Language,
+		ContactEmail: req.ContactEmail,
+		ContactPhone: req.ContactPhone,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	settings := &userv1.AccountSettings{
+		Language:     out.Profile.Language,
+		ContactEmail: out.Profile.ContactEmail,
+		ContactPhone: out.Profile.ContactPhone,
+	}
+
+	return &userv1.UpdateAccountSettingsResponse{Settings: settings}, nil
+}
+
+func (s *UserServer) GetPrivacySettings(ctx context.Context, req *userv1.GetPrivacySettingsRequest) (*userv1.GetPrivacySettingsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	settings := &userv1.PrivacySettings{
+		Discoverable:   strings.EqualFold(out.Profile.Visibility, "PUBLIC"),
+		ShowLastActive: true,
+		ShowEarnings:   false,
+	}
+
+	return &userv1.GetPrivacySettingsResponse{Settings: settings}, nil
+}
+
+func (s *UserServer) UpdatePrivacySettings(ctx context.Context, req *userv1.UpdatePrivacySettingsRequest) (*userv1.UpdatePrivacySettingsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if req.ShowLastActive != nil || req.ShowEarnings != nil {
+		return nil, status.Error(codes.InvalidArgument, "show_last_active and show_earnings are not supported yet")
+	}
+
+	profileOut, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	discoverable := strings.EqualFold(profileOut.Profile.Visibility, "PUBLIC")
+	if req.Discoverable != nil {
+		visibility := "PRIVATE"
+		if req.GetDiscoverable() {
+			visibility = "PUBLIC"
+		}
+
+		statusOut, err := s.UpdateAccountStatusUC.Execute(ctx, application.UpdateAccountStatusInput{
+			UserID:           userID,
+			Status:           profileOut.Profile.AccountStatus,
+			SuspensionReason: stringPtrOrNil(profileOut.Profile.SuspensionReason),
+			Visibility:       visibility,
+		})
+		if err != nil {
+			return nil, toStatus(err)
+		}
+		discoverable = strings.EqualFold(statusOut.Profile.Visibility, "PUBLIC")
+	}
+
+	return &userv1.UpdatePrivacySettingsResponse{Settings: &userv1.PrivacySettings{
+		Discoverable:   discoverable,
+		ShowLastActive: true,
+		ShowEarnings:   false,
+	}}, nil
+}
+
+func (s *UserServer) GetNotificationSettings(ctx context.Context, req *userv1.GetNotificationSettingsRequest) (*userv1.GetNotificationSettingsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if _, err := uuid.Parse(req.GetUserId()); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	settings := defaultNotificationSettings()
+	return &userv1.GetNotificationSettingsResponse{Settings: &settings}, nil
+}
+
+func (s *UserServer) UpdateNotificationSettings(ctx context.Context, req *userv1.UpdateNotificationSettingsRequest) (*userv1.UpdateNotificationSettingsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if _, err := uuid.Parse(req.GetUserId()); err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	settings := defaultNotificationSettings()
+	if req.EmailJobAlerts != nil {
+		settings.EmailJobAlerts = req.GetEmailJobAlerts()
+	}
+	if req.EmailMessages != nil {
+		settings.EmailMessages = req.GetEmailMessages()
+	}
+	if req.EmailBilling != nil {
+		settings.EmailBilling = req.GetEmailBilling()
+	}
+	if req.EmailSecurity != nil {
+		settings.EmailSecurity = req.GetEmailSecurity()
+	}
+	if req.PushJobAlerts != nil {
+		settings.PushJobAlerts = req.GetPushJobAlerts()
+	}
+	if req.PushMessages != nil {
+		settings.PushMessages = req.GetPushMessages()
+	}
+	if req.PushBilling != nil {
+		settings.PushBilling = req.GetPushBilling()
+	}
+	if req.PushSecurity != nil {
+		settings.PushSecurity = req.GetPushSecurity()
+	}
+
+	return &userv1.UpdateNotificationSettingsResponse{Settings: &settings}, nil
+}
+
 func (s *UserServer) CreatePortfolioItem(ctx context.Context, req *userv1.CreatePortfolioItemRequest) (*userv1.CreatePortfolioItemResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1079,20 +1247,20 @@ func toProtoEmployment(in application.Employment) *userv1.Employment {
 
 func toProtoEducation(in application.Education) *userv1.Education {
 	return &userv1.Education{
-		Id:             in.ID,
-		UserId:         in.UserID.String(),
-		SchoolName:     in.SchoolName,
-		Degree:         in.Degree,
-		FieldOfStudy:   in.FieldOfStudy,
-		IsCurrent:      in.IsCurrent,
-		StartDateUnix:  timePtrUnix(in.StartDate),
-		EndDateUnix:    timePtrUnix(in.EndDate),
-		Grade:          in.Grade,
-		Description:    in.Description,
-		SortOrder:      in.SortOrder,
-		Visibility:     mapVisibilityToProto(in.Visibility),
-		CreatedAtUnix:  in.CreatedAt.Unix(),
-		UpdatedAtUnix:  in.UpdatedAt.Unix(),
+		Id:            in.ID,
+		UserId:        in.UserID.String(),
+		SchoolName:    in.SchoolName,
+		Degree:        in.Degree,
+		FieldOfStudy:  in.FieldOfStudy,
+		IsCurrent:     in.IsCurrent,
+		StartDateUnix: timePtrUnix(in.StartDate),
+		EndDateUnix:   timePtrUnix(in.EndDate),
+		Grade:         in.Grade,
+		Description:   in.Description,
+		SortOrder:     in.SortOrder,
+		Visibility:    mapVisibilityToProto(in.Visibility),
+		CreatedAtUnix: in.CreatedAt.Unix(),
+		UpdatedAtUnix: in.UpdatedAt.Unix(),
 	}
 }
 
@@ -1138,6 +1306,27 @@ func timePtrUnix(v *time.Time) int64 {
 		return 0
 	}
 	return v.Unix()
+}
+
+func stringPtrOrNil(v string) *string {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return nil
+	}
+	return &v
+}
+
+func defaultNotificationSettings() userv1.NotificationSettings {
+	return userv1.NotificationSettings{
+		EmailJobAlerts: true,
+		EmailMessages:  true,
+		EmailBilling:   true,
+		EmailSecurity:  true,
+		PushJobAlerts:  true,
+		PushMessages:   true,
+		PushBilling:    false,
+		PushSecurity:   true,
+	}
 }
 
 func toProtoOnboardingSteps(steps []application.OnboardingStep) []*userv1.OnboardingStep {
