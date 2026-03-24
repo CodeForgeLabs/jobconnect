@@ -91,6 +91,23 @@ type LanguageProficiency struct {
 	Visibility   string
 }
 
+type AvailabilitySettings struct {
+	Availability        string
+	WeeklyCapacityHours uint32
+}
+
+type RateSettings struct {
+	HourlyRate float64
+	Currency   string
+}
+
+type WorkPreferences struct {
+	PreferredProjectLength string
+	MinBudgetUSD           float64
+	MaxBudgetUSD           float64
+	ContractTypes          []string
+}
+
 type ListResult[T any] struct {
 	Items         []T
 	NextPageToken string
@@ -130,4 +147,11 @@ type ProfileDetailsRepository interface {
 	UpsertLanguages(ctx context.Context, userID uuid.UUID, languages []LanguageProficiency) ([]LanguageProficiency, error)
 	GetMyLanguages(ctx context.Context, userID uuid.UUID) ([]LanguageProficiency, error)
 	GetPublicLanguages(ctx context.Context, userID uuid.UUID) ([]LanguageProficiency, error)
+
+	SetAvailability(ctx context.Context, userID uuid.UUID, in AvailabilitySettings) (AvailabilitySettings, error)
+	GetAvailability(ctx context.Context, userID uuid.UUID) (AvailabilitySettings, error)
+	SetRates(ctx context.Context, userID uuid.UUID, in RateSettings) (RateSettings, error)
+	GetRates(ctx context.Context, userID uuid.UUID) (RateSettings, error)
+	SetWorkPreferences(ctx context.Context, userID uuid.UUID, in WorkPreferences) (WorkPreferences, error)
+	GetWorkPreferences(ctx context.Context, userID uuid.UUID) (WorkPreferences, error)
 }
