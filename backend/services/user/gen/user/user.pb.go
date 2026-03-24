@@ -8595,6 +8595,450 @@ func (x *GetFreelancerNoteResponse) GetNote() *FreelancerNote {
 	return nil
 }
 
+type UserAuditSummary struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	UserId                string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Status                AccountStatus          `protobuf:"varint,2,opt,name=status,proto3,enum=user.v1.AccountStatus" json:"status,omitempty"`
+	Visibility            ProfileVisibility      `protobuf:"varint,3,opt,name=visibility,proto3,enum=user.v1.ProfileVisibility" json:"visibility,omitempty"`
+	ProfileUpdatedAtUnix  int64                  `protobuf:"varint,4,opt,name=profile_updated_at_unix,json=profileUpdatedAtUnix,proto3" json:"profile_updated_at_unix,omitempty"`
+	AvatarUpdatedAtUnix   int64                  `protobuf:"varint,5,opt,name=avatar_updated_at_unix,json=avatarUpdatedAtUnix,proto3" json:"avatar_updated_at_unix,omitempty"`
+	SavedFreelancersCount uint32                 `protobuf:"varint,6,opt,name=saved_freelancers_count,json=savedFreelancersCount,proto3" json:"saved_freelancers_count,omitempty"`
+	PortfolioItemsCount   uint32                 `protobuf:"varint,7,opt,name=portfolio_items_count,json=portfolioItemsCount,proto3" json:"portfolio_items_count,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *UserAuditSummary) Reset() {
+	*x = UserAuditSummary{}
+	mi := &file_user_user_proto_msgTypes[137]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserAuditSummary) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserAuditSummary) ProtoMessage() {}
+
+func (x *UserAuditSummary) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[137]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserAuditSummary.ProtoReflect.Descriptor instead.
+func (*UserAuditSummary) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{137}
+}
+
+func (x *UserAuditSummary) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UserAuditSummary) GetStatus() AccountStatus {
+	if x != nil {
+		return x.Status
+	}
+	return AccountStatus_ACCOUNT_STATUS_UNSPECIFIED
+}
+
+func (x *UserAuditSummary) GetVisibility() ProfileVisibility {
+	if x != nil {
+		return x.Visibility
+	}
+	return ProfileVisibility_PROFILE_VISIBILITY_UNSPECIFIED
+}
+
+func (x *UserAuditSummary) GetProfileUpdatedAtUnix() int64 {
+	if x != nil {
+		return x.ProfileUpdatedAtUnix
+	}
+	return 0
+}
+
+func (x *UserAuditSummary) GetAvatarUpdatedAtUnix() int64 {
+	if x != nil {
+		return x.AvatarUpdatedAtUnix
+	}
+	return 0
+}
+
+func (x *UserAuditSummary) GetSavedFreelancersCount() uint32 {
+	if x != nil {
+		return x.SavedFreelancersCount
+	}
+	return 0
+}
+
+func (x *UserAuditSummary) GetPortfolioItemsCount() uint32 {
+	if x != nil {
+		return x.PortfolioItemsCount
+	}
+	return 0
+}
+
+type ListUsersRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	RequesterUserId string                 `protobuf:"bytes,1,opt,name=requester_user_id,json=requesterUserId,proto3" json:"requester_user_id,omitempty"`
+	Q               string                 `protobuf:"bytes,2,opt,name=q,proto3" json:"q,omitempty"`
+	Role            string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	Status          string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	PageSize        uint32                 `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken       string                 `protobuf:"bytes,6,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ListUsersRequest) Reset() {
+	*x = ListUsersRequest{}
+	mi := &file_user_user_proto_msgTypes[138]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsersRequest) ProtoMessage() {}
+
+func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[138]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
+func (*ListUsersRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{138}
+}
+
+func (x *ListUsersRequest) GetRequesterUserId() string {
+	if x != nil {
+		return x.RequesterUserId
+	}
+	return ""
+}
+
+func (x *ListUsersRequest) GetQ() string {
+	if x != nil {
+		return x.Q
+	}
+	return ""
+}
+
+func (x *ListUsersRequest) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *ListUsersRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *ListUsersRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListUsersRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListUsersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Users         []*User                `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUsersResponse) Reset() {
+	*x = ListUsersResponse{}
+	mi := &file_user_user_proto_msgTypes[139]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsersResponse) ProtoMessage() {}
+
+func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[139]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
+func (*ListUsersResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{139}
+}
+
+func (x *ListUsersResponse) GetUsers() []*User {
+	if x != nil {
+		return x.Users
+	}
+	return nil
+}
+
+func (x *ListUsersResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type CreateImpersonationTokenRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	RequesterUserId string                 `protobuf:"bytes,1,opt,name=requester_user_id,json=requesterUserId,proto3" json:"requester_user_id,omitempty"`
+	TargetUserId    string                 `protobuf:"bytes,2,opt,name=target_user_id,json=targetUserId,proto3" json:"target_user_id,omitempty"`
+	Reason          string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	TtlSeconds      uint32                 `protobuf:"varint,4,opt,name=ttl_seconds,json=ttlSeconds,proto3" json:"ttl_seconds,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *CreateImpersonationTokenRequest) Reset() {
+	*x = CreateImpersonationTokenRequest{}
+	mi := &file_user_user_proto_msgTypes[140]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateImpersonationTokenRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateImpersonationTokenRequest) ProtoMessage() {}
+
+func (x *CreateImpersonationTokenRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[140]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateImpersonationTokenRequest.ProtoReflect.Descriptor instead.
+func (*CreateImpersonationTokenRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{140}
+}
+
+func (x *CreateImpersonationTokenRequest) GetRequesterUserId() string {
+	if x != nil {
+		return x.RequesterUserId
+	}
+	return ""
+}
+
+func (x *CreateImpersonationTokenRequest) GetTargetUserId() string {
+	if x != nil {
+		return x.TargetUserId
+	}
+	return ""
+}
+
+func (x *CreateImpersonationTokenRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *CreateImpersonationTokenRequest) GetTtlSeconds() uint32 {
+	if x != nil {
+		return x.TtlSeconds
+	}
+	return 0
+}
+
+type CreateImpersonationTokenResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	ExpiresAtUnix int64                  `protobuf:"varint,2,opt,name=expires_at_unix,json=expiresAtUnix,proto3" json:"expires_at_unix,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateImpersonationTokenResponse) Reset() {
+	*x = CreateImpersonationTokenResponse{}
+	mi := &file_user_user_proto_msgTypes[141]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateImpersonationTokenResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateImpersonationTokenResponse) ProtoMessage() {}
+
+func (x *CreateImpersonationTokenResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[141]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateImpersonationTokenResponse.ProtoReflect.Descriptor instead.
+func (*CreateImpersonationTokenResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{141}
+}
+
+func (x *CreateImpersonationTokenResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *CreateImpersonationTokenResponse) GetExpiresAtUnix() int64 {
+	if x != nil {
+		return x.ExpiresAtUnix
+	}
+	return 0
+}
+
+type GetUserAuditSummaryRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	RequesterUserId string                 `protobuf:"bytes,1,opt,name=requester_user_id,json=requesterUserId,proto3" json:"requester_user_id,omitempty"`
+	TargetUserId    string                 `protobuf:"bytes,2,opt,name=target_user_id,json=targetUserId,proto3" json:"target_user_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *GetUserAuditSummaryRequest) Reset() {
+	*x = GetUserAuditSummaryRequest{}
+	mi := &file_user_user_proto_msgTypes[142]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserAuditSummaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserAuditSummaryRequest) ProtoMessage() {}
+
+func (x *GetUserAuditSummaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[142]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserAuditSummaryRequest.ProtoReflect.Descriptor instead.
+func (*GetUserAuditSummaryRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{142}
+}
+
+func (x *GetUserAuditSummaryRequest) GetRequesterUserId() string {
+	if x != nil {
+		return x.RequesterUserId
+	}
+	return ""
+}
+
+func (x *GetUserAuditSummaryRequest) GetTargetUserId() string {
+	if x != nil {
+		return x.TargetUserId
+	}
+	return ""
+}
+
+type GetUserAuditSummaryResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Summary       *UserAuditSummary      `protobuf:"bytes,1,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetUserAuditSummaryResponse) Reset() {
+	*x = GetUserAuditSummaryResponse{}
+	mi := &file_user_user_proto_msgTypes[143]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetUserAuditSummaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetUserAuditSummaryResponse) ProtoMessage() {}
+
+func (x *GetUserAuditSummaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[143]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetUserAuditSummaryResponse.ProtoReflect.Descriptor instead.
+func (*GetUserAuditSummaryResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{143}
+}
+
+func (x *GetUserAuditSummaryResponse) GetSummary() *UserAuditSummary {
+	if x != nil {
+		return x.Summary
+	}
+	return nil
+}
+
 type Profile struct {
 	state            protoimpl.MessageState  `protogen:"open.v1"`
 	Id               int64                   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -8621,7 +9065,7 @@ type Profile struct {
 
 func (x *Profile) Reset() {
 	*x = Profile{}
-	mi := &file_user_user_proto_msgTypes[137]
+	mi := &file_user_user_proto_msgTypes[144]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8633,7 +9077,7 @@ func (x *Profile) String() string {
 func (*Profile) ProtoMessage() {}
 
 func (x *Profile) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[137]
+	mi := &file_user_user_proto_msgTypes[144]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8646,7 +9090,7 @@ func (x *Profile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Profile.ProtoReflect.Descriptor instead.
 func (*Profile) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{137}
+	return file_user_user_proto_rawDescGZIP(), []int{144}
 }
 
 func (x *Profile) GetId() int64 {
@@ -8793,7 +9237,7 @@ type User struct {
 
 func (x *User) Reset() {
 	*x = User{}
-	mi := &file_user_user_proto_msgTypes[138]
+	mi := &file_user_user_proto_msgTypes[145]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8805,7 +9249,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[138]
+	mi := &file_user_user_proto_msgTypes[145]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8818,7 +9262,7 @@ func (x *User) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use User.ProtoReflect.Descriptor instead.
 func (*User) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{138}
+	return file_user_user_proto_rawDescGZIP(), []int{145}
 }
 
 func (x *User) GetUserId() string {
@@ -8912,7 +9356,7 @@ type PublicProfile struct {
 
 func (x *PublicProfile) Reset() {
 	*x = PublicProfile{}
-	mi := &file_user_user_proto_msgTypes[139]
+	mi := &file_user_user_proto_msgTypes[146]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8924,7 +9368,7 @@ func (x *PublicProfile) String() string {
 func (*PublicProfile) ProtoMessage() {}
 
 func (x *PublicProfile) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[139]
+	mi := &file_user_user_proto_msgTypes[146]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8937,7 +9381,7 @@ func (x *PublicProfile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PublicProfile.ProtoReflect.Descriptor instead.
 func (*PublicProfile) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{139}
+	return file_user_user_proto_rawDescGZIP(), []int{146}
 }
 
 func (x *PublicProfile) GetUserId() string {
@@ -9044,7 +9488,7 @@ type CapabilityFlags struct {
 
 func (x *CapabilityFlags) Reset() {
 	*x = CapabilityFlags{}
-	mi := &file_user_user_proto_msgTypes[140]
+	mi := &file_user_user_proto_msgTypes[147]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9056,7 +9500,7 @@ func (x *CapabilityFlags) String() string {
 func (*CapabilityFlags) ProtoMessage() {}
 
 func (x *CapabilityFlags) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[140]
+	mi := &file_user_user_proto_msgTypes[147]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9069,7 +9513,7 @@ func (x *CapabilityFlags) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CapabilityFlags.ProtoReflect.Descriptor instead.
 func (*CapabilityFlags) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{140}
+	return file_user_user_proto_rawDescGZIP(), []int{147}
 }
 
 func (x *CapabilityFlags) GetCanApplyJobs() bool {
@@ -9117,7 +9561,7 @@ type ProfileCompleteness struct {
 
 func (x *ProfileCompleteness) Reset() {
 	*x = ProfileCompleteness{}
-	mi := &file_user_user_proto_msgTypes[141]
+	mi := &file_user_user_proto_msgTypes[148]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9129,7 +9573,7 @@ func (x *ProfileCompleteness) String() string {
 func (*ProfileCompleteness) ProtoMessage() {}
 
 func (x *ProfileCompleteness) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[141]
+	mi := &file_user_user_proto_msgTypes[148]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9142,7 +9586,7 @@ func (x *ProfileCompleteness) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProfileCompleteness.ProtoReflect.Descriptor instead.
 func (*ProfileCompleteness) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{141}
+	return file_user_user_proto_rawDescGZIP(), []int{148}
 }
 
 func (x *ProfileCompleteness) GetPercent() uint32 {
@@ -9169,7 +9613,7 @@ type OnboardingStep struct {
 
 func (x *OnboardingStep) Reset() {
 	*x = OnboardingStep{}
-	mi := &file_user_user_proto_msgTypes[142]
+	mi := &file_user_user_proto_msgTypes[149]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9181,7 +9625,7 @@ func (x *OnboardingStep) String() string {
 func (*OnboardingStep) ProtoMessage() {}
 
 func (x *OnboardingStep) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[142]
+	mi := &file_user_user_proto_msgTypes[149]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9194,7 +9638,7 @@ func (x *OnboardingStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OnboardingStep.ProtoReflect.Descriptor instead.
 func (*OnboardingStep) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{142}
+	return file_user_user_proto_rawDescGZIP(), []int{149}
 }
 
 func (x *OnboardingStep) GetKey() string {
@@ -9224,7 +9668,7 @@ type Reputation struct {
 
 func (x *Reputation) Reset() {
 	*x = Reputation{}
-	mi := &file_user_user_proto_msgTypes[143]
+	mi := &file_user_user_proto_msgTypes[150]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9236,7 +9680,7 @@ func (x *Reputation) String() string {
 func (*Reputation) ProtoMessage() {}
 
 func (x *Reputation) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[143]
+	mi := &file_user_user_proto_msgTypes[150]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9249,7 +9693,7 @@ func (x *Reputation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Reputation.ProtoReflect.Descriptor instead.
 func (*Reputation) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{143}
+	return file_user_user_proto_rawDescGZIP(), []int{150}
 }
 
 func (x *Reputation) GetJobSuccessScore() float64 {
@@ -9299,7 +9743,7 @@ type ClientProfileInput struct {
 
 func (x *ClientProfileInput) Reset() {
 	*x = ClientProfileInput{}
-	mi := &file_user_user_proto_msgTypes[144]
+	mi := &file_user_user_proto_msgTypes[151]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9311,7 +9755,7 @@ func (x *ClientProfileInput) String() string {
 func (*ClientProfileInput) ProtoMessage() {}
 
 func (x *ClientProfileInput) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[144]
+	mi := &file_user_user_proto_msgTypes[151]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9324,7 +9768,7 @@ func (x *ClientProfileInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClientProfileInput.ProtoReflect.Descriptor instead.
 func (*ClientProfileInput) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{144}
+	return file_user_user_proto_rawDescGZIP(), []int{151}
 }
 
 func (x *ClientProfileInput) GetCompanyName() string {
@@ -9374,7 +9818,7 @@ type FreelancerProfileInput struct {
 
 func (x *FreelancerProfileInput) Reset() {
 	*x = FreelancerProfileInput{}
-	mi := &file_user_user_proto_msgTypes[145]
+	mi := &file_user_user_proto_msgTypes[152]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9386,7 +9830,7 @@ func (x *FreelancerProfileInput) String() string {
 func (*FreelancerProfileInput) ProtoMessage() {}
 
 func (x *FreelancerProfileInput) ProtoReflect() protoreflect.Message {
-	mi := &file_user_user_proto_msgTypes[145]
+	mi := &file_user_user_proto_msgTypes[152]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9399,7 +9843,7 @@ func (x *FreelancerProfileInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FreelancerProfileInput.ProtoReflect.Descriptor instead.
 func (*FreelancerProfileInput) Descriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{145}
+	return file_user_user_proto_rawDescGZIP(), []int{152}
 }
 
 func (x *FreelancerProfileInput) GetHeadline() string {
@@ -10200,7 +10644,42 @@ const file_user_user_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12,\n" +
 	"\x12freelancer_user_id\x18\x02 \x01(\tR\x10freelancerUserId\"H\n" +
 	"\x19GetFreelancerNoteResponse\x12+\n" +
-	"\x04note\x18\x01 \x01(\v2\x17.user.v1.FreelancerNoteR\x04note\"\xa3\x05\n" +
+	"\x04note\x18\x01 \x01(\v2\x17.user.v1.FreelancerNoteR\x04note\"\xef\x02\n" +
+	"\x10UserAuditSummary\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12.\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x16.user.v1.AccountStatusR\x06status\x12:\n" +
+	"\n" +
+	"visibility\x18\x03 \x01(\x0e2\x1a.user.v1.ProfileVisibilityR\n" +
+	"visibility\x125\n" +
+	"\x17profile_updated_at_unix\x18\x04 \x01(\x03R\x14profileUpdatedAtUnix\x123\n" +
+	"\x16avatar_updated_at_unix\x18\x05 \x01(\x03R\x13avatarUpdatedAtUnix\x126\n" +
+	"\x17saved_freelancers_count\x18\x06 \x01(\rR\x15savedFreelancersCount\x122\n" +
+	"\x15portfolio_items_count\x18\a \x01(\rR\x13portfolioItemsCount\"\xb4\x01\n" +
+	"\x10ListUsersRequest\x12*\n" +
+	"\x11requester_user_id\x18\x01 \x01(\tR\x0frequesterUserId\x12\f\n" +
+	"\x01q\x18\x02 \x01(\tR\x01q\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1b\n" +
+	"\tpage_size\x18\x05 \x01(\rR\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x06 \x01(\tR\tpageToken\"`\n" +
+	"\x11ListUsersResponse\x12#\n" +
+	"\x05users\x18\x01 \x03(\v2\r.user.v1.UserR\x05users\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xac\x01\n" +
+	"\x1fCreateImpersonationTokenRequest\x12*\n" +
+	"\x11requester_user_id\x18\x01 \x01(\tR\x0frequesterUserId\x12$\n" +
+	"\x0etarget_user_id\x18\x02 \x01(\tR\ftargetUserId\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\x12\x1f\n" +
+	"\vttl_seconds\x18\x04 \x01(\rR\n" +
+	"ttlSeconds\"`\n" +
+	" CreateImpersonationTokenResponse\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12&\n" +
+	"\x0fexpires_at_unix\x18\x02 \x01(\x03R\rexpiresAtUnix\"n\n" +
+	"\x1aGetUserAuditSummaryRequest\x12*\n" +
+	"\x11requester_user_id\x18\x01 \x01(\tR\x0frequesterUserId\x12$\n" +
+	"\x0etarget_user_id\x18\x02 \x01(\tR\ftargetUserId\"R\n" +
+	"\x1bGetUserAuditSummaryResponse\x123\n" +
+	"\asummary\x18\x01 \x01(\v2\x19.user.v1.UserAuditSummaryR\asummary\"\xa3\x05\n" +
 	"\aProfile\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x12\n" +
@@ -10335,7 +10814,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\x1aPORTFOLIO_MEDIA_TYPE_IMAGE\x10\x01\x12\x1e\n" +
 	"\x1aPORTFOLIO_MEDIA_TYPE_VIDEO\x10\x02\x12\x1d\n" +
 	"\x19PORTFOLIO_MEDIA_TYPE_FILE\x10\x03\x12\x1d\n" +
-	"\x19PORTFOLIO_MEDIA_TYPE_LINK\x10\x042\x9d+\n" +
+	"\x19PORTFOLIO_MEDIA_TYPE_LINK\x10\x042\xb4-\n" +
 	"\vUserService\x12N\n" +
 	"\rCreateProfile\x12\x1d.user.v1.CreateProfileRequest\x1a\x1e.user.v1.CreateProfileResponse\x12<\n" +
 	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponse\x12E\n" +
@@ -10398,7 +10877,10 @@ const file_user_user_proto_rawDesc = "" +
 	"\x14ListSavedFreelancers\x12$.user.v1.ListSavedFreelancersRequest\x1a%.user.v1.ListSavedFreelancersResponse\x12f\n" +
 	"\x15RemoveSavedFreelancer\x12%.user.v1.RemoveSavedFreelancerRequest\x1a&.user.v1.RemoveSavedFreelancerResponse\x12c\n" +
 	"\x14UpsertFreelancerNote\x12$.user.v1.UpsertFreelancerNoteRequest\x1a%.user.v1.UpsertFreelancerNoteResponse\x12Z\n" +
-	"\x11GetFreelancerNote\x12!.user.v1.GetFreelancerNoteRequest\x1a\".user.v1.GetFreelancerNoteResponseB!Z\x1fjobconnect/user/gen/user;userv1b\x06proto3"
+	"\x11GetFreelancerNote\x12!.user.v1.GetFreelancerNoteRequest\x1a\".user.v1.GetFreelancerNoteResponse\x12B\n" +
+	"\tListUsers\x12\x19.user.v1.ListUsersRequest\x1a\x1a.user.v1.ListUsersResponse\x12o\n" +
+	"\x18CreateImpersonationToken\x12(.user.v1.CreateImpersonationTokenRequest\x1a).user.v1.CreateImpersonationTokenResponse\x12`\n" +
+	"\x13GetUserAuditSummary\x12#.user.v1.GetUserAuditSummaryRequest\x1a$.user.v1.GetUserAuditSummaryResponseB!Z\x1fjobconnect/user/gen/user;userv1b\x06proto3"
 
 var (
 	file_user_user_proto_rawDescOnce sync.Once
@@ -10413,7 +10895,7 @@ func file_user_user_proto_rawDescGZIP() []byte {
 }
 
 var file_user_user_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 146)
+var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 153)
 var file_user_user_proto_goTypes = []any{
 	(AccountStatus)(0),                         // 0: user.v1.AccountStatus
 	(ProfileVisibility)(0),                     // 1: user.v1.ProfileVisibility
@@ -10558,30 +11040,37 @@ var file_user_user_proto_goTypes = []any{
 	(*UpsertFreelancerNoteResponse)(nil),       // 140: user.v1.UpsertFreelancerNoteResponse
 	(*GetFreelancerNoteRequest)(nil),           // 141: user.v1.GetFreelancerNoteRequest
 	(*GetFreelancerNoteResponse)(nil),          // 142: user.v1.GetFreelancerNoteResponse
-	(*Profile)(nil),                            // 143: user.v1.Profile
-	(*User)(nil),                               // 144: user.v1.User
-	(*PublicProfile)(nil),                      // 145: user.v1.PublicProfile
-	(*CapabilityFlags)(nil),                    // 146: user.v1.CapabilityFlags
-	(*ProfileCompleteness)(nil),                // 147: user.v1.ProfileCompleteness
-	(*OnboardingStep)(nil),                     // 148: user.v1.OnboardingStep
-	(*Reputation)(nil),                         // 149: user.v1.Reputation
-	(*ClientProfileInput)(nil),                 // 150: user.v1.ClientProfileInput
-	(*FreelancerProfileInput)(nil),             // 151: user.v1.FreelancerProfileInput
+	(*UserAuditSummary)(nil),                   // 143: user.v1.UserAuditSummary
+	(*ListUsersRequest)(nil),                   // 144: user.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),                  // 145: user.v1.ListUsersResponse
+	(*CreateImpersonationTokenRequest)(nil),    // 146: user.v1.CreateImpersonationTokenRequest
+	(*CreateImpersonationTokenResponse)(nil),   // 147: user.v1.CreateImpersonationTokenResponse
+	(*GetUserAuditSummaryRequest)(nil),         // 148: user.v1.GetUserAuditSummaryRequest
+	(*GetUserAuditSummaryResponse)(nil),        // 149: user.v1.GetUserAuditSummaryResponse
+	(*Profile)(nil),                            // 150: user.v1.Profile
+	(*User)(nil),                               // 151: user.v1.User
+	(*PublicProfile)(nil),                      // 152: user.v1.PublicProfile
+	(*CapabilityFlags)(nil),                    // 153: user.v1.CapabilityFlags
+	(*ProfileCompleteness)(nil),                // 154: user.v1.ProfileCompleteness
+	(*OnboardingStep)(nil),                     // 155: user.v1.OnboardingStep
+	(*Reputation)(nil),                         // 156: user.v1.Reputation
+	(*ClientProfileInput)(nil),                 // 157: user.v1.ClientProfileInput
+	(*FreelancerProfileInput)(nil),             // 158: user.v1.FreelancerProfileInput
 }
 var file_user_user_proto_depIdxs = []int32{
-	150, // 0: user.v1.CreateProfileRequest.client:type_name -> user.v1.ClientProfileInput
-	151, // 1: user.v1.CreateProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileInput
-	144, // 2: user.v1.GetUserResponse.user:type_name -> user.v1.User
-	143, // 3: user.v1.GetProfileResponse.profile:type_name -> user.v1.Profile
-	145, // 4: user.v1.GetPublicProfileResponse.profile:type_name -> user.v1.PublicProfile
+	157, // 0: user.v1.CreateProfileRequest.client:type_name -> user.v1.ClientProfileInput
+	158, // 1: user.v1.CreateProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileInput
+	151, // 2: user.v1.GetUserResponse.user:type_name -> user.v1.User
+	150, // 3: user.v1.GetProfileResponse.profile:type_name -> user.v1.Profile
+	152, // 4: user.v1.GetPublicProfileResponse.profile:type_name -> user.v1.PublicProfile
 	4,   // 5: user.v1.UpdateProfileRequest.availability:type_name -> user.v1.Availability
-	143, // 6: user.v1.UpdateProfileResponse.profile:type_name -> user.v1.Profile
-	147, // 7: user.v1.UpdateProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
-	147, // 8: user.v1.GetOnboardingStatusResponse.completeness:type_name -> user.v1.ProfileCompleteness
-	148, // 9: user.v1.GetOnboardingStatusResponse.steps:type_name -> user.v1.OnboardingStep
+	150, // 6: user.v1.UpdateProfileResponse.profile:type_name -> user.v1.Profile
+	154, // 7: user.v1.UpdateProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	154, // 8: user.v1.GetOnboardingStatusResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	155, // 9: user.v1.GetOnboardingStatusResponse.steps:type_name -> user.v1.OnboardingStep
 	0,   // 10: user.v1.UpdateAccountStatusRequest.status:type_name -> user.v1.AccountStatus
 	1,   // 11: user.v1.UpdateAccountStatusRequest.visibility:type_name -> user.v1.ProfileVisibility
-	143, // 12: user.v1.UpdateAccountStatusResponse.profile:type_name -> user.v1.Profile
+	150, // 12: user.v1.UpdateAccountStatusResponse.profile:type_name -> user.v1.Profile
 	5,   // 13: user.v1.PortfolioMedia.media_type:type_name -> user.v1.PortfolioMediaType
 	1,   // 14: user.v1.PortfolioItem.visibility:type_name -> user.v1.ProfileVisibility
 	28,  // 15: user.v1.PortfolioItem.media:type_name -> user.v1.PortfolioMedia
@@ -10626,8 +11115,8 @@ var file_user_user_proto_depIdxs = []int32{
 	83,  // 54: user.v1.UpdatePrivacySettingsResponse.settings:type_name -> user.v1.PrivacySettings
 	84,  // 55: user.v1.GetNotificationSettingsResponse.settings:type_name -> user.v1.NotificationSettings
 	84,  // 56: user.v1.UpdateNotificationSettingsResponse.settings:type_name -> user.v1.NotificationSettings
-	144, // 57: user.v1.GetInternalUserBasicResponse.user:type_name -> user.v1.User
-	143, // 58: user.v1.GetInternalUserProfileResponse.profile:type_name -> user.v1.Profile
+	151, // 57: user.v1.GetInternalUserBasicResponse.user:type_name -> user.v1.User
+	150, // 58: user.v1.GetInternalUserProfileResponse.profile:type_name -> user.v1.Profile
 	4,   // 59: user.v1.AvailabilitySettings.availability:type_name -> user.v1.Availability
 	4,   // 60: user.v1.SetAvailabilityRequest.availability:type_name -> user.v1.Availability
 	101, // 61: user.v1.SetAvailabilityResponse.settings:type_name -> user.v1.AvailabilitySettings
@@ -10647,146 +11136,156 @@ var file_user_user_proto_depIdxs = []int32{
 	119, // 75: user.v1.ListSavedFreelancersResponse.freelancers:type_name -> user.v1.SavedFreelancer
 	120, // 76: user.v1.UpsertFreelancerNoteResponse.note:type_name -> user.v1.FreelancerNote
 	120, // 77: user.v1.GetFreelancerNoteResponse.note:type_name -> user.v1.FreelancerNote
-	150, // 78: user.v1.Profile.client:type_name -> user.v1.ClientProfileInput
-	151, // 79: user.v1.Profile.freelancer:type_name -> user.v1.FreelancerProfileInput
-	0,   // 80: user.v1.Profile.status:type_name -> user.v1.AccountStatus
-	1,   // 81: user.v1.Profile.visibility:type_name -> user.v1.ProfileVisibility
-	146, // 82: user.v1.Profile.capabilities:type_name -> user.v1.CapabilityFlags
-	0,   // 83: user.v1.User.status:type_name -> user.v1.AccountStatus
-	1,   // 84: user.v1.User.visibility:type_name -> user.v1.ProfileVisibility
-	149, // 85: user.v1.PublicProfile.reputation:type_name -> user.v1.Reputation
-	4,   // 86: user.v1.PublicProfile.availability:type_name -> user.v1.Availability
-	3,   // 87: user.v1.PublicProfile.verification_status:type_name -> user.v1.VerificationStatus
-	2,   // 88: user.v1.OnboardingStep.status:type_name -> user.v1.OnboardingStepStatus
-	3,   // 89: user.v1.ClientProfileInput.verification_status:type_name -> user.v1.VerificationStatus
-	3,   // 90: user.v1.FreelancerProfileInput.verification_status:type_name -> user.v1.VerificationStatus
-	149, // 91: user.v1.FreelancerProfileInput.reputation:type_name -> user.v1.Reputation
-	4,   // 92: user.v1.FreelancerProfileInput.availability:type_name -> user.v1.Availability
-	6,   // 93: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
-	8,   // 94: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
-	10,  // 95: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
-	12,  // 96: user.v1.UserService.GetPublicProfile:input_type -> user.v1.GetPublicProfileRequest
-	14,  // 97: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
-	16,  // 98: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
-	18,  // 99: user.v1.UserService.GetOnboardingStatus:input_type -> user.v1.GetOnboardingStatusRequest
-	20,  // 100: user.v1.UserService.UpdateAccountStatus:input_type -> user.v1.UpdateAccountStatusRequest
-	22,  // 101: user.v1.UserService.UploadAvatar:input_type -> user.v1.UploadAvatarRequest
-	24,  // 102: user.v1.UserService.GetAvatar:input_type -> user.v1.GetAvatarRequest
-	26,  // 103: user.v1.UserService.RemoveAvatar:input_type -> user.v1.RemoveAvatarRequest
-	30,  // 104: user.v1.UserService.CreatePortfolioItem:input_type -> user.v1.CreatePortfolioItemRequest
-	32,  // 105: user.v1.UserService.UpdatePortfolioItem:input_type -> user.v1.UpdatePortfolioItemRequest
-	34,  // 106: user.v1.UserService.DeletePortfolioItem:input_type -> user.v1.DeletePortfolioItemRequest
-	36,  // 107: user.v1.UserService.ListMyPortfolioItems:input_type -> user.v1.ListMyPortfolioItemsRequest
-	38,  // 108: user.v1.UserService.ListPublicPortfolioItems:input_type -> user.v1.ListPublicPortfolioItemsRequest
-	40,  // 109: user.v1.UserService.ReorderPortfolioItems:input_type -> user.v1.ReorderPortfolioItemsRequest
-	44,  // 110: user.v1.UserService.CreateEmployment:input_type -> user.v1.CreateEmploymentRequest
-	46,  // 111: user.v1.UserService.UpdateEmployment:input_type -> user.v1.UpdateEmploymentRequest
-	48,  // 112: user.v1.UserService.DeleteEmployment:input_type -> user.v1.DeleteEmploymentRequest
-	50,  // 113: user.v1.UserService.ListMyEmployment:input_type -> user.v1.ListMyEmploymentRequest
-	52,  // 114: user.v1.UserService.ListPublicEmployment:input_type -> user.v1.ListPublicEmploymentRequest
-	54,  // 115: user.v1.UserService.CreateEducation:input_type -> user.v1.CreateEducationRequest
-	56,  // 116: user.v1.UserService.UpdateEducation:input_type -> user.v1.UpdateEducationRequest
-	58,  // 117: user.v1.UserService.DeleteEducation:input_type -> user.v1.DeleteEducationRequest
-	60,  // 118: user.v1.UserService.ListMyEducation:input_type -> user.v1.ListMyEducationRequest
-	62,  // 119: user.v1.UserService.ListPublicEducation:input_type -> user.v1.ListPublicEducationRequest
-	66,  // 120: user.v1.UserService.CreateCertification:input_type -> user.v1.CreateCertificationRequest
-	68,  // 121: user.v1.UserService.UpdateCertification:input_type -> user.v1.UpdateCertificationRequest
-	70,  // 122: user.v1.UserService.DeleteCertification:input_type -> user.v1.DeleteCertificationRequest
-	72,  // 123: user.v1.UserService.ListMyCertifications:input_type -> user.v1.ListMyCertificationsRequest
-	74,  // 124: user.v1.UserService.ListPublicCertifications:input_type -> user.v1.ListPublicCertificationsRequest
-	76,  // 125: user.v1.UserService.UpsertLanguages:input_type -> user.v1.UpsertLanguagesRequest
-	78,  // 126: user.v1.UserService.GetMyLanguages:input_type -> user.v1.GetMyLanguagesRequest
-	80,  // 127: user.v1.UserService.GetPublicLanguages:input_type -> user.v1.GetPublicLanguagesRequest
-	85,  // 128: user.v1.UserService.GetAccountSettings:input_type -> user.v1.GetAccountSettingsRequest
-	87,  // 129: user.v1.UserService.UpdateAccountSettings:input_type -> user.v1.UpdateAccountSettingsRequest
-	89,  // 130: user.v1.UserService.GetPrivacySettings:input_type -> user.v1.GetPrivacySettingsRequest
-	91,  // 131: user.v1.UserService.UpdatePrivacySettings:input_type -> user.v1.UpdatePrivacySettingsRequest
-	93,  // 132: user.v1.UserService.GetNotificationSettings:input_type -> user.v1.GetNotificationSettingsRequest
-	95,  // 133: user.v1.UserService.UpdateNotificationSettings:input_type -> user.v1.UpdateNotificationSettingsRequest
-	97,  // 134: user.v1.UserService.GetInternalUserBasic:input_type -> user.v1.GetInternalUserBasicRequest
-	99,  // 135: user.v1.UserService.GetInternalUserProfile:input_type -> user.v1.GetInternalUserProfileRequest
-	104, // 136: user.v1.UserService.SetAvailability:input_type -> user.v1.SetAvailabilityRequest
-	106, // 137: user.v1.UserService.GetAvailability:input_type -> user.v1.GetAvailabilityRequest
-	108, // 138: user.v1.UserService.SetRates:input_type -> user.v1.SetRatesRequest
-	110, // 139: user.v1.UserService.GetRates:input_type -> user.v1.GetRatesRequest
-	112, // 140: user.v1.UserService.SetWorkPreferences:input_type -> user.v1.SetWorkPreferencesRequest
-	114, // 141: user.v1.UserService.GetWorkPreferences:input_type -> user.v1.GetWorkPreferencesRequest
-	121, // 142: user.v1.UserService.GetClientProfile:input_type -> user.v1.GetClientProfileRequest
-	123, // 143: user.v1.UserService.UpdateClientProfile:input_type -> user.v1.UpdateClientProfileRequest
-	125, // 144: user.v1.UserService.GetCompany:input_type -> user.v1.GetCompanyRequest
-	127, // 145: user.v1.UserService.UpdateCompany:input_type -> user.v1.UpdateCompanyRequest
-	129, // 146: user.v1.UserService.GetHiringPreferences:input_type -> user.v1.GetHiringPreferencesRequest
-	131, // 147: user.v1.UserService.UpdateHiringPreferences:input_type -> user.v1.UpdateHiringPreferencesRequest
-	133, // 148: user.v1.UserService.SaveFreelancer:input_type -> user.v1.SaveFreelancerRequest
-	135, // 149: user.v1.UserService.ListSavedFreelancers:input_type -> user.v1.ListSavedFreelancersRequest
-	137, // 150: user.v1.UserService.RemoveSavedFreelancer:input_type -> user.v1.RemoveSavedFreelancerRequest
-	139, // 151: user.v1.UserService.UpsertFreelancerNote:input_type -> user.v1.UpsertFreelancerNoteRequest
-	141, // 152: user.v1.UserService.GetFreelancerNote:input_type -> user.v1.GetFreelancerNoteRequest
-	7,   // 153: user.v1.UserService.CreateProfile:output_type -> user.v1.CreateProfileResponse
-	9,   // 154: user.v1.UserService.GetUser:output_type -> user.v1.GetUserResponse
-	11,  // 155: user.v1.UserService.GetProfile:output_type -> user.v1.GetProfileResponse
-	13,  // 156: user.v1.UserService.GetPublicProfile:output_type -> user.v1.GetPublicProfileResponse
-	15,  // 157: user.v1.UserService.UpdateProfile:output_type -> user.v1.UpdateProfileResponse
-	17,  // 158: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
-	19,  // 159: user.v1.UserService.GetOnboardingStatus:output_type -> user.v1.GetOnboardingStatusResponse
-	21,  // 160: user.v1.UserService.UpdateAccountStatus:output_type -> user.v1.UpdateAccountStatusResponse
-	23,  // 161: user.v1.UserService.UploadAvatar:output_type -> user.v1.UploadAvatarResponse
-	25,  // 162: user.v1.UserService.GetAvatar:output_type -> user.v1.GetAvatarResponse
-	27,  // 163: user.v1.UserService.RemoveAvatar:output_type -> user.v1.RemoveAvatarResponse
-	31,  // 164: user.v1.UserService.CreatePortfolioItem:output_type -> user.v1.CreatePortfolioItemResponse
-	33,  // 165: user.v1.UserService.UpdatePortfolioItem:output_type -> user.v1.UpdatePortfolioItemResponse
-	35,  // 166: user.v1.UserService.DeletePortfolioItem:output_type -> user.v1.DeletePortfolioItemResponse
-	37,  // 167: user.v1.UserService.ListMyPortfolioItems:output_type -> user.v1.ListMyPortfolioItemsResponse
-	39,  // 168: user.v1.UserService.ListPublicPortfolioItems:output_type -> user.v1.ListPublicPortfolioItemsResponse
-	41,  // 169: user.v1.UserService.ReorderPortfolioItems:output_type -> user.v1.ReorderPortfolioItemsResponse
-	45,  // 170: user.v1.UserService.CreateEmployment:output_type -> user.v1.CreateEmploymentResponse
-	47,  // 171: user.v1.UserService.UpdateEmployment:output_type -> user.v1.UpdateEmploymentResponse
-	49,  // 172: user.v1.UserService.DeleteEmployment:output_type -> user.v1.DeleteEmploymentResponse
-	51,  // 173: user.v1.UserService.ListMyEmployment:output_type -> user.v1.ListMyEmploymentResponse
-	53,  // 174: user.v1.UserService.ListPublicEmployment:output_type -> user.v1.ListPublicEmploymentResponse
-	55,  // 175: user.v1.UserService.CreateEducation:output_type -> user.v1.CreateEducationResponse
-	57,  // 176: user.v1.UserService.UpdateEducation:output_type -> user.v1.UpdateEducationResponse
-	59,  // 177: user.v1.UserService.DeleteEducation:output_type -> user.v1.DeleteEducationResponse
-	61,  // 178: user.v1.UserService.ListMyEducation:output_type -> user.v1.ListMyEducationResponse
-	63,  // 179: user.v1.UserService.ListPublicEducation:output_type -> user.v1.ListPublicEducationResponse
-	67,  // 180: user.v1.UserService.CreateCertification:output_type -> user.v1.CreateCertificationResponse
-	69,  // 181: user.v1.UserService.UpdateCertification:output_type -> user.v1.UpdateCertificationResponse
-	71,  // 182: user.v1.UserService.DeleteCertification:output_type -> user.v1.DeleteCertificationResponse
-	73,  // 183: user.v1.UserService.ListMyCertifications:output_type -> user.v1.ListMyCertificationsResponse
-	75,  // 184: user.v1.UserService.ListPublicCertifications:output_type -> user.v1.ListPublicCertificationsResponse
-	77,  // 185: user.v1.UserService.UpsertLanguages:output_type -> user.v1.UpsertLanguagesResponse
-	79,  // 186: user.v1.UserService.GetMyLanguages:output_type -> user.v1.GetMyLanguagesResponse
-	81,  // 187: user.v1.UserService.GetPublicLanguages:output_type -> user.v1.GetPublicLanguagesResponse
-	86,  // 188: user.v1.UserService.GetAccountSettings:output_type -> user.v1.GetAccountSettingsResponse
-	88,  // 189: user.v1.UserService.UpdateAccountSettings:output_type -> user.v1.UpdateAccountSettingsResponse
-	90,  // 190: user.v1.UserService.GetPrivacySettings:output_type -> user.v1.GetPrivacySettingsResponse
-	92,  // 191: user.v1.UserService.UpdatePrivacySettings:output_type -> user.v1.UpdatePrivacySettingsResponse
-	94,  // 192: user.v1.UserService.GetNotificationSettings:output_type -> user.v1.GetNotificationSettingsResponse
-	96,  // 193: user.v1.UserService.UpdateNotificationSettings:output_type -> user.v1.UpdateNotificationSettingsResponse
-	98,  // 194: user.v1.UserService.GetInternalUserBasic:output_type -> user.v1.GetInternalUserBasicResponse
-	100, // 195: user.v1.UserService.GetInternalUserProfile:output_type -> user.v1.GetInternalUserProfileResponse
-	105, // 196: user.v1.UserService.SetAvailability:output_type -> user.v1.SetAvailabilityResponse
-	107, // 197: user.v1.UserService.GetAvailability:output_type -> user.v1.GetAvailabilityResponse
-	109, // 198: user.v1.UserService.SetRates:output_type -> user.v1.SetRatesResponse
-	111, // 199: user.v1.UserService.GetRates:output_type -> user.v1.GetRatesResponse
-	113, // 200: user.v1.UserService.SetWorkPreferences:output_type -> user.v1.SetWorkPreferencesResponse
-	115, // 201: user.v1.UserService.GetWorkPreferences:output_type -> user.v1.GetWorkPreferencesResponse
-	122, // 202: user.v1.UserService.GetClientProfile:output_type -> user.v1.GetClientProfileResponse
-	124, // 203: user.v1.UserService.UpdateClientProfile:output_type -> user.v1.UpdateClientProfileResponse
-	126, // 204: user.v1.UserService.GetCompany:output_type -> user.v1.GetCompanyResponse
-	128, // 205: user.v1.UserService.UpdateCompany:output_type -> user.v1.UpdateCompanyResponse
-	130, // 206: user.v1.UserService.GetHiringPreferences:output_type -> user.v1.GetHiringPreferencesResponse
-	132, // 207: user.v1.UserService.UpdateHiringPreferences:output_type -> user.v1.UpdateHiringPreferencesResponse
-	134, // 208: user.v1.UserService.SaveFreelancer:output_type -> user.v1.SaveFreelancerResponse
-	136, // 209: user.v1.UserService.ListSavedFreelancers:output_type -> user.v1.ListSavedFreelancersResponse
-	138, // 210: user.v1.UserService.RemoveSavedFreelancer:output_type -> user.v1.RemoveSavedFreelancerResponse
-	140, // 211: user.v1.UserService.UpsertFreelancerNote:output_type -> user.v1.UpsertFreelancerNoteResponse
-	142, // 212: user.v1.UserService.GetFreelancerNote:output_type -> user.v1.GetFreelancerNoteResponse
-	153, // [153:213] is the sub-list for method output_type
-	93,  // [93:153] is the sub-list for method input_type
-	93,  // [93:93] is the sub-list for extension type_name
-	93,  // [93:93] is the sub-list for extension extendee
-	0,   // [0:93] is the sub-list for field type_name
+	0,   // 78: user.v1.UserAuditSummary.status:type_name -> user.v1.AccountStatus
+	1,   // 79: user.v1.UserAuditSummary.visibility:type_name -> user.v1.ProfileVisibility
+	151, // 80: user.v1.ListUsersResponse.users:type_name -> user.v1.User
+	143, // 81: user.v1.GetUserAuditSummaryResponse.summary:type_name -> user.v1.UserAuditSummary
+	157, // 82: user.v1.Profile.client:type_name -> user.v1.ClientProfileInput
+	158, // 83: user.v1.Profile.freelancer:type_name -> user.v1.FreelancerProfileInput
+	0,   // 84: user.v1.Profile.status:type_name -> user.v1.AccountStatus
+	1,   // 85: user.v1.Profile.visibility:type_name -> user.v1.ProfileVisibility
+	153, // 86: user.v1.Profile.capabilities:type_name -> user.v1.CapabilityFlags
+	0,   // 87: user.v1.User.status:type_name -> user.v1.AccountStatus
+	1,   // 88: user.v1.User.visibility:type_name -> user.v1.ProfileVisibility
+	156, // 89: user.v1.PublicProfile.reputation:type_name -> user.v1.Reputation
+	4,   // 90: user.v1.PublicProfile.availability:type_name -> user.v1.Availability
+	3,   // 91: user.v1.PublicProfile.verification_status:type_name -> user.v1.VerificationStatus
+	2,   // 92: user.v1.OnboardingStep.status:type_name -> user.v1.OnboardingStepStatus
+	3,   // 93: user.v1.ClientProfileInput.verification_status:type_name -> user.v1.VerificationStatus
+	3,   // 94: user.v1.FreelancerProfileInput.verification_status:type_name -> user.v1.VerificationStatus
+	156, // 95: user.v1.FreelancerProfileInput.reputation:type_name -> user.v1.Reputation
+	4,   // 96: user.v1.FreelancerProfileInput.availability:type_name -> user.v1.Availability
+	6,   // 97: user.v1.UserService.CreateProfile:input_type -> user.v1.CreateProfileRequest
+	8,   // 98: user.v1.UserService.GetUser:input_type -> user.v1.GetUserRequest
+	10,  // 99: user.v1.UserService.GetProfile:input_type -> user.v1.GetProfileRequest
+	12,  // 100: user.v1.UserService.GetPublicProfile:input_type -> user.v1.GetPublicProfileRequest
+	14,  // 101: user.v1.UserService.UpdateProfile:input_type -> user.v1.UpdateProfileRequest
+	16,  // 102: user.v1.UserService.DeleteProfile:input_type -> user.v1.DeleteProfileRequest
+	18,  // 103: user.v1.UserService.GetOnboardingStatus:input_type -> user.v1.GetOnboardingStatusRequest
+	20,  // 104: user.v1.UserService.UpdateAccountStatus:input_type -> user.v1.UpdateAccountStatusRequest
+	22,  // 105: user.v1.UserService.UploadAvatar:input_type -> user.v1.UploadAvatarRequest
+	24,  // 106: user.v1.UserService.GetAvatar:input_type -> user.v1.GetAvatarRequest
+	26,  // 107: user.v1.UserService.RemoveAvatar:input_type -> user.v1.RemoveAvatarRequest
+	30,  // 108: user.v1.UserService.CreatePortfolioItem:input_type -> user.v1.CreatePortfolioItemRequest
+	32,  // 109: user.v1.UserService.UpdatePortfolioItem:input_type -> user.v1.UpdatePortfolioItemRequest
+	34,  // 110: user.v1.UserService.DeletePortfolioItem:input_type -> user.v1.DeletePortfolioItemRequest
+	36,  // 111: user.v1.UserService.ListMyPortfolioItems:input_type -> user.v1.ListMyPortfolioItemsRequest
+	38,  // 112: user.v1.UserService.ListPublicPortfolioItems:input_type -> user.v1.ListPublicPortfolioItemsRequest
+	40,  // 113: user.v1.UserService.ReorderPortfolioItems:input_type -> user.v1.ReorderPortfolioItemsRequest
+	44,  // 114: user.v1.UserService.CreateEmployment:input_type -> user.v1.CreateEmploymentRequest
+	46,  // 115: user.v1.UserService.UpdateEmployment:input_type -> user.v1.UpdateEmploymentRequest
+	48,  // 116: user.v1.UserService.DeleteEmployment:input_type -> user.v1.DeleteEmploymentRequest
+	50,  // 117: user.v1.UserService.ListMyEmployment:input_type -> user.v1.ListMyEmploymentRequest
+	52,  // 118: user.v1.UserService.ListPublicEmployment:input_type -> user.v1.ListPublicEmploymentRequest
+	54,  // 119: user.v1.UserService.CreateEducation:input_type -> user.v1.CreateEducationRequest
+	56,  // 120: user.v1.UserService.UpdateEducation:input_type -> user.v1.UpdateEducationRequest
+	58,  // 121: user.v1.UserService.DeleteEducation:input_type -> user.v1.DeleteEducationRequest
+	60,  // 122: user.v1.UserService.ListMyEducation:input_type -> user.v1.ListMyEducationRequest
+	62,  // 123: user.v1.UserService.ListPublicEducation:input_type -> user.v1.ListPublicEducationRequest
+	66,  // 124: user.v1.UserService.CreateCertification:input_type -> user.v1.CreateCertificationRequest
+	68,  // 125: user.v1.UserService.UpdateCertification:input_type -> user.v1.UpdateCertificationRequest
+	70,  // 126: user.v1.UserService.DeleteCertification:input_type -> user.v1.DeleteCertificationRequest
+	72,  // 127: user.v1.UserService.ListMyCertifications:input_type -> user.v1.ListMyCertificationsRequest
+	74,  // 128: user.v1.UserService.ListPublicCertifications:input_type -> user.v1.ListPublicCertificationsRequest
+	76,  // 129: user.v1.UserService.UpsertLanguages:input_type -> user.v1.UpsertLanguagesRequest
+	78,  // 130: user.v1.UserService.GetMyLanguages:input_type -> user.v1.GetMyLanguagesRequest
+	80,  // 131: user.v1.UserService.GetPublicLanguages:input_type -> user.v1.GetPublicLanguagesRequest
+	85,  // 132: user.v1.UserService.GetAccountSettings:input_type -> user.v1.GetAccountSettingsRequest
+	87,  // 133: user.v1.UserService.UpdateAccountSettings:input_type -> user.v1.UpdateAccountSettingsRequest
+	89,  // 134: user.v1.UserService.GetPrivacySettings:input_type -> user.v1.GetPrivacySettingsRequest
+	91,  // 135: user.v1.UserService.UpdatePrivacySettings:input_type -> user.v1.UpdatePrivacySettingsRequest
+	93,  // 136: user.v1.UserService.GetNotificationSettings:input_type -> user.v1.GetNotificationSettingsRequest
+	95,  // 137: user.v1.UserService.UpdateNotificationSettings:input_type -> user.v1.UpdateNotificationSettingsRequest
+	97,  // 138: user.v1.UserService.GetInternalUserBasic:input_type -> user.v1.GetInternalUserBasicRequest
+	99,  // 139: user.v1.UserService.GetInternalUserProfile:input_type -> user.v1.GetInternalUserProfileRequest
+	104, // 140: user.v1.UserService.SetAvailability:input_type -> user.v1.SetAvailabilityRequest
+	106, // 141: user.v1.UserService.GetAvailability:input_type -> user.v1.GetAvailabilityRequest
+	108, // 142: user.v1.UserService.SetRates:input_type -> user.v1.SetRatesRequest
+	110, // 143: user.v1.UserService.GetRates:input_type -> user.v1.GetRatesRequest
+	112, // 144: user.v1.UserService.SetWorkPreferences:input_type -> user.v1.SetWorkPreferencesRequest
+	114, // 145: user.v1.UserService.GetWorkPreferences:input_type -> user.v1.GetWorkPreferencesRequest
+	121, // 146: user.v1.UserService.GetClientProfile:input_type -> user.v1.GetClientProfileRequest
+	123, // 147: user.v1.UserService.UpdateClientProfile:input_type -> user.v1.UpdateClientProfileRequest
+	125, // 148: user.v1.UserService.GetCompany:input_type -> user.v1.GetCompanyRequest
+	127, // 149: user.v1.UserService.UpdateCompany:input_type -> user.v1.UpdateCompanyRequest
+	129, // 150: user.v1.UserService.GetHiringPreferences:input_type -> user.v1.GetHiringPreferencesRequest
+	131, // 151: user.v1.UserService.UpdateHiringPreferences:input_type -> user.v1.UpdateHiringPreferencesRequest
+	133, // 152: user.v1.UserService.SaveFreelancer:input_type -> user.v1.SaveFreelancerRequest
+	135, // 153: user.v1.UserService.ListSavedFreelancers:input_type -> user.v1.ListSavedFreelancersRequest
+	137, // 154: user.v1.UserService.RemoveSavedFreelancer:input_type -> user.v1.RemoveSavedFreelancerRequest
+	139, // 155: user.v1.UserService.UpsertFreelancerNote:input_type -> user.v1.UpsertFreelancerNoteRequest
+	141, // 156: user.v1.UserService.GetFreelancerNote:input_type -> user.v1.GetFreelancerNoteRequest
+	144, // 157: user.v1.UserService.ListUsers:input_type -> user.v1.ListUsersRequest
+	146, // 158: user.v1.UserService.CreateImpersonationToken:input_type -> user.v1.CreateImpersonationTokenRequest
+	148, // 159: user.v1.UserService.GetUserAuditSummary:input_type -> user.v1.GetUserAuditSummaryRequest
+	7,   // 160: user.v1.UserService.CreateProfile:output_type -> user.v1.CreateProfileResponse
+	9,   // 161: user.v1.UserService.GetUser:output_type -> user.v1.GetUserResponse
+	11,  // 162: user.v1.UserService.GetProfile:output_type -> user.v1.GetProfileResponse
+	13,  // 163: user.v1.UserService.GetPublicProfile:output_type -> user.v1.GetPublicProfileResponse
+	15,  // 164: user.v1.UserService.UpdateProfile:output_type -> user.v1.UpdateProfileResponse
+	17,  // 165: user.v1.UserService.DeleteProfile:output_type -> user.v1.DeleteProfileResponse
+	19,  // 166: user.v1.UserService.GetOnboardingStatus:output_type -> user.v1.GetOnboardingStatusResponse
+	21,  // 167: user.v1.UserService.UpdateAccountStatus:output_type -> user.v1.UpdateAccountStatusResponse
+	23,  // 168: user.v1.UserService.UploadAvatar:output_type -> user.v1.UploadAvatarResponse
+	25,  // 169: user.v1.UserService.GetAvatar:output_type -> user.v1.GetAvatarResponse
+	27,  // 170: user.v1.UserService.RemoveAvatar:output_type -> user.v1.RemoveAvatarResponse
+	31,  // 171: user.v1.UserService.CreatePortfolioItem:output_type -> user.v1.CreatePortfolioItemResponse
+	33,  // 172: user.v1.UserService.UpdatePortfolioItem:output_type -> user.v1.UpdatePortfolioItemResponse
+	35,  // 173: user.v1.UserService.DeletePortfolioItem:output_type -> user.v1.DeletePortfolioItemResponse
+	37,  // 174: user.v1.UserService.ListMyPortfolioItems:output_type -> user.v1.ListMyPortfolioItemsResponse
+	39,  // 175: user.v1.UserService.ListPublicPortfolioItems:output_type -> user.v1.ListPublicPortfolioItemsResponse
+	41,  // 176: user.v1.UserService.ReorderPortfolioItems:output_type -> user.v1.ReorderPortfolioItemsResponse
+	45,  // 177: user.v1.UserService.CreateEmployment:output_type -> user.v1.CreateEmploymentResponse
+	47,  // 178: user.v1.UserService.UpdateEmployment:output_type -> user.v1.UpdateEmploymentResponse
+	49,  // 179: user.v1.UserService.DeleteEmployment:output_type -> user.v1.DeleteEmploymentResponse
+	51,  // 180: user.v1.UserService.ListMyEmployment:output_type -> user.v1.ListMyEmploymentResponse
+	53,  // 181: user.v1.UserService.ListPublicEmployment:output_type -> user.v1.ListPublicEmploymentResponse
+	55,  // 182: user.v1.UserService.CreateEducation:output_type -> user.v1.CreateEducationResponse
+	57,  // 183: user.v1.UserService.UpdateEducation:output_type -> user.v1.UpdateEducationResponse
+	59,  // 184: user.v1.UserService.DeleteEducation:output_type -> user.v1.DeleteEducationResponse
+	61,  // 185: user.v1.UserService.ListMyEducation:output_type -> user.v1.ListMyEducationResponse
+	63,  // 186: user.v1.UserService.ListPublicEducation:output_type -> user.v1.ListPublicEducationResponse
+	67,  // 187: user.v1.UserService.CreateCertification:output_type -> user.v1.CreateCertificationResponse
+	69,  // 188: user.v1.UserService.UpdateCertification:output_type -> user.v1.UpdateCertificationResponse
+	71,  // 189: user.v1.UserService.DeleteCertification:output_type -> user.v1.DeleteCertificationResponse
+	73,  // 190: user.v1.UserService.ListMyCertifications:output_type -> user.v1.ListMyCertificationsResponse
+	75,  // 191: user.v1.UserService.ListPublicCertifications:output_type -> user.v1.ListPublicCertificationsResponse
+	77,  // 192: user.v1.UserService.UpsertLanguages:output_type -> user.v1.UpsertLanguagesResponse
+	79,  // 193: user.v1.UserService.GetMyLanguages:output_type -> user.v1.GetMyLanguagesResponse
+	81,  // 194: user.v1.UserService.GetPublicLanguages:output_type -> user.v1.GetPublicLanguagesResponse
+	86,  // 195: user.v1.UserService.GetAccountSettings:output_type -> user.v1.GetAccountSettingsResponse
+	88,  // 196: user.v1.UserService.UpdateAccountSettings:output_type -> user.v1.UpdateAccountSettingsResponse
+	90,  // 197: user.v1.UserService.GetPrivacySettings:output_type -> user.v1.GetPrivacySettingsResponse
+	92,  // 198: user.v1.UserService.UpdatePrivacySettings:output_type -> user.v1.UpdatePrivacySettingsResponse
+	94,  // 199: user.v1.UserService.GetNotificationSettings:output_type -> user.v1.GetNotificationSettingsResponse
+	96,  // 200: user.v1.UserService.UpdateNotificationSettings:output_type -> user.v1.UpdateNotificationSettingsResponse
+	98,  // 201: user.v1.UserService.GetInternalUserBasic:output_type -> user.v1.GetInternalUserBasicResponse
+	100, // 202: user.v1.UserService.GetInternalUserProfile:output_type -> user.v1.GetInternalUserProfileResponse
+	105, // 203: user.v1.UserService.SetAvailability:output_type -> user.v1.SetAvailabilityResponse
+	107, // 204: user.v1.UserService.GetAvailability:output_type -> user.v1.GetAvailabilityResponse
+	109, // 205: user.v1.UserService.SetRates:output_type -> user.v1.SetRatesResponse
+	111, // 206: user.v1.UserService.GetRates:output_type -> user.v1.GetRatesResponse
+	113, // 207: user.v1.UserService.SetWorkPreferences:output_type -> user.v1.SetWorkPreferencesResponse
+	115, // 208: user.v1.UserService.GetWorkPreferences:output_type -> user.v1.GetWorkPreferencesResponse
+	122, // 209: user.v1.UserService.GetClientProfile:output_type -> user.v1.GetClientProfileResponse
+	124, // 210: user.v1.UserService.UpdateClientProfile:output_type -> user.v1.UpdateClientProfileResponse
+	126, // 211: user.v1.UserService.GetCompany:output_type -> user.v1.GetCompanyResponse
+	128, // 212: user.v1.UserService.UpdateCompany:output_type -> user.v1.UpdateCompanyResponse
+	130, // 213: user.v1.UserService.GetHiringPreferences:output_type -> user.v1.GetHiringPreferencesResponse
+	132, // 214: user.v1.UserService.UpdateHiringPreferences:output_type -> user.v1.UpdateHiringPreferencesResponse
+	134, // 215: user.v1.UserService.SaveFreelancer:output_type -> user.v1.SaveFreelancerResponse
+	136, // 216: user.v1.UserService.ListSavedFreelancers:output_type -> user.v1.ListSavedFreelancersResponse
+	138, // 217: user.v1.UserService.RemoveSavedFreelancer:output_type -> user.v1.RemoveSavedFreelancerResponse
+	140, // 218: user.v1.UserService.UpsertFreelancerNote:output_type -> user.v1.UpsertFreelancerNoteResponse
+	142, // 219: user.v1.UserService.GetFreelancerNote:output_type -> user.v1.GetFreelancerNoteResponse
+	145, // 220: user.v1.UserService.ListUsers:output_type -> user.v1.ListUsersResponse
+	147, // 221: user.v1.UserService.CreateImpersonationToken:output_type -> user.v1.CreateImpersonationTokenResponse
+	149, // 222: user.v1.UserService.GetUserAuditSummary:output_type -> user.v1.GetUserAuditSummaryResponse
+	160, // [160:223] is the sub-list for method output_type
+	97,  // [97:160] is the sub-list for method input_type
+	97,  // [97:97] is the sub-list for extension type_name
+	97,  // [97:97] is the sub-list for extension extendee
+	0,   // [0:97] is the sub-list for field type_name
 }
 
 func init() { file_user_user_proto_init() }
@@ -10816,7 +11315,7 @@ func file_user_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   146,
+			NumMessages:   153,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

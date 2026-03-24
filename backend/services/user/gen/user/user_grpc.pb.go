@@ -79,6 +79,9 @@ const (
 	UserService_RemoveSavedFreelancer_FullMethodName      = "/user.v1.UserService/RemoveSavedFreelancer"
 	UserService_UpsertFreelancerNote_FullMethodName       = "/user.v1.UserService/UpsertFreelancerNote"
 	UserService_GetFreelancerNote_FullMethodName          = "/user.v1.UserService/GetFreelancerNote"
+	UserService_ListUsers_FullMethodName                  = "/user.v1.UserService/ListUsers"
+	UserService_CreateImpersonationToken_FullMethodName   = "/user.v1.UserService/CreateImpersonationToken"
+	UserService_GetUserAuditSummary_FullMethodName        = "/user.v1.UserService/GetUserAuditSummary"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -152,6 +155,10 @@ type UserServiceClient interface {
 	RemoveSavedFreelancer(ctx context.Context, in *RemoveSavedFreelancerRequest, opts ...grpc.CallOption) (*RemoveSavedFreelancerResponse, error)
 	UpsertFreelancerNote(ctx context.Context, in *UpsertFreelancerNoteRequest, opts ...grpc.CallOption) (*UpsertFreelancerNoteResponse, error)
 	GetFreelancerNote(ctx context.Context, in *GetFreelancerNoteRequest, opts ...grpc.CallOption) (*GetFreelancerNoteResponse, error)
+	// Admin endpoints.
+	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
+	CreateImpersonationToken(ctx context.Context, in *CreateImpersonationTokenRequest, opts ...grpc.CallOption) (*CreateImpersonationTokenResponse, error)
+	GetUserAuditSummary(ctx context.Context, in *GetUserAuditSummaryRequest, opts ...grpc.CallOption) (*GetUserAuditSummaryResponse, error)
 }
 
 type userServiceClient struct {
@@ -762,6 +769,36 @@ func (c *userServiceClient) GetFreelancerNote(ctx context.Context, in *GetFreela
 	return out, nil
 }
 
+func (c *userServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUsersResponse)
+	err := c.cc.Invoke(ctx, UserService_ListUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CreateImpersonationToken(ctx context.Context, in *CreateImpersonationTokenRequest, opts ...grpc.CallOption) (*CreateImpersonationTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateImpersonationTokenResponse)
+	err := c.cc.Invoke(ctx, UserService_CreateImpersonationToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetUserAuditSummary(ctx context.Context, in *GetUserAuditSummaryRequest, opts ...grpc.CallOption) (*GetUserAuditSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserAuditSummaryResponse)
+	err := c.cc.Invoke(ctx, UserService_GetUserAuditSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -833,6 +870,10 @@ type UserServiceServer interface {
 	RemoveSavedFreelancer(context.Context, *RemoveSavedFreelancerRequest) (*RemoveSavedFreelancerResponse, error)
 	UpsertFreelancerNote(context.Context, *UpsertFreelancerNoteRequest) (*UpsertFreelancerNoteResponse, error)
 	GetFreelancerNote(context.Context, *GetFreelancerNoteRequest) (*GetFreelancerNoteResponse, error)
+	// Admin endpoints.
+	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
+	CreateImpersonationToken(context.Context, *CreateImpersonationTokenRequest) (*CreateImpersonationTokenResponse, error)
+	GetUserAuditSummary(context.Context, *GetUserAuditSummaryRequest) (*GetUserAuditSummaryResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -1022,6 +1063,15 @@ func (UnimplementedUserServiceServer) UpsertFreelancerNote(context.Context, *Ups
 }
 func (UnimplementedUserServiceServer) GetFreelancerNote(context.Context, *GetFreelancerNoteRequest) (*GetFreelancerNoteResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFreelancerNote not implemented")
+}
+func (UnimplementedUserServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
+}
+func (UnimplementedUserServiceServer) CreateImpersonationToken(context.Context, *CreateImpersonationTokenRequest) (*CreateImpersonationTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateImpersonationToken not implemented")
+}
+func (UnimplementedUserServiceServer) GetUserAuditSummary(context.Context, *GetUserAuditSummaryRequest) (*GetUserAuditSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserAuditSummary not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -2124,6 +2174,60 @@ func _UserService_GetFreelancerNote_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListUsers(ctx, req.(*ListUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CreateImpersonationToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateImpersonationTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateImpersonationToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CreateImpersonationToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateImpersonationToken(ctx, req.(*CreateImpersonationTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetUserAuditSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserAuditSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetUserAuditSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetUserAuditSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetUserAuditSummary(ctx, req.(*GetUserAuditSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -2370,6 +2474,18 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFreelancerNote",
 			Handler:    _UserService_GetFreelancerNote_Handler,
+		},
+		{
+			MethodName: "ListUsers",
+			Handler:    _UserService_ListUsers_Handler,
+		},
+		{
+			MethodName: "CreateImpersonationToken",
+			Handler:    _UserService_CreateImpersonationToken_Handler,
+		},
+		{
+			MethodName: "GetUserAuditSummary",
+			Handler:    _UserService_GetUserAuditSummary_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
