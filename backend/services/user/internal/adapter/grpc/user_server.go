@@ -565,6 +565,124 @@ func (s *UserServer) UpdateNotificationSettings(ctx context.Context, req *userv1
 	return &userv1.UpdateNotificationSettingsResponse{Settings: &settings}, nil
 }
 
+func (s *UserServer) SetAvailability(ctx context.Context, req *userv1.SetAvailabilityRequest) (*userv1.SetAvailabilityResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if req.GetAvailability() == userv1.Availability_AVAILABILITY_UNSPECIFIED {
+		return nil, status.Error(codes.InvalidArgument, "availability is required")
+	}
+	out, err := s.ProfileDetailsRepo.SetAvailability(ctx, userID, application.AvailabilitySettings{
+		Availability:        mapAvailabilityFromProto(req.GetAvailability()),
+		WeeklyCapacityHours: req.GetWeeklyCapacityHours(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.SetAvailabilityResponse{Settings: toProtoAvailabilitySettings(out)}, nil
+}
+
+func (s *UserServer) GetAvailability(ctx context.Context, req *userv1.GetAvailabilityRequest) (*userv1.GetAvailabilityResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.ProfileDetailsRepo.GetAvailability(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetAvailabilityResponse{Settings: toProtoAvailabilitySettings(out)}, nil
+}
+
+func (s *UserServer) SetRates(ctx context.Context, req *userv1.SetRatesRequest) (*userv1.SetRatesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if req.GetHourlyRate() < 0 {
+		return nil, status.Error(codes.InvalidArgument, "hourly_rate must be greater than or equal to 0")
+	}
+	currency := strings.ToUpper(strings.TrimSpace(req.GetCurrency()))
+	if currency == "" {
+		currency = "USD"
+	}
+	if currency != "USD" {
+		return nil, status.Error(codes.InvalidArgument, "only USD is supported")
+	}
+
+	out, err := s.ProfileDetailsRepo.SetRates(ctx, userID, application.RateSettings{HourlyRate: req.GetHourlyRate(), Currency: currency})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.SetRatesResponse{Settings: toProtoRateSettings(out)}, nil
+}
+
+func (s *UserServer) GetRates(ctx context.Context, req *userv1.GetRatesRequest) (*userv1.GetRatesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.ProfileDetailsRepo.GetRates(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetRatesResponse{Settings: toProtoRateSettings(out)}, nil
+}
+
+func (s *UserServer) SetWorkPreferences(ctx context.Context, req *userv1.SetWorkPreferencesRequest) (*userv1.SetWorkPreferencesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if req.GetMinBudgetUsd() < 0 || req.GetMaxBudgetUsd() < 0 {
+		return nil, status.Error(codes.InvalidArgument, "budget values must be greater than or equal to 0")
+	}
+	if req.GetMaxBudgetUsd() > 0 && req.GetMinBudgetUsd() > req.GetMaxBudgetUsd() {
+		return nil, status.Error(codes.InvalidArgument, "min_budget_usd cannot be greater than max_budget_usd")
+	}
+	out, err := s.ProfileDetailsRepo.SetWorkPreferences(ctx, userID, application.WorkPreferences{
+		PreferredProjectLength: strings.TrimSpace(req.GetPreferredProjectLength()),
+		MinBudgetUSD:           req.GetMinBudgetUsd(),
+		MaxBudgetUSD:           req.GetMaxBudgetUsd(),
+		ContractTypes:          req.GetContractTypes(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.SetWorkPreferencesResponse{Settings: toProtoWorkPreferences(out)}, nil
+}
+
+func (s *UserServer) GetWorkPreferences(ctx context.Context, req *userv1.GetWorkPreferencesRequest) (*userv1.GetWorkPreferencesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.ProfileDetailsRepo.GetWorkPreferences(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetWorkPreferencesResponse{Settings: toProtoWorkPreferences(out)}, nil
+}
+
 func (s *UserServer) CreatePortfolioItem(ctx context.Context, req *userv1.CreatePortfolioItemRequest) (*userv1.CreatePortfolioItemResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1321,6 +1439,29 @@ func toProtoLanguages(items []application.LanguageProficiency) []*userv1.Languag
 		})
 	}
 	return out
+}
+
+func toProtoAvailabilitySettings(in application.AvailabilitySettings) *userv1.AvailabilitySettings {
+	return &userv1.AvailabilitySettings{
+		Availability:        mapAvailabilityToProto(in.Availability),
+		WeeklyCapacityHours: in.WeeklyCapacityHours,
+	}
+}
+
+func toProtoRateSettings(in application.RateSettings) *userv1.RateSettings {
+	return &userv1.RateSettings{
+		HourlyRate: in.HourlyRate,
+		Currency:   in.Currency,
+	}
+}
+
+func toProtoWorkPreferences(in application.WorkPreferences) *userv1.WorkPreferences {
+	return &userv1.WorkPreferences{
+		PreferredProjectLength: in.PreferredProjectLength,
+		MinBudgetUsd:           in.MinBudgetUSD,
+		MaxBudgetUsd:           in.MaxBudgetUSD,
+		ContractTypes:          in.ContractTypes,
+	}
 }
 
 func unixPtr(v int64) *time.Time {
