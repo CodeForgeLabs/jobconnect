@@ -15,6 +15,14 @@ service UserService {
     rpc UploadAvatar(UploadAvatarRequest) returns (UploadAvatarResponse);
     rpc GetAvatar(GetAvatarRequest) returns (GetAvatarResponse);
     rpc RemoveAvatar(RemoveAvatarRequest) returns (RemoveAvatarResponse);
+
+    // B: portfolio endpoints.
+    rpc CreatePortfolioItem(CreatePortfolioItemRequest) returns (CreatePortfolioItemResponse);
+    rpc UpdatePortfolioItem(UpdatePortfolioItemRequest) returns (UpdatePortfolioItemResponse);
+    rpc DeletePortfolioItem(DeletePortfolioItemRequest) returns (DeletePortfolioItemResponse);
+    rpc ListMyPortfolioItems(ListMyPortfolioItemsRequest) returns (ListMyPortfolioItemsResponse);
+    rpc ListPublicPortfolioItems(ListPublicPortfolioItemsRequest) returns (ListPublicPortfolioItemsResponse);
+    rpc ReorderPortfolioItems(ReorderPortfolioItemsRequest) returns (ReorderPortfolioItemsResponse);
 }
 
 enum AccountStatus {
@@ -50,6 +58,14 @@ enum Availability {
     AVAILABILITY_PART_TIME = 2;
     AVAILABILITY_AS_NEEDED = 3;
     AVAILABILITY_UNAVAILABLE = 4;
+}
+
+enum PortfolioMediaType {
+    PORTFOLIO_MEDIA_TYPE_UNSPECIFIED = 0;
+    PORTFOLIO_MEDIA_TYPE_IMAGE = 1;
+    PORTFOLIO_MEDIA_TYPE_VIDEO = 2;
+    PORTFOLIO_MEDIA_TYPE_FILE = 3;
+    PORTFOLIO_MEDIA_TYPE_LINK = 4;
 }
 
 message CreateProfileRequest {
@@ -184,6 +200,108 @@ message RemoveAvatarRequest {
 
 message RemoveAvatarResponse {
     bool removed = 1;
+}
+
+message PortfolioMedia {
+    int64 id = 1;
+    PortfolioMediaType media_type = 2;
+    string storage_key = 3;
+    string external_url = 4;
+    string file_name = 5;
+    string content_type = 6;
+    int64 size_bytes = 7;
+    int32 width = 8;
+    int32 height = 9;
+    int32 sort_order = 10;
+}
+
+message PortfolioItem {
+    int64 id = 1;
+    string user_id = 2;
+    string title = 3;
+    string description = 4;
+    string project_url = 5;
+    string role_in_project = 6;
+    int64 completed_at_unix = 7;
+    int32 sort_order = 8;
+    ProfileVisibility visibility = 9;
+    repeated string tags = 10;
+    repeated PortfolioMedia media = 11;
+    int64 created_at_unix = 12;
+    int64 updated_at_unix = 13;
+}
+
+message CreatePortfolioItemRequest {
+    string user_id = 1;
+    string title = 2;
+    string description = 3;
+    string project_url = 4;
+    string role_in_project = 5;
+    int64 completed_at_unix = 6;
+    ProfileVisibility visibility = 7;
+    repeated string tags = 8;
+    repeated PortfolioMedia media = 9;
+}
+
+message CreatePortfolioItemResponse {
+    PortfolioItem item = 1;
+}
+
+message UpdatePortfolioItemRequest {
+    string user_id = 1;
+    int64 item_id = 2;
+    optional string title = 3;
+    optional string description = 4;
+    optional string project_url = 5;
+    optional string role_in_project = 6;
+    optional int64 completed_at_unix = 7;
+    optional ProfileVisibility visibility = 8;
+    repeated string tags = 9;
+    repeated PortfolioMedia media = 10;
+}
+
+message UpdatePortfolioItemResponse {
+    PortfolioItem item = 1;
+}
+
+message DeletePortfolioItemRequest {
+    string user_id = 1;
+    int64 item_id = 2;
+}
+
+message DeletePortfolioItemResponse {
+    bool deleted = 1;
+}
+
+message ListMyPortfolioItemsRequest {
+    string user_id = 1;
+    uint32 page_size = 2;
+    string page_token = 3;
+}
+
+message ListMyPortfolioItemsResponse {
+    repeated PortfolioItem items = 1;
+    string next_page_token = 2;
+}
+
+message ListPublicPortfolioItemsRequest {
+    string user_id = 1;
+    uint32 page_size = 2;
+    string page_token = 3;
+}
+
+message ListPublicPortfolioItemsResponse {
+    repeated PortfolioItem items = 1;
+    string next_page_token = 2;
+}
+
+message ReorderPortfolioItemsRequest {
+    string user_id = 1;
+    repeated int64 ordered_item_ids = 2;
+}
+
+message ReorderPortfolioItemsResponse {
+    repeated PortfolioItem items = 1;
 }
 
 message Profile {
