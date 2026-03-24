@@ -1810,14 +1810,14 @@ func toProtoFreelancerNote(in application.FreelancerNote) *userv1.FreelancerNote
 
 func toProtoUserSummary(in application.UserSummary) *userv1.User {
 	return &userv1.User{
-		UserId:      in.UserID.String(),
-		Role:        in.Role,
-		Status:      mapAccountStatusToProto(in.Status),
-		Visibility:  mapVisibilityToProto(in.Visibility),
-		FirstName:   in.FirstName,
-		LastName:    in.LastName,
-		DisplayName: in.DisplayName,
-		AvatarUrl:   in.AvatarURL,
+		UserId:        in.UserID.String(),
+		Role:          in.Role,
+		Status:        mapAccountStatusToProto(in.Status),
+		Visibility:    mapVisibilityToProto(in.Visibility),
+		FirstName:     in.FirstName,
+		LastName:      in.LastName,
+		DisplayName:   in.DisplayName,
+		AvatarUrl:     in.AvatarURL,
 		CreatedAtUnix: in.CreatedAt.Unix(),
 		UpdatedAtUnix: in.UpdatedAt.Unix(),
 	}
