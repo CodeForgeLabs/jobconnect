@@ -1237,3 +1237,162 @@ func (r *ProfileRepo) GetFreelancerNote(ctx context.Context, userID uuid.UUID, f
 	out.FreelancerUserID = freelancerUserID
 	return out, nil
 }
+
+func (r *ProfileRepo) ensureAdminRequester(ctx context.Context, requesterUserID uuid.UUID) error {
+	var role string
+	err := r.pool.QueryRow(ctx, `
+		select role
+		from profiles
+		where user_id = $1 and deleted_at is null
+	`, requesterUserID).Scan(&role)
+	if err != nil {
+		if isNoRows(err) {
+			return ErrNotFound
+		}
+		return err
+	}
+	if strings.TrimSpace(strings.ToLower(role)) != domain.RoleAdmin {
+		return fmt.Errorf("admin role required")
+	}
+	return nil
+}
+
+func (r *ProfileRepo) ListUsers(ctx context.Context, requesterUserID uuid.UUID, filter application.ListUsersFilter) (application.ListResult[application.UserSummary], error) {
+	if err := r.ensureAdminRequester(ctx, requesterUserID); err != nil {
+		return application.ListResult[application.UserSummary]{}, err
+	}
+
+	limit, offset, err := parsePage(filter.PageSize, filter.PageToken)
+	if err != nil {
+		return application.ListResult[application.UserSummary]{}, err
+	}
+
+	query := `
+		select
+			user_id,
+			role,
+			coalesce(account_status, 'ACTIVE'),
+			coalesce(visibility, 'PUBLIC'),
+			coalesce(first_name, ''),
+			coalesce(last_name, ''),
+			coalesce(display_name, ''),
+			coalesce(avatar_url, ''),
+			created_at,
+			updated_at
+		from profiles
+		where deleted_at is null
+	`
+	args := []any{}
+	argPos := 1
+
+	if v := strings.TrimSpace(filter.Role); v != "" {
+		query += fmt.Sprintf(" and role = $%d", argPos)
+		args = append(args, strings.ToLower(v))
+		argPos++
+	}
+	if v := strings.TrimSpace(filter.Status); v != "" {
+		query += fmt.Sprintf(" and upper(account_status) = upper($%d)", argPos)
+		args = append(args, strings.TrimPrefix(strings.ToUpper(v), "ACCOUNT_STATUS_"))
+		argPos++
+	}
+	if v := strings.TrimSpace(filter.Q); v != "" {
+		query += fmt.Sprintf(" and (user_id::text ilike $%d or first_name ilike $%d or last_name ilike $%d or display_name ilike $%d)", argPos, argPos, argPos, argPos)
+		args = append(args, "%"+v+"%")
+		argPos++
+	}
+
+	query += fmt.Sprintf(" order by created_at desc, user_id asc limit $%d offset $%d", argPos, argPos+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return application.ListResult[application.UserSummary]{}, err
+	}
+	defer rows.Close()
+
+	items := make([]application.UserSummary, 0, limit)
+	for rows.Next() {
+		var item application.UserSummary
+		if err := rows.Scan(&item.UserID, &item.Role, &item.Status, &item.Visibility, &item.FirstName, &item.LastName, &item.DisplayName, &item.AvatarURL, &item.CreatedAt, &item.UpdatedAt); err != nil {
+			return application.ListResult[application.UserSummary]{}, err
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return application.ListResult[application.UserSummary]{}, err
+	}
+
+	return application.ListResult[application.UserSummary]{Items: items, NextPageToken: nextToken(limit, offset, len(items))}, nil
+}
+
+func (r *ProfileRepo) CreateImpersonationToken(ctx context.Context, requesterUserID uuid.UUID, targetUserID uuid.UUID, reason string, ttlSeconds uint32) (application.ImpersonationToken, error) {
+	if err := r.ensureAdminRequester(ctx, requesterUserID); err != nil {
+		return application.ImpersonationToken{}, err
+	}
+
+	ttl := time.Duration(ttlSeconds) * time.Second
+	if ttl <= 0 {
+		ttl = 15 * time.Minute
+	}
+	if ttl > 24*time.Hour {
+		ttl = 24 * time.Hour
+	}
+
+	tokenID := uuid.New()
+	expiresAt := time.Now().UTC().Add(ttl)
+
+	if _, err := r.pool.Exec(ctx, `
+		insert into admin_impersonation_tokens (token_id, admin_user_id, target_user_id, reason, expires_at)
+		values ($1, $2, $3, $4, $5)
+	`, tokenID, requesterUserID, targetUserID, strings.TrimSpace(reason), expiresAt); err != nil {
+		return application.ImpersonationToken{}, err
+	}
+
+	return application.ImpersonationToken{Token: tokenID.String(), ExpiresAt: expiresAt}, nil
+}
+
+func (r *ProfileRepo) GetUserAuditSummary(ctx context.Context, requesterUserID uuid.UUID, targetUserID uuid.UUID) (application.UserAuditSummary, error) {
+	if err := r.ensureAdminRequester(ctx, requesterUserID); err != nil {
+		return application.UserAuditSummary{}, err
+	}
+
+	var out application.UserAuditSummary
+	out.UserID = targetUserID
+
+	err := r.pool.QueryRow(ctx, `
+		select
+			coalesce(account_status, 'ACTIVE'),
+			coalesce(visibility, 'PUBLIC'),
+			updated_at
+		from profiles
+		where user_id = $1 and deleted_at is null
+	`, targetUserID).Scan(&out.Status, &out.Visibility, &out.ProfileUpdatedAt)
+	if err != nil {
+		if isNoRows(err) {
+			return application.UserAuditSummary{}, ErrNotFound
+		}
+		return application.UserAuditSummary{}, err
+	}
+
+	_ = r.pool.QueryRow(ctx, `
+		select updated_at
+		from profile_avatars
+		where user_id = $1
+	`, targetUserID).Scan(&out.AvatarUpdatedAt)
+
+	_ = r.pool.QueryRow(ctx, `
+		select count(*)
+		from client_saved_freelancers sf
+		join profiles p on p.id = sf.profile_id
+		where p.user_id = $1 and p.deleted_at is null
+	`, targetUserID).Scan(&out.SavedFreelancersCount)
+
+	_ = r.pool.QueryRow(ctx, `
+		select count(*)
+		from portfolio_items pi
+		join profiles p on p.id = pi.profile_id
+		where p.user_id = $1 and p.deleted_at is null and pi.deleted_at is null
+	`, targetUserID).Scan(&out.PortfolioItemsCount)
+
+	return out, nil
+}
