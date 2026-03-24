@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -799,4 +800,168 @@ func (r *ProfileRepo) getLanguages(ctx context.Context, userID uuid.UUID, public
 		out = append(out, lp)
 	}
 	return out, rows.Err()
+}
+
+func (r *ProfileRepo) SetAvailability(ctx context.Context, userID uuid.UUID, in application.AvailabilitySettings) (application.AvailabilitySettings, error) {
+	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	if err != nil {
+		return application.AvailabilitySettings{}, err
+	}
+
+	availability := strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Availability), "AVAILABILITY_"))
+	if availability == "" {
+		availability = domain.AvailabilityAsNeeded
+	}
+
+	if _, err := r.pool.Exec(ctx, `
+		update freelancer_profiles
+		set availability = $2
+		where profile_id = $1
+	`, profileID, availability); err != nil {
+		return application.AvailabilitySettings{}, err
+	}
+
+	if _, err := r.pool.Exec(ctx, `
+		insert into freelancer_work_preferences (profile_id, weekly_capacity_hours)
+		values ($1, $2)
+		on conflict (profile_id) do update set
+			weekly_capacity_hours = excluded.weekly_capacity_hours,
+			updated_at = now()
+	`, profileID, in.WeeklyCapacityHours); err != nil {
+		return application.AvailabilitySettings{}, err
+	}
+
+	return r.GetAvailability(ctx, userID)
+}
+
+func (r *ProfileRepo) GetAvailability(ctx context.Context, userID uuid.UUID) (application.AvailabilitySettings, error) {
+	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	if err != nil {
+		return application.AvailabilitySettings{}, err
+	}
+
+	out := application.AvailabilitySettings{}
+	if err := r.pool.QueryRow(ctx, `
+		select coalesce(availability, 'AS_NEEDED')
+		from freelancer_profiles
+		where profile_id = $1
+	`, profileID).Scan(&out.Availability); err != nil {
+		if isNoRows(err) {
+			return application.AvailabilitySettings{}, ErrNotFound
+		}
+		return application.AvailabilitySettings{}, err
+	}
+
+	if err := r.pool.QueryRow(ctx, `
+		select weekly_capacity_hours
+		from freelancer_work_preferences
+		where profile_id = $1
+	`, profileID).Scan(&out.WeeklyCapacityHours); err != nil && !isNoRows(err) {
+		return application.AvailabilitySettings{}, err
+	}
+
+	return out, nil
+}
+
+func (r *ProfileRepo) SetRates(ctx context.Context, userID uuid.UUID, in application.RateSettings) (application.RateSettings, error) {
+	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	if err != nil {
+		return application.RateSettings{}, err
+	}
+
+	if _, err := r.pool.Exec(ctx, `
+		update freelancer_profiles
+		set hourly_rate = $2
+		where profile_id = $1
+	`, profileID, in.HourlyRate); err != nil {
+		return application.RateSettings{}, err
+	}
+
+	return r.GetRates(ctx, userID)
+}
+
+func (r *ProfileRepo) GetRates(ctx context.Context, userID uuid.UUID) (application.RateSettings, error) {
+	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	if err != nil {
+		return application.RateSettings{}, err
+	}
+
+	out := application.RateSettings{Currency: "USD"}
+	if err := r.pool.QueryRow(ctx, `
+		select coalesce(hourly_rate, 0)
+		from freelancer_profiles
+		where profile_id = $1
+	`, profileID).Scan(&out.HourlyRate); err != nil {
+		if isNoRows(err) {
+			return application.RateSettings{}, ErrNotFound
+		}
+		return application.RateSettings{}, err
+	}
+
+	return out, nil
+}
+
+func (r *ProfileRepo) SetWorkPreferences(ctx context.Context, userID uuid.UUID, in application.WorkPreferences) (application.WorkPreferences, error) {
+	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	if err != nil {
+		return application.WorkPreferences{}, err
+	}
+
+	contractTypes := make([]string, 0, len(in.ContractTypes))
+	for _, t := range in.ContractTypes {
+		trimmed := strings.TrimSpace(t)
+		if trimmed != "" {
+			contractTypes = append(contractTypes, trimmed)
+		}
+	}
+	rawContractTypes, err := json.Marshal(contractTypes)
+	if err != nil {
+		return application.WorkPreferences{}, err
+	}
+
+	if _, err := r.pool.Exec(ctx, `
+		insert into freelancer_work_preferences (profile_id, preferred_project_length, min_budget_usd, max_budget_usd, contract_types)
+		values ($1, $2, $3, $4, $5::jsonb)
+		on conflict (profile_id) do update set
+			preferred_project_length = excluded.preferred_project_length,
+			min_budget_usd = excluded.min_budget_usd,
+			max_budget_usd = excluded.max_budget_usd,
+			contract_types = excluded.contract_types,
+			updated_at = now()
+	`, profileID, strings.TrimSpace(in.PreferredProjectLength), in.MinBudgetUSD, in.MaxBudgetUSD, string(rawContractTypes)); err != nil {
+		return application.WorkPreferences{}, err
+	}
+
+	return r.GetWorkPreferences(ctx, userID)
+}
+
+func (r *ProfileRepo) GetWorkPreferences(ctx context.Context, userID uuid.UUID) (application.WorkPreferences, error) {
+	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	if err != nil {
+		return application.WorkPreferences{}, err
+	}
+
+	out := application.WorkPreferences{}
+	var rawContractTypes []byte
+	err = r.pool.QueryRow(ctx, `
+		select
+			coalesce(preferred_project_length, ''),
+			coalesce(min_budget_usd, 0),
+			coalesce(max_budget_usd, 0),
+			coalesce(contract_types, '[]'::jsonb)
+		from freelancer_work_preferences
+		where profile_id = $1
+	`, profileID).Scan(&out.PreferredProjectLength, &out.MinBudgetUSD, &out.MaxBudgetUSD, &rawContractTypes)
+	if err != nil {
+		if isNoRows(err) {
+			return out, nil
+		}
+		return application.WorkPreferences{}, err
+	}
+
+	if len(rawContractTypes) > 0 {
+		_ = json.Unmarshal(rawContractTypes, &out.ContractTypes)
+	}
+
+	return out, nil
 }
