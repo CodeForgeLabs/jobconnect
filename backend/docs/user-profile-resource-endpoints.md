@@ -1,13 +1,10 @@
-# User Service B/C/D Endpoints
+# User Service Profile Resource Endpoints
 
-This document tracks the B/C/D rollout for User Service:
-- B: Portfolio
-- C: Employment + Education
-- D: Certifications + Languages
+This document tracks portfolio, employment, education, certifications, and languages endpoints in the User Service.
 
 ## Gateway Routes
 
-### Portfolio (B)
+### Portfolio
 - POST `/api/v1/users/me/portfolio` -> `CreatePortfolioItem`
 - GET `/api/v1/users/me/portfolio` -> `ListMyPortfolioItems`
 - PATCH `/api/v1/users/me/portfolio/:itemId` -> `UpdatePortfolioItem`
@@ -15,7 +12,7 @@ This document tracks the B/C/D rollout for User Service:
 - PUT `/api/v1/users/me/portfolio:reorder` -> `ReorderPortfolioItems`
 - GET `/api/v1/public/users/:userId/portfolio` -> `ListPublicPortfolioItems`
 
-### Employment + Education (C)
+### Employment + Education
 - POST `/api/v1/users/me/employment` -> `CreateEmployment`
 - GET `/api/v1/users/me/employment` -> `ListMyEmployment`
 - PATCH `/api/v1/users/me/employment/:employmentId` -> `UpdateEmployment`
@@ -28,7 +25,7 @@ This document tracks the B/C/D rollout for User Service:
 - DELETE `/api/v1/users/me/education/:educationId` -> `DeleteEducation`
 - GET `/api/v1/public/users/:userId/education` -> `ListPublicEducation`
 
-### Certifications + Languages (D)
+### Certifications + Languages
 - POST `/api/v1/users/me/certifications` -> `CreateCertification`
 - GET `/api/v1/users/me/certifications` -> `ListMyCertifications`
 - PATCH `/api/v1/users/me/certifications/:certificationId` -> `UpdateCertification`
@@ -41,15 +38,14 @@ This document tracks the B/C/D rollout for User Service:
 
 ## Current Status
 
-- Database schema for B/C/D has been added via migrations `0006` to `0008`.
-- RPC contracts for B/C/D are defined in `api/proto/user/user.proto`.
+- Database schema has been added via migrations `0006` to `0008`.
+- RPC contracts are defined in `api/proto/user/user.proto`.
 - Gateway routes and handlers are wired.
-- User service gRPC business logic for B/C/D RPCs is not implemented yet and currently returns gRPC unimplemented through embedded defaults.
+- User service gRPC methods are implemented and use Postgres-backed repositories.
 
 ## Next Implementation Work
 
-1. Add domain models and repository ports for portfolio, employment, education, certifications, and languages.
-2. Implement Postgres repositories in `services/user/internal/infrastructure/db`.
-3. Add application use-cases in `services/user/internal/application`.
-4. Wire use-cases and explicit RPC methods in `services/user/internal/adapter/grpc/user_server.go` and `cmd/userd/main.go`.
-5. Add unit/integration tests for auth, ownership, and public projection behavior.
+1. Add tests for profile resource CRUD and pagination behavior.
+2. Add role/ownership authorization tests to verify freelancer-only writes and public-only projections.
+3. Add validation hardening for language proficiency values and date consistency.
+4. Add integration tests for gateway-to-gRPC error mapping.
