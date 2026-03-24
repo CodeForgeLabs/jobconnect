@@ -1107,6 +1107,117 @@ func (h *UserHandler) GetPublicLanguages(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"languages": itemsPayload})
 }
 
+func (h *UserHandler) SetMeAvailability(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	req := &userv1.SetAvailabilityRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.SetAvailability(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) GetMeAvailability(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetAvailability(c.Request.Context(), &userv1.GetAvailabilityRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) SetMeRates(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	req := &userv1.SetRatesRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.SetRates(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) GetMeRates(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetRates(c.Request.Context(), &userv1.GetRatesRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) SetMeWorkPreferences(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	req := &userv1.SetWorkPreferencesRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+
+	resp, err := h.client.SetWorkPreferences(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
+func (h *UserHandler) GetMeWorkPreferences(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetWorkPreferences(c.Request.Context(), &userv1.GetWorkPreferencesRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+}
+
 func parseInt64PathParam(c *gin.Context, param string) (int64, error) {
 	raw := strings.TrimSpace(c.Param(param))
 	if raw == "" {
