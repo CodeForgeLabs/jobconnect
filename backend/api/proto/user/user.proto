@@ -45,6 +45,14 @@ service UserService {
     rpc UpsertLanguages(UpsertLanguagesRequest) returns (UpsertLanguagesResponse);
     rpc GetMyLanguages(GetMyLanguagesRequest) returns (GetMyLanguagesResponse);
     rpc GetPublicLanguages(GetPublicLanguagesRequest) returns (GetPublicLanguagesResponse);
+
+    // Shared account settings endpoints.
+    rpc GetAccountSettings(GetAccountSettingsRequest) returns (GetAccountSettingsResponse);
+    rpc UpdateAccountSettings(UpdateAccountSettingsRequest) returns (UpdateAccountSettingsResponse);
+    rpc GetPrivacySettings(GetPrivacySettingsRequest) returns (GetPrivacySettingsResponse);
+    rpc UpdatePrivacySettings(UpdatePrivacySettingsRequest) returns (UpdatePrivacySettingsResponse);
+    rpc GetNotificationSettings(GetNotificationSettingsRequest) returns (GetNotificationSettingsResponse);
+    rpc UpdateNotificationSettings(UpdateNotificationSettingsRequest) returns (UpdateNotificationSettingsResponse);
 }
 
 enum AccountStatus {
@@ -600,6 +608,95 @@ message GetPublicLanguagesRequest {
 
 message GetPublicLanguagesResponse {
     repeated LanguageProficiency languages = 1;
+}
+
+message AccountSettings {
+    string language = 1;
+    string contact_email = 2;
+    string contact_phone = 3;
+    string locale = 4;
+    string timezone = 5;
+}
+
+message PrivacySettings {
+    bool discoverable = 1;
+    bool show_last_active = 2;
+    bool show_earnings = 3;
+}
+
+message NotificationSettings {
+    bool email_job_alerts = 1;
+    bool email_messages = 2;
+    bool email_billing = 3;
+    bool email_security = 4;
+    bool push_job_alerts = 5;
+    bool push_messages = 6;
+    bool push_billing = 7;
+    bool push_security = 8;
+}
+
+message GetAccountSettingsRequest {
+    string user_id = 1;
+}
+
+message GetAccountSettingsResponse {
+    AccountSettings settings = 1;
+}
+
+message UpdateAccountSettingsRequest {
+    string user_id = 1;
+    optional string language = 2;
+    optional string contact_email = 3;
+    optional string contact_phone = 4;
+    optional string locale = 5;
+    optional string timezone = 6;
+}
+
+message UpdateAccountSettingsResponse {
+    AccountSettings settings = 1;
+}
+
+message GetPrivacySettingsRequest {
+    string user_id = 1;
+}
+
+message GetPrivacySettingsResponse {
+    PrivacySettings settings = 1;
+}
+
+message UpdatePrivacySettingsRequest {
+    string user_id = 1;
+    optional bool discoverable = 2;
+    optional bool show_last_active = 3;
+    optional bool show_earnings = 4;
+}
+
+message UpdatePrivacySettingsResponse {
+    PrivacySettings settings = 1;
+}
+
+message GetNotificationSettingsRequest {
+    string user_id = 1;
+}
+
+message GetNotificationSettingsResponse {
+    NotificationSettings settings = 1;
+}
+
+message UpdateNotificationSettingsRequest {
+    string user_id = 1;
+    optional bool email_job_alerts = 2;
+    optional bool email_messages = 3;
+    optional bool email_billing = 4;
+    optional bool email_security = 5;
+    optional bool push_job_alerts = 6;
+    optional bool push_messages = 7;
+    optional bool push_billing = 8;
+    optional bool push_security = 9;
+}
+
+message UpdateNotificationSettingsResponse {
+    NotificationSettings settings = 1;
 }
 
 message Profile {
