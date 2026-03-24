@@ -388,6 +388,46 @@ func (s *UserServer) ReorderPortfolioItems(context.Context, *userv1.ReorderPortf
 	return nil, status.Error(codes.Unimplemented, "ReorderPortfolioItems not implemented")
 }
 
+func (s *UserServer) CreateEmployment(context.Context, *userv1.CreateEmploymentRequest) (*userv1.CreateEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "CreateEmployment not implemented")
+}
+
+func (s *UserServer) UpdateEmployment(context.Context, *userv1.UpdateEmploymentRequest) (*userv1.UpdateEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "UpdateEmployment not implemented")
+}
+
+func (s *UserServer) DeleteEmployment(context.Context, *userv1.DeleteEmploymentRequest) (*userv1.DeleteEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "DeleteEmployment not implemented")
+}
+
+func (s *UserServer) ListMyEmployment(context.Context, *userv1.ListMyEmploymentRequest) (*userv1.ListMyEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ListMyEmployment not implemented")
+}
+
+func (s *UserServer) ListPublicEmployment(context.Context, *userv1.ListPublicEmploymentRequest) (*userv1.ListPublicEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ListPublicEmployment not implemented")
+}
+
+func (s *UserServer) CreateEducation(context.Context, *userv1.CreateEducationRequest) (*userv1.CreateEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "CreateEducation not implemented")
+}
+
+func (s *UserServer) UpdateEducation(context.Context, *userv1.UpdateEducationRequest) (*userv1.UpdateEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "UpdateEducation not implemented")
+}
+
+func (s *UserServer) DeleteEducation(context.Context, *userv1.DeleteEducationRequest) (*userv1.DeleteEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "DeleteEducation not implemented")
+}
+
+func (s *UserServer) ListMyEducation(context.Context, *userv1.ListMyEducationRequest) (*userv1.ListMyEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ListMyEducation not implemented")
+}
+
+func (s *UserServer) ListPublicEducation(context.Context, *userv1.ListPublicEducationRequest) (*userv1.ListPublicEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ListPublicEducation not implemented")
+}
+
 func (s *UserServer) toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.Profile {
 	out := &userv1.Profile{
 		Id:               p.ID,
