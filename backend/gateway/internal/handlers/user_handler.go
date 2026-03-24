@@ -120,6 +120,38 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
 }
 
+func (h *UserHandler) GetInternalUserBasic(c *gin.Context) {
+	userID := strings.TrimSpace(c.Param("userId"))
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
+		return
+	}
+
+	resp, err := h.client.GetInternalUserBasic(c.Request.Context(), &userv1.GetInternalUserBasicRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "user", resp.GetUser())
+}
+
+func (h *UserHandler) GetInternalUserProfile(c *gin.Context) {
+	userID := strings.TrimSpace(c.Param("userId"))
+	if userID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
+		return
+	}
+
+	resp, err := h.client.GetInternalUserProfile(c.Request.Context(), &userv1.GetInternalUserProfileRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
+}
+
 func (h *UserHandler) GetPublicProfile(c *gin.Context) {
 	userID := strings.TrimSpace(c.Param("userId"))
 	if userID == "" {
