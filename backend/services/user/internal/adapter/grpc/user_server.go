@@ -364,6 +364,30 @@ func (s *UserServer) RemoveAvatar(ctx context.Context, req *userv1.RemoveAvatarR
 	return &userv1.RemoveAvatarResponse{Removed: out.Removed}, nil
 }
 
+func (s *UserServer) CreatePortfolioItem(context.Context, *userv1.CreatePortfolioItemRequest) (*userv1.CreatePortfolioItemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "CreatePortfolioItem not implemented")
+}
+
+func (s *UserServer) UpdatePortfolioItem(context.Context, *userv1.UpdatePortfolioItemRequest) (*userv1.UpdatePortfolioItemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "UpdatePortfolioItem not implemented")
+}
+
+func (s *UserServer) DeletePortfolioItem(context.Context, *userv1.DeletePortfolioItemRequest) (*userv1.DeletePortfolioItemResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "DeletePortfolioItem not implemented")
+}
+
+func (s *UserServer) ListMyPortfolioItems(context.Context, *userv1.ListMyPortfolioItemsRequest) (*userv1.ListMyPortfolioItemsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ListMyPortfolioItems not implemented")
+}
+
+func (s *UserServer) ListPublicPortfolioItems(context.Context, *userv1.ListPublicPortfolioItemsRequest) (*userv1.ListPublicPortfolioItemsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ListPublicPortfolioItems not implemented")
+}
+
+func (s *UserServer) ReorderPortfolioItems(context.Context, *userv1.ReorderPortfolioItemsRequest) (*userv1.ReorderPortfolioItemsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "ReorderPortfolioItems not implemented")
+}
+
 func (s *UserServer) toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.Profile {
 	out := &userv1.Profile{
 		Id:               p.ID,
