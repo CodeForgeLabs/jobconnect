@@ -139,6 +139,42 @@ type FreelancerNote struct {
 	UpdatedAt        time.Time
 }
 
+type ListUsersFilter struct {
+	Q         string
+	Role      string
+	Status    string
+	PageSize  uint32
+	PageToken string
+}
+
+type UserSummary struct {
+	UserID      uuid.UUID
+	Role        string
+	Status      string
+	Visibility  string
+	FirstName   string
+	LastName    string
+	DisplayName string
+	AvatarURL   string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type ImpersonationToken struct {
+	Token     string
+	ExpiresAt time.Time
+}
+
+type UserAuditSummary struct {
+	UserID                 uuid.UUID
+	Status                 string
+	Visibility             string
+	ProfileUpdatedAt       time.Time
+	AvatarUpdatedAt        *time.Time
+	SavedFreelancersCount  uint32
+	PortfolioItemsCount    uint32
+}
+
 type ListResult[T any] struct {
 	Items         []T
 	NextPageToken string
@@ -197,4 +233,8 @@ type ProfileDetailsRepository interface {
 	RemoveSavedFreelancer(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (bool, error)
 	UpsertFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID, note string) (FreelancerNote, error)
 	GetFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (FreelancerNote, error)
+
+	ListUsers(ctx context.Context, requesterUserID uuid.UUID, filter ListUsersFilter) (ListResult[UserSummary], error)
+	CreateImpersonationToken(ctx context.Context, requesterUserID uuid.UUID, targetUserID uuid.UUID, reason string, ttlSeconds uint32) (ImpersonationToken, error)
+	GetUserAuditSummary(ctx context.Context, requesterUserID uuid.UUID, targetUserID uuid.UUID) (UserAuditSummary, error)
 }
