@@ -86,6 +86,12 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	userRoutes.DELETE("/me/certifications/:certificationId", userHandler.DeleteMeCertification)
 	userRoutes.PUT("/me/languages", userHandler.UpsertMeLanguages)
 	userRoutes.GET("/me/languages", userHandler.GetMeLanguages)
+	userRoutes.PUT("/me/availability", userHandler.SetMeAvailability)
+	userRoutes.GET("/me/availability", userHandler.GetMeAvailability)
+	userRoutes.PUT("/me/rates", userHandler.SetMeRates)
+	userRoutes.GET("/me/rates", userHandler.GetMeRates)
+	userRoutes.PUT("/me/work-preferences", userHandler.SetMeWorkPreferences)
+	userRoutes.GET("/me/work-preferences", userHandler.GetMeWorkPreferences)
 
 	adminUserRoutes := api.Group("/admin/users")
 	adminUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
