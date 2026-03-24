@@ -16,7 +16,7 @@ service UserService {
     rpc GetAvatar(GetAvatarRequest) returns (GetAvatarResponse);
     rpc RemoveAvatar(RemoveAvatarRequest) returns (RemoveAvatarResponse);
 
-    // B: portfolio endpoints.
+    // Portfolio endpoints.
     rpc CreatePortfolioItem(CreatePortfolioItemRequest) returns (CreatePortfolioItemResponse);
     rpc UpdatePortfolioItem(UpdatePortfolioItemRequest) returns (UpdatePortfolioItemResponse);
     rpc DeletePortfolioItem(DeletePortfolioItemRequest) returns (DeletePortfolioItemResponse);
@@ -24,7 +24,7 @@ service UserService {
     rpc ListPublicPortfolioItems(ListPublicPortfolioItemsRequest) returns (ListPublicPortfolioItemsResponse);
     rpc ReorderPortfolioItems(ReorderPortfolioItemsRequest) returns (ReorderPortfolioItemsResponse);
 
-    // C: employment and education endpoints.
+    // Employment and education endpoints.
     rpc CreateEmployment(CreateEmploymentRequest) returns (CreateEmploymentResponse);
     rpc UpdateEmployment(UpdateEmploymentRequest) returns (UpdateEmploymentResponse);
     rpc DeleteEmployment(DeleteEmploymentRequest) returns (DeleteEmploymentResponse);
@@ -36,7 +36,7 @@ service UserService {
     rpc ListMyEducation(ListMyEducationRequest) returns (ListMyEducationResponse);
     rpc ListPublicEducation(ListPublicEducationRequest) returns (ListPublicEducationResponse);
 
-    // D: certifications and languages endpoints.
+    // Certifications and languages endpoints.
     rpc CreateCertification(CreateCertificationRequest) returns (CreateCertificationResponse);
     rpc UpdateCertification(UpdateCertificationRequest) returns (UpdateCertificationResponse);
     rpc DeleteCertification(DeleteCertificationRequest) returns (DeleteCertificationResponse);
