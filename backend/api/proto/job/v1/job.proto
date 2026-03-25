@@ -15,6 +15,23 @@ service JobService {
   rpc DeleteJobAttachment(DeleteJobAttachmentRequest) returns (DeleteJobAttachmentResponse);
 }
 
+enum JobType {
+  JOB_TYPE_UNSPECIFIED = 0;
+  JOB_TYPE_FIXED = 1;
+  JOB_TYPE_HOURLY = 2;
+}
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  JOB_STATUS_OPEN = 1;
+  JOB_STATUS_CLOSED = 2;
+}
+
+enum CloseReason {
+  CLOSE_REASON_UNSPECIFIED = 0;
+  CLOSE_REASON_CANCELED = 1;
+}
+
 message CreateJobRequest {
   string title = 1;
   string description = 2;
@@ -25,6 +42,7 @@ message CreateJobRequest {
   string currency = 7;
   int64 deadline_unix_seconds = 8;
   repeated JobAttachment attachments = 9;
+  JobType job_type_enum = 10;
 }
 
 message CreateJobResponse {
@@ -43,6 +61,7 @@ message ListMyJobsRequest {
   string status = 1; // optional: open | closed
   int32 page_size = 2;
   string page_token = 3; // offset as string
+  JobStatus status_enum = 4;
 }
 
 message ListMyJobsResponse {
@@ -58,6 +77,7 @@ message ListOpenJobsRequest {
   string search_query = 3;
   repeated string skills = 4;
   string job_type = 5; // fixed | hourly
+  JobType job_type_enum = 6;
 }
 
 message ListOpenJobsResponse {
@@ -68,6 +88,7 @@ message ListOpenJobsResponse {
 message CloseJobRequest {
   int64 job_id = 1;
   string reason = 2;
+  CloseReason reason_enum = 3;
 }
 
 message CloseJobResponse {
@@ -105,6 +126,10 @@ message UpdateJobRequest {
   optional string currency = 8;
   optional int64 deadline_unix_seconds = 9;
   repeated JobAttachment attachments = 10;
+  optional JobType job_type_enum = 11;
+  bool clear_deadline = 12;
+  bool clear_required_skills = 13;
+  bool clear_attachments = 14;
 }
 
 message UpdateJobResponse {
@@ -135,4 +160,6 @@ message Job {
   int64 created_at_unix_seconds = 13;
   int64 updated_at_unix_seconds = 14;
   int64 closed_at_unix_seconds = 15;
+  JobType job_type_enum = 16;
+  JobStatus status_enum = 17;
 }

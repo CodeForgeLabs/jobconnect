@@ -21,6 +21,150 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type JobType int32
+
+const (
+	JobType_JOB_TYPE_UNSPECIFIED JobType = 0
+	JobType_JOB_TYPE_FIXED       JobType = 1
+	JobType_JOB_TYPE_HOURLY      JobType = 2
+)
+
+// Enum value maps for JobType.
+var (
+	JobType_name = map[int32]string{
+		0: "JOB_TYPE_UNSPECIFIED",
+		1: "JOB_TYPE_FIXED",
+		2: "JOB_TYPE_HOURLY",
+	}
+	JobType_value = map[string]int32{
+		"JOB_TYPE_UNSPECIFIED": 0,
+		"JOB_TYPE_FIXED":       1,
+		"JOB_TYPE_HOURLY":      2,
+	}
+)
+
+func (x JobType) Enum() *JobType {
+	p := new(JobType)
+	*p = x
+	return p
+}
+
+func (x JobType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (JobType) Descriptor() protoreflect.EnumDescriptor {
+	return file_job_v1_job_proto_enumTypes[0].Descriptor()
+}
+
+func (JobType) Type() protoreflect.EnumType {
+	return &file_job_v1_job_proto_enumTypes[0]
+}
+
+func (x JobType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use JobType.Descriptor instead.
+func (JobType) EnumDescriptor() ([]byte, []int) {
+	return file_job_v1_job_proto_rawDescGZIP(), []int{0}
+}
+
+type JobStatus int32
+
+const (
+	JobStatus_JOB_STATUS_UNSPECIFIED JobStatus = 0
+	JobStatus_JOB_STATUS_OPEN        JobStatus = 1
+	JobStatus_JOB_STATUS_CLOSED      JobStatus = 2
+)
+
+// Enum value maps for JobStatus.
+var (
+	JobStatus_name = map[int32]string{
+		0: "JOB_STATUS_UNSPECIFIED",
+		1: "JOB_STATUS_OPEN",
+		2: "JOB_STATUS_CLOSED",
+	}
+	JobStatus_value = map[string]int32{
+		"JOB_STATUS_UNSPECIFIED": 0,
+		"JOB_STATUS_OPEN":        1,
+		"JOB_STATUS_CLOSED":      2,
+	}
+)
+
+func (x JobStatus) Enum() *JobStatus {
+	p := new(JobStatus)
+	*p = x
+	return p
+}
+
+func (x JobStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (JobStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_job_v1_job_proto_enumTypes[1].Descriptor()
+}
+
+func (JobStatus) Type() protoreflect.EnumType {
+	return &file_job_v1_job_proto_enumTypes[1]
+}
+
+func (x JobStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use JobStatus.Descriptor instead.
+func (JobStatus) EnumDescriptor() ([]byte, []int) {
+	return file_job_v1_job_proto_rawDescGZIP(), []int{1}
+}
+
+type CloseReason int32
+
+const (
+	CloseReason_CLOSE_REASON_UNSPECIFIED CloseReason = 0
+	CloseReason_CLOSE_REASON_CANCELED    CloseReason = 1
+)
+
+// Enum value maps for CloseReason.
+var (
+	CloseReason_name = map[int32]string{
+		0: "CLOSE_REASON_UNSPECIFIED",
+		1: "CLOSE_REASON_CANCELED",
+	}
+	CloseReason_value = map[string]int32{
+		"CLOSE_REASON_UNSPECIFIED": 0,
+		"CLOSE_REASON_CANCELED":    1,
+	}
+)
+
+func (x CloseReason) Enum() *CloseReason {
+	p := new(CloseReason)
+	*p = x
+	return p
+}
+
+func (x CloseReason) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CloseReason) Descriptor() protoreflect.EnumDescriptor {
+	return file_job_v1_job_proto_enumTypes[2].Descriptor()
+}
+
+func (CloseReason) Type() protoreflect.EnumType {
+	return &file_job_v1_job_proto_enumTypes[2]
+}
+
+func (x CloseReason) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CloseReason.Descriptor instead.
+func (CloseReason) EnumDescriptor() ([]byte, []int) {
+	return file_job_v1_job_proto_rawDescGZIP(), []int{2}
+}
+
 type CreateJobRequest struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	Title               string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
@@ -32,6 +176,7 @@ type CreateJobRequest struct {
 	Currency            string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
 	DeadlineUnixSeconds int64                  `protobuf:"varint,8,opt,name=deadline_unix_seconds,json=deadlineUnixSeconds,proto3" json:"deadline_unix_seconds,omitempty"`
 	Attachments         []*JobAttachment       `protobuf:"bytes,9,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	JobTypeEnum         JobType                `protobuf:"varint,10,opt,name=job_type_enum,json=jobTypeEnum,proto3,enum=job.v1.JobType" json:"job_type_enum,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -127,6 +272,13 @@ func (x *CreateJobRequest) GetAttachments() []*JobAttachment {
 		return x.Attachments
 	}
 	return nil
+}
+
+func (x *CreateJobRequest) GetJobTypeEnum() JobType {
+	if x != nil {
+		return x.JobTypeEnum
+	}
+	return JobType_JOB_TYPE_UNSPECIFIED
 }
 
 type CreateJobResponse struct {
@@ -266,6 +418,7 @@ type ListMyJobsRequest struct {
 	Status        string                 `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"` // optional: open | closed
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"` // offset as string
+	StatusEnum    JobStatus              `protobuf:"varint,4,opt,name=status_enum,json=statusEnum,proto3,enum=job.v1.JobStatus" json:"status_enum,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -319,6 +472,13 @@ func (x *ListMyJobsRequest) GetPageToken() string {
 		return x.PageToken
 	}
 	return ""
+}
+
+func (x *ListMyJobsRequest) GetStatusEnum() JobStatus {
+	if x != nil {
+		return x.StatusEnum
+	}
+	return JobStatus_JOB_STATUS_UNSPECIFIED
 }
 
 type ListMyJobsResponse struct {
@@ -381,6 +541,7 @@ type ListOpenJobsRequest struct {
 	SearchQuery   string   `protobuf:"bytes,3,opt,name=search_query,json=searchQuery,proto3" json:"search_query,omitempty"`
 	Skills        []string `protobuf:"bytes,4,rep,name=skills,proto3" json:"skills,omitempty"`
 	JobType       string   `protobuf:"bytes,5,opt,name=job_type,json=jobType,proto3" json:"job_type,omitempty"` // fixed | hourly
+	JobTypeEnum   JobType  `protobuf:"varint,6,opt,name=job_type_enum,json=jobTypeEnum,proto3,enum=job.v1.JobType" json:"job_type_enum,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -450,6 +611,13 @@ func (x *ListOpenJobsRequest) GetJobType() string {
 	return ""
 }
 
+func (x *ListOpenJobsRequest) GetJobTypeEnum() JobType {
+	if x != nil {
+		return x.JobTypeEnum
+	}
+	return JobType_JOB_TYPE_UNSPECIFIED
+}
+
 type ListOpenJobsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Jobs          []*Job                 `protobuf:"bytes,1,rep,name=jobs,proto3" json:"jobs,omitempty"`
@@ -506,6 +674,7 @@ type CloseJobRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JobId         int64                  `protobuf:"varint,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
 	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	ReasonEnum    CloseReason            `protobuf:"varint,3,opt,name=reason_enum,json=reasonEnum,proto3,enum=job.v1.CloseReason" json:"reason_enum,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -552,6 +721,13 @@ func (x *CloseJobRequest) GetReason() string {
 		return x.Reason
 	}
 	return ""
+}
+
+func (x *CloseJobRequest) GetReasonEnum() CloseReason {
+	if x != nil {
+		return x.ReasonEnum
+	}
+	return CloseReason_CLOSE_REASON_UNSPECIFIED
 }
 
 type CloseJobResponse struct {
@@ -818,6 +994,10 @@ type UpdateJobRequest struct {
 	Currency            *string                `protobuf:"bytes,8,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
 	DeadlineUnixSeconds *int64                 `protobuf:"varint,9,opt,name=deadline_unix_seconds,json=deadlineUnixSeconds,proto3,oneof" json:"deadline_unix_seconds,omitempty"`
 	Attachments         []*JobAttachment       `protobuf:"bytes,10,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	JobTypeEnum         *JobType               `protobuf:"varint,11,opt,name=job_type_enum,json=jobTypeEnum,proto3,enum=job.v1.JobType,oneof" json:"job_type_enum,omitempty"`
+	ClearDeadline       bool                   `protobuf:"varint,12,opt,name=clear_deadline,json=clearDeadline,proto3" json:"clear_deadline,omitempty"`
+	ClearRequiredSkills bool                   `protobuf:"varint,13,opt,name=clear_required_skills,json=clearRequiredSkills,proto3" json:"clear_required_skills,omitempty"`
+	ClearAttachments    bool                   `protobuf:"varint,14,opt,name=clear_attachments,json=clearAttachments,proto3" json:"clear_attachments,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -920,6 +1100,34 @@ func (x *UpdateJobRequest) GetAttachments() []*JobAttachment {
 		return x.Attachments
 	}
 	return nil
+}
+
+func (x *UpdateJobRequest) GetJobTypeEnum() JobType {
+	if x != nil && x.JobTypeEnum != nil {
+		return *x.JobTypeEnum
+	}
+	return JobType_JOB_TYPE_UNSPECIFIED
+}
+
+func (x *UpdateJobRequest) GetClearDeadline() bool {
+	if x != nil {
+		return x.ClearDeadline
+	}
+	return false
+}
+
+func (x *UpdateJobRequest) GetClearRequiredSkills() bool {
+	if x != nil {
+		return x.ClearRequiredSkills
+	}
+	return false
+}
+
+func (x *UpdateJobRequest) GetClearAttachments() bool {
+	if x != nil {
+		return x.ClearAttachments
+	}
+	return false
 }
 
 type UpdateJobResponse struct {
@@ -1059,6 +1267,8 @@ type Job struct {
 	CreatedAtUnixSeconds int64                  `protobuf:"varint,13,opt,name=created_at_unix_seconds,json=createdAtUnixSeconds,proto3" json:"created_at_unix_seconds,omitempty"`
 	UpdatedAtUnixSeconds int64                  `protobuf:"varint,14,opt,name=updated_at_unix_seconds,json=updatedAtUnixSeconds,proto3" json:"updated_at_unix_seconds,omitempty"`
 	ClosedAtUnixSeconds  int64                  `protobuf:"varint,15,opt,name=closed_at_unix_seconds,json=closedAtUnixSeconds,proto3" json:"closed_at_unix_seconds,omitempty"`
+	JobTypeEnum          JobType                `protobuf:"varint,16,opt,name=job_type_enum,json=jobTypeEnum,proto3,enum=job.v1.JobType" json:"job_type_enum,omitempty"`
+	StatusEnum           JobStatus              `protobuf:"varint,17,opt,name=status_enum,json=statusEnum,proto3,enum=job.v1.JobStatus" json:"status_enum,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -1198,11 +1408,25 @@ func (x *Job) GetClosedAtUnixSeconds() int64 {
 	return 0
 }
 
+func (x *Job) GetJobTypeEnum() JobType {
+	if x != nil {
+		return x.JobTypeEnum
+	}
+	return JobType_JOB_TYPE_UNSPECIFIED
+}
+
+func (x *Job) GetStatusEnum() JobStatus {
+	if x != nil {
+		return x.StatusEnum
+	}
+	return JobStatus_JOB_STATUS_UNSPECIFIED
+}
+
 var File_job_v1_job_proto protoreflect.FileDescriptor
 
 const file_job_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x10job/v1/job.proto\x12\x06job.v1\"\xdb\x02\n" +
+	"\x10job/v1/job.proto\x12\x06job.v1\"\x90\x03\n" +
 	"\x10CreateJobRequest\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12'\n" +
@@ -1213,34 +1437,41 @@ const file_job_v1_job_proto_rawDesc = "" +
 	"hourlyRate\x12\x1a\n" +
 	"\bcurrency\x18\a \x01(\tR\bcurrency\x122\n" +
 	"\x15deadline_unix_seconds\x18\b \x01(\x03R\x13deadlineUnixSeconds\x127\n" +
-	"\vattachments\x18\t \x03(\v2\x15.job.v1.JobAttachmentR\vattachments\"2\n" +
+	"\vattachments\x18\t \x03(\v2\x15.job.v1.JobAttachmentR\vattachments\x123\n" +
+	"\rjob_type_enum\x18\n" +
+	" \x01(\x0e2\x0f.job.v1.JobTypeR\vjobTypeEnum\"2\n" +
 	"\x11CreateJobResponse\x12\x1d\n" +
 	"\x03job\x18\x01 \x01(\v2\v.job.v1.JobR\x03job\"&\n" +
 	"\rGetJobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\"/\n" +
 	"\x0eGetJobResponse\x12\x1d\n" +
-	"\x03job\x18\x01 \x01(\v2\v.job.v1.JobR\x03job\"g\n" +
+	"\x03job\x18\x01 \x01(\v2\v.job.v1.JobR\x03job\"\x9b\x01\n" +
 	"\x11ListMyJobsRequest\x12\x16\n" +
 	"\x06status\x18\x01 \x01(\tR\x06status\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
-	"page_token\x18\x03 \x01(\tR\tpageToken\"]\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\x122\n" +
+	"\vstatus_enum\x18\x04 \x01(\x0e2\x11.job.v1.JobStatusR\n" +
+	"statusEnum\"]\n" +
 	"\x12ListMyJobsResponse\x12\x1f\n" +
 	"\x04jobs\x18\x01 \x03(\v2\v.job.v1.JobR\x04jobs\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xa7\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xdc\x01\n" +
 	"\x13ListOpenJobsRequest\x12\x1b\n" +
 	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tR\tpageToken\x12!\n" +
 	"\fsearch_query\x18\x03 \x01(\tR\vsearchQuery\x12\x16\n" +
 	"\x06skills\x18\x04 \x03(\tR\x06skills\x12\x19\n" +
-	"\bjob_type\x18\x05 \x01(\tR\ajobType\"_\n" +
+	"\bjob_type\x18\x05 \x01(\tR\ajobType\x123\n" +
+	"\rjob_type_enum\x18\x06 \x01(\x0e2\x0f.job.v1.JobTypeR\vjobTypeEnum\"_\n" +
 	"\x14ListOpenJobsResponse\x12\x1f\n" +
 	"\x04jobs\x18\x01 \x03(\v2\v.job.v1.JobR\x04jobs\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"@\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"v\n" +
 	"\x0fCloseJobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"*\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x124\n" +
+	"\vreason_enum\x18\x03 \x01(\x0e2\x13.job.v1.CloseReasonR\n" +
+	"reasonEnum\"*\n" +
 	"\x10CloseJobResponse\x12\x16\n" +
 	"\x06closed\x18\x01 \x01(\bR\x06closed\"\x8d\x01\n" +
 	"\x1aUploadJobAttachmentRequest\x12\x15\n" +
@@ -1256,7 +1487,7 @@ const file_job_v1_job_proto_rawDesc = "" +
 	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\x12#\n" +
 	"\rattachment_id\x18\x02 \x01(\x03R\fattachmentId\"7\n" +
 	"\x1bDeleteJobAttachmentResponse\x12\x18\n" +
-	"\adeleted\x18\x01 \x01(\bR\adeleted\"\x84\x04\n" +
+	"\adeleted\x18\x01 \x01(\bR\adeleted\"\xd8\x05\n" +
 	"\x10UpdateJobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\x12\x19\n" +
 	"\x05title\x18\x02 \x01(\tH\x00R\x05title\x88\x01\x01\x12%\n" +
@@ -1269,14 +1500,19 @@ const file_job_v1_job_proto_rawDesc = "" +
 	"\bcurrency\x18\b \x01(\tH\x05R\bcurrency\x88\x01\x01\x127\n" +
 	"\x15deadline_unix_seconds\x18\t \x01(\x03H\x06R\x13deadlineUnixSeconds\x88\x01\x01\x127\n" +
 	"\vattachments\x18\n" +
-	" \x03(\v2\x15.job.v1.JobAttachmentR\vattachmentsB\b\n" +
+	" \x03(\v2\x15.job.v1.JobAttachmentR\vattachments\x128\n" +
+	"\rjob_type_enum\x18\v \x01(\x0e2\x0f.job.v1.JobTypeH\aR\vjobTypeEnum\x88\x01\x01\x12%\n" +
+	"\x0eclear_deadline\x18\f \x01(\bR\rclearDeadline\x122\n" +
+	"\x15clear_required_skills\x18\r \x01(\bR\x13clearRequiredSkills\x12+\n" +
+	"\x11clear_attachments\x18\x0e \x01(\bR\x10clearAttachmentsB\b\n" +
 	"\x06_titleB\x0e\n" +
 	"\f_descriptionB\v\n" +
 	"\t_job_typeB\x0f\n" +
 	"\r_budget_fixedB\x0e\n" +
 	"\f_hourly_rateB\v\n" +
 	"\t_currencyB\x18\n" +
-	"\x16_deadline_unix_seconds\"2\n" +
+	"\x16_deadline_unix_secondsB\x10\n" +
+	"\x0e_job_type_enum\"2\n" +
 	"\x11UpdateJobResponse\x12\x1d\n" +
 	"\x03job\x18\x01 \x01(\v2\v.job.v1.JobR\x03job\"\x90\x01\n" +
 	"\rJobAttachment\x12\x0e\n" +
@@ -1285,7 +1521,7 @@ const file_job_v1_job_proto_rawDesc = "" +
 	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\x12\x10\n" +
 	"\x03url\x18\x04 \x01(\tR\x03url\x12\x1d\n" +
 	"\n" +
-	"size_bytes\x18\x05 \x01(\x03R\tsizeBytes\"\xb6\x04\n" +
+	"size_bytes\x18\x05 \x01(\x03R\tsizeBytes\"\x9f\x05\n" +
 	"\x03Job\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1b\n" +
 	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12\x14\n" +
@@ -1303,7 +1539,21 @@ const file_job_v1_job_proto_rawDesc = "" +
 	"\x06status\x18\f \x01(\tR\x06status\x125\n" +
 	"\x17created_at_unix_seconds\x18\r \x01(\x03R\x14createdAtUnixSeconds\x125\n" +
 	"\x17updated_at_unix_seconds\x18\x0e \x01(\x03R\x14updatedAtUnixSeconds\x123\n" +
-	"\x16closed_at_unix_seconds\x18\x0f \x01(\x03R\x13closedAtUnixSeconds2\xd8\x04\n" +
+	"\x16closed_at_unix_seconds\x18\x0f \x01(\x03R\x13closedAtUnixSeconds\x123\n" +
+	"\rjob_type_enum\x18\x10 \x01(\x0e2\x0f.job.v1.JobTypeR\vjobTypeEnum\x122\n" +
+	"\vstatus_enum\x18\x11 \x01(\x0e2\x11.job.v1.JobStatusR\n" +
+	"statusEnum*L\n" +
+	"\aJobType\x12\x18\n" +
+	"\x14JOB_TYPE_UNSPECIFIED\x10\x00\x12\x12\n" +
+	"\x0eJOB_TYPE_FIXED\x10\x01\x12\x13\n" +
+	"\x0fJOB_TYPE_HOURLY\x10\x02*S\n" +
+	"\tJobStatus\x12\x1a\n" +
+	"\x16JOB_STATUS_UNSPECIFIED\x10\x00\x12\x13\n" +
+	"\x0fJOB_STATUS_OPEN\x10\x01\x12\x15\n" +
+	"\x11JOB_STATUS_CLOSED\x10\x02*F\n" +
+	"\vCloseReason\x12\x1c\n" +
+	"\x18CLOSE_REASON_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15CLOSE_REASON_CANCELED\x10\x012\xd8\x04\n" +
 	"\n" +
 	"JobService\x12@\n" +
 	"\tCreateJob\x12\x18.job.v1.CreateJobRequest\x1a\x19.job.v1.CreateJobResponse\x127\n" +
@@ -1328,58 +1578,69 @@ func file_job_v1_job_proto_rawDescGZIP() []byte {
 	return file_job_v1_job_proto_rawDescData
 }
 
+var file_job_v1_job_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
 var file_job_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
 var file_job_v1_job_proto_goTypes = []any{
-	(*CreateJobRequest)(nil),            // 0: job.v1.CreateJobRequest
-	(*CreateJobResponse)(nil),           // 1: job.v1.CreateJobResponse
-	(*GetJobRequest)(nil),               // 2: job.v1.GetJobRequest
-	(*GetJobResponse)(nil),              // 3: job.v1.GetJobResponse
-	(*ListMyJobsRequest)(nil),           // 4: job.v1.ListMyJobsRequest
-	(*ListMyJobsResponse)(nil),          // 5: job.v1.ListMyJobsResponse
-	(*ListOpenJobsRequest)(nil),         // 6: job.v1.ListOpenJobsRequest
-	(*ListOpenJobsResponse)(nil),        // 7: job.v1.ListOpenJobsResponse
-	(*CloseJobRequest)(nil),             // 8: job.v1.CloseJobRequest
-	(*CloseJobResponse)(nil),            // 9: job.v1.CloseJobResponse
-	(*UploadJobAttachmentRequest)(nil),  // 10: job.v1.UploadJobAttachmentRequest
-	(*UploadJobAttachmentResponse)(nil), // 11: job.v1.UploadJobAttachmentResponse
-	(*DeleteJobAttachmentRequest)(nil),  // 12: job.v1.DeleteJobAttachmentRequest
-	(*DeleteJobAttachmentResponse)(nil), // 13: job.v1.DeleteJobAttachmentResponse
-	(*UpdateJobRequest)(nil),            // 14: job.v1.UpdateJobRequest
-	(*UpdateJobResponse)(nil),           // 15: job.v1.UpdateJobResponse
-	(*JobAttachment)(nil),               // 16: job.v1.JobAttachment
-	(*Job)(nil),                         // 17: job.v1.Job
+	(JobType)(0),                        // 0: job.v1.JobType
+	(JobStatus)(0),                      // 1: job.v1.JobStatus
+	(CloseReason)(0),                    // 2: job.v1.CloseReason
+	(*CreateJobRequest)(nil),            // 3: job.v1.CreateJobRequest
+	(*CreateJobResponse)(nil),           // 4: job.v1.CreateJobResponse
+	(*GetJobRequest)(nil),               // 5: job.v1.GetJobRequest
+	(*GetJobResponse)(nil),              // 6: job.v1.GetJobResponse
+	(*ListMyJobsRequest)(nil),           // 7: job.v1.ListMyJobsRequest
+	(*ListMyJobsResponse)(nil),          // 8: job.v1.ListMyJobsResponse
+	(*ListOpenJobsRequest)(nil),         // 9: job.v1.ListOpenJobsRequest
+	(*ListOpenJobsResponse)(nil),        // 10: job.v1.ListOpenJobsResponse
+	(*CloseJobRequest)(nil),             // 11: job.v1.CloseJobRequest
+	(*CloseJobResponse)(nil),            // 12: job.v1.CloseJobResponse
+	(*UploadJobAttachmentRequest)(nil),  // 13: job.v1.UploadJobAttachmentRequest
+	(*UploadJobAttachmentResponse)(nil), // 14: job.v1.UploadJobAttachmentResponse
+	(*DeleteJobAttachmentRequest)(nil),  // 15: job.v1.DeleteJobAttachmentRequest
+	(*DeleteJobAttachmentResponse)(nil), // 16: job.v1.DeleteJobAttachmentResponse
+	(*UpdateJobRequest)(nil),            // 17: job.v1.UpdateJobRequest
+	(*UpdateJobResponse)(nil),           // 18: job.v1.UpdateJobResponse
+	(*JobAttachment)(nil),               // 19: job.v1.JobAttachment
+	(*Job)(nil),                         // 20: job.v1.Job
 }
 var file_job_v1_job_proto_depIdxs = []int32{
-	16, // 0: job.v1.CreateJobRequest.attachments:type_name -> job.v1.JobAttachment
-	17, // 1: job.v1.CreateJobResponse.job:type_name -> job.v1.Job
-	17, // 2: job.v1.GetJobResponse.job:type_name -> job.v1.Job
-	17, // 3: job.v1.ListMyJobsResponse.jobs:type_name -> job.v1.Job
-	17, // 4: job.v1.ListOpenJobsResponse.jobs:type_name -> job.v1.Job
-	16, // 5: job.v1.UploadJobAttachmentResponse.attachment:type_name -> job.v1.JobAttachment
-	16, // 6: job.v1.UpdateJobRequest.attachments:type_name -> job.v1.JobAttachment
-	17, // 7: job.v1.UpdateJobResponse.job:type_name -> job.v1.Job
-	16, // 8: job.v1.Job.attachments:type_name -> job.v1.JobAttachment
-	0,  // 9: job.v1.JobService.CreateJob:input_type -> job.v1.CreateJobRequest
-	2,  // 10: job.v1.JobService.GetJob:input_type -> job.v1.GetJobRequest
-	14, // 11: job.v1.JobService.UpdateJob:input_type -> job.v1.UpdateJobRequest
-	4,  // 12: job.v1.JobService.ListMyJobs:input_type -> job.v1.ListMyJobsRequest
-	6,  // 13: job.v1.JobService.ListOpenJobs:input_type -> job.v1.ListOpenJobsRequest
-	8,  // 14: job.v1.JobService.CloseJob:input_type -> job.v1.CloseJobRequest
-	10, // 15: job.v1.JobService.UploadJobAttachment:input_type -> job.v1.UploadJobAttachmentRequest
-	12, // 16: job.v1.JobService.DeleteJobAttachment:input_type -> job.v1.DeleteJobAttachmentRequest
-	1,  // 17: job.v1.JobService.CreateJob:output_type -> job.v1.CreateJobResponse
-	3,  // 18: job.v1.JobService.GetJob:output_type -> job.v1.GetJobResponse
-	15, // 19: job.v1.JobService.UpdateJob:output_type -> job.v1.UpdateJobResponse
-	5,  // 20: job.v1.JobService.ListMyJobs:output_type -> job.v1.ListMyJobsResponse
-	7,  // 21: job.v1.JobService.ListOpenJobs:output_type -> job.v1.ListOpenJobsResponse
-	9,  // 22: job.v1.JobService.CloseJob:output_type -> job.v1.CloseJobResponse
-	11, // 23: job.v1.JobService.UploadJobAttachment:output_type -> job.v1.UploadJobAttachmentResponse
-	13, // 24: job.v1.JobService.DeleteJobAttachment:output_type -> job.v1.DeleteJobAttachmentResponse
-	17, // [17:25] is the sub-list for method output_type
-	9,  // [9:17] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	19, // 0: job.v1.CreateJobRequest.attachments:type_name -> job.v1.JobAttachment
+	0,  // 1: job.v1.CreateJobRequest.job_type_enum:type_name -> job.v1.JobType
+	20, // 2: job.v1.CreateJobResponse.job:type_name -> job.v1.Job
+	20, // 3: job.v1.GetJobResponse.job:type_name -> job.v1.Job
+	1,  // 4: job.v1.ListMyJobsRequest.status_enum:type_name -> job.v1.JobStatus
+	20, // 5: job.v1.ListMyJobsResponse.jobs:type_name -> job.v1.Job
+	0,  // 6: job.v1.ListOpenJobsRequest.job_type_enum:type_name -> job.v1.JobType
+	20, // 7: job.v1.ListOpenJobsResponse.jobs:type_name -> job.v1.Job
+	2,  // 8: job.v1.CloseJobRequest.reason_enum:type_name -> job.v1.CloseReason
+	19, // 9: job.v1.UploadJobAttachmentResponse.attachment:type_name -> job.v1.JobAttachment
+	19, // 10: job.v1.UpdateJobRequest.attachments:type_name -> job.v1.JobAttachment
+	0,  // 11: job.v1.UpdateJobRequest.job_type_enum:type_name -> job.v1.JobType
+	20, // 12: job.v1.UpdateJobResponse.job:type_name -> job.v1.Job
+	19, // 13: job.v1.Job.attachments:type_name -> job.v1.JobAttachment
+	0,  // 14: job.v1.Job.job_type_enum:type_name -> job.v1.JobType
+	1,  // 15: job.v1.Job.status_enum:type_name -> job.v1.JobStatus
+	3,  // 16: job.v1.JobService.CreateJob:input_type -> job.v1.CreateJobRequest
+	5,  // 17: job.v1.JobService.GetJob:input_type -> job.v1.GetJobRequest
+	17, // 18: job.v1.JobService.UpdateJob:input_type -> job.v1.UpdateJobRequest
+	7,  // 19: job.v1.JobService.ListMyJobs:input_type -> job.v1.ListMyJobsRequest
+	9,  // 20: job.v1.JobService.ListOpenJobs:input_type -> job.v1.ListOpenJobsRequest
+	11, // 21: job.v1.JobService.CloseJob:input_type -> job.v1.CloseJobRequest
+	13, // 22: job.v1.JobService.UploadJobAttachment:input_type -> job.v1.UploadJobAttachmentRequest
+	15, // 23: job.v1.JobService.DeleteJobAttachment:input_type -> job.v1.DeleteJobAttachmentRequest
+	4,  // 24: job.v1.JobService.CreateJob:output_type -> job.v1.CreateJobResponse
+	6,  // 25: job.v1.JobService.GetJob:output_type -> job.v1.GetJobResponse
+	18, // 26: job.v1.JobService.UpdateJob:output_type -> job.v1.UpdateJobResponse
+	8,  // 27: job.v1.JobService.ListMyJobs:output_type -> job.v1.ListMyJobsResponse
+	10, // 28: job.v1.JobService.ListOpenJobs:output_type -> job.v1.ListOpenJobsResponse
+	12, // 29: job.v1.JobService.CloseJob:output_type -> job.v1.CloseJobResponse
+	14, // 30: job.v1.JobService.UploadJobAttachment:output_type -> job.v1.UploadJobAttachmentResponse
+	16, // 31: job.v1.JobService.DeleteJobAttachment:output_type -> job.v1.DeleteJobAttachmentResponse
+	24, // [24:32] is the sub-list for method output_type
+	16, // [16:24] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_job_v1_job_proto_init() }
@@ -1393,13 +1654,14 @@ func file_job_v1_job_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_job_v1_job_proto_rawDesc), len(file_job_v1_job_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      3,
 			NumMessages:   18,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_job_v1_job_proto_goTypes,
 		DependencyIndexes: file_job_v1_job_proto_depIdxs,
+		EnumInfos:         file_job_v1_job_proto_enumTypes,
 		MessageInfos:      file_job_v1_job_proto_msgTypes,
 	}.Build()
 	File_job_v1_job_proto = out.File
