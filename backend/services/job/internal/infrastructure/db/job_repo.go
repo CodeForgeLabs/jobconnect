@@ -50,9 +50,9 @@ func (r *JobRepo) Create(ctx context.Context, job domain.Job) (int64, error) {
 
 	for _, att := range job.Attachments {
 		_, err = tx.Exec(ctx, `
-			insert into job_attachments (job_id, file_name, content_type, url, size_bytes)
-			values ($1,$2,$3,$4,$5)
-		`, id, att.FileName, att.ContentType, att.URL, att.SizeBytes)
+			insert into job_attachments (job_id, file_name, content_type, storage_key, url, size_bytes)
+			values ($1,$2,$3,$4,$5,$6)
+		`, id, att.FileName, att.ContentType, att.StorageKey, att.URL, att.SizeBytes)
 		if err != nil {
 			return 0, err
 		}
@@ -115,6 +115,9 @@ func (r *JobRepo) ListByClient(ctx context.Context, clientID uuid.UUID, status s
 	if rows.Err() != nil {
 		return nil, rows.Err()
 	}
+	if err := r.hydrateAttachments(ctx, jobs); err != nil {
+		return nil, err
+	}
 	return jobs, nil
 }
 
@@ -143,6 +146,9 @@ func (r *JobRepo) ListOpen(ctx context.Context, limit, offset int) ([]domain.Job
 	if rows.Err() != nil {
 		return nil, rows.Err()
 	}
+	if err := r.hydrateAttachments(ctx, jobs); err != nil {
+		return nil, err
+	}
 	return jobs, nil
 }
 
@@ -164,6 +170,47 @@ func (r *JobRepo) Close(ctx context.Context, jobID int64, clientID uuid.UUID, re
 	return nil
 }
 
+func (r *JobRepo) AddAttachment(ctx context.Context, jobID int64, clientID uuid.UUID, attachment domain.Attachment) (domain.Attachment, error) {
+	var id int64
+	err := r.pool.QueryRow(ctx, `
+		insert into job_attachments (job_id, file_name, content_type, storage_key, url, size_bytes)
+		select j.id, $3, $4, $5, $6, $7
+		from jobs j
+		where j.id = $1 and j.client_id = $2 and j.status = $8
+		returning id
+	`, jobID, clientID, attachment.FileName, attachment.ContentType, attachment.StorageKey, attachment.URL, attachment.SizeBytes, domain.JobStatusOpen).Scan(&id)
+	if err != nil {
+		if isNoRows(err) {
+			return domain.Attachment{}, ErrNotFound
+		}
+		return domain.Attachment{}, err
+	}
+
+	attachment.ID = id
+	return attachment, nil
+}
+
+func (r *JobRepo) DeleteAttachment(ctx context.Context, jobID int64, attachmentID int64, clientID uuid.UUID) (domain.Attachment, error) {
+	var att domain.Attachment
+	err := r.pool.QueryRow(ctx, `
+		delete from job_attachments a
+		using jobs j
+		where a.job_id = j.id
+		  and a.id = $1
+		  and j.id = $2
+		  and j.client_id = $3
+		  and j.status = $4
+		returning a.id, a.file_name, a.content_type, a.storage_key, a.url, a.size_bytes
+	`, attachmentID, jobID, clientID, domain.JobStatusOpen).Scan(&att.ID, &att.FileName, &att.ContentType, &att.StorageKey, &att.URL, &att.SizeBytes)
+	if err != nil {
+		if isNoRows(err) {
+			return domain.Attachment{}, ErrNotFound
+		}
+		return domain.Attachment{}, err
+	}
+	return att, nil
+}
+
 func (r *JobRepo) getJobByQuery(ctx context.Context, where string, args ...any) (domain.Job, error) {
 	query := fmt.Sprintf(`
 		select id, client_id, title, description, required_skills, job_type,
@@ -182,7 +229,7 @@ func (r *JobRepo) getJobByQuery(ctx context.Context, where string, args ...any) 
 	}
 
 	attRows, err := r.pool.Query(ctx, `
-		select id, file_name, content_type, url, size_bytes
+		select id, file_name, content_type, storage_key, url, size_bytes
 		from job_attachments
 		where job_id = $1
 		order by id asc
@@ -195,7 +242,7 @@ func (r *JobRepo) getJobByQuery(ctx context.Context, where string, args ...any) 
 	attachments := make([]domain.Attachment, 0)
 	for attRows.Next() {
 		var a domain.Attachment
-		if err := attRows.Scan(&a.ID, &a.FileName, &a.ContentType, &a.URL, &a.SizeBytes); err != nil {
+		if err := attRows.Scan(&a.ID, &a.FileName, &a.ContentType, &a.StorageKey, &a.URL, &a.SizeBytes); err != nil {
 			return domain.Job{}, err
 		}
 		attachments = append(attachments, a)
@@ -274,9 +321,9 @@ func (r *JobRepo) Update(ctx context.Context, job domain.Job) (domain.Job, error
 	}
 	for _, att := range job.Attachments {
 		_, err = tx.Exec(ctx, `
-			insert into job_attachments (job_id, file_name, content_type, url, size_bytes)
-			values ($1,$2,$3,$4,$5)
-		`, job.ID, att.FileName, att.ContentType, att.URL, att.SizeBytes)
+			insert into job_attachments (job_id, file_name, content_type, storage_key, url, size_bytes)
+			values ($1,$2,$3,$4,$5,$6)
+		`, job.ID, att.FileName, att.ContentType, att.StorageKey, att.URL, att.SizeBytes)
 		if err != nil {
 			return domain.Job{}, err
 		}
@@ -341,5 +388,52 @@ func (r *JobRepo) ListOpenFiltered(ctx context.Context, filter application.ListO
 	if rows.Err() != nil {
 		return nil, rows.Err()
 	}
+	if err := r.hydrateAttachments(ctx, jobs); err != nil {
+		return nil, err
+	}
 	return jobs, nil
+}
+
+func (r *JobRepo) hydrateAttachments(ctx context.Context, jobs []domain.Job) error {
+	if len(jobs) == 0 {
+		return nil
+	}
+
+	jobIDArgs := make([]any, 0, len(jobs))
+	placeholders := make([]string, 0, len(jobs))
+	for i, j := range jobs {
+		jobIDArgs = append(jobIDArgs, j.ID)
+		placeholders = append(placeholders, fmt.Sprintf("$%d", i+1))
+	}
+
+	query := fmt.Sprintf(`
+		select job_id, id, file_name, content_type, storage_key, url, size_bytes
+		from job_attachments
+		where job_id in (%s)
+		order by job_id asc, id asc
+	`, strings.Join(placeholders, ","))
+
+	rows, err := r.pool.Query(ctx, query, jobIDArgs...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	byJob := make(map[int64][]domain.Attachment, len(jobs))
+	for rows.Next() {
+		var jobID int64
+		var a domain.Attachment
+		if err := rows.Scan(&jobID, &a.ID, &a.FileName, &a.ContentType, &a.StorageKey, &a.URL, &a.SizeBytes); err != nil {
+			return err
+		}
+		byJob[jobID] = append(byJob[jobID], a)
+	}
+	if rows.Err() != nil {
+		return rows.Err()
+	}
+
+	for i := range jobs {
+		jobs[i].Attachments = byJob[jobs[i].ID]
+	}
+	return nil
 }
