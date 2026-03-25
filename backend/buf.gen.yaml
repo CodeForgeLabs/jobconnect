@@ -1,8 +1,8 @@
 version: v2
 plugins:
-  - plugin: go
-    out: services/auth/gen
+  - local: protoc-gen-go
+    out: services/chat/gen
     opt: paths=source_relative
-  - plugin: go-grpc
-    out: services/auth/gen
+  - local: protoc-gen-go-grpc
+    out: services/chat/gen
     opt: paths=source_relative
