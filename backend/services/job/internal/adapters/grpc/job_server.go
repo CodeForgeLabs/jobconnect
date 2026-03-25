@@ -14,13 +14,15 @@ import (
 
 type JobServer struct {
 	jobv1.UnimplementedJobServiceServer
-	CreateJobUC    *application.CreateJob
-	GetJobUC       *application.GetJob
-	UpdateJobUC    *application.UpdateJob
-	ListMyJobsUC   *application.ListMyJobs
-	ListOpenJobsUC *application.ListOpenJobs
-	CloseJobUC     *application.CloseJob
-	TokenParser    TokenParser
+	CreateJobUC        *application.CreateJob
+	GetJobUC           *application.GetJob
+	UpdateJobUC        *application.UpdateJob
+	ListMyJobsUC       *application.ListMyJobs
+	ListOpenJobsUC     *application.ListOpenJobs
+	CloseJobUC         *application.CloseJob
+	UploadAttachmentUC *application.UploadJobAttachment
+	DeleteAttachmentUC *application.DeleteJobAttachment
+	TokenParser        TokenParser
 }
 
 func NewJobServer(
@@ -30,16 +32,20 @@ func NewJobServer(
 	listMyJobs *application.ListMyJobs,
 	listOpenJobs *application.ListOpenJobs,
 	closeJob *application.CloseJob,
+	uploadAttachment *application.UploadJobAttachment,
+	deleteAttachment *application.DeleteJobAttachment,
 	tokenParser TokenParser,
 ) *JobServer {
 	return &JobServer{
-		CreateJobUC:    createJob,
-		GetJobUC:       getJob,
-		UpdateJobUC:    updateJob,
-		ListMyJobsUC:   listMyJobs,
-		ListOpenJobsUC: listOpenJobs,
-		CloseJobUC:     closeJob,
-		TokenParser:    tokenParser,
+		CreateJobUC:        createJob,
+		GetJobUC:           getJob,
+		UpdateJobUC:        updateJob,
+		ListMyJobsUC:       listMyJobs,
+		ListOpenJobsUC:     listOpenJobs,
+		CloseJobUC:         closeJob,
+		UploadAttachmentUC: uploadAttachment,
+		DeleteAttachmentUC: deleteAttachment,
+		TokenParser:        tokenParser,
 	}
 }
 
@@ -238,6 +244,62 @@ func (s *JobServer) CloseJob(ctx context.Context, req *jobv1.CloseJobRequest) (*
 		return nil, toStatus(err)
 	}
 	return &jobv1.CloseJobResponse{Closed: out.Closed}, nil
+}
+
+func (s *JobServer) UploadJobAttachment(ctx context.Context, req *jobv1.UploadJobAttachmentRequest) (*jobv1.UploadJobAttachmentResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.UploadAttachmentUC.Execute(ctx, application.UploadJobAttachmentInput{
+		JobID:        req.JobId,
+		ClientID:     callerID,
+		FileName:     req.FileName,
+		ContentType:  req.ContentType,
+		ContentBytes: req.Content,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &jobv1.UploadJobAttachmentResponse{Attachment: &jobv1.JobAttachment{
+		Id:          out.Attachment.ID,
+		FileName:    out.Attachment.FileName,
+		ContentType: out.Attachment.ContentType,
+		Url:         out.Attachment.URL,
+		SizeBytes:   out.Attachment.SizeBytes,
+	}}, nil
+}
+
+func (s *JobServer) DeleteJobAttachment(ctx context.Context, req *jobv1.DeleteJobAttachmentRequest) (*jobv1.DeleteJobAttachmentResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.DeleteAttachmentUC.Execute(ctx, application.DeleteJobAttachmentInput{
+		JobID:        req.JobId,
+		AttachmentID: req.AttachmentId,
+		ClientID:     callerID,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &jobv1.DeleteJobAttachmentResponse{Deleted: out.Deleted}, nil
 }
 
 func toProtoJob(in domain.Job) *jobv1.Job {

@@ -24,6 +24,7 @@ type Attachment struct {
 	ID          int64
 	FileName    string
 	ContentType string
+	StorageKey  string
 	URL         string
 	SizeBytes   int64
 }
