@@ -15,7 +15,17 @@ const (
 	JobTypeHourly = "hourly"
 
 	JobStatusOpen   = "open"
+	JobStatusPaused = "paused"
+	JobStatusFilled = "filled"
 	JobStatusClosed = "closed"
+
+	VisibilityPublic     = "public"
+	VisibilityPrivate    = "private"
+	VisibilityInviteOnly = "invite_only"
+
+	ExperienceEntry        = "entry"
+	ExperienceIntermediate = "intermediate"
+	ExperienceExpert       = "expert"
 
 	CloseReasonCanceled = "canceled"
 )
@@ -30,22 +40,28 @@ type Attachment struct {
 }
 
 type Job struct {
-	ID             int64
-	ClientID       uuid.UUID
-	Title          string
-	Description    string
-	RequiredSkills []string
-	JobType        string
-	BudgetFixed    float64
-	HourlyRate     float64
-	Currency       string
-	Deadline       *time.Time
-	Attachments    []Attachment
-	Status         string
-	CloseReason    string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	ClosedAt       *time.Time
+	ID              int64
+	ClientID        uuid.UUID
+	Title           string
+	Description     string
+	RequiredSkills  []string
+	JobType         string
+	BudgetFixed     float64
+	HourlyRate      float64
+	Currency        string
+	BudgetMin       float64
+	BudgetMax       float64
+	Visibility      string
+	ExperienceLevel string
+	Deadline        *time.Time
+	Attachments     []Attachment
+	Status          string
+	CloseReason     string
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	ClosedAt        *time.Time
+	PausedAt        *time.Time
+	FilledAt        *time.Time
 }
 
 func ValidateJobType(jobType string) error {
@@ -66,8 +82,36 @@ func ValidateStatus(status string) error {
 	switch status {
 	case JobStatusOpen, JobStatusClosed:
 		return nil
+	case JobStatusPaused, JobStatusFilled:
+		return nil
 	default:
 		return fmt.Errorf("invalid status")
+	}
+}
+
+func ValidateVisibility(visibility string) error {
+	if visibility == "" {
+		return nil
+	}
+	visibility = strings.ToLower(strings.TrimSpace(visibility))
+	switch visibility {
+	case VisibilityPublic, VisibilityPrivate, VisibilityInviteOnly:
+		return nil
+	default:
+		return fmt.Errorf("invalid visibility")
+	}
+}
+
+func ValidateExperienceLevel(level string) error {
+	if level == "" {
+		return nil
+	}
+	level = strings.ToLower(strings.TrimSpace(level))
+	switch level {
+	case ExperienceEntry, ExperienceIntermediate, ExperienceExpert:
+		return nil
+	default:
+		return fmt.Errorf("invalid experience_level")
 	}
 }
 
