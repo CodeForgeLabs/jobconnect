@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"jobconnect/job/internal/application"
 	proposalv1 "jobconnect/api/proto/proposal/v1"
+	"jobconnect/job/internal/application"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -30,7 +30,7 @@ func NewProposalClient(address string) (*ProposalClient, error) {
 func (c *ProposalClient) ListProposalsByJob(ctx context.Context, jobID int64) ([]application.Proposal, error) {
 	// Note: Authentication interceptor or systemic auth bypass might be needed for S2S calls
 	// For MVP without strict S2S auth token generation, assuming internal network trust or mock tokens.
-	
+
 	req := &proposalv1.ListProposalsByJobRequest{
 		JobId:    jobID,
 		PageSize: 100, // Handle pagination in real-world scenarios
@@ -45,8 +45,8 @@ func (c *ProposalClient) ListProposalsByJob(ctx context.Context, jobID int64) ([
 	for _, p := range res.Proposals {
 		if p.Status == proposalv1.ProposalStatus_PROPOSAL_STATUS_SENT || p.Status == proposalv1.ProposalStatus_PROPOSAL_STATUS_SHORTLISTED {
 			proposals = append(proposals, application.Proposal{
-				ID:           p.Id,
-				FreelancerID: p.FreelancerId,
+				ID:            p.Id,
+				FreelancerID:  p.FreelancerId,
 				ConnectsSpent: p.ConnectsSpent,
 			})
 		}
