@@ -546,6 +546,29 @@ func (r *JobRepo) MarkFilled(ctx context.Context, jobID int64, clientID uuid.UUI
 	return r.GetByIDForClient(ctx, jobID, clientID)
 }
 
+func (r *JobRepo) InviteFreelancer(ctx context.Context, jobID int64, clientID uuid.UUID, freelancerID string, createdAt time.Time) (bool, error) {
+	res, err := r.pool.Exec(ctx, `
+		insert into job_invites (job_id, client_id, freelancer_id, created_at)
+		select j.id, j.client_id, $3::uuid, $4
+		from jobs j
+		where j.id = $1 and j.client_id = $2 and j.status in ('open','paused')
+		on conflict (job_id, freelancer_id) do nothing
+	`, jobID, clientID, freelancerID, createdAt)
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "invalid input syntax for type uuid") {
+			return false, fmt.Errorf("invalid freelancer_id")
+		}
+		return false, err
+	}
+	if res.RowsAffected() == 0 {
+		if _, err := r.GetByIDForClient(ctx, jobID, clientID); err != nil {
+			return false, err
+		}
+		return false, nil
+	}
+	return true, nil
+}
+
 func (r *JobRepo) ListAttachments(ctx context.Context, jobID int64, clientID uuid.UUID) ([]domain.Attachment, error) {
 	rows, err := r.pool.Query(ctx, `
 		select a.id, a.file_name, a.content_type, a.storage_key, a.url, a.size_bytes
