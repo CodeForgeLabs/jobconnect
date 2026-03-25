@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package chat.v1;
+
+option go_package = "jobconnect/chat/gen/chat/v1;chatv1";
+
+service ChatService {
+  rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
+  rpc GetMessages (GetMessagesRequest) returns (GetMessagesResponse);
+  rpc MarkAsSeen (MarkAsSeenRequest) returns (MarkAsSeenResponse);
+  rpc EditMessage (EditMessageRequest) returns (EditMessageResponse);
+  rpc DeleteMessage (DeleteMessageRequest) returns (DeleteMessageResponse);
+  rpc GetConversations (GetConversationsRequest) returns (GetConversationsResponse);
+  rpc DeleteConversation (DeleteConversationRequest) returns (DeleteConversationResponse);
+}
+
+message DeleteConversationRequest {
+  string user1= 1;      
+  string user2 = 2; 
+}
+
+message DeleteConversationResponse {
+  bool success = 1;
+}
+
+//////////////////////
+// REQUESTS
+//////////////////////
+
+message SendMessageRequest {
+  string sender_id = 1;
+  string receiver_id = 2;
+  MessageContent content = 3;
+}
+
+message GetMessagesRequest {
+  string user1 = 1;
+  string user2 = 2;
+}
+
+message MarkAsSeenRequest {
+  string message_id = 1;
+  string user_id = 2;
+}
+
+message EditMessageRequest {
+  string message_id = 1;
+  MessageContent new_content = 2;
+}
+
+message DeleteMessageRequest {
+  string message_id = 1;
+}
+
+//////////////////////
+// RESPONSES
+//////////////////////
+
+message SendMessageResponse {
+  Message message = 1;
+}
+
+message GetMessagesResponse {
+  repeated Message messages = 1;
+}
+
+message MarkAsSeenResponse {
+  bool success = 1;
+}
+
+message EditMessageResponse {
+  bool success = 1;
+}
+
+message DeleteMessageResponse {
+  bool success = 1;
+}
+
+//////////////////////
+// CORE MESSAGE
+//////////////////////
+
+message Message {
+  string id = 1;
+  string sender_id = 2;
+  string receiver_id = 3;
+
+  MessageContent content = 4;
+
+  bool is_seen = 5;
+  string seen_at = 6;
+
+  bool is_edited = 7;
+  string edited_at = 8;
+
+  bool is_deleted = 9;
+  string deleted_at = 10;
+
+  string created_at = 11;
+}
+
+//////////////////////
+// CONTENT
+//////////////////////
+
+message MessageContent {
+  oneof type {
+    TextContent text = 1;
+    ImageContent image = 2;
+    VideoContent video = 3;
+  }
+}
+
+message TextContent {
+  string text = 1;
+}
+
+message ImageContent {
+  string image_url = 1;
+  string caption = 2;
+}
+
+message VideoContent {
+  string video_url = 1;
+  string caption = 2;
+}
+
+message GetConversationsRequest {
+  string user_id = 1;
+}
+
+message Conversation {
+  string other_user_id = 1;
+  Message last_message = 2;
+  int32 unseen_count = 3; // <--- The number you asked for
+}
+
+message GetConversationsResponse {
+  repeated Conversation conversations = 1;
+}

@@ -95,6 +95,18 @@ services:
       timeout: 5s
       retries: 20
 
+  chat-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: chat
+      POSTGRES_PASSWORD: chat
+      POSTGRES_DB: jobconnect_chat
+    ports:
+      - "5438:5432"
+    volumes:
+      - chat-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chat -d jobconnect_chat"]
   verification-db:
     image: postgres:16-alpine
     environment:
@@ -106,7 +118,8 @@ services:
     volumes:
       - verification-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U verification -d jobconnect_verification"]
+      test:
+        ["CMD-SHELL", "pg_isready -U verification -d jobconnect_verification"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -241,6 +254,20 @@ services:
     depends_on:
       wallet-db:
         condition: service_healthy
+  chat:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: chat
+        CMD_PATH: ./cmd/chatd
+    env_file:
+      - .env
+    ports:
+      - "50060:50060"
+    depends_on:
+      chat-db:
+        condition: service_healthy
 
   verification:
     build:
@@ -306,6 +333,7 @@ volumes:
   proposal-db-data:
   contract-db-data:
   wallet-db-data:
+  chat-db-data:
   verification-db-data:
   payment-db-data:
   minio-data:
