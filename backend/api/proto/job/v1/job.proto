@@ -13,6 +13,29 @@ service JobService {
   rpc CloseJob(CloseJobRequest) returns (CloseJobResponse);
   rpc UploadJobAttachment(UploadJobAttachmentRequest) returns (UploadJobAttachmentResponse);
   rpc DeleteJobAttachment(DeleteJobAttachmentRequest) returns (DeleteJobAttachmentResponse);
+
+  // Category 2: Rich job configuration.
+  rpc SetJobVisibility(SetJobVisibilityRequest) returns (SetJobVisibilityResponse);
+  rpc SetJobBudgetRange(SetJobBudgetRangeRequest) returns (SetJobBudgetRangeResponse);
+  rpc SetJobExperienceLevel(SetJobExperienceLevelRequest) returns (SetJobExperienceLevelResponse);
+
+  // Category 4: Invite + applicant funnel bridge.
+  rpc InviteFreelancerToJob(InviteFreelancerToJobRequest) returns (InviteFreelancerToJobResponse);
+  rpc ListJobApplicants(ListJobApplicantsRequest) returns (ListJobApplicantsResponse);
+  rpc SetApplicantStage(SetApplicantStageRequest) returns (SetApplicantStageResponse);
+
+  // Category 5: Lifecycle depth.
+  rpc PauseJob(PauseJobRequest) returns (PauseJobResponse);
+  rpc ReopenJob(ReopenJobRequest) returns (ReopenJobResponse);
+  rpc MarkJobFilled(MarkJobFilledRequest) returns (MarkJobFilledResponse);
+
+  // Category 6: Search/discovery quality.
+  rpc SearchJobs(SearchJobsRequest) returns (SearchJobsResponse);
+  rpc ListJobFacets(ListJobFacetsRequest) returns (ListJobFacetsResponse);
+
+  // Category 10: Attachment/media maturity.
+  rpc ListJobAttachments(ListJobAttachmentsRequest) returns (ListJobAttachmentsResponse);
+  rpc GetJobAttachmentDownloadUrl(GetJobAttachmentDownloadUrlRequest) returns (GetJobAttachmentDownloadUrlResponse);
 }
 
 enum JobType {
@@ -24,12 +47,36 @@ enum JobType {
 enum JobStatus {
   JOB_STATUS_UNSPECIFIED = 0;
   JOB_STATUS_OPEN = 1;
-  JOB_STATUS_CLOSED = 2;
+  JOB_STATUS_PAUSED = 2;
+  JOB_STATUS_FILLED = 3;
+  JOB_STATUS_CLOSED = 4;
 }
 
 enum CloseReason {
   CLOSE_REASON_UNSPECIFIED = 0;
   CLOSE_REASON_CANCELED = 1;
+}
+
+enum Visibility {
+  VISIBILITY_UNSPECIFIED = 0;
+  VISIBILITY_PUBLIC = 1;
+  VISIBILITY_PRIVATE = 2;
+  VISIBILITY_INVITE_ONLY = 3;
+}
+
+enum ExperienceLevel {
+  EXPERIENCE_LEVEL_UNSPECIFIED = 0;
+  EXPERIENCE_LEVEL_ENTRY = 1;
+  EXPERIENCE_LEVEL_INTERMEDIATE = 2;
+  EXPERIENCE_LEVEL_EXPERT = 3;
+}
+
+enum ApplicantStage {
+  APPLICANT_STAGE_UNSPECIFIED = 0;
+  APPLICANT_STAGE_SENT = 1;
+  APPLICANT_STAGE_SHORTLISTED = 2;
+  APPLICANT_STAGE_REJECTED = 3;
+  APPLICANT_STAGE_HIRED = 4;
 }
 
 message CreateJobRequest {
@@ -115,6 +162,146 @@ message DeleteJobAttachmentResponse {
   bool deleted = 1;
 }
 
+message SetJobVisibilityRequest {
+  int64 job_id = 1;
+  Visibility visibility = 2;
+}
+
+message SetJobVisibilityResponse {
+  Job job = 1;
+}
+
+message SetJobBudgetRangeRequest {
+  int64 job_id = 1;
+  double budget_min = 2;
+  double budget_max = 3;
+}
+
+message SetJobBudgetRangeResponse {
+  Job job = 1;
+}
+
+message SetJobExperienceLevelRequest {
+  int64 job_id = 1;
+  ExperienceLevel experience_level = 2;
+}
+
+message SetJobExperienceLevelResponse {
+  Job job = 1;
+}
+
+message InviteFreelancerToJobRequest {
+  int64 job_id = 1;
+  string freelancer_id = 2;
+}
+
+message InviteFreelancerToJobResponse {
+  bool invited = 1;
+}
+
+message ListJobApplicantsRequest {
+  int64 job_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message Applicant {
+  int64 proposal_id = 1;
+  string freelancer_id = 2;
+  ApplicantStage stage = 3;
+  int32 connects_spent = 4;
+}
+
+message ListJobApplicantsResponse {
+  repeated Applicant applicants = 1;
+  string next_page_token = 2;
+}
+
+message SetApplicantStageRequest {
+  int64 proposal_id = 1;
+  ApplicantStage stage = 2;
+  string reason = 3;
+}
+
+message SetApplicantStageResponse {
+  bool updated = 1;
+}
+
+message PauseJobRequest {
+  int64 job_id = 1;
+  string reason = 2;
+}
+
+message PauseJobResponse {
+  Job job = 1;
+}
+
+message ReopenJobRequest {
+  int64 job_id = 1;
+}
+
+message ReopenJobResponse {
+  Job job = 1;
+}
+
+message MarkJobFilledRequest {
+  int64 job_id = 1;
+}
+
+message MarkJobFilledResponse {
+  Job job = 1;
+}
+
+message SearchJobsRequest {
+  string query = 1;
+  repeated string skills = 2;
+  JobType job_type = 3;
+  ExperienceLevel experience_level = 4;
+  Visibility visibility = 5;
+  JobStatus status = 6;
+  int32 page_size = 7;
+  string page_token = 8;
+}
+
+message SearchJobsResponse {
+  repeated Job jobs = 1;
+  string next_page_token = 2;
+}
+
+message FacetValue {
+  string value = 1;
+  int32 count = 2;
+}
+
+message ListJobFacetsRequest {
+  string query = 1;
+}
+
+message ListJobFacetsResponse {
+  repeated FacetValue skills = 1;
+  repeated FacetValue job_types = 2;
+  repeated FacetValue experience_levels = 3;
+  repeated FacetValue visibility = 4;
+  repeated FacetValue status = 5;
+}
+
+message ListJobAttachmentsRequest {
+  int64 job_id = 1;
+}
+
+message ListJobAttachmentsResponse {
+  repeated JobAttachment attachments = 1;
+}
+
+message GetJobAttachmentDownloadUrlRequest {
+  int64 job_id = 1;
+  int64 attachment_id = 2;
+}
+
+message GetJobAttachmentDownloadUrlResponse {
+  string url = 1;
+}
+
 message UpdateJobRequest {
   int64 job_id = 1;
   optional string title = 2;
@@ -162,4 +349,10 @@ message Job {
   int64 closed_at_unix_seconds = 15;
   JobType job_type_enum = 16;
   JobStatus status_enum = 17;
+  Visibility visibility = 18;
+  ExperienceLevel experience_level = 19;
+  double budget_min = 20;
+  double budget_max = 21;
+  int64 paused_at_unix_seconds = 22;
+  int64 filled_at_unix_seconds = 23;
 }
