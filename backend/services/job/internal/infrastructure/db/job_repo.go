@@ -38,12 +38,12 @@ func (r *JobRepo) Create(ctx context.Context, job domain.Job) (int64, error) {
 	err = tx.QueryRow(ctx, `
 		insert into jobs (
 			client_id, title, description, required_skills, job_type, budget_fixed, hourly_rate,
-			currency, deadline, status, created_at, updated_at
+			currency, budget_min, budget_max, visibility, experience_level, deadline, status, created_at, updated_at
 		)
-		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
 		returning id
 	`, job.ClientID, job.Title, job.Description, skills, job.JobType, job.BudgetFixed, job.HourlyRate,
-		job.Currency, job.Deadline, job.Status, job.CreatedAt, job.UpdatedAt).Scan(&id)
+		job.Currency, job.BudgetMin, job.BudgetMax, job.Visibility, job.ExperienceLevel, job.Deadline, job.Status, job.CreatedAt, job.UpdatedAt).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -83,7 +83,8 @@ func (r *JobRepo) GetByIDForClient(ctx context.Context, jobID int64, clientID uu
 func (r *JobRepo) ListByClient(ctx context.Context, clientID uuid.UUID, status string, limit, offset int) ([]domain.Job, error) {
 	query := `
 		select id, client_id, title, description, required_skills, job_type,
-			budget_fixed, hourly_rate, currency, deadline, status, close_reason, created_at, updated_at, closed_at
+			budget_fixed, hourly_rate, currency, budget_min, budget_max, visibility, experience_level,
+			deadline, status, close_reason, created_at, updated_at, closed_at, paused_at, filled_at
 		from jobs
 		where client_id = $1
 	`
@@ -124,7 +125,8 @@ func (r *JobRepo) ListByClient(ctx context.Context, clientID uuid.UUID, status s
 func (r *JobRepo) ListOpen(ctx context.Context, limit, offset int) ([]domain.Job, error) {
 	rows, err := r.pool.Query(ctx, `
 		select id, client_id, title, description, required_skills, job_type,
-			budget_fixed, hourly_rate, currency, deadline, status, close_reason, created_at, updated_at, closed_at
+			budget_fixed, hourly_rate, currency, budget_min, budget_max, visibility, experience_level,
+			deadline, status, close_reason, created_at, updated_at, closed_at, paused_at, filled_at
 		from jobs
 		where status = $1
 		order by created_at desc
@@ -214,7 +216,8 @@ func (r *JobRepo) DeleteAttachment(ctx context.Context, jobID int64, attachmentI
 func (r *JobRepo) getJobByQuery(ctx context.Context, where string, args ...any) (domain.Job, error) {
 	query := fmt.Sprintf(`
 		select id, client_id, title, description, required_skills, job_type,
-			budget_fixed, hourly_rate, currency, deadline, status, close_reason, created_at, updated_at, closed_at
+			budget_fixed, hourly_rate, currency, budget_min, budget_max, visibility, experience_level,
+			deadline, status, close_reason, created_at, updated_at, closed_at, paused_at, filled_at
 		from jobs
 		%s
 	`, where)
@@ -271,12 +274,18 @@ func scanJob(scanner rowScanner) (domain.Job, error) {
 		&job.BudgetFixed,
 		&job.HourlyRate,
 		&job.Currency,
+		&job.BudgetMin,
+		&job.BudgetMax,
+		&job.Visibility,
+		&job.ExperienceLevel,
 		&job.Deadline,
 		&job.Status,
 		&job.CloseReason,
 		&job.CreatedAt,
 		&job.UpdatedAt,
 		&job.ClosedAt,
+		&job.PausedAt,
+		&job.FilledAt,
 	)
 	if err != nil {
 		return domain.Job{}, err
@@ -302,10 +311,12 @@ func (r *JobRepo) Update(ctx context.Context, job domain.Job) (domain.Job, error
 	res, err := tx.Exec(ctx, `
 		update jobs set
 			title = $2, description = $3, required_skills = $4, job_type = $5,
-			budget_fixed = $6, hourly_rate = $7, currency = $8, deadline = $9, updated_at = $10
-		where id = $1 and status = $11
+			budget_fixed = $6, hourly_rate = $7, currency = $8, budget_min = $9, budget_max = $10,
+			visibility = $11, experience_level = $12, deadline = $13, updated_at = $14
+		where id = $1 and status = $15
 	`, job.ID, job.Title, job.Description, skills, job.JobType,
-		job.BudgetFixed, job.HourlyRate, job.Currency, job.Deadline, job.UpdatedAt,
+		job.BudgetFixed, job.HourlyRate, job.Currency, job.BudgetMin, job.BudgetMax,
+		job.Visibility, job.ExperienceLevel, job.Deadline, job.UpdatedAt,
 		domain.JobStatusOpen)
 	if err != nil {
 		return domain.Job{}, err
@@ -338,7 +349,7 @@ func (r *JobRepo) Update(ctx context.Context, job domain.Job) (domain.Job, error
 }
 
 func (r *JobRepo) ListOpenFiltered(ctx context.Context, filter application.ListOpenFilter) ([]domain.Job, error) {
-	where := []string{"status = 'open'"}
+	where := []string{"status = 'open'", "visibility = 'public'"}
 	args := []any{}
 	argIdx := 1
 
@@ -359,11 +370,22 @@ func (r *JobRepo) ListOpenFiltered(ctx context.Context, filter application.ListO
 		args = append(args, filter.JobType)
 		argIdx++
 	}
+	if filter.Visibility != "" {
+		where = append(where, fmt.Sprintf("visibility = $%d", argIdx))
+		args = append(args, filter.Visibility)
+		argIdx++
+	}
+	if filter.ExperienceLevel != "" {
+		where = append(where, fmt.Sprintf("experience_level = $%d", argIdx))
+		args = append(args, filter.ExperienceLevel)
+		argIdx++
+	}
 
 	whereClause := strings.Join(where, " AND ")
 	query := fmt.Sprintf(`
 		select id, client_id, title, description, required_skills, job_type,
-			budget_fixed, hourly_rate, currency, deadline, status, close_reason, created_at, updated_at, closed_at
+			budget_fixed, hourly_rate, currency, budget_min, budget_max, visibility, experience_level,
+			deadline, status, close_reason, created_at, updated_at, closed_at, paused_at, filled_at
 		from jobs
 		where %s
 		order by created_at desc
@@ -392,6 +414,180 @@ func (r *JobRepo) ListOpenFiltered(ctx context.Context, filter application.ListO
 		return nil, err
 	}
 	return jobs, nil
+}
+
+func (r *JobRepo) CountOpenFiltered(ctx context.Context, filter application.ListOpenFilter) (int64, error) {
+	where := []string{"status = 'open'", "visibility = 'public'"}
+	args := []any{}
+	argIdx := 1
+
+	if filter.SearchQuery != "" {
+		where = append(where, fmt.Sprintf("(title ILIKE $%d OR description ILIKE $%d)", argIdx, argIdx))
+		args = append(args, "%"+filter.SearchQuery+"%")
+		argIdx++
+	}
+	if len(filter.Skills) > 0 {
+		skillsJSON, _ := json.Marshal(filter.Skills)
+		where = append(where, fmt.Sprintf("required_skills @> $%d::jsonb", argIdx))
+		args = append(args, string(skillsJSON))
+		argIdx++
+	}
+	if filter.JobType != "" {
+		where = append(where, fmt.Sprintf("job_type = $%d", argIdx))
+		args = append(args, filter.JobType)
+		argIdx++
+	}
+	if filter.Visibility != "" {
+		where = append(where, fmt.Sprintf("visibility = $%d", argIdx))
+		args = append(args, filter.Visibility)
+		argIdx++
+	}
+	if filter.ExperienceLevel != "" {
+		where = append(where, fmt.Sprintf("experience_level = $%d", argIdx))
+		args = append(args, filter.ExperienceLevel)
+		argIdx++
+	}
+
+	query := fmt.Sprintf(`select count(1) from jobs where %s`, strings.Join(where, " AND "))
+	var total int64
+	if err := r.pool.QueryRow(ctx, query, args...).Scan(&total); err != nil {
+		return 0, err
+	}
+	return total, nil
+}
+
+func (r *JobRepo) SetVisibility(ctx context.Context, jobID int64, clientID uuid.UUID, visibility string, updatedAt time.Time) (domain.Job, error) {
+	res, err := r.pool.Exec(ctx, `
+		update jobs
+		set visibility = $3, updated_at = $4
+		where id = $1 and client_id = $2 and status in ('open','paused')
+	`, jobID, clientID, visibility, updatedAt)
+	if err != nil {
+		return domain.Job{}, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Job{}, ErrNotFound
+	}
+	return r.GetByIDForClient(ctx, jobID, clientID)
+}
+
+func (r *JobRepo) SetBudgetRange(ctx context.Context, jobID int64, clientID uuid.UUID, budgetMin, budgetMax float64, updatedAt time.Time) (domain.Job, error) {
+	res, err := r.pool.Exec(ctx, `
+		update jobs
+		set budget_min = $3, budget_max = $4, updated_at = $5
+		where id = $1 and client_id = $2 and status in ('open','paused')
+	`, jobID, clientID, budgetMin, budgetMax, updatedAt)
+	if err != nil {
+		return domain.Job{}, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Job{}, ErrNotFound
+	}
+	return r.GetByIDForClient(ctx, jobID, clientID)
+}
+
+func (r *JobRepo) SetExperienceLevel(ctx context.Context, jobID int64, clientID uuid.UUID, experienceLevel string, updatedAt time.Time) (domain.Job, error) {
+	res, err := r.pool.Exec(ctx, `
+		update jobs
+		set experience_level = $3, updated_at = $4
+		where id = $1 and client_id = $2 and status in ('open','paused')
+	`, jobID, clientID, experienceLevel, updatedAt)
+	if err != nil {
+		return domain.Job{}, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Job{}, ErrNotFound
+	}
+	return r.GetByIDForClient(ctx, jobID, clientID)
+}
+
+func (r *JobRepo) Pause(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error) {
+	res, err := r.pool.Exec(ctx, `
+		update jobs
+		set status = $3, paused_at = $4, updated_at = $4
+		where id = $1 and client_id = $2 and status = $5
+	`, jobID, clientID, domain.JobStatusPaused, updatedAt, domain.JobStatusOpen)
+	if err != nil {
+		return domain.Job{}, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Job{}, ErrNotFound
+	}
+	return r.GetByIDForClient(ctx, jobID, clientID)
+}
+
+func (r *JobRepo) Reopen(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error) {
+	res, err := r.pool.Exec(ctx, `
+		update jobs
+		set status = $3, paused_at = null, updated_at = $4
+		where id = $1 and client_id = $2 and status = $5
+	`, jobID, clientID, domain.JobStatusOpen, updatedAt, domain.JobStatusPaused)
+	if err != nil {
+		return domain.Job{}, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Job{}, ErrNotFound
+	}
+	return r.GetByIDForClient(ctx, jobID, clientID)
+}
+
+func (r *JobRepo) MarkFilled(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error) {
+	res, err := r.pool.Exec(ctx, `
+		update jobs
+		set status = $3, filled_at = $4, updated_at = $4
+		where id = $1 and client_id = $2 and status in ($5, $6)
+	`, jobID, clientID, domain.JobStatusFilled, updatedAt, domain.JobStatusOpen, domain.JobStatusPaused)
+	if err != nil {
+		return domain.Job{}, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Job{}, ErrNotFound
+	}
+	return r.GetByIDForClient(ctx, jobID, clientID)
+}
+
+func (r *JobRepo) ListAttachments(ctx context.Context, jobID int64, clientID uuid.UUID) ([]domain.Attachment, error) {
+	rows, err := r.pool.Query(ctx, `
+		select a.id, a.file_name, a.content_type, a.storage_key, a.url, a.size_bytes
+		from job_attachments a
+		join jobs j on j.id = a.job_id
+		where j.id = $1 and j.client_id = $2
+		order by a.id asc
+	`, jobID, clientID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	attachments := make([]domain.Attachment, 0)
+	for rows.Next() {
+		var a domain.Attachment
+		if err := rows.Scan(&a.ID, &a.FileName, &a.ContentType, &a.StorageKey, &a.URL, &a.SizeBytes); err != nil {
+			return nil, err
+		}
+		attachments = append(attachments, a)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return attachments, nil
+}
+
+func (r *JobRepo) GetAttachment(ctx context.Context, jobID int64, attachmentID int64, clientID uuid.UUID) (domain.Attachment, error) {
+	var a domain.Attachment
+	err := r.pool.QueryRow(ctx, `
+		select a.id, a.file_name, a.content_type, a.storage_key, a.url, a.size_bytes
+		from job_attachments a
+		join jobs j on j.id = a.job_id
+		where j.id = $1 and a.id = $2 and j.client_id = $3
+	`, jobID, attachmentID, clientID).Scan(&a.ID, &a.FileName, &a.ContentType, &a.StorageKey, &a.URL, &a.SizeBytes)
+	if err != nil {
+		if isNoRows(err) {
+			return domain.Attachment{}, ErrNotFound
+		}
+		return domain.Attachment{}, err
+	}
+	return a, nil
 }
 
 func (r *JobRepo) hydrateAttachments(ctx context.Context, jobs []domain.Job) error {
