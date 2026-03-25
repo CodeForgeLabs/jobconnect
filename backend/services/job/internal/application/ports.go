@@ -14,10 +14,18 @@ type JobRepository interface {
 	GetByID(ctx context.Context, jobID int64) (domain.Job, error)
 	GetByIDForClient(ctx context.Context, jobID int64, clientID uuid.UUID) (domain.Job, error)
 	Update(ctx context.Context, job domain.Job) (domain.Job, error)
+	AddAttachment(ctx context.Context, jobID int64, clientID uuid.UUID, attachment domain.Attachment) (domain.Attachment, error)
+	DeleteAttachment(ctx context.Context, jobID int64, attachmentID int64, clientID uuid.UUID) (domain.Attachment, error)
 	ListByClient(ctx context.Context, clientID uuid.UUID, status string, limit, offset int) ([]domain.Job, error)
 	ListOpen(ctx context.Context, limit, offset int) ([]domain.Job, error)
 	ListOpenFiltered(ctx context.Context, filter ListOpenFilter) ([]domain.Job, error)
 	Close(ctx context.Context, jobID int64, clientID uuid.UUID, reason string, closedAt time.Time) error
+}
+
+type AttachmentObjectStore interface {
+	BuildObjectKey(jobID int64, fileName string) string
+	PutObject(ctx context.Context, objectKey string, content []byte, contentType string) (string, error)
+	DeleteObject(ctx context.Context, objectKey string) error
 }
 
 // ListOpenFilter contains optional filters for the ListOpenJobs query.

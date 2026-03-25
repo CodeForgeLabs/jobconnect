@@ -17,6 +17,7 @@ import (
 	"jobconnect/job/internal/config"
 	"jobconnect/job/internal/infrastructure/clock"
 	"jobconnect/job/internal/infrastructure/db"
+	"jobconnect/job/internal/infrastructure/storage"
 	"jobconnect/job/internal/infrastructure/tokens"
 
 	"google.golang.org/grpc"
@@ -42,6 +43,10 @@ func main() {
 	defer pool.Close()
 
 	jobRepo := db.NewJobRepo(pool)
+	attachmentStore, err := storage.NewAttachmentStore(ctx, cfg.AttachmentStorage)
+	if err != nil {
+		log.Fatalf("attachment storage: %v", err)
+	}
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
 	// Connects Client
@@ -70,6 +75,8 @@ func main() {
 	listMyJobsUC := &application.ListMyJobs{Jobs: jobRepo}
 	listOpenJobsUC := &application.ListOpenJobs{Jobs: jobRepo}
 	closeJobUC := &application.CloseJob{Jobs: jobRepo, Proposals: proposalCli, Connects: connectsCli, Clock: clockImpl}
+	uploadAttachmentUC := &application.UploadJobAttachment{Jobs: jobRepo, Storage: attachmentStore}
+	deleteAttachmentUC := &application.DeleteJobAttachment{Jobs: jobRepo, Storage: attachmentStore}
 
 	jobServer := grpcadapter.NewJobServer(
 		createJobUC,
@@ -78,6 +85,8 @@ func main() {
 		listMyJobsUC,
 		listOpenJobsUC,
 		closeJobUC,
+		uploadAttachmentUC,
+		deleteAttachmentUC,
 		jwtParser,
 	)
 
