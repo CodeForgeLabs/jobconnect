@@ -17,6 +17,7 @@ import (
 	"jobconnect/user/internal/infrastructure/clock"
 	"jobconnect/user/internal/infrastructure/db"
 	"jobconnect/user/internal/infrastructure/media"
+	"jobconnect/user/internal/infrastructure/storage"
 
 	"google.golang.org/grpc"
 )
@@ -42,33 +43,52 @@ func main() {
 
 	profileRepo := db.NewProfileRepo(pool)
 	clockImpl := clock.NewRealClock()
+	avatarStore, err := storage.NewAvatarStore(ctx, cfg.AvatarStorage)
+	if err != nil {
+		log.Fatalf("avatar storage: %v", err)
+	}
 
 	createProfileUC := &application.CreateProfile{
 		Profiles: profileRepo,
 		Clock:    clockImpl,
 	}
+	getUserUC := &application.GetUser{Profiles: profileRepo}
 	getProfileUC := &application.GetProfile{Profiles: profileRepo}
+	getPublicProfileUC := &application.GetPublicProfile{Profiles: profileRepo}
 	updateProfileUC := &application.UpdateProfile{Profiles: profileRepo, Clock: clockImpl}
 	deleteProfileUC := &application.DeleteProfile{Profiles: profileRepo, Clock: clockImpl}
 	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo}
+	updateAccountStatusUC := &application.UpdateAccountStatus{Profiles: profileRepo, Clock: clockImpl}
 	uploadAvatarUC := &application.UploadAvatar{
 		Profiles:  profileRepo,
+		Store:     avatarStore,
 		Processor: media.NewAvatarProcessor(),
 		Moderator: media.NewBasicAvatarModerator(),
 		Clock:     clockImpl,
 	}
-	getAvatarUC := &application.GetAvatar{Profiles: profileRepo}
-	removeAvatarUC := &application.RemoveAvatar{Profiles: profileRepo}
+	getAvatarUC := &application.GetAvatar{Profiles: profileRepo, Store: avatarStore}
+	removeAvatarUC := &application.RemoveAvatar{Profiles: profileRepo, Store: avatarStore}
 
 	userServer := grpcadapter.NewUserServer(
 		createProfileUC,
+		getUserUC,
 		getProfileUC,
+		getPublicProfileUC,
 		updateProfileUC,
 		deleteProfileUC,
 		getOnboardingStatusUC,
+		updateAccountStatusUC,
 		uploadAvatarUC,
 		getAvatarUC,
 		removeAvatarUC,
+		grpcadapter.CapabilityPolicy{
+			MinSkillsForDiscovery:        cfg.CapabilityMinSkillsForDiscovery,
+			RequireVerifiedForWithdraw:   cfg.CapabilityRequireVerifiedForWithdraw,
+			RequirePublicForDiscovery:    cfg.CapabilityRequirePublicForDiscovery,
+			RequireHeadlineForFreelancer: cfg.CapabilityRequireHeadlineForFreelancer,
+			RequireCompanyNameForClient:  cfg.CapabilityRequireCompanyNameForClient,
+			AllowMessagingWhenSuspended:  cfg.CapabilityAllowMessagingWhenSuspended,
+		},
 	)
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)

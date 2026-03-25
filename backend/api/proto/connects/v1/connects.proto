@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package connects.v1;
+
+option go_package = "jobconnect/api/proto/connects/v1;connectsv1";
+
+service ConnectsService {
+  // Get the current balance for a user
+  rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse) {}
+
+  // Deduct connects from a user's balance
+  rpc DeductConnects(DeductConnectsRequest) returns (DeductConnectsResponse) {}
+
+  // Refund connects to a user's balance
+  rpc RefundConnects(RefundConnectsRequest) returns (RefundConnectsResponse) {}
+
+  // Grant the initial register bonus of connects
+  rpc GrantInitialConnects(GrantInitialConnectsRequest) returns (GrantInitialConnectsResponse) {}
+
+  // Purchase connects using fiat wallet
+  rpc PurchaseConnects(PurchaseConnectsRequest) returns (PurchaseConnectsResponse) {}
+}
+
+message ConnectsBalance {
+  string user_id = 1;
+  int32 balance = 2;
+}
+
+message ConnectsTransaction {
+  int64 id = 1;
+  string user_id = 2;
+  int32 amount = 3;
+  string type = 4;
+  string reference_id = 5;
+  string reference_type = 6;
+  int64 created_at_unix_seconds = 7;
+}
+
+message GetBalanceRequest {
+  string user_id = 1;
+}
+
+message GetBalanceResponse {
+  int32 balance = 1;
+}
+
+message DeductConnectsRequest {
+  string user_id = 1;
+  int32 amount = 2;
+  string reference_id = 3; // e.g., proposal UUID
+  string reference_type = 4; // e.g., "PROPOSAL"
+}
+
+message DeductConnectsResponse {
+  bool success = 1;
+  int32 new_balance = 2;
+}
+
+message RefundConnectsRequest {
+  string user_id = 1;
+  int32 amount = 2;
+  string reference_id = 3; // Must match the reference_id used in DeductConnects
+  string reference_type = 4; // Must match the reference_type used in DeductConnects
+}
+
+message RefundConnectsResponse {
+  bool success = 1;
+  int32 new_balance = 2;
+}
+
+message GrantInitialConnectsRequest {
+  string user_id = 1;
+}
+
+message GrantInitialConnectsResponse {
+  bool success = 1;
+  int32 new_balance = 2;
+}
+
+message PurchaseConnectsRequest {
+  string user_id = 1;
+  int32 amount = 2; // Number of connects to purchase
+}
+
+message PurchaseConnectsResponse {
+  bool success = 1;
+  int32 new_balance = 2;
+}

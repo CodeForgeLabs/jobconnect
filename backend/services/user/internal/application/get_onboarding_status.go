@@ -14,6 +14,12 @@ type GetOnboardingStatusInput struct {
 type GetOnboardingStatusOutput struct {
 	Percent uint32
 	Missing []string
+	Steps   []OnboardingStep
+}
+
+type OnboardingStep struct {
+	Key       string
+	Completed bool
 }
 
 type GetOnboardingStatus struct {
@@ -29,5 +35,6 @@ func (uc *GetOnboardingStatus) Execute(ctx context.Context, in GetOnboardingStat
 		return GetOnboardingStatusOutput{}, err
 	}
 	percent, missing := computeCompleteness(profile, client, freelancer)
-	return GetOnboardingStatusOutput{Percent: percent, Missing: missing}, nil
+	steps := computeOnboardingSteps(profile, client, freelancer)
+	return GetOnboardingStatusOutput{Percent: percent, Missing: missing, Steps: steps}, nil
 }

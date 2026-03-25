@@ -3,6 +3,7 @@ package usergrpc
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"jobconnect/auth/internal/application"
 	userv1 "jobconnect/user/gen/user"
@@ -40,13 +41,13 @@ func (c *ProfileClient) CreateProfile(ctx context.Context, in application.Create
 	case roleClient:
 		req.RoleDetails = &userv1.CreateProfileRequest_Client{
 			Client: &userv1.ClientProfileInput{
-				VerificationStatus: "pending",
+				VerificationStatus: userv1.VerificationStatus_VERIFICATION_STATUS_PENDING,
 			},
 		}
 	case roleFreelancer:
 		req.RoleDetails = &userv1.CreateProfileRequest_Freelancer{
 			Freelancer: &userv1.FreelancerProfileInput{
-				VerificationStatus: "pending",
+				VerificationStatus: userv1.VerificationStatus_VERIFICATION_STATUS_PENDING,
 			},
 		}
 	}
@@ -58,5 +59,17 @@ func (c *ProfileClient) CreateProfile(ctx context.Context, in application.Create
 	if resp == nil || !resp.Success {
 		return fmt.Errorf("create profile failed")
 	}
+
+	contactEmail := strings.TrimSpace(in.Email)
+	if contactEmail != "" {
+		_, err = c.client.UpdateProfile(ctx, &userv1.UpdateProfileRequest{
+			UserId:       in.UserID.String(),
+			ContactEmail: &contactEmail,
+		})
+		if err != nil {
+			return fmt.Errorf("autofill contact email: %w", err)
+		}
+	}
+
 	return nil
 }

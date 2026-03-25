@@ -12,6 +12,7 @@ import (
 	"time"
 
 	grpcadapter "jobconnect/auth/internal/adapters/grpc"
+	"jobconnect/auth/internal/adapters/grpc/clients"
 	"jobconnect/auth/internal/application"
 	"jobconnect/auth/internal/config"
 	"jobconnect/auth/internal/infrastructure/clock"
@@ -53,12 +54,28 @@ func main() {
 	otpRepo := db.NewOTPRepo(pool)
 	sessionRepo := db.NewSessionRepo(pool)
 	tosRepo := db.NewTOSRepo(pool)
+	emailChangeRepo := db.NewEmailChangeRepo(pool)
+	oauthIdentityRepo := db.NewOAuthIdentityRepo(pool)
 
 	// Infrastructure
 	hasherImpl := hasher.NewArgon2Hasher()
 	clockImpl := clock.NewRealClock()
 	tokenIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
-	emailSender := email.NewNoopSender()
+	var emailSender application.EmailSender = email.NewNoopSender()
+	if cfg.SMTPHost != "" {
+		emailSender = email.NewSMTPSender(
+			cfg.SMTPHost,
+			cfg.SMTPPort,
+			cfg.SMTPTLSMode,
+			cfg.SMTPUsername,
+			cfg.SMTPPassword,
+			cfg.SMTPFromAddress,
+			cfg.SMTPFromName,
+		)
+		log.Printf("smtp email sender enabled host=%s port=%d tls_mode=%s from=%s", cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPTLSMode, cfg.SMTPFromAddress)
+	} else {
+		log.Printf("smtp email sender disabled; using noop sender")
+	}
 
 	userConn, err := grpc.NewClient(cfg.UserServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -69,6 +86,16 @@ func main() {
 	userClient := userv1.NewUserServiceClient(userConn)
 	userProfiles := usergrpc.NewProfileClient(userClient)
 
+	// Connects Client
+	connectsAddr := os.Getenv("CONNECTS_SERVICE_ADDR")
+	if connectsAddr == "" {
+		connectsAddr = "localhost:50058"
+	}
+	connectsCli, err := clients.NewConnectsClient(connectsAddr)
+	if err != nil {
+		log.Fatalf("connects service dial: %v", err)
+	}
+
 	// Use-cases
 	registerUC := &application.RegisterUser{
 		Users:          userRepo,
@@ -76,6 +103,7 @@ func main() {
 		OTPs:           otpRepo,
 		TOS:            tosRepo,
 		UserProfiles:   userProfiles,
+		Connects:       connectsCli,
 		Hasher:         hasherImpl,
 		Clock:          clockImpl,
 		EmailSend:      emailSender,
@@ -111,8 +139,62 @@ func main() {
 		Sessions: sessionRepo,
 		Tokens:   tokenIssuer,
 	}
+	forgotPasswordUC := &application.ForgotPassword{
+		Users:     userRepo,
+		OTPs:      otpRepo,
+		Hasher:    hasherImpl,
+		Clock:     clockImpl,
+		EmailSend: emailSender,
+		OTPTTL:    cfg.OTPTTL,
+	}
+	resetPasswordUC := &application.ResetPassword{
+		Users:    userRepo,
+		Creds:    credRepo,
+		OTPs:     otpRepo,
+		Sessions: sessionRepo,
+		Hasher:   hasherImpl,
+	}
+	requestEmailChangeUC := &application.RequestEmailChange{
+		Users:          userRepo,
+		EmailChanges:   emailChangeRepo,
+		Hasher:         hasherImpl,
+		Clock:          clockImpl,
+		EmailSend:      emailSender,
+		EmailOTPExpiry: cfg.OTPTTL,
+	}
+	confirmEmailChangeUC := &application.ConfirmEmailChange{
+		Users:        userRepo,
+		EmailChanges: emailChangeRepo,
+		Hasher:       hasherImpl,
+		Clock:        clockImpl,
+	}
+	oauthLoginUC := &application.OAuthLogin{
+		Users:        userRepo,
+		Identities:   oauthIdentityRepo,
+		Sessions:     sessionRepo,
+		Tokens:       tokenIssuer,
+		Clock:        clockImpl,
+		UserProfiles: userProfiles,
+		AccessTTL:    cfg.AccessTokenTTL,
+		RefreshTTL:   cfg.RefreshTokenTTL,
+	}
+	listSessionsUC := &application.ListSessions{Sessions: sessionRepo}
+	revokeSessionUC := &application.RevokeSession{Sessions: sessionRepo, Clock: clockImpl}
 
-	authServer := grpcadapter.NewAuthServer(registerUC, verifyOTPUC, loginUC, refreshUC, logoutUC)
+	authServer := grpcadapter.NewAuthServer(
+		registerUC,
+		verifyOTPUC,
+		loginUC,
+		refreshUC,
+		logoutUC,
+		forgotPasswordUC,
+		resetPasswordUC,
+		requestEmailChangeUC,
+		confirmEmailChangeUC,
+		oauthLoginUC,
+		listSessionsUC,
+		revokeSessionUC,
+	)
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
 	if err != nil {

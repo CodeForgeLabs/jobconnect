@@ -107,6 +107,52 @@ services:
       - chat-db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U chat -d jobconnect_chat"]
+  verification-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: verification
+      POSTGRES_PASSWORD: verification
+      POSTGRES_DB: jobconnect_verification
+    ports:
+      - "5438:5432"
+    volumes:
+      - verification-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U verification -d jobconnect_verification"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  payment-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: payment
+      POSTGRES_PASSWORD: payment
+      POSTGRES_DB: jobconnect_payment
+    ports:
+      - "5439:5432"
+    volumes:
+      - payment-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payment -d jobconnect_payment"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-18T16-25-55Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${USER_AVATAR_STORAGE_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${USER_AVATAR_STORAGE_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -124,6 +170,8 @@ services:
       - "50052:50052"
     depends_on:
       user-db:
+        condition: service_healthy
+      minio:
         condition: service_healthy
 
   auth:
@@ -221,6 +269,63 @@ services:
       chat-db:
         condition: service_healthy
 
+  verification:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: verification
+        CMD_PATH: ./cmd/verificationd
+    env_file:
+      - .env
+    ports:
+      - "50060:50060"
+    depends_on:
+      verification-db:
+        condition: service_healthy
+
+  payment:
+    build:
+      context: ./services
+      dockerfile: Dockerfile
+      args:
+        SERVICE: payment
+        CMD_PATH: ./cmd/paymentd
+    env_file:
+      - .env
+    ports:
+      - "50061:50061"
+      - "8081:8081"
+    depends_on:
+      payment-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      wallet:
+        condition: service_started
+      contract:
+        condition: service_started
+      verification:
+        condition: service_started
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    depends_on:
+      auth:
+        condition: service_started
+      user:
+        condition: service_started
+      verification:
+        condition: service_started
+      payment:
+        condition: service_started
+
 volumes:
   auth-db-data:
   user-db-data:
@@ -229,3 +334,6 @@ volumes:
   contract-db-data:
   wallet-db-data:
   chat-db-data:
+  verification-db-data:
+  payment-db-data:
+  minio-data:
