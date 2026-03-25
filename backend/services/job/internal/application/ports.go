@@ -25,6 +25,7 @@ type JobRepository interface {
 	SetVisibility(ctx context.Context, jobID int64, clientID uuid.UUID, visibility string, updatedAt time.Time) (domain.Job, error)
 	SetBudgetRange(ctx context.Context, jobID int64, clientID uuid.UUID, budgetMin, budgetMax float64, updatedAt time.Time) (domain.Job, error)
 	SetExperienceLevel(ctx context.Context, jobID int64, clientID uuid.UUID, experienceLevel string, updatedAt time.Time) (domain.Job, error)
+	InviteFreelancer(ctx context.Context, jobID int64, clientID uuid.UUID, freelancerID string, createdAt time.Time) (bool, error)
 	Pause(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
 	Reopen(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
 	MarkFilled(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
@@ -54,12 +55,16 @@ type ConnectsClient interface {
 
 type Proposal struct {
 	ID            int64
+	ClientID      string
 	FreelancerID  string
 	ConnectsSpent int32
+	Status        string
 }
 
 type ProposalClient interface {
 	ListProposalsByJob(ctx context.Context, jobID int64) ([]Proposal, error)
+	GetProposal(ctx context.Context, proposalID int64) (Proposal, error)
+	SetProposalStatus(ctx context.Context, proposalID int64, status string, reason string) error
 }
 
 type Clock interface {

@@ -22,6 +22,9 @@ type JobServer struct {
 	CloseJobUC         *application.CloseJob
 	UploadAttachmentUC *application.UploadJobAttachment
 	DeleteAttachmentUC *application.DeleteJobAttachment
+	InviteFreelancerUC *application.InviteFreelancerToJob
+	ListApplicantsUC   *application.ListJobApplicants
+	SetApplicantUC     *application.SetApplicantStage
 	SetVisibilityUC    *application.SetJobVisibility
 	SetBudgetRangeUC   *application.SetJobBudgetRange
 	SetExperienceUC    *application.SetJobExperienceLevel
@@ -44,6 +47,9 @@ func NewJobServer(
 	closeJob *application.CloseJob,
 	uploadAttachment *application.UploadJobAttachment,
 	deleteAttachment *application.DeleteJobAttachment,
+	inviteFreelancer *application.InviteFreelancerToJob,
+	listApplicants *application.ListJobApplicants,
+	setApplicant *application.SetApplicantStage,
 	setVisibility *application.SetJobVisibility,
 	setBudgetRange *application.SetJobBudgetRange,
 	setExperience *application.SetJobExperienceLevel,
@@ -65,6 +71,9 @@ func NewJobServer(
 		CloseJobUC:         closeJob,
 		UploadAttachmentUC: uploadAttachment,
 		DeleteAttachmentUC: deleteAttachment,
+		InviteFreelancerUC: inviteFreelancer,
+		ListApplicantsUC:   listApplicants,
+		SetApplicantUC:     setApplicant,
 		SetVisibilityUC:    setVisibility,
 		SetBudgetRangeUC:   setBudgetRange,
 		SetExperienceUC:    setExperience,
@@ -359,6 +368,87 @@ func (s *JobServer) DeleteJobAttachment(ctx context.Context, req *jobv1.DeleteJo
 	}
 
 	return &jobv1.DeleteJobAttachmentResponse{Deleted: out.Deleted}, nil
+}
+
+func (s *JobServer) InviteFreelancerToJob(ctx context.Context, req *jobv1.InviteFreelancerToJobRequest) (*jobv1.InviteFreelancerToJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.InviteFreelancerUC.Execute(ctx, application.InviteFreelancerToJobInput{
+		JobID:        req.JobId,
+		ClientID:     callerID,
+		FreelancerID: req.FreelancerId,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.InviteFreelancerToJobResponse{Invited: out.Invited}, nil
+}
+
+func (s *JobServer) ListJobApplicants(ctx context.Context, req *jobv1.ListJobApplicantsRequest) (*jobv1.ListJobApplicantsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.ListApplicantsUC.Execute(ctx, application.ListJobApplicantsInput{
+		JobID:     req.JobId,
+		ClientID:  callerID,
+		PageSize:  req.PageSize,
+		PageToken: req.PageToken,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	applicants := make([]*jobv1.Applicant, 0, len(out.Applicants))
+	for _, a := range out.Applicants {
+		applicants = append(applicants, &jobv1.Applicant{
+			ProposalId:    a.ProposalID,
+			FreelancerId:  a.FreelancerID,
+			Stage:         applicantStageToEnum(a.Stage),
+			ConnectsSpent: a.ConnectsSpent,
+		})
+	}
+	return &jobv1.ListJobApplicantsResponse{Applicants: applicants, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *JobServer) SetApplicantStage(ctx context.Context, req *jobv1.SetApplicantStageRequest) (*jobv1.SetApplicantStageResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	stage, mapErr := applicantStageFromEnum(req.Stage)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	out, err := s.SetApplicantUC.Execute(ctx, application.SetApplicantStageInput{
+		ProposalID: req.ProposalId,
+		ClientID:   callerID,
+		Stage:      stage,
+		Reason:     req.Reason,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.SetApplicantStageResponse{Updated: out.Updated}, nil
 }
 
 func (s *JobServer) SetJobVisibility(ctx context.Context, req *jobv1.SetJobVisibilityRequest) (*jobv1.SetJobVisibilityResponse, error) {
@@ -707,6 +797,34 @@ func experienceLevelToEnum(in string) jobv1.ExperienceLevel {
 		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_EXPERT
 	default:
 		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_UNSPECIFIED
+	}
+}
+
+func applicantStageFromEnum(in jobv1.ApplicantStage) (string, error) {
+	switch in {
+	case jobv1.ApplicantStage_APPLICANT_STAGE_SENT:
+		return application.ApplicantStageSent, nil
+	case jobv1.ApplicantStage_APPLICANT_STAGE_SHORTLISTED:
+		return application.ApplicantStageShortlisted, nil
+	case jobv1.ApplicantStage_APPLICANT_STAGE_REJECTED:
+		return application.ApplicantStageRejected, nil
+	case jobv1.ApplicantStage_APPLICANT_STAGE_HIRED:
+		return application.ApplicantStageHired, nil
+	default:
+		return "", status.Error(codes.InvalidArgument, "invalid applicant stage")
+	}
+}
+
+func applicantStageToEnum(in string) jobv1.ApplicantStage {
+	switch strings.ToLower(strings.TrimSpace(in)) {
+	case application.ApplicantStageShortlisted:
+		return jobv1.ApplicantStage_APPLICANT_STAGE_SHORTLISTED
+	case application.ApplicantStageRejected:
+		return jobv1.ApplicantStage_APPLICANT_STAGE_REJECTED
+	case application.ApplicantStageHired:
+		return jobv1.ApplicantStage_APPLICANT_STAGE_HIRED
+	default:
+		return jobv1.ApplicantStage_APPLICANT_STAGE_SENT
 	}
 }
 

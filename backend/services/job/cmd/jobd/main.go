@@ -77,6 +77,9 @@ func main() {
 	closeJobUC := &application.CloseJob{Jobs: jobRepo, Proposals: proposalCli, Connects: connectsCli, Clock: clockImpl}
 	uploadAttachmentUC := &application.UploadJobAttachment{Jobs: jobRepo, Storage: attachmentStore}
 	deleteAttachmentUC := &application.DeleteJobAttachment{Jobs: jobRepo, Storage: attachmentStore}
+	inviteFreelancerUC := &application.InviteFreelancerToJob{Jobs: jobRepo, Clock: clockImpl}
+	listApplicantsUC := &application.ListJobApplicants{Jobs: jobRepo, Proposals: proposalCli}
+	setApplicantUC := &application.SetApplicantStage{Proposals: proposalCli}
 	setVisibilityUC := &application.SetJobVisibility{Jobs: jobRepo, Clock: clockImpl}
 	setBudgetRangeUC := &application.SetJobBudgetRange{Jobs: jobRepo, Clock: clockImpl}
 	setExperienceUC := &application.SetJobExperienceLevel{Jobs: jobRepo, Clock: clockImpl}
@@ -97,6 +100,9 @@ func main() {
 		closeJobUC,
 		uploadAttachmentUC,
 		deleteAttachmentUC,
+		inviteFreelancerUC,
+		listApplicantsUC,
+		setApplicantUC,
 		setVisibilityUC,
 		setBudgetRangeUC,
 		setExperienceUC,
