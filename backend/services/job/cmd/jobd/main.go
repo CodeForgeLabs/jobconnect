@@ -77,6 +77,16 @@ func main() {
 	closeJobUC := &application.CloseJob{Jobs: jobRepo, Proposals: proposalCli, Connects: connectsCli, Clock: clockImpl}
 	uploadAttachmentUC := &application.UploadJobAttachment{Jobs: jobRepo, Storage: attachmentStore}
 	deleteAttachmentUC := &application.DeleteJobAttachment{Jobs: jobRepo, Storage: attachmentStore}
+	setVisibilityUC := &application.SetJobVisibility{Jobs: jobRepo, Clock: clockImpl}
+	setBudgetRangeUC := &application.SetJobBudgetRange{Jobs: jobRepo, Clock: clockImpl}
+	setExperienceUC := &application.SetJobExperienceLevel{Jobs: jobRepo, Clock: clockImpl}
+	pauseJobUC := &application.PauseJob{Jobs: jobRepo, Clock: clockImpl}
+	reopenJobUC := &application.ReopenJob{Jobs: jobRepo, Clock: clockImpl}
+	markFilledUC := &application.MarkJobFilled{Jobs: jobRepo, Clock: clockImpl}
+	searchJobsUC := &application.SearchJobs{Jobs: jobRepo}
+	listFacetsUC := &application.ListJobFacets{Jobs: jobRepo}
+	listAttachmentsUC := &application.ListJobAttachments{Jobs: jobRepo}
+	getAttachmentURLUC := &application.GetJobAttachmentDownloadURL{Jobs: jobRepo}
 
 	jobServer := grpcadapter.NewJobServer(
 		createJobUC,
@@ -87,6 +97,16 @@ func main() {
 		closeJobUC,
 		uploadAttachmentUC,
 		deleteAttachmentUC,
+		setVisibilityUC,
+		setBudgetRangeUC,
+		setExperienceUC,
+		pauseJobUC,
+		reopenJobUC,
+		markFilledUC,
+		searchJobsUC,
+		listFacetsUC,
+		listAttachmentsUC,
+		getAttachmentURLUC,
 		jwtParser,
 	)
 

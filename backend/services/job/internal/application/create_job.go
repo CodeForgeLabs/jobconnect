@@ -36,18 +36,22 @@ type CreateJobOutput struct {
 func (uc *CreateJob) Execute(ctx context.Context, in CreateJobInput) (CreateJobOutput, error) {
 	now := uc.Clock.Now()
 	job := domain.Job{
-		ClientID:       in.ClientID,
-		Title:          strings.TrimSpace(in.Title),
-		Description:    strings.TrimSpace(in.Description),
-		RequiredSkills: in.RequiredSkills,
-		JobType:        strings.ToLower(strings.TrimSpace(in.JobType)),
-		BudgetFixed:    in.BudgetFixed,
-		HourlyRate:     in.HourlyRate,
-		Currency:       strings.ToUpper(strings.TrimSpace(in.Currency)),
-		Attachments:    in.Attachments,
-		Status:         domain.JobStatusOpen,
-		CreatedAt:      now,
-		UpdatedAt:      now,
+		ClientID:        in.ClientID,
+		Title:           strings.TrimSpace(in.Title),
+		Description:     strings.TrimSpace(in.Description),
+		RequiredSkills:  in.RequiredSkills,
+		JobType:         strings.ToLower(strings.TrimSpace(in.JobType)),
+		BudgetFixed:     in.BudgetFixed,
+		HourlyRate:      in.HourlyRate,
+		Currency:        strings.ToUpper(strings.TrimSpace(in.Currency)),
+		BudgetMin:       in.BudgetFixed,
+		BudgetMax:       in.BudgetFixed,
+		Visibility:      domain.VisibilityPublic,
+		ExperienceLevel: domain.ExperienceIntermediate,
+		Attachments:     in.Attachments,
+		Status:          domain.JobStatusOpen,
+		CreatedAt:       now,
+		UpdatedAt:       now,
 	}
 
 	if in.Deadline != nil && *in.Deadline > 0 {
