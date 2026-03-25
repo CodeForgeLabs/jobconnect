@@ -17,17 +17,17 @@ type UpdateJob struct {
 }
 
 type UpdateJobInput struct {
-	JobID       int64
-	ClientID    uuid.UUID
-	Title       *string
-	Description *string
+	JobID          int64
+	ClientID       uuid.UUID
+	Title          *string
+	Description    *string
 	RequiredSkills []string
-	JobType     *string
-	BudgetFixed *float64
-	HourlyRate  *float64
-	Currency    *string
-	Deadline    *int64
-	Attachments []domain.Attachment
+	JobType        *string
+	BudgetFixed    *float64
+	HourlyRate     *float64
+	Currency       *string
+	Deadline       *int64
+	Attachments    []domain.Attachment
 }
 
 type UpdateJobOutput struct {
@@ -130,6 +130,7 @@ func (uc *UpdateJob) Execute(ctx context.Context, in UpdateJobInput) (UpdateJobO
 				return UpdateJobOutput{}, fmt.Errorf("attachment url is required")
 			}
 		}
+		job.Attachments = in.Attachments
 	}
 
 	// Re-validate budget/type consistency after partial updates.
