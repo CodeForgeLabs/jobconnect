@@ -22,6 +22,16 @@ type JobServer struct {
 	CloseJobUC         *application.CloseJob
 	UploadAttachmentUC *application.UploadJobAttachment
 	DeleteAttachmentUC *application.DeleteJobAttachment
+	SetVisibilityUC    *application.SetJobVisibility
+	SetBudgetRangeUC   *application.SetJobBudgetRange
+	SetExperienceUC    *application.SetJobExperienceLevel
+	PauseJobUC         *application.PauseJob
+	ReopenJobUC        *application.ReopenJob
+	MarkFilledUC       *application.MarkJobFilled
+	SearchJobsUC       *application.SearchJobs
+	ListFacetsUC       *application.ListJobFacets
+	ListAttachmentsUC  *application.ListJobAttachments
+	GetAttachmentURLUC *application.GetJobAttachmentDownloadURL
 	TokenParser        TokenParser
 }
 
@@ -34,6 +44,16 @@ func NewJobServer(
 	closeJob *application.CloseJob,
 	uploadAttachment *application.UploadJobAttachment,
 	deleteAttachment *application.DeleteJobAttachment,
+	setVisibility *application.SetJobVisibility,
+	setBudgetRange *application.SetJobBudgetRange,
+	setExperience *application.SetJobExperienceLevel,
+	pauseJob *application.PauseJob,
+	reopenJob *application.ReopenJob,
+	markFilled *application.MarkJobFilled,
+	searchJobs *application.SearchJobs,
+	listFacets *application.ListJobFacets,
+	listAttachments *application.ListJobAttachments,
+	getAttachmentURL *application.GetJobAttachmentDownloadURL,
 	tokenParser TokenParser,
 ) *JobServer {
 	return &JobServer{
@@ -45,6 +65,16 @@ func NewJobServer(
 		CloseJobUC:         closeJob,
 		UploadAttachmentUC: uploadAttachment,
 		DeleteAttachmentUC: deleteAttachment,
+		SetVisibilityUC:    setVisibility,
+		SetBudgetRangeUC:   setBudgetRange,
+		SetExperienceUC:    setExperience,
+		PauseJobUC:         pauseJob,
+		ReopenJobUC:        reopenJob,
+		MarkFilledUC:       markFilled,
+		SearchJobsUC:       searchJobs,
+		ListFacetsUC:       listFacets,
+		ListAttachmentsUC:  listAttachments,
+		GetAttachmentURLUC: getAttachmentURL,
 		TokenParser:        tokenParser,
 	}
 }
@@ -331,6 +361,214 @@ func (s *JobServer) DeleteJobAttachment(ctx context.Context, req *jobv1.DeleteJo
 	return &jobv1.DeleteJobAttachmentResponse{Deleted: out.Deleted}, nil
 }
 
+func (s *JobServer) SetJobVisibility(ctx context.Context, req *jobv1.SetJobVisibilityRequest) (*jobv1.SetJobVisibilityResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	visibility, mapErr := visibilityFromEnum(req.Visibility)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	out, err := s.SetVisibilityUC.Execute(ctx, application.SetJobVisibilityInput{JobID: req.JobId, ClientID: callerID, Visibility: visibility})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.SetJobVisibilityResponse{Job: toProtoJob(out.Job)}, nil
+}
+
+func (s *JobServer) SetJobBudgetRange(ctx context.Context, req *jobv1.SetJobBudgetRangeRequest) (*jobv1.SetJobBudgetRangeResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.SetBudgetRangeUC.Execute(ctx, application.SetJobBudgetRangeInput{JobID: req.JobId, ClientID: callerID, BudgetMin: req.BudgetMin, BudgetMax: req.BudgetMax})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.SetJobBudgetRangeResponse{Job: toProtoJob(out.Job)}, nil
+}
+
+func (s *JobServer) SetJobExperienceLevel(ctx context.Context, req *jobv1.SetJobExperienceLevelRequest) (*jobv1.SetJobExperienceLevelResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	level, mapErr := experienceLevelFromEnum(req.ExperienceLevel)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	out, err := s.SetExperienceUC.Execute(ctx, application.SetJobExperienceLevelInput{JobID: req.JobId, ClientID: callerID, ExperienceLevel: level})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.SetJobExperienceLevelResponse{Job: toProtoJob(out.Job)}, nil
+}
+
+func (s *JobServer) PauseJob(ctx context.Context, req *jobv1.PauseJobRequest) (*jobv1.PauseJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.PauseJobUC.Execute(ctx, application.PauseJobInput{JobID: req.JobId, ClientID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.PauseJobResponse{Job: toProtoJob(out.Job)}, nil
+}
+
+func (s *JobServer) ReopenJob(ctx context.Context, req *jobv1.ReopenJobRequest) (*jobv1.ReopenJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.ReopenJobUC.Execute(ctx, application.ReopenJobInput{JobID: req.JobId, ClientID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.ReopenJobResponse{Job: toProtoJob(out.Job)}, nil
+}
+
+func (s *JobServer) MarkJobFilled(ctx context.Context, req *jobv1.MarkJobFilledRequest) (*jobv1.MarkJobFilledResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.MarkFilledUC.Execute(ctx, application.MarkJobFilledInput{JobID: req.JobId, ClientID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.MarkJobFilledResponse{Job: toProtoJob(out.Job)}, nil
+}
+
+func (s *JobServer) SearchJobs(ctx context.Context, req *jobv1.SearchJobsRequest) (*jobv1.SearchJobsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	jobType, mapErr := mergeJobTypeFilter("", req.JobType)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	visibility, mapErr := visibilityFromEnum(req.Visibility)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	level, mapErr := experienceLevelFromEnum(req.ExperienceLevel)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	out, err := s.SearchJobsUC.Execute(ctx, application.SearchJobsInput{
+		PageSize:        req.PageSize,
+		PageToken:       req.PageToken,
+		Query:           req.Query,
+		Skills:          req.Skills,
+		JobType:         jobType,
+		Visibility:      visibility,
+		ExperienceLevel: level,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	jobs := make([]*jobv1.Job, 0, len(out.Jobs))
+	for _, j := range out.Jobs {
+		jobs = append(jobs, toProtoJob(j))
+	}
+	return &jobv1.SearchJobsResponse{Jobs: jobs, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *JobServer) ListJobFacets(ctx context.Context, req *jobv1.ListJobFacetsRequest) (*jobv1.ListJobFacetsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	out, err := s.ListFacetsUC.Execute(ctx, application.ListJobFacetsInput{Query: req.Query})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.ListJobFacetsResponse{
+		Skills:           toProtoFacets(out.Skills),
+		JobTypes:         toProtoFacets(out.JobTypes),
+		ExperienceLevels: toProtoFacets(out.ExperienceLevels),
+		Visibility:       toProtoFacets(out.Visibility),
+		Status:           toProtoFacets(out.Status),
+	}, nil
+}
+
+func (s *JobServer) ListJobAttachments(ctx context.Context, req *jobv1.ListJobAttachmentsRequest) (*jobv1.ListJobAttachmentsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.ListAttachmentsUC.Execute(ctx, application.ListJobAttachmentsInput{JobID: req.JobId, ClientID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	attachments := make([]*jobv1.JobAttachment, 0, len(out.Attachments))
+	for _, a := range out.Attachments {
+		attachments = append(attachments, &jobv1.JobAttachment{Id: a.ID, FileName: a.FileName, ContentType: a.ContentType, Url: a.URL, SizeBytes: a.SizeBytes})
+	}
+	return &jobv1.ListJobAttachmentsResponse{Attachments: attachments}, nil
+}
+
+func (s *JobServer) GetJobAttachmentDownloadUrl(ctx context.Context, req *jobv1.GetJobAttachmentDownloadUrlRequest) (*jobv1.GetJobAttachmentDownloadUrlResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.GetAttachmentURLUC.Execute(ctx, application.GetJobAttachmentDownloadURLInput{JobID: req.JobId, AttachmentID: req.AttachmentId, ClientID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.GetJobAttachmentDownloadUrlResponse{Url: out.URL}, nil
+}
+
 func toProtoJob(in domain.Job) *jobv1.Job {
 	attachments := make([]*jobv1.JobAttachment, 0, len(in.Attachments))
 	for _, a := range in.Attachments {
@@ -353,10 +591,14 @@ func toProtoJob(in domain.Job) *jobv1.Job {
 		BudgetFixed:          in.BudgetFixed,
 		HourlyRate:           in.HourlyRate,
 		Currency:             in.Currency,
+		BudgetMin:            in.BudgetMin,
+		BudgetMax:            in.BudgetMax,
 		Attachments:          attachments,
 		Status:               in.Status,
 		JobTypeEnum:          jobTypeToEnum(in.JobType),
 		StatusEnum:           jobStatusToEnum(in.Status),
+		Visibility:           visibilityToEnum(in.Visibility),
+		ExperienceLevel:      experienceLevelToEnum(in.ExperienceLevel),
 		CreatedAtUnixSeconds: in.CreatedAt.Unix(),
 		UpdatedAtUnixSeconds: in.UpdatedAt.Unix(),
 	}
@@ -365,6 +607,12 @@ func toProtoJob(in domain.Job) *jobv1.Job {
 	}
 	if in.ClosedAt != nil {
 		out.ClosedAtUnixSeconds = in.ClosedAt.Unix()
+	}
+	if in.PausedAt != nil {
+		out.PausedAtUnixSeconds = in.PausedAt.Unix()
+	}
+	if in.FilledAt != nil {
+		out.FilledAtUnixSeconds = in.FilledAt.Unix()
 	}
 	return out
 }
@@ -397,9 +645,77 @@ func jobStatusToEnum(in string) jobv1.JobStatus {
 		return jobv1.JobStatus_JOB_STATUS_OPEN
 	case domain.JobStatusClosed:
 		return jobv1.JobStatus_JOB_STATUS_CLOSED
+	case domain.JobStatusPaused:
+		return jobv1.JobStatus_JOB_STATUS_PAUSED
+	case domain.JobStatusFilled:
+		return jobv1.JobStatus_JOB_STATUS_FILLED
 	default:
 		return jobv1.JobStatus_JOB_STATUS_UNSPECIFIED
 	}
+}
+
+func visibilityFromEnum(in jobv1.Visibility) (string, error) {
+	switch in {
+	case jobv1.Visibility_VISIBILITY_UNSPECIFIED:
+		return "", nil
+	case jobv1.Visibility_VISIBILITY_PUBLIC:
+		return domain.VisibilityPublic, nil
+	case jobv1.Visibility_VISIBILITY_PRIVATE:
+		return domain.VisibilityPrivate, nil
+	case jobv1.Visibility_VISIBILITY_INVITE_ONLY:
+		return domain.VisibilityInviteOnly, nil
+	default:
+		return "", status.Error(codes.InvalidArgument, "invalid visibility")
+	}
+}
+
+func visibilityToEnum(in string) jobv1.Visibility {
+	switch strings.ToLower(strings.TrimSpace(in)) {
+	case domain.VisibilityPublic:
+		return jobv1.Visibility_VISIBILITY_PUBLIC
+	case domain.VisibilityPrivate:
+		return jobv1.Visibility_VISIBILITY_PRIVATE
+	case domain.VisibilityInviteOnly:
+		return jobv1.Visibility_VISIBILITY_INVITE_ONLY
+	default:
+		return jobv1.Visibility_VISIBILITY_UNSPECIFIED
+	}
+}
+
+func experienceLevelFromEnum(in jobv1.ExperienceLevel) (string, error) {
+	switch in {
+	case jobv1.ExperienceLevel_EXPERIENCE_LEVEL_UNSPECIFIED:
+		return "", nil
+	case jobv1.ExperienceLevel_EXPERIENCE_LEVEL_ENTRY:
+		return domain.ExperienceEntry, nil
+	case jobv1.ExperienceLevel_EXPERIENCE_LEVEL_INTERMEDIATE:
+		return domain.ExperienceIntermediate, nil
+	case jobv1.ExperienceLevel_EXPERIENCE_LEVEL_EXPERT:
+		return domain.ExperienceExpert, nil
+	default:
+		return "", status.Error(codes.InvalidArgument, "invalid experience_level")
+	}
+}
+
+func experienceLevelToEnum(in string) jobv1.ExperienceLevel {
+	switch strings.ToLower(strings.TrimSpace(in)) {
+	case domain.ExperienceEntry:
+		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_ENTRY
+	case domain.ExperienceIntermediate:
+		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_INTERMEDIATE
+	case domain.ExperienceExpert:
+		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_EXPERT
+	default:
+		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_UNSPECIFIED
+	}
+}
+
+func toProtoFacets(in []application.FacetBucket) []*jobv1.FacetValue {
+	out := make([]*jobv1.FacetValue, 0, len(in))
+	for _, f := range in {
+		out = append(out, &jobv1.FacetValue{Value: f.Value, Count: f.Count})
+	}
+	return out
 }
 
 func mergeStatusFilter(raw string, enum jobv1.JobStatus) string {

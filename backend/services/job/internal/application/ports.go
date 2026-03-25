@@ -16,9 +16,18 @@ type JobRepository interface {
 	Update(ctx context.Context, job domain.Job) (domain.Job, error)
 	AddAttachment(ctx context.Context, jobID int64, clientID uuid.UUID, attachment domain.Attachment) (domain.Attachment, error)
 	DeleteAttachment(ctx context.Context, jobID int64, attachmentID int64, clientID uuid.UUID) (domain.Attachment, error)
+	ListAttachments(ctx context.Context, jobID int64, clientID uuid.UUID) ([]domain.Attachment, error)
+	GetAttachment(ctx context.Context, jobID int64, attachmentID int64, clientID uuid.UUID) (domain.Attachment, error)
 	ListByClient(ctx context.Context, clientID uuid.UUID, status string, limit, offset int) ([]domain.Job, error)
 	ListOpen(ctx context.Context, limit, offset int) ([]domain.Job, error)
 	ListOpenFiltered(ctx context.Context, filter ListOpenFilter) ([]domain.Job, error)
+	CountOpenFiltered(ctx context.Context, filter ListOpenFilter) (int64, error)
+	SetVisibility(ctx context.Context, jobID int64, clientID uuid.UUID, visibility string, updatedAt time.Time) (domain.Job, error)
+	SetBudgetRange(ctx context.Context, jobID int64, clientID uuid.UUID, budgetMin, budgetMax float64, updatedAt time.Time) (domain.Job, error)
+	SetExperienceLevel(ctx context.Context, jobID int64, clientID uuid.UUID, experienceLevel string, updatedAt time.Time) (domain.Job, error)
+	Pause(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
+	Reopen(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
+	MarkFilled(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
 	Close(ctx context.Context, jobID int64, clientID uuid.UUID, reason string, closedAt time.Time) error
 }
 
@@ -30,11 +39,13 @@ type AttachmentObjectStore interface {
 
 // ListOpenFilter contains optional filters for the ListOpenJobs query.
 type ListOpenFilter struct {
-	SearchQuery string
-	Skills      []string
-	JobType     string
-	Limit       int
-	Offset      int
+	SearchQuery     string
+	Skills          []string
+	JobType         string
+	Visibility      string
+	ExperienceLevel string
+	Limit           int
+	Offset          int
 }
 
 type ConnectsClient interface {
