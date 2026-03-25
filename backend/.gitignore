@@ -15,6 +15,19 @@ coverage.out
 ## Logs & temp files
 *.log
 tmp/
+tmp_endpoint_probe.go
+
+## Generated stubs (non-user service)
+services/user/gen/auth/
+services/user/gen/connects/
+services/user/gen/contract/
+services/user/gen/job/
+services/user/gen/payment/
+services/user/gen/proposal/
+services/user/gen/recommendation/
+services/user/gen/review/
+services/user/gen/verification/
+services/user/gen/wallet/
 
 ## IDE / editor
 .vscode/

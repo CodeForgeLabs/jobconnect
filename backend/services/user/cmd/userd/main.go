@@ -81,6 +81,7 @@ func main() {
 		uploadAvatarUC,
 		getAvatarUC,
 		removeAvatarUC,
+		profileRepo,
 		grpcadapter.CapabilityPolicy{
 			MinSkillsForDiscovery:        cfg.CapabilityMinSkillsForDiscovery,
 			RequireVerifiedForWithdraw:   cfg.CapabilityRequireVerifiedForWithdraw,
