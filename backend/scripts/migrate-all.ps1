@@ -15,7 +15,8 @@ $maps = @(
     @{ Name = "job-db";      User = "job";      Db = "jobconnect_job";      Dir = "services/job/migrations" },
     @{ Name = "proposal-db"; User = "proposal"; Db = "jobconnect_proposal"; Dir = "services/proposal/migrations" },
     @{ Name = "contract-db"; User = "contract"; Db = "jobconnect_contract"; Dir = "services/contract/migrations" },
-    @{ Name = "wallet-db";   User = "wallet";   Db = "jobconnect_wallet";   Dir = "services/wallet/migrations" }
+    @{ Name = "wallet-db";   User = "wallet";   Db = "jobconnect_wallet";   Dir = "services/wallet/migrations" },
+    @{ Name = "chat-db";     User = "chat";     Db = "jobconnect_chat";     Dir = "services/chat/migrations" }
 )
 
 function Ensure-MigrationTable {
@@ -45,6 +46,9 @@ function Is-MigrationApplied {
         throw "Failed checking migration state for $Container on $FileName"
     }
 
+    if (-not $result) {
+        return $false
+    }
     return ($result.Trim() -eq "1")
 }
 
