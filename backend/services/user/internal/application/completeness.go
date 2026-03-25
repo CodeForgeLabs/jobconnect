@@ -6,6 +6,11 @@ import (
 	"jobconnect/user/internal/domain"
 )
 
+func verificationCountsComplete(status string) bool {
+	normalized := strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(status), "VERIFICATION_STATUS_"))
+	return normalized == domain.VerificationStatusVerified || normalized == domain.VerificationStatusPending
+}
+
 func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) (uint32, []string) {
 	required := map[string]string{
 		"display_name":  profile.DisplayName,
@@ -19,10 +24,16 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 			required["company_name"] = client.CompanyName
 			required["billing_address"] = client.BillingAddress
 			required["tax_id"] = client.TaxID
+			if verificationCountsComplete(client.VerificationStatus) {
+				required["verification_status"] = "filled"
+			} else {
+				required["verification_status"] = ""
+			}
 		} else {
 			required["company_name"] = ""
 			required["billing_address"] = ""
 			required["tax_id"] = ""
+			required["verification_status"] = ""
 		}
 	case domain.RoleFreelancer:
 		required["bio"] = profile.Bio
@@ -33,9 +44,15 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 			} else {
 				required["skills"] = "filled"
 			}
+			if verificationCountsComplete(freelancer.VerificationStatus) {
+				required["verification_status"] = "filled"
+			} else {
+				required["verification_status"] = ""
+			}
 		} else {
 			required["headline"] = ""
 			required["skills"] = ""
+			required["verification_status"] = ""
 		}
 	case domain.RoleAdmin:
 		// Keep admin onboarding intentionally minimal.
@@ -63,4 +80,28 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 	}
 
 	return uint32((filled * 100) / total), missing
+}
+
+func computeOnboardingSteps(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) []OnboardingStep {
+	steps := []OnboardingStep{
+		{Key: "profile_completed", Completed: strings.TrimSpace(profile.DisplayName) != "" && strings.TrimSpace(profile.Language) != "" && strings.TrimSpace(profile.ContactEmail) != ""},
+		{Key: "avatar_uploaded", Completed: strings.TrimSpace(profile.AvatarURL) != ""},
+	}
+
+	if profile.Role == domain.RoleFreelancer {
+		hasSkills := freelancer != nil && len(freelancer.Skills) > 0
+		steps = append(steps, OnboardingStep{Key: "skills_added", Completed: hasSkills})
+	} else {
+		steps = append(steps, OnboardingStep{Key: "company_details_added", Completed: client != nil && strings.TrimSpace(client.CompanyName) != ""})
+	}
+	if profile.Role == domain.RoleClient {
+		completed := client != nil && verificationCountsComplete(client.VerificationStatus)
+		steps = append(steps, OnboardingStep{Key: "kyc_verified", Completed: completed})
+	}
+	if profile.Role == domain.RoleFreelancer {
+		completed := freelancer != nil && verificationCountsComplete(freelancer.VerificationStatus)
+		steps = append(steps, OnboardingStep{Key: "kyc_verified", Completed: completed})
+	}
+
+	return steps
 }

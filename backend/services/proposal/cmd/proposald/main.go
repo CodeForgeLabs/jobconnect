@@ -56,7 +56,17 @@ func main() {
 
 	jobs := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn))
 
-	submitUC := &application.SubmitProposal{Proposals: proposalRepo, Jobs: jobs, Clock: clockImpl}
+	// Connects Client
+	connectsAddr := os.Getenv("CONNECTS_SERVICE_ADDR")
+	if connectsAddr == "" {
+		connectsAddr = "localhost:50058"
+	}
+	connectsCli, err := grpcadapter.NewConnectsClient(connectsAddr)
+	if err != nil {
+		log.Fatalf("connects service dial: %v", err)
+	}
+
+	submitUC := &application.SubmitProposal{Proposals: proposalRepo, Jobs: jobs, Connects: connectsCli, Clock: clockImpl}
 	modifyUC := &application.ModifyProposal{Proposals: proposalRepo, Clock: clockImpl}
 	withdrawUC := &application.WithdrawProposal{Proposals: proposalRepo, Clock: clockImpl}
 	getUC := &application.GetProposal{Proposals: proposalRepo}

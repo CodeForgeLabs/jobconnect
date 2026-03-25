@@ -1,5 +1,11 @@
 ## Auth service (gRPC)
 
+## API Documentation
+
+For the complete authentication API reference (Gateway HTTP endpoints + Auth gRPC contract), see:
+
+- `../../docs/auth-gateway-api.md`
+
 ### What’s included
 - gRPC server skeleton with health + reflection
 - Postgres connection pool

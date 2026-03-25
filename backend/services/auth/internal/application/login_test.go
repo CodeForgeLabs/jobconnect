@@ -35,6 +35,10 @@ func (r *fakeUserRepo) SetEmailVerified(ctx context.Context, userID uuid.UUID, a
 	return errors.New("not implemented")
 }
 
+func (r *fakeUserRepo) UpdateEmail(ctx context.Context, userID uuid.UUID, newEmail string, at time.Time) error {
+	return errors.New("not implemented")
+}
+
 type fakeCredRepo struct {
 	hash  string
 	found bool
@@ -49,6 +53,10 @@ func (r *fakeCredRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (strin
 	return r.hash, r.found, r.err
 }
 
+func (r *fakeCredRepo) UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error {
+	return errors.New("not implemented")
+}
+
 type fakeSessionRepo struct{}
 
 func (r *fakeSessionRepo) Create(ctx context.Context, userID uuid.UUID, refreshTokenHash string, expiresAt time.Time) (uuid.UUID, error) {
@@ -61,6 +69,10 @@ func (r *fakeSessionRepo) GetByRefreshTokenHash(ctx context.Context, refreshToke
 
 func (r *fakeSessionRepo) GetByID(ctx context.Context, sessionID uuid.UUID) (uuid.UUID, time.Time, bool, error) {
 	return uuid.Nil, time.Time{}, false, errors.New("not implemented")
+}
+
+func (r *fakeSessionRepo) ListByUserID(ctx context.Context, userID uuid.UUID) ([]SessionSummary, error) {
+	return nil, errors.New("not implemented")
 }
 
 func (r *fakeSessionRepo) RevokeByUserID(ctx context.Context, userID uuid.UUID) error {

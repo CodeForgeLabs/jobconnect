@@ -12,6 +12,7 @@ import (
 	"time"
 
 	grpcadapter "jobconnect/job/internal/adapters/grpc"
+	"jobconnect/job/internal/adapters/grpc/clients"
 	"jobconnect/job/internal/application"
 	"jobconnect/job/internal/config"
 	"jobconnect/job/internal/infrastructure/clock"
@@ -43,13 +44,32 @@ func main() {
 	jobRepo := db.NewJobRepo(pool)
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
+	// Connects Client
+	connectsAddr := os.Getenv("CONNECTS_SERVICE_ADDR")
+	if connectsAddr == "" {
+		connectsAddr = "localhost:50058"
+	}
+	connectsCli, err := clients.NewConnectsClient(connectsAddr)
+	if err != nil {
+		log.Fatalf("connects service dial: %v", err)
+	}
+
+	// Proposal Client
+	proposalAddr := os.Getenv("PROPOSAL_SERVICE_ADDR")
+	if proposalAddr == "" {
+		proposalAddr = "localhost:50054"
+	}
+	proposalCli, err := clients.NewProposalClient(proposalAddr)
+	if err != nil {
+		log.Fatalf("proposal service dial: %v", err)
+	}
 
 	createJobUC := &application.CreateJob{Jobs: jobRepo, Clock: clockImpl}
 	getJobUC := &application.GetJob{Jobs: jobRepo}
 	updateJobUC := &application.UpdateJob{Jobs: jobRepo, Clock: clockImpl}
 	listMyJobsUC := &application.ListMyJobs{Jobs: jobRepo}
 	listOpenJobsUC := &application.ListOpenJobs{Jobs: jobRepo}
-	closeJobUC := &application.CloseJob{Jobs: jobRepo, Clock: clockImpl}
+	closeJobUC := &application.CloseJob{Jobs: jobRepo, Proposals: proposalCli, Connects: connectsCli, Clock: clockImpl}
 
 	jobServer := grpcadapter.NewJobServer(
 		createJobUC,

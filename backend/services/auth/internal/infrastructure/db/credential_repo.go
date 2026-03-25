@@ -32,3 +32,10 @@ func (r *CredentialRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (pas
 	}
 	return passwordHash, true, nil
 }
+
+func (r *CredentialRepo) UpdatePasswordHash(ctx context.Context, userID uuid.UUID, passwordHash string) error {
+	_, err := r.pool.Exec(ctx, `
+		update credentials set password_hash = $2, updated_at = now() where user_id = $1
+	`, userID, passwordHash)
+	return err
+}

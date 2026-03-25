@@ -4,27 +4,33 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
+
+	"jobconnect/user/internal/domain"
 
 	"github.com/google/uuid"
-	"jobconnect/user/internal/domain"
 )
 
 type UpdateProfileInput struct {
-	UserID          uuid.UUID
-	DisplayName     *string
-	AvatarURL       *string
-	Language        *string
-	ContactEmail    *string
-	ContactPhone    *string
-	Bio             *string
-	FirstName       *string
-	LastName        *string
-	CompanyName     *string
-	BillingAddress  *string
-	TaxID           *string
-	Headline        *string
-	Skills          []string
-	ExperienceLevel *string
+	UserID           uuid.UUID
+	DisplayName      *string
+	AvatarURL        *string
+	Language         *string
+	ContactEmail     *string
+	ContactPhone     *string
+	Bio              *string
+	FirstName        *string
+	LastName         *string
+	CompanyName      *string
+	BillingAddress   *string
+	TaxID            *string
+	Headline         *string
+	Skills           []string
+	ExperienceLevel  *string
+	HourlyRate       *float64
+	Availability     *string
+	Location         *string
+	LastActiveAtUnix *int64
 }
 
 type UpdateProfileOutput struct {
@@ -121,11 +127,31 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 			}
 			freelancer.Skills = skills
 		}
+		if in.HourlyRate != nil {
+			if *in.HourlyRate < 0 {
+				return UpdateProfileOutput{}, fmt.Errorf("hourly_rate must be greater than or equal to 0")
+			}
+			freelancer.HourlyRate = *in.HourlyRate
+		}
+		if in.Availability != nil {
+			freelancer.Availability = strings.TrimSpace(*in.Availability)
+		}
+		if in.Location != nil {
+			freelancer.Location = strings.TrimSpace(*in.Location)
+		}
+		if in.LastActiveAtUnix != nil {
+			if *in.LastActiveAtUnix <= 0 {
+				freelancer.LastActiveAt = nil
+			} else {
+				t := time.Unix(*in.LastActiveAtUnix, 0).UTC()
+				freelancer.LastActiveAt = &t
+			}
+		}
 		if in.CompanyName != nil || in.BillingAddress != nil || in.TaxID != nil {
 			return UpdateProfileOutput{}, fmt.Errorf("client fields are not allowed for freelancer")
 		}
 	case domain.RoleAdmin:
-		if in.CompanyName != nil || in.BillingAddress != nil || in.TaxID != nil || in.Headline != nil || in.ExperienceLevel != nil || len(in.Skills) > 0 {
+		if in.CompanyName != nil || in.BillingAddress != nil || in.TaxID != nil || in.Headline != nil || in.ExperienceLevel != nil || len(in.Skills) > 0 || in.HourlyRate != nil || in.Availability != nil || in.Location != nil || in.LastActiveAtUnix != nil {
 			return UpdateProfileOutput{}, fmt.Errorf("role-specific fields are not allowed for admin")
 		}
 	}

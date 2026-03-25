@@ -33,10 +33,10 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 
 	var profileID int64
 	err = tx.QueryRow(ctx, `
-		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, language, contact_email, contact_phone, bio, created_at, updated_at)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, language, contact_email, contact_phone, bio, account_status, suspension_reason, visibility, created_at, updated_at)
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 		returning id
-	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
+	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.AccountStatus, profile.SuspensionReason, profile.Visibility, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
 	if err != nil {
 		return 0, err
 	}
@@ -56,9 +56,25 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 			return 0, err
 		}
 		_, err = tx.Exec(ctx, `
-			insert into freelancer_profiles (profile_id, headline, bio, skills, experience_level, rating, verification_status)
-			values ($1, $2, $3, $4, $5, $6, $7)
-		`, profileID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus)
+			insert into freelancer_profiles (
+				profile_id,
+				headline,
+				bio,
+				skills,
+				experience_level,
+				rating,
+				verification_status,
+				job_success_score,
+				total_reviews,
+				total_jobs,
+				total_earnings_usd,
+				hourly_rate,
+				availability,
+				location,
+				last_active_at
+			)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		`, profileID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location, freelancer.LastActiveAt)
 		if err != nil {
 			return 0, err
 		}
@@ -85,6 +101,9 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			coalesce(contact_email, ''),
 			coalesce(contact_phone, ''),
 			coalesce(bio, ''),
+			coalesce(account_status, 'ACTIVE'),
+			coalesce(suspension_reason, ''),
+			coalesce(visibility, 'PUBLIC'),
 			created_at,
 			updated_at,
 			deleted_at
@@ -102,6 +121,9 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 		&profile.ContactEmail,
 		&profile.ContactPhone,
 		&profile.Bio,
+		&profile.AccountStatus,
+		&profile.SuspensionReason,
+		&profile.Visibility,
 		&profile.CreatedAt,
 		&profile.UpdatedAt,
 		&deletedAt,
@@ -138,16 +160,25 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 	if profile.Role == domain.RoleFreelancer {
 		fp := &domain.FreelancerProfile{}
 		var skillsRaw []byte
+		var lastActiveAt *time.Time
 		err = r.pool.QueryRow(ctx, `
 			select coalesce(headline, ''),
 				coalesce(bio, ''),
 				coalesce(skills, '[]'::jsonb),
 				coalesce(experience_level, ''),
 				coalesce(rating, 0),
-				coalesce(verification_status, '')
+				coalesce(verification_status, ''),
+				coalesce(job_success_score, 0),
+				coalesce(total_reviews, 0),
+				coalesce(total_jobs, 0),
+				coalesce(total_earnings_usd, 0),
+				coalesce(hourly_rate, 0),
+				coalesce(availability, 'AS_NEEDED'),
+				coalesce(location, ''),
+				last_active_at
 			from freelancer_profiles
 			where profile_id = $1
-		`, profile.ID).Scan(&fp.Headline, &fp.Bio, &skillsRaw, &fp.ExperienceLevel, &fp.Rating, &fp.VerificationStatus)
+		`, profile.ID).Scan(&fp.Headline, &fp.Bio, &skillsRaw, &fp.ExperienceLevel, &fp.Rating, &fp.VerificationStatus, &fp.Reputation.JobSuccessScore, &fp.Reputation.TotalReviews, &fp.Reputation.TotalJobs, &fp.Reputation.TotalEarningsUSD, &fp.HourlyRate, &fp.Availability, &fp.Location, &lastActiveAt)
 		if err != nil {
 			if !isNoRows(err) {
 				return domain.Profile{}, nil, nil, err
@@ -156,6 +187,8 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			if len(skillsRaw) > 0 {
 				_ = json.Unmarshal(skillsRaw, &fp.Skills)
 			}
+			fp.Reputation.AvgRating = fp.Rating
+			fp.LastActiveAt = lastActiveAt
 			freelancer = fp
 		}
 	}
@@ -183,9 +216,12 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 			contact_email = $7,
 			contact_phone = $8,
 			bio = $9,
-			updated_at = $10
+			account_status = $10,
+			suspension_reason = $11,
+			visibility = $12,
+			updated_at = $13
 		where user_id = $1
-	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.UpdatedAt)
+	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.AccountStatus, profile.SuspensionReason, profile.Visibility, profile.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -211,16 +247,40 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 			return err
 		}
 		_, err = tx.Exec(ctx, `
-			insert into freelancer_profiles (profile_id, headline, bio, skills, experience_level, rating, verification_status)
-			values ($1, $2, $3, $4, $5, $6, $7)
+			insert into freelancer_profiles (
+				profile_id,
+				headline,
+				bio,
+				skills,
+				experience_level,
+				rating,
+				verification_status,
+				job_success_score,
+				total_reviews,
+				total_jobs,
+				total_earnings_usd,
+				hourly_rate,
+				availability,
+				location,
+				last_active_at
+			)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 			on conflict (profile_id) do update set
 				headline = excluded.headline,
 				bio = excluded.bio,
 				skills = excluded.skills,
 				experience_level = excluded.experience_level,
 				rating = excluded.rating,
-				verification_status = excluded.verification_status
-		`, profile.ID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus)
+				verification_status = excluded.verification_status,
+				job_success_score = excluded.job_success_score,
+				total_reviews = excluded.total_reviews,
+				total_jobs = excluded.total_jobs,
+				total_earnings_usd = excluded.total_earnings_usd,
+				hourly_rate = excluded.hourly_rate,
+				availability = excluded.availability,
+				location = excluded.location,
+				last_active_at = excluded.last_active_at
+		`, profile.ID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location, freelancer.LastActiveAt)
 		if err != nil {
 			return err
 		}
@@ -261,27 +321,27 @@ func (r *ProfileRepo) Delete(ctx context.Context, userID uuid.UUID, hardDelete b
 
 func (r *ProfileRepo) SaveAvatar(ctx context.Context, avatar domain.Avatar) error {
 	_, err := r.pool.Exec(ctx, `
-		insert into profile_avatars (user_id, file_name, content_type, content, width, height, size_bytes, updated_at)
+		insert into profile_avatars (user_id, file_name, content_type, storage_key, width, height, size_bytes, updated_at)
 		values ($1, $2, $3, $4, $5, $6, $7, $8)
 		on conflict (user_id) do update set
 			file_name = excluded.file_name,
 			content_type = excluded.content_type,
-			content = excluded.content,
+			storage_key = excluded.storage_key,
 			width = excluded.width,
 			height = excluded.height,
 			size_bytes = excluded.size_bytes,
 			updated_at = excluded.updated_at
-	`, avatar.UserID, avatar.FileName, avatar.ContentType, avatar.Content, avatar.Width, avatar.Height, avatar.SizeBytes, avatar.UpdatedAt)
+	`, avatar.UserID, avatar.FileName, avatar.ContentType, avatar.StorageKey, avatar.Width, avatar.Height, avatar.SizeBytes, avatar.UpdatedAt)
 	return err
 }
 
 func (r *ProfileRepo) GetAvatar(ctx context.Context, userID uuid.UUID) (domain.Avatar, error) {
 	var avatar domain.Avatar
 	err := r.pool.QueryRow(ctx, `
-		select user_id, file_name, content_type, content, width, height, size_bytes, updated_at
+		select user_id, file_name, content_type, storage_key, width, height, size_bytes, updated_at
 		from profile_avatars
 		where user_id = $1
-	`, userID).Scan(&avatar.UserID, &avatar.FileName, &avatar.ContentType, &avatar.Content, &avatar.Width, &avatar.Height, &avatar.SizeBytes, &avatar.UpdatedAt)
+	`, userID).Scan(&avatar.UserID, &avatar.FileName, &avatar.ContentType, &avatar.StorageKey, &avatar.Width, &avatar.Height, &avatar.SizeBytes, &avatar.UpdatedAt)
 	if err != nil {
 		if isNoRows(err) {
 			return domain.Avatar{}, ErrNotFound
@@ -300,6 +360,24 @@ func (r *ProfileRepo) RemoveAvatar(ctx context.Context, userID uuid.UUID) error 
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (r *ProfileRepo) UpdateAccountState(ctx context.Context, userID uuid.UUID, status, suspensionReason, visibility string, updatedAt time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
+	res, err := r.pool.Exec(ctx, `
+		update profiles
+		set account_status = $2,
+			suspension_reason = $3,
+			visibility = $4,
+			updated_at = $5
+		where user_id = $1
+	`, userID, status, suspensionReason, visibility, updatedAt)
+	if err != nil {
+		return domain.Profile{}, nil, nil, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Profile{}, nil, nil, ErrNotFound
+	}
+	return r.GetByUserID(ctx, userID)
 }
 
 func isNoRowsOrNotFound(err error) bool {

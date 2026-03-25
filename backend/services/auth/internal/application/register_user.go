@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"log"
 	"math/big"
 	"strings"
 	"time"
@@ -36,6 +37,7 @@ type RegisterUser struct {
 	OTPs           OTPRepository
 	TOS            TOSRepository
 	UserProfiles   UserProfileService
+	Connects       ConnectsClient
 	Hasher         domain.PasswordHasher
 	Clock          Clock
 	EmailSend      EmailSender
@@ -67,6 +69,9 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 	}
 	if err := domain.ValidateRole(in.Role); err != nil {
 		return RegisterUserOutput{}, err
+	}
+	if in.Role == domain.RoleAdmin {
+		return RegisterUserOutput{}, fmt.Errorf("admin role cannot be self-registered")
 	}
 
 	email := domain.NormalizeEmail(in.Email)
@@ -115,8 +120,17 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 			LastName:    u.LastName,
 			DisplayName: u.DisplayName,
 			AvatarURL:   "",
+			Email:       u.Email,
 		}); err != nil {
 			return RegisterUserOutput{}, err
+		}
+	}
+
+	// Grant initial connects to freelancers
+	if uc.Connects != nil && strings.ToLower(in.Role) == "freelancer" {
+		if err := uc.Connects.GrantInitialConnects(ctx, u.ID); err != nil {
+			// Do not block registration if promotion fails, but log it
+			fmt.Printf("failed to grant initial connects for user %s: %v\n", u.ID, err)
 		}
 	}
 
@@ -136,7 +150,7 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 	otpSent := false
 	if uc.EmailSend != nil {
 		if err := uc.EmailSend.SendVerifyEmailOTP(ctx, email, otp); err != nil {
-			// log but don't fail registration
+			log.Printf("register otp email send failed email=%s: %v", email, err)
 			otpSent = false
 		} else {
 			otpSent = true

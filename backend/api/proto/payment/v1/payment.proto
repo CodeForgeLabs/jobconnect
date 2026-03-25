@@ -1,0 +1,171 @@
+syntax = "proto3";
+
+package payment.v1;
+
+option go_package = "jobconnect/payment/gen/payment/v1;paymentv1";
+
+service PaymentService {
+  // Deposit flow
+  rpc InitiateDeposit(InitiateDepositRequest) returns (InitiateDepositResponse);
+  rpc VerifyDeposit(VerifyDepositRequest) returns (VerifyDepositResponse);
+
+  // Withdrawal flow
+  rpc RequestWithdrawal(RequestWithdrawalRequest) returns (RequestWithdrawalResponse);
+
+  // Receipt upload (S3/MinIO)
+  rpc UploadReceipt(UploadReceiptRequest) returns (UploadReceiptResponse);
+
+  // Milestone approval callback
+  rpc NotifyMilestoneApproved(NotifyMilestoneApprovedRequest) returns (NotifyMilestoneApprovedResponse);
+
+  // Queries
+  rpc GetPaymentSession(GetPaymentSessionRequest) returns (GetPaymentSessionResponse);
+  rpc ListPaymentSessions(ListPaymentSessionsRequest) returns (ListPaymentSessionsResponse);
+}
+
+// ──────────────────────────────────────────────
+// Enums
+// ──────────────────────────────────────────────
+
+enum PaymentProvider {
+  PAYMENT_PROVIDER_UNSPECIFIED = 0;
+  PAYMENT_PROVIDER_CHAPA = 1;
+  PAYMENT_PROVIDER_TELEBIRR = 2;
+}
+
+enum PaymentType {
+  PAYMENT_TYPE_UNSPECIFIED = 0;
+  PAYMENT_TYPE_DEPOSIT = 1;
+  PAYMENT_TYPE_WITHDRAWAL = 2;
+}
+
+enum PaymentSessionStatus {
+  PAYMENT_SESSION_STATUS_UNSPECIFIED = 0;
+  PAYMENT_SESSION_STATUS_PENDING = 1;
+  PAYMENT_SESSION_STATUS_COMPLETED = 2;
+  PAYMENT_SESSION_STATUS_FAILED = 3;
+  PAYMENT_SESSION_STATUS_REFUNDED = 4;
+}
+
+// ──────────────────────────────────────────────
+// Messages
+// ──────────────────────────────────────────────
+
+message PaymentSession {
+  int64 id = 1;
+  string user_id = 2;
+  PaymentProvider provider = 3;
+  PaymentType payment_type = 4;
+  PaymentSessionStatus status = 5;
+  int64 amount_minor = 6;
+  string currency = 7;
+  string idempotency_key = 8;
+  string external_ref = 9;          // checkout URL or tx reference
+  string receipt_storage_key = 10;   // MinIO key for uploaded receipt
+  string reference_type = 11;       // e.g. "milestone", "topup"
+  string reference_id = 12;         // e.g. milestone ID
+  string error_message = 13;
+  int64 created_at_unix_seconds = 14;
+  int64 updated_at_unix_seconds = 15;
+  int64 completed_at_unix_seconds = 16;
+}
+
+// ──────────────────────────────────────────────
+// Deposit RPCs
+// ──────────────────────────────────────────────
+
+message InitiateDepositRequest {
+  PaymentProvider provider = 1;
+  int64 amount_minor = 2;
+  string currency = 3;
+  string reference_type = 4;        // "milestone"
+  string reference_id = 5;          // milestone ID
+  string return_url = 6;            // where to redirect after payment
+}
+
+message InitiateDepositResponse {
+  PaymentSession session = 1;
+  string checkout_url = 2;          // Chapa / Telebirr redirect URL
+}
+
+message VerifyDepositRequest {
+  int64 session_id = 1;
+}
+
+message VerifyDepositResponse {
+  PaymentSession session = 1;
+}
+
+// ──────────────────────────────────────────────
+// Withdrawal RPCs
+// ──────────────────────────────────────────────
+
+message RequestWithdrawalRequest {
+  PaymentProvider provider = 1;
+  int64 amount_minor = 2;
+  string currency = 3;
+  string bank_code = 4;             // e.g. "CBE", "Abyssinia", etc.
+  string account_number = 5;
+  string account_holder_name = 6;
+}
+
+message RequestWithdrawalResponse {
+  PaymentSession session = 1;
+}
+
+// ──────────────────────────────────────────────
+// Receipt Upload RPCs
+// ──────────────────────────────────────────────
+
+message UploadReceiptRequest {
+  int64 session_id = 1;
+  bytes receipt_data = 2;
+  string content_type = 3;          // e.g. "image/jpeg"
+}
+
+message UploadReceiptResponse {
+  PaymentSession session = 1;
+  string receipt_url = 2;
+}
+
+// ──────────────────────────────────────────────
+// Milestone Approval Callback
+// ──────────────────────────────────────────────
+
+message NotifyMilestoneApprovedRequest {
+  int64 contract_id = 1;
+  int64 milestone_id = 2;
+  int64 hold_id = 3;
+  string freelancer_id = 4;
+  int64 freelancer_wallet_id = 5;
+  int64 amount_minor = 6;
+  string currency = 7;
+}
+
+message NotifyMilestoneApprovedResponse {
+  PaymentSession session = 1;
+}
+
+// ──────────────────────────────────────────────
+// Query RPCs
+// ──────────────────────────────────────────────
+
+message GetPaymentSessionRequest {
+  int64 session_id = 1;
+}
+
+message GetPaymentSessionResponse {
+  PaymentSession session = 1;
+}
+
+message ListPaymentSessionsRequest {
+  PaymentType payment_type = 1;     // optional filter
+  PaymentSessionStatus status = 2;  // optional filter
+  int32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListPaymentSessionsResponse {
+  repeated PaymentSession sessions = 1;
+  string next_page_token = 2;
+}
