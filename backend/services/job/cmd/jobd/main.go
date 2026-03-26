@@ -90,6 +90,19 @@ func main() {
 	listFacetsUC := &application.ListJobFacets{Jobs: jobRepo}
 	listAttachmentsUC := &application.ListJobAttachments{Jobs: jobRepo}
 	getAttachmentURLUC := &application.GetJobAttachmentDownloadURL{Jobs: jobRepo}
+	getPublicJobUC := &application.GetPublicJobDetail{Jobs: jobRepo}
+	listInvitedJobsUC := &application.ListInvitedJobs{Jobs: jobRepo}
+	respondInviteUC := &application.RespondToJobInvite{Jobs: jobRepo, Clock: clockImpl}
+	saveJobUC := &application.SaveJob{Jobs: jobRepo, Clock: clockImpl}
+	unsaveJobUC := &application.UnsaveJob{Jobs: jobRepo}
+	listSavedJobsUC := &application.ListSavedJobs{Jobs: jobRepo}
+	hireApplicantUC := &application.HireApplicant{Jobs: jobRepo, Proposals: proposalCli, Clock: clockImpl}
+	rejectAllUC := &application.RejectAllApplicants{Jobs: jobRepo, Proposals: proposalCli}
+	reopenHiringUC := &application.ReopenHiringForJob{Jobs: jobRepo, Clock: clockImpl}
+	getJobStatsUC := &application.GetJobStats{Jobs: jobRepo, Proposals: proposalCli}
+	searchJobsV2UC := &application.SearchJobsV2{Jobs: jobRepo}
+	markCompletedUC := &application.MarkJobCompleted{Jobs: jobRepo, Clock: clockImpl}
+	cancelWithSettleUC := &application.CancelJobWithSettlementPolicy{Jobs: jobRepo, Proposals: proposalCli, Connects: connectsCli, Clock: clockImpl}
 
 	jobServer := grpcadapter.NewJobServer(
 		createJobUC,
@@ -113,6 +126,19 @@ func main() {
 		listFacetsUC,
 		listAttachmentsUC,
 		getAttachmentURLUC,
+		getPublicJobUC,
+		listInvitedJobsUC,
+		respondInviteUC,
+		saveJobUC,
+		unsaveJobUC,
+		listSavedJobsUC,
+		hireApplicantUC,
+		rejectAllUC,
+		reopenHiringUC,
+		getJobStatsUC,
+		searchJobsV2UC,
+		markCompletedUC,
+		cancelWithSettleUC,
 		jwtParser,
 	)
 

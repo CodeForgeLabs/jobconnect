@@ -35,6 +35,19 @@ type JobServer struct {
 	ListFacetsUC       *application.ListJobFacets
 	ListAttachmentsUC  *application.ListJobAttachments
 	GetAttachmentURLUC *application.GetJobAttachmentDownloadURL
+	GetPublicJobUC     *application.GetPublicJobDetail
+	ListInvitedJobsUC  *application.ListInvitedJobs
+	RespondInviteUC    *application.RespondToJobInvite
+	SaveJobUC          *application.SaveJob
+	UnsaveJobUC        *application.UnsaveJob
+	ListSavedJobsUC    *application.ListSavedJobs
+	HireApplicantUC    *application.HireApplicant
+	RejectAllUC        *application.RejectAllApplicants
+	ReopenHiringUC     *application.ReopenHiringForJob
+	GetJobStatsUC      *application.GetJobStats
+	SearchJobsV2UC     *application.SearchJobsV2
+	MarkCompletedUC    *application.MarkJobCompleted
+	CancelWithSettleUC *application.CancelJobWithSettlementPolicy
 	TokenParser        TokenParser
 }
 
@@ -60,6 +73,19 @@ func NewJobServer(
 	listFacets *application.ListJobFacets,
 	listAttachments *application.ListJobAttachments,
 	getAttachmentURL *application.GetJobAttachmentDownloadURL,
+	getPublicJob *application.GetPublicJobDetail,
+	listInvitedJobs *application.ListInvitedJobs,
+	respondInvite *application.RespondToJobInvite,
+	saveJob *application.SaveJob,
+	unsaveJob *application.UnsaveJob,
+	listSavedJobs *application.ListSavedJobs,
+	hireApplicant *application.HireApplicant,
+	rejectAll *application.RejectAllApplicants,
+	reopenHiring *application.ReopenHiringForJob,
+	getJobStats *application.GetJobStats,
+	searchJobsV2 *application.SearchJobsV2,
+	markCompleted *application.MarkJobCompleted,
+	cancelWithSettle *application.CancelJobWithSettlementPolicy,
 	tokenParser TokenParser,
 ) *JobServer {
 	return &JobServer{
@@ -84,6 +110,19 @@ func NewJobServer(
 		ListFacetsUC:       listFacets,
 		ListAttachmentsUC:  listAttachments,
 		GetAttachmentURLUC: getAttachmentURL,
+		GetPublicJobUC:     getPublicJob,
+		ListInvitedJobsUC:  listInvitedJobs,
+		RespondInviteUC:    respondInvite,
+		SaveJobUC:          saveJob,
+		UnsaveJobUC:        unsaveJob,
+		ListSavedJobsUC:    listSavedJobs,
+		HireApplicantUC:    hireApplicant,
+		RejectAllUC:        rejectAll,
+		ReopenHiringUC:     reopenHiring,
+		GetJobStatsUC:      getJobStats,
+		SearchJobsV2UC:     searchJobsV2,
+		MarkCompletedUC:    markCompleted,
+		CancelWithSettleUC: cancelWithSettle,
 		TokenParser:        tokenParser,
 	}
 }
@@ -659,6 +698,276 @@ func (s *JobServer) GetJobAttachmentDownloadUrl(ctx context.Context, req *jobv1.
 	return &jobv1.GetJobAttachmentDownloadUrlResponse{Url: out.URL}, nil
 }
 
+func (s *JobServer) GetPublicJobDetail(ctx context.Context, req *jobv1.GetPublicJobDetailRequest) (*jobv1.GetPublicJobDetailResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	out, err := s.GetPublicJobUC.Execute(ctx, application.GetPublicJobDetailInput{JobID: req.JobId})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.GetPublicJobDetailResponse{Job: toProtoJob(out.Job)}, nil
+}
+
+func (s *JobServer) ListInvitedJobs(ctx context.Context, req *jobv1.ListInvitedJobsRequest) (*jobv1.ListInvitedJobsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.ListInvitedJobsUC.Execute(ctx, application.ListInvitedJobsInput{FreelancerID: callerID, PageSize: req.PageSize, PageToken: req.PageToken})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	jobs := make([]*jobv1.Job, 0, len(out.Jobs))
+	for _, j := range out.Jobs {
+		jobs = append(jobs, toProtoJob(j))
+	}
+	return &jobv1.ListInvitedJobsResponse{Invites: jobs, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *JobServer) RespondToJobInvite(ctx context.Context, req *jobv1.RespondToJobInviteRequest) (*jobv1.RespondToJobInviteResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+	state, mapErr := inviteResponseFromEnum(req.ResponseStatus)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	out, err := s.RespondInviteUC.Execute(ctx, application.RespondToJobInviteInput{JobID: req.JobId, FreelancerID: callerID, ResponseState: state})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.RespondToJobInviteResponse{Updated: out.Updated}, nil
+}
+
+func (s *JobServer) SaveJob(ctx context.Context, req *jobv1.SaveJobRequest) (*jobv1.SaveJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.SaveJobUC.Execute(ctx, application.SaveJobInput{JobID: req.JobId, FreelancerID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.SaveJobResponse{Saved: out.Saved}, nil
+}
+
+func (s *JobServer) UnsaveJob(ctx context.Context, req *jobv1.UnsaveJobRequest) (*jobv1.UnsaveJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.UnsaveJobUC.Execute(ctx, application.UnsaveJobInput{JobID: req.JobId, FreelancerID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.UnsaveJobResponse{Removed: out.Removed}, nil
+}
+
+func (s *JobServer) ListSavedJobs(ctx context.Context, req *jobv1.ListSavedJobsRequest) (*jobv1.ListSavedJobsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.ListSavedJobsUC.Execute(ctx, application.ListSavedJobsInput{FreelancerID: callerID, PageSize: req.PageSize, PageToken: req.PageToken})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	jobs := make([]*jobv1.Job, 0, len(out.Jobs))
+	for _, j := range out.Jobs {
+		jobs = append(jobs, toProtoJob(j))
+	}
+	return &jobv1.ListSavedJobsResponse{Jobs: jobs, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *JobServer) HireApplicant(ctx context.Context, req *jobv1.HireApplicantRequest) (*jobv1.HireApplicantResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.HireApplicantUC.Execute(ctx, application.HireApplicantInput{ProposalID: req.ProposalId, ClientID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.HireApplicantResponse{Hired: out.Hired, JobId: out.JobID}, nil
+}
+
+func (s *JobServer) RejectAllApplicants(ctx context.Context, req *jobv1.RejectAllApplicantsRequest) (*jobv1.RejectAllApplicantsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.RejectAllUC.Execute(ctx, application.RejectAllApplicantsInput{JobID: req.JobId, ClientID: callerID, Reason: req.Reason})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.RejectAllApplicantsResponse{RejectedCount: out.RejectedCount}, nil
+}
+
+func (s *JobServer) ReopenHiringForJob(ctx context.Context, req *jobv1.ReopenHiringForJobRequest) (*jobv1.ReopenHiringForJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.ReopenHiringUC.Execute(ctx, application.ReopenHiringForJobInput{JobID: req.JobId, ClientID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.ReopenHiringForJobResponse{Job: &jobv1.Job{Id: out.JobID}}, nil
+}
+
+func (s *JobServer) GetJobStats(ctx context.Context, req *jobv1.GetJobStatsRequest) (*jobv1.GetJobStatsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.GetJobStatsUC.Execute(ctx, application.GetJobStatsInput{JobID: req.JobId, ClientID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.GetJobStatsResponse{
+		InviteCount:         out.InviteCount,
+		InviteAcceptedCount: out.InviteAcceptedCount,
+		InviteDeclinedCount: out.InviteDeclinedCount,
+		ApplicantCount:      out.ApplicantCount,
+		ShortlistedCount:    out.ShortlistedCount,
+		RejectedCount:       out.RejectedCount,
+		HiredCount:          out.HiredCount,
+	}, nil
+}
+
+func (s *JobServer) SearchJobsV2(ctx context.Context, req *jobv1.SearchJobsV2Request) (*jobv1.SearchJobsV2Response, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	jobType, mapErr := mergeJobTypeFilter("", req.JobType)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	visibility, mapErr := visibilityFromEnum(req.Visibility)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	level, mapErr := experienceLevelFromEnum(req.ExperienceLevel)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	sortBy := sortByFromEnum(req.SortBy)
+	out, err := s.SearchJobsV2UC.Execute(ctx, application.SearchJobsV2Input{
+		PageSize:        req.PageSize,
+		PageToken:       req.PageToken,
+		Query:           req.Query,
+		Skills:          req.Skills,
+		JobType:         jobType,
+		Visibility:      visibility,
+		ExperienceLevel: level,
+		SortBy:          sortBy,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	jobs := make([]*jobv1.Job, 0, len(out.Jobs))
+	for _, j := range out.Jobs {
+		jobs = append(jobs, toProtoJob(j))
+	}
+	return &jobv1.SearchJobsV2Response{Jobs: jobs, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *JobServer) MarkJobCompleted(ctx context.Context, req *jobv1.MarkJobCompletedRequest) (*jobv1.MarkJobCompletedResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.MarkCompletedUC.Execute(ctx, application.MarkJobCompletedInput{JobID: req.JobId, ClientID: callerID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.MarkJobCompletedResponse{Completed: out.Completed}, nil
+}
+
+func (s *JobServer) CancelJobWithSettlementPolicy(ctx context.Context, req *jobv1.CancelJobWithSettlementPolicyRequest) (*jobv1.CancelJobWithSettlementPolicyResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	policy, mapErr := settlementPolicyFromEnum(req.SettlementPolicy)
+	if mapErr != nil {
+		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+	}
+	out, err := s.CancelWithSettleUC.Execute(ctx, application.CancelJobWithSettlementPolicyInput{JobID: req.JobId, ClientID: callerID, SettlementPolicy: policy, Reason: req.Reason})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &jobv1.CancelJobWithSettlementPolicyResponse{Canceled: out.Canceled}, nil
+}
+
 func toProtoJob(in domain.Job) *jobv1.Job {
 	attachments := make([]*jobv1.JobAttachment, 0, len(in.Attachments))
 	for _, a := range in.Attachments {
@@ -825,6 +1134,43 @@ func applicantStageToEnum(in string) jobv1.ApplicantStage {
 		return jobv1.ApplicantStage_APPLICANT_STAGE_HIRED
 	default:
 		return jobv1.ApplicantStage_APPLICANT_STAGE_SENT
+	}
+}
+
+func inviteResponseFromEnum(in jobv1.InviteResponseStatus) (string, error) {
+	switch in {
+	case jobv1.InviteResponseStatus_INVITE_RESPONSE_STATUS_ACCEPTED:
+		return application.InviteResponseAccepted, nil
+	case jobv1.InviteResponseStatus_INVITE_RESPONSE_STATUS_DECLINED:
+		return application.InviteResponseDeclined, nil
+	default:
+		return "", status.Error(codes.InvalidArgument, "invalid invite response status")
+	}
+}
+
+func sortByFromEnum(in jobv1.JobSortBy) string {
+	switch in {
+	case jobv1.JobSortBy_JOB_SORT_BY_NEWEST:
+		return "newest"
+	case jobv1.JobSortBy_JOB_SORT_BY_OLDEST:
+		return "oldest"
+	case jobv1.JobSortBy_JOB_SORT_BY_BUDGET_HIGH:
+		return "budget_high"
+	case jobv1.JobSortBy_JOB_SORT_BY_BUDGET_LOW:
+		return "budget_low"
+	default:
+		return "relevance"
+	}
+}
+
+func settlementPolicyFromEnum(in jobv1.SettlementPolicy) (string, error) {
+	switch in {
+	case jobv1.SettlementPolicy_SETTLEMENT_POLICY_REFUND_REMAINING:
+		return application.SettlementPolicyRefundRemaining, nil
+	case jobv1.SettlementPolicy_SETTLEMENT_POLICY_NO_REFUND:
+		return application.SettlementPolicyNoRefund, nil
+	default:
+		return "", status.Error(codes.InvalidArgument, "invalid settlement policy")
 	}
 }
 
