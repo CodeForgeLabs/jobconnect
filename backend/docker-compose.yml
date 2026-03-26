@@ -114,7 +114,7 @@ services:
       POSTGRES_PASSWORD: verification
       POSTGRES_DB: jobconnect_verification
     ports:
-      - "5438:5432"
+      - "5440:5432"
     volumes:
       - verification-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -205,6 +205,8 @@ services:
     depends_on:
       job-db:
         condition: service_healthy
+      minio:
+        condition: service_healthy
 
   proposal:
     build:
@@ -279,7 +281,7 @@ services:
     env_file:
       - .env
     ports:
-      - "50060:50060"
+      - "50062:50060"
     depends_on:
       verification-db:
         condition: service_healthy
