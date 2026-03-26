@@ -36,6 +36,29 @@ service JobService {
   // Category 10: Attachment/media maturity.
   rpc ListJobAttachments(ListJobAttachmentsRequest) returns (ListJobAttachmentsResponse);
   rpc GetJobAttachmentDownloadUrl(GetJobAttachmentDownloadUrlRequest) returns (GetJobAttachmentDownloadUrlResponse);
+
+  // Category 2: Freelancer-side interactions.
+  rpc GetPublicJobDetail(GetPublicJobDetailRequest) returns (GetPublicJobDetailResponse);
+  rpc ListInvitedJobs(ListInvitedJobsRequest) returns (ListInvitedJobsResponse);
+  rpc RespondToJobInvite(RespondToJobInviteRequest) returns (RespondToJobInviteResponse);
+  rpc SaveJob(SaveJobRequest) returns (SaveJobResponse);
+  rpc UnsaveJob(UnsaveJobRequest) returns (UnsaveJobResponse);
+  rpc ListSavedJobs(ListSavedJobsRequest) returns (ListSavedJobsResponse);
+
+  // Category 3: Hiring decisions.
+  rpc HireApplicant(HireApplicantRequest) returns (HireApplicantResponse);
+  rpc RejectAllApplicants(RejectAllApplicantsRequest) returns (RejectAllApplicantsResponse);
+  rpc ReopenHiringForJob(ReopenHiringForJobRequest) returns (ReopenHiringForJobResponse);
+
+  // Category 4: Job analytics.
+  rpc GetJobStats(GetJobStatsRequest) returns (GetJobStatsResponse);
+
+  // Category 5: Search quality (first endpoint only).
+  rpc SearchJobsV2(SearchJobsV2Request) returns (SearchJobsV2Response);
+
+  // Category 8: Contract/payment bridge (excluding start-contract endpoint).
+  rpc MarkJobCompleted(MarkJobCompletedRequest) returns (MarkJobCompletedResponse);
+  rpc CancelJobWithSettlementPolicy(CancelJobWithSettlementPolicyRequest) returns (CancelJobWithSettlementPolicyResponse);
 }
 
 enum JobType {
@@ -77,6 +100,27 @@ enum ApplicantStage {
   APPLICANT_STAGE_SHORTLISTED = 2;
   APPLICANT_STAGE_REJECTED = 3;
   APPLICANT_STAGE_HIRED = 4;
+}
+
+enum InviteResponseStatus {
+  INVITE_RESPONSE_STATUS_UNSPECIFIED = 0;
+  INVITE_RESPONSE_STATUS_ACCEPTED = 1;
+  INVITE_RESPONSE_STATUS_DECLINED = 2;
+}
+
+enum JobSortBy {
+  JOB_SORT_BY_UNSPECIFIED = 0;
+  JOB_SORT_BY_RELEVANCE = 1;
+  JOB_SORT_BY_NEWEST = 2;
+  JOB_SORT_BY_OLDEST = 3;
+  JOB_SORT_BY_BUDGET_HIGH = 4;
+  JOB_SORT_BY_BUDGET_LOW = 5;
+}
+
+enum SettlementPolicy {
+  SETTLEMENT_POLICY_UNSPECIFIED = 0;
+  SETTLEMENT_POLICY_REFUND_REMAINING = 1;
+  SETTLEMENT_POLICY_NO_REFUND = 2;
 }
 
 message CreateJobRequest {
@@ -300,6 +344,142 @@ message GetJobAttachmentDownloadUrlRequest {
 
 message GetJobAttachmentDownloadUrlResponse {
   string url = 1;
+}
+
+message GetPublicJobDetailRequest {
+  int64 job_id = 1;
+}
+
+message GetPublicJobDetailResponse {
+  Job job = 1;
+}
+
+message JobInvite {
+  int64 job_id = 1;
+  string client_id = 2;
+  string freelancer_id = 3;
+  int64 invited_at_unix_seconds = 4;
+  InviteResponseStatus response_status = 5;
+}
+
+message ListInvitedJobsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListInvitedJobsResponse {
+  repeated Job invites = 1;
+  string next_page_token = 2;
+}
+
+message RespondToJobInviteRequest {
+  int64 job_id = 1;
+  InviteResponseStatus response_status = 2;
+}
+
+message RespondToJobInviteResponse {
+  bool updated = 1;
+}
+
+message SaveJobRequest {
+  int64 job_id = 1;
+}
+
+message SaveJobResponse {
+  bool saved = 1;
+}
+
+message UnsaveJobRequest {
+  int64 job_id = 1;
+}
+
+message UnsaveJobResponse {
+  bool removed = 1;
+}
+
+message ListSavedJobsRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListSavedJobsResponse {
+  repeated Job jobs = 1;
+  string next_page_token = 2;
+}
+
+message HireApplicantRequest {
+  int64 proposal_id = 1;
+}
+
+message HireApplicantResponse {
+  bool hired = 1;
+  int64 job_id = 2;
+}
+
+message RejectAllApplicantsRequest {
+  int64 job_id = 1;
+  string reason = 2;
+}
+
+message RejectAllApplicantsResponse {
+  int32 rejected_count = 1;
+}
+
+message ReopenHiringForJobRequest {
+  int64 job_id = 1;
+}
+
+message ReopenHiringForJobResponse {
+  Job job = 1;
+}
+
+message GetJobStatsRequest {
+  int64 job_id = 1;
+}
+
+message GetJobStatsResponse {
+  int32 invite_count = 1;
+  int32 invite_accepted_count = 2;
+  int32 invite_declined_count = 3;
+  int32 applicant_count = 4;
+  int32 shortlisted_count = 5;
+  int32 rejected_count = 6;
+  int32 hired_count = 7;
+}
+
+message SearchJobsV2Request {
+  string query = 1;
+  repeated string skills = 2;
+  JobType job_type = 3;
+  ExperienceLevel experience_level = 4;
+  Visibility visibility = 5;
+  JobStatus status = 6;
+  JobSortBy sort_by = 7;
+  int32 page_size = 8;
+  string page_token = 9;
+}
+
+message SearchJobsV2Response {
+  repeated Job jobs = 1;
+  string next_page_token = 2;
+}
+
+message MarkJobCompletedRequest {
+  int64 job_id = 1;
+}
+
+message MarkJobCompletedResponse {
+  bool completed = 1;
+}
+
+message CancelJobWithSettlementPolicyRequest {
+  int64 job_id = 1;
+  SettlementPolicy settlement_policy = 2;
+  string reason = 3;
+}
+
+message CancelJobWithSettlementPolicyResponse {
+  bool canceled = 1;
 }
 
 message UpdateJobRequest {
