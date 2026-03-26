@@ -48,6 +48,7 @@ func (c *ProposalClient) ListProposalsByJob(ctx context.Context, jobID int64) ([
 		}
 		proposals = append(proposals, application.Proposal{
 			ID:            p.Id,
+			JobID:         p.JobId,
 			ClientID:      p.ClientId,
 			FreelancerID:  p.FreelancerId,
 			ConnectsSpent: p.ConnectsSpent,
@@ -67,6 +68,7 @@ func (c *ProposalClient) GetProposal(ctx context.Context, proposalID int64) (app
 	}
 	return application.Proposal{
 		ID:            res.Proposal.Id,
+		JobID:         res.Proposal.JobId,
 		ClientID:      res.Proposal.ClientId,
 		FreelancerID:  res.Proposal.FreelancerId,
 		ConnectsSpent: res.Proposal.ConnectsSpent,
