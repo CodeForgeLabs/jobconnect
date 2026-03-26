@@ -19,27 +19,40 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	JobService_CreateJob_FullMethodName                   = "/job.v1.JobService/CreateJob"
-	JobService_GetJob_FullMethodName                      = "/job.v1.JobService/GetJob"
-	JobService_UpdateJob_FullMethodName                   = "/job.v1.JobService/UpdateJob"
-	JobService_ListMyJobs_FullMethodName                  = "/job.v1.JobService/ListMyJobs"
-	JobService_ListOpenJobs_FullMethodName                = "/job.v1.JobService/ListOpenJobs"
-	JobService_CloseJob_FullMethodName                    = "/job.v1.JobService/CloseJob"
-	JobService_UploadJobAttachment_FullMethodName         = "/job.v1.JobService/UploadJobAttachment"
-	JobService_DeleteJobAttachment_FullMethodName         = "/job.v1.JobService/DeleteJobAttachment"
-	JobService_SetJobVisibility_FullMethodName            = "/job.v1.JobService/SetJobVisibility"
-	JobService_SetJobBudgetRange_FullMethodName           = "/job.v1.JobService/SetJobBudgetRange"
-	JobService_SetJobExperienceLevel_FullMethodName       = "/job.v1.JobService/SetJobExperienceLevel"
-	JobService_InviteFreelancerToJob_FullMethodName       = "/job.v1.JobService/InviteFreelancerToJob"
-	JobService_ListJobApplicants_FullMethodName           = "/job.v1.JobService/ListJobApplicants"
-	JobService_SetApplicantStage_FullMethodName           = "/job.v1.JobService/SetApplicantStage"
-	JobService_PauseJob_FullMethodName                    = "/job.v1.JobService/PauseJob"
-	JobService_ReopenJob_FullMethodName                   = "/job.v1.JobService/ReopenJob"
-	JobService_MarkJobFilled_FullMethodName               = "/job.v1.JobService/MarkJobFilled"
-	JobService_SearchJobs_FullMethodName                  = "/job.v1.JobService/SearchJobs"
-	JobService_ListJobFacets_FullMethodName               = "/job.v1.JobService/ListJobFacets"
-	JobService_ListJobAttachments_FullMethodName          = "/job.v1.JobService/ListJobAttachments"
-	JobService_GetJobAttachmentDownloadUrl_FullMethodName = "/job.v1.JobService/GetJobAttachmentDownloadUrl"
+	JobService_CreateJob_FullMethodName                     = "/job.v1.JobService/CreateJob"
+	JobService_GetJob_FullMethodName                        = "/job.v1.JobService/GetJob"
+	JobService_UpdateJob_FullMethodName                     = "/job.v1.JobService/UpdateJob"
+	JobService_ListMyJobs_FullMethodName                    = "/job.v1.JobService/ListMyJobs"
+	JobService_ListOpenJobs_FullMethodName                  = "/job.v1.JobService/ListOpenJobs"
+	JobService_CloseJob_FullMethodName                      = "/job.v1.JobService/CloseJob"
+	JobService_UploadJobAttachment_FullMethodName           = "/job.v1.JobService/UploadJobAttachment"
+	JobService_DeleteJobAttachment_FullMethodName           = "/job.v1.JobService/DeleteJobAttachment"
+	JobService_SetJobVisibility_FullMethodName              = "/job.v1.JobService/SetJobVisibility"
+	JobService_SetJobBudgetRange_FullMethodName             = "/job.v1.JobService/SetJobBudgetRange"
+	JobService_SetJobExperienceLevel_FullMethodName         = "/job.v1.JobService/SetJobExperienceLevel"
+	JobService_InviteFreelancerToJob_FullMethodName         = "/job.v1.JobService/InviteFreelancerToJob"
+	JobService_ListJobApplicants_FullMethodName             = "/job.v1.JobService/ListJobApplicants"
+	JobService_SetApplicantStage_FullMethodName             = "/job.v1.JobService/SetApplicantStage"
+	JobService_PauseJob_FullMethodName                      = "/job.v1.JobService/PauseJob"
+	JobService_ReopenJob_FullMethodName                     = "/job.v1.JobService/ReopenJob"
+	JobService_MarkJobFilled_FullMethodName                 = "/job.v1.JobService/MarkJobFilled"
+	JobService_SearchJobs_FullMethodName                    = "/job.v1.JobService/SearchJobs"
+	JobService_ListJobFacets_FullMethodName                 = "/job.v1.JobService/ListJobFacets"
+	JobService_ListJobAttachments_FullMethodName            = "/job.v1.JobService/ListJobAttachments"
+	JobService_GetJobAttachmentDownloadUrl_FullMethodName   = "/job.v1.JobService/GetJobAttachmentDownloadUrl"
+	JobService_GetPublicJobDetail_FullMethodName            = "/job.v1.JobService/GetPublicJobDetail"
+	JobService_ListInvitedJobs_FullMethodName               = "/job.v1.JobService/ListInvitedJobs"
+	JobService_RespondToJobInvite_FullMethodName            = "/job.v1.JobService/RespondToJobInvite"
+	JobService_SaveJob_FullMethodName                       = "/job.v1.JobService/SaveJob"
+	JobService_UnsaveJob_FullMethodName                     = "/job.v1.JobService/UnsaveJob"
+	JobService_ListSavedJobs_FullMethodName                 = "/job.v1.JobService/ListSavedJobs"
+	JobService_HireApplicant_FullMethodName                 = "/job.v1.JobService/HireApplicant"
+	JobService_RejectAllApplicants_FullMethodName           = "/job.v1.JobService/RejectAllApplicants"
+	JobService_ReopenHiringForJob_FullMethodName            = "/job.v1.JobService/ReopenHiringForJob"
+	JobService_GetJobStats_FullMethodName                   = "/job.v1.JobService/GetJobStats"
+	JobService_SearchJobsV2_FullMethodName                  = "/job.v1.JobService/SearchJobsV2"
+	JobService_MarkJobCompleted_FullMethodName              = "/job.v1.JobService/MarkJobCompleted"
+	JobService_CancelJobWithSettlementPolicy_FullMethodName = "/job.v1.JobService/CancelJobWithSettlementPolicy"
 )
 
 // JobServiceClient is the client API for JobService service.
@@ -72,6 +85,24 @@ type JobServiceClient interface {
 	// Category 10: Attachment/media maturity.
 	ListJobAttachments(ctx context.Context, in *ListJobAttachmentsRequest, opts ...grpc.CallOption) (*ListJobAttachmentsResponse, error)
 	GetJobAttachmentDownloadUrl(ctx context.Context, in *GetJobAttachmentDownloadUrlRequest, opts ...grpc.CallOption) (*GetJobAttachmentDownloadUrlResponse, error)
+	// Category 2: Freelancer-side interactions.
+	GetPublicJobDetail(ctx context.Context, in *GetPublicJobDetailRequest, opts ...grpc.CallOption) (*GetPublicJobDetailResponse, error)
+	ListInvitedJobs(ctx context.Context, in *ListInvitedJobsRequest, opts ...grpc.CallOption) (*ListInvitedJobsResponse, error)
+	RespondToJobInvite(ctx context.Context, in *RespondToJobInviteRequest, opts ...grpc.CallOption) (*RespondToJobInviteResponse, error)
+	SaveJob(ctx context.Context, in *SaveJobRequest, opts ...grpc.CallOption) (*SaveJobResponse, error)
+	UnsaveJob(ctx context.Context, in *UnsaveJobRequest, opts ...grpc.CallOption) (*UnsaveJobResponse, error)
+	ListSavedJobs(ctx context.Context, in *ListSavedJobsRequest, opts ...grpc.CallOption) (*ListSavedJobsResponse, error)
+	// Category 3: Hiring decisions.
+	HireApplicant(ctx context.Context, in *HireApplicantRequest, opts ...grpc.CallOption) (*HireApplicantResponse, error)
+	RejectAllApplicants(ctx context.Context, in *RejectAllApplicantsRequest, opts ...grpc.CallOption) (*RejectAllApplicantsResponse, error)
+	ReopenHiringForJob(ctx context.Context, in *ReopenHiringForJobRequest, opts ...grpc.CallOption) (*ReopenHiringForJobResponse, error)
+	// Category 4: Job analytics.
+	GetJobStats(ctx context.Context, in *GetJobStatsRequest, opts ...grpc.CallOption) (*GetJobStatsResponse, error)
+	// Category 5: Search quality (first endpoint only).
+	SearchJobsV2(ctx context.Context, in *SearchJobsV2Request, opts ...grpc.CallOption) (*SearchJobsV2Response, error)
+	// Category 8: Contract/payment bridge (excluding start-contract endpoint).
+	MarkJobCompleted(ctx context.Context, in *MarkJobCompletedRequest, opts ...grpc.CallOption) (*MarkJobCompletedResponse, error)
+	CancelJobWithSettlementPolicy(ctx context.Context, in *CancelJobWithSettlementPolicyRequest, opts ...grpc.CallOption) (*CancelJobWithSettlementPolicyResponse, error)
 }
 
 type jobServiceClient struct {
@@ -292,6 +323,136 @@ func (c *jobServiceClient) GetJobAttachmentDownloadUrl(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *jobServiceClient) GetPublicJobDetail(ctx context.Context, in *GetPublicJobDetailRequest, opts ...grpc.CallOption) (*GetPublicJobDetailResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPublicJobDetailResponse)
+	err := c.cc.Invoke(ctx, JobService_GetPublicJobDetail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) ListInvitedJobs(ctx context.Context, in *ListInvitedJobsRequest, opts ...grpc.CallOption) (*ListInvitedJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListInvitedJobsResponse)
+	err := c.cc.Invoke(ctx, JobService_ListInvitedJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) RespondToJobInvite(ctx context.Context, in *RespondToJobInviteRequest, opts ...grpc.CallOption) (*RespondToJobInviteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RespondToJobInviteResponse)
+	err := c.cc.Invoke(ctx, JobService_RespondToJobInvite_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) SaveJob(ctx context.Context, in *SaveJobRequest, opts ...grpc.CallOption) (*SaveJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SaveJobResponse)
+	err := c.cc.Invoke(ctx, JobService_SaveJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) UnsaveJob(ctx context.Context, in *UnsaveJobRequest, opts ...grpc.CallOption) (*UnsaveJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnsaveJobResponse)
+	err := c.cc.Invoke(ctx, JobService_UnsaveJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) ListSavedJobs(ctx context.Context, in *ListSavedJobsRequest, opts ...grpc.CallOption) (*ListSavedJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListSavedJobsResponse)
+	err := c.cc.Invoke(ctx, JobService_ListSavedJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) HireApplicant(ctx context.Context, in *HireApplicantRequest, opts ...grpc.CallOption) (*HireApplicantResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HireApplicantResponse)
+	err := c.cc.Invoke(ctx, JobService_HireApplicant_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) RejectAllApplicants(ctx context.Context, in *RejectAllApplicantsRequest, opts ...grpc.CallOption) (*RejectAllApplicantsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RejectAllApplicantsResponse)
+	err := c.cc.Invoke(ctx, JobService_RejectAllApplicants_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) ReopenHiringForJob(ctx context.Context, in *ReopenHiringForJobRequest, opts ...grpc.CallOption) (*ReopenHiringForJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ReopenHiringForJobResponse)
+	err := c.cc.Invoke(ctx, JobService_ReopenHiringForJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) GetJobStats(ctx context.Context, in *GetJobStatsRequest, opts ...grpc.CallOption) (*GetJobStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetJobStatsResponse)
+	err := c.cc.Invoke(ctx, JobService_GetJobStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) SearchJobsV2(ctx context.Context, in *SearchJobsV2Request, opts ...grpc.CallOption) (*SearchJobsV2Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchJobsV2Response)
+	err := c.cc.Invoke(ctx, JobService_SearchJobsV2_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) MarkJobCompleted(ctx context.Context, in *MarkJobCompletedRequest, opts ...grpc.CallOption) (*MarkJobCompletedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MarkJobCompletedResponse)
+	err := c.cc.Invoke(ctx, JobService_MarkJobCompleted_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) CancelJobWithSettlementPolicy(ctx context.Context, in *CancelJobWithSettlementPolicyRequest, opts ...grpc.CallOption) (*CancelJobWithSettlementPolicyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelJobWithSettlementPolicyResponse)
+	err := c.cc.Invoke(ctx, JobService_CancelJobWithSettlementPolicy_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JobServiceServer is the server API for JobService service.
 // All implementations must embed UnimplementedJobServiceServer
 // for forward compatibility.
@@ -322,6 +483,24 @@ type JobServiceServer interface {
 	// Category 10: Attachment/media maturity.
 	ListJobAttachments(context.Context, *ListJobAttachmentsRequest) (*ListJobAttachmentsResponse, error)
 	GetJobAttachmentDownloadUrl(context.Context, *GetJobAttachmentDownloadUrlRequest) (*GetJobAttachmentDownloadUrlResponse, error)
+	// Category 2: Freelancer-side interactions.
+	GetPublicJobDetail(context.Context, *GetPublicJobDetailRequest) (*GetPublicJobDetailResponse, error)
+	ListInvitedJobs(context.Context, *ListInvitedJobsRequest) (*ListInvitedJobsResponse, error)
+	RespondToJobInvite(context.Context, *RespondToJobInviteRequest) (*RespondToJobInviteResponse, error)
+	SaveJob(context.Context, *SaveJobRequest) (*SaveJobResponse, error)
+	UnsaveJob(context.Context, *UnsaveJobRequest) (*UnsaveJobResponse, error)
+	ListSavedJobs(context.Context, *ListSavedJobsRequest) (*ListSavedJobsResponse, error)
+	// Category 3: Hiring decisions.
+	HireApplicant(context.Context, *HireApplicantRequest) (*HireApplicantResponse, error)
+	RejectAllApplicants(context.Context, *RejectAllApplicantsRequest) (*RejectAllApplicantsResponse, error)
+	ReopenHiringForJob(context.Context, *ReopenHiringForJobRequest) (*ReopenHiringForJobResponse, error)
+	// Category 4: Job analytics.
+	GetJobStats(context.Context, *GetJobStatsRequest) (*GetJobStatsResponse, error)
+	// Category 5: Search quality (first endpoint only).
+	SearchJobsV2(context.Context, *SearchJobsV2Request) (*SearchJobsV2Response, error)
+	// Category 8: Contract/payment bridge (excluding start-contract endpoint).
+	MarkJobCompleted(context.Context, *MarkJobCompletedRequest) (*MarkJobCompletedResponse, error)
+	CancelJobWithSettlementPolicy(context.Context, *CancelJobWithSettlementPolicyRequest) (*CancelJobWithSettlementPolicyResponse, error)
 	mustEmbedUnimplementedJobServiceServer()
 }
 
@@ -394,6 +573,45 @@ func (UnimplementedJobServiceServer) ListJobAttachments(context.Context, *ListJo
 }
 func (UnimplementedJobServiceServer) GetJobAttachmentDownloadUrl(context.Context, *GetJobAttachmentDownloadUrlRequest) (*GetJobAttachmentDownloadUrlResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetJobAttachmentDownloadUrl not implemented")
+}
+func (UnimplementedJobServiceServer) GetPublicJobDetail(context.Context, *GetPublicJobDetailRequest) (*GetPublicJobDetailResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPublicJobDetail not implemented")
+}
+func (UnimplementedJobServiceServer) ListInvitedJobs(context.Context, *ListInvitedJobsRequest) (*ListInvitedJobsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListInvitedJobs not implemented")
+}
+func (UnimplementedJobServiceServer) RespondToJobInvite(context.Context, *RespondToJobInviteRequest) (*RespondToJobInviteResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RespondToJobInvite not implemented")
+}
+func (UnimplementedJobServiceServer) SaveJob(context.Context, *SaveJobRequest) (*SaveJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SaveJob not implemented")
+}
+func (UnimplementedJobServiceServer) UnsaveJob(context.Context, *UnsaveJobRequest) (*UnsaveJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnsaveJob not implemented")
+}
+func (UnimplementedJobServiceServer) ListSavedJobs(context.Context, *ListSavedJobsRequest) (*ListSavedJobsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListSavedJobs not implemented")
+}
+func (UnimplementedJobServiceServer) HireApplicant(context.Context, *HireApplicantRequest) (*HireApplicantResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HireApplicant not implemented")
+}
+func (UnimplementedJobServiceServer) RejectAllApplicants(context.Context, *RejectAllApplicantsRequest) (*RejectAllApplicantsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RejectAllApplicants not implemented")
+}
+func (UnimplementedJobServiceServer) ReopenHiringForJob(context.Context, *ReopenHiringForJobRequest) (*ReopenHiringForJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ReopenHiringForJob not implemented")
+}
+func (UnimplementedJobServiceServer) GetJobStats(context.Context, *GetJobStatsRequest) (*GetJobStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetJobStats not implemented")
+}
+func (UnimplementedJobServiceServer) SearchJobsV2(context.Context, *SearchJobsV2Request) (*SearchJobsV2Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchJobsV2 not implemented")
+}
+func (UnimplementedJobServiceServer) MarkJobCompleted(context.Context, *MarkJobCompletedRequest) (*MarkJobCompletedResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkJobCompleted not implemented")
+}
+func (UnimplementedJobServiceServer) CancelJobWithSettlementPolicy(context.Context, *CancelJobWithSettlementPolicyRequest) (*CancelJobWithSettlementPolicyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelJobWithSettlementPolicy not implemented")
 }
 func (UnimplementedJobServiceServer) mustEmbedUnimplementedJobServiceServer() {}
 func (UnimplementedJobServiceServer) testEmbeddedByValue()                    {}
@@ -794,6 +1012,240 @@ func _JobService_GetJobAttachmentDownloadUrl_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JobService_GetPublicJobDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicJobDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).GetPublicJobDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_GetPublicJobDetail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).GetPublicJobDetail(ctx, req.(*GetPublicJobDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_ListInvitedJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInvitedJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).ListInvitedJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_ListInvitedJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).ListInvitedJobs(ctx, req.(*ListInvitedJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_RespondToJobInvite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RespondToJobInviteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).RespondToJobInvite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_RespondToJobInvite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).RespondToJobInvite(ctx, req.(*RespondToJobInviteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_SaveJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).SaveJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_SaveJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).SaveJob(ctx, req.(*SaveJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_UnsaveJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnsaveJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).UnsaveJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_UnsaveJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).UnsaveJob(ctx, req.(*UnsaveJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_ListSavedJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSavedJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).ListSavedJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_ListSavedJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).ListSavedJobs(ctx, req.(*ListSavedJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_HireApplicant_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HireApplicantRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).HireApplicant(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_HireApplicant_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).HireApplicant(ctx, req.(*HireApplicantRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_RejectAllApplicants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RejectAllApplicantsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).RejectAllApplicants(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_RejectAllApplicants_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).RejectAllApplicants(ctx, req.(*RejectAllApplicantsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_ReopenHiringForJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReopenHiringForJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).ReopenHiringForJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_ReopenHiringForJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).ReopenHiringForJob(ctx, req.(*ReopenHiringForJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_GetJobStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJobStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).GetJobStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_GetJobStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).GetJobStats(ctx, req.(*GetJobStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_SearchJobsV2_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchJobsV2Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).SearchJobsV2(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_SearchJobsV2_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).SearchJobsV2(ctx, req.(*SearchJobsV2Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_MarkJobCompleted_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkJobCompletedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).MarkJobCompleted(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_MarkJobCompleted_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).MarkJobCompleted(ctx, req.(*MarkJobCompletedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_CancelJobWithSettlementPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelJobWithSettlementPolicyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).CancelJobWithSettlementPolicy(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_CancelJobWithSettlementPolicy_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).CancelJobWithSettlementPolicy(ctx, req.(*CancelJobWithSettlementPolicyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JobService_ServiceDesc is the grpc.ServiceDesc for JobService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -884,6 +1336,58 @@ var JobService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetJobAttachmentDownloadUrl",
 			Handler:    _JobService_GetJobAttachmentDownloadUrl_Handler,
+		},
+		{
+			MethodName: "GetPublicJobDetail",
+			Handler:    _JobService_GetPublicJobDetail_Handler,
+		},
+		{
+			MethodName: "ListInvitedJobs",
+			Handler:    _JobService_ListInvitedJobs_Handler,
+		},
+		{
+			MethodName: "RespondToJobInvite",
+			Handler:    _JobService_RespondToJobInvite_Handler,
+		},
+		{
+			MethodName: "SaveJob",
+			Handler:    _JobService_SaveJob_Handler,
+		},
+		{
+			MethodName: "UnsaveJob",
+			Handler:    _JobService_UnsaveJob_Handler,
+		},
+		{
+			MethodName: "ListSavedJobs",
+			Handler:    _JobService_ListSavedJobs_Handler,
+		},
+		{
+			MethodName: "HireApplicant",
+			Handler:    _JobService_HireApplicant_Handler,
+		},
+		{
+			MethodName: "RejectAllApplicants",
+			Handler:    _JobService_RejectAllApplicants_Handler,
+		},
+		{
+			MethodName: "ReopenHiringForJob",
+			Handler:    _JobService_ReopenHiringForJob_Handler,
+		},
+		{
+			MethodName: "GetJobStats",
+			Handler:    _JobService_GetJobStats_Handler,
+		},
+		{
+			MethodName: "SearchJobsV2",
+			Handler:    _JobService_SearchJobsV2_Handler,
+		},
+		{
+			MethodName: "MarkJobCompleted",
+			Handler:    _JobService_MarkJobCompleted_Handler,
+		},
+		{
+			MethodName: "CancelJobWithSettlementPolicy",
+			Handler:    _JobService_CancelJobWithSettlementPolicy_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
