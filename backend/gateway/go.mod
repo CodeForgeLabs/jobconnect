@@ -10,6 +10,7 @@ require (
 	google.golang.org/grpc v1.79.1
 	google.golang.org/protobuf v1.36.11
 	jobconnect/auth v0.0.0
+	jobconnect/job v0.0.0
 	jobconnect/user v0.0.0
 	jobconnect/verification v0.0.0-00010101000000-000000000000
 )
@@ -49,6 +50,10 @@ require (
 )
 
 replace jobconnect/auth => ../services/auth
+
+replace jobconnect/api => ../api
+
+replace jobconnect/job => ../services/job
 
 replace jobconnect/user => ../services/user
 
