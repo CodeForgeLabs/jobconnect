@@ -105,8 +105,6 @@ func proposalStatusToApplicantStage(in proposalv1.ProposalStatus) string {
 
 func applicantStageToProposalStatus(in string) (proposalv1.ProposalStatus, error) {
 	switch in {
-	case application.ApplicantStageSent:
-		return proposalv1.ProposalStatus_PROPOSAL_STATUS_SENT, nil
 	case application.ApplicantStageShortlisted:
 		return proposalv1.ProposalStatus_PROPOSAL_STATUS_SHORTLISTED, nil
 	case application.ApplicantStageRejected:

@@ -146,12 +146,16 @@ func (uc *SetApplicantStage) Execute(ctx context.Context, in SetApplicantStageIn
 	if !isValidApplicantStage(stage) {
 		return SetApplicantStageOutput{}, fmt.Errorf("invalid stage")
 	}
+	if stage == ApplicantStageSent {
+		return SetApplicantStageOutput{}, fmt.Errorf("invalid stage")
+	}
 
 	proposal, err := uc.Proposals.GetProposal(ctx, in.ProposalID)
 	if err != nil {
 		return SetApplicantStageOutput{}, err
 	}
-	if strings.TrimSpace(proposal.ClientID) == "" || proposal.ClientID != in.ClientID.String() {
+	proposalClientID, parseErr := uuid.Parse(strings.TrimSpace(proposal.ClientID))
+	if parseErr != nil || proposalClientID != in.ClientID {
 		return SetApplicantStageOutput{}, fmt.Errorf("proposal not found")
 	}
 
