@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -36,8 +36,54 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerInternalUserRoutes(api, userHandler, jwtParser)
 	registerPublicUserRoutes(api, userHandler)
 	registerAdminVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
+	registerJobRoutes(api, jobHandler, jwtParser)
 
 	return engine
+}
+
+func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jwtParser *auth.JWTParser) {
+	// Public discovery and detail endpoints.
+	publicJobs := api.Group("/jobs")
+	publicJobs.GET("", jobHandler.ListOpenJobs)
+	publicJobs.GET("/search-v2", jobHandler.SearchJobsV2)
+	publicJobs.GET("/:jobId/public", jobHandler.GetPublicJobDetail)
+
+	// Client-owned job operations.
+	clientJobs := api.Group("/jobs")
+	clientJobs.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("client"))
+	clientJobs.POST("", jobHandler.CreateJob)
+	clientJobs.GET("/me", jobHandler.ListMyJobs)
+	clientJobs.GET("/:jobId", jobHandler.GetJob)
+	clientJobs.PATCH("/:jobId", jobHandler.UpdateJob)
+	clientJobs.POST("/:jobId/close", jobHandler.CloseJob)
+	clientJobs.POST("/:jobId/pause", jobHandler.PauseJob)
+	clientJobs.POST("/:jobId/reopen", jobHandler.ReopenJob)
+	clientJobs.POST("/:jobId/mark-filled", jobHandler.MarkJobFilled)
+	clientJobs.POST("/:jobId/visibility", jobHandler.SetJobVisibility)
+	clientJobs.POST("/:jobId/budget-range", jobHandler.SetJobBudgetRange)
+	clientJobs.POST("/:jobId/experience-level", jobHandler.SetJobExperienceLevel)
+	clientJobs.POST("/:jobId/invite", jobHandler.InviteFreelancerToJob)
+	clientJobs.GET("/:jobId/applicants", jobHandler.ListJobApplicants)
+	clientJobs.POST("/applicants/:proposalId/stage", jobHandler.SetApplicantStage)
+	clientJobs.POST("/:jobId/reject-all", jobHandler.RejectAllApplicants)
+	clientJobs.POST("/:jobId/reopen-hiring", jobHandler.ReopenHiringForJob)
+	clientJobs.POST("/hire", jobHandler.HireApplicant)
+	clientJobs.GET("/:jobId/stats", jobHandler.GetJobStats)
+	clientJobs.POST("/:jobId/mark-completed", jobHandler.MarkJobCompleted)
+	clientJobs.POST("/:jobId/cancel-with-settlement", jobHandler.CancelJobWithSettlementPolicy)
+	clientJobs.POST("/:jobId/attachments", jobHandler.UploadJobAttachment)
+	clientJobs.DELETE("/:jobId/attachments/:attachmentId", jobHandler.DeleteJobAttachment)
+	clientJobs.GET("/:jobId/attachments", jobHandler.ListJobAttachments)
+	clientJobs.GET("/:jobId/attachments/:attachmentId/download-url", jobHandler.GetJobAttachmentDownloadURL)
+
+	// Freelancer interactions.
+	freelancerJobs := api.Group("/jobs")
+	freelancerJobs.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("freelancer"))
+	freelancerJobs.GET("/invited", jobHandler.ListInvitedJobs)
+	freelancerJobs.POST("/:jobId/invite-response", jobHandler.RespondToJobInvite)
+	freelancerJobs.POST("/:jobId/save", jobHandler.SaveJob)
+	freelancerJobs.DELETE("/:jobId/save", jobHandler.UnsaveJob)
+	freelancerJobs.GET("/saved", jobHandler.ListSavedJobs)
 }
 
 func registerAuthRoutes(api *gin.RouterGroup, authHandler *handlers.AuthHandler, jwtParser *auth.JWTParser, sensitiveLimiter *middleware.InMemoryLimiter) {
@@ -159,6 +205,7 @@ func registerAdminUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHan
 	adminUserRoutes.GET("/:userId/audit-summary", userHandler.GetUserAuditSummary)
 }
 
+// dont see usefulness yet
 func registerInternalUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler, jwtParser *auth.JWTParser) {
 	// Internal admin read models for dependent services.
 	internalUserRoutes := api.Group("/internal/users")
