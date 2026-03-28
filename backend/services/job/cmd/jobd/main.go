@@ -17,6 +17,7 @@ import (
 	"jobconnect/job/internal/config"
 	"jobconnect/job/internal/infrastructure/clock"
 	"jobconnect/job/internal/infrastructure/db"
+	"jobconnect/job/internal/infrastructure/storage"
 	"jobconnect/job/internal/infrastructure/tokens"
 
 	"google.golang.org/grpc"
@@ -42,6 +43,10 @@ func main() {
 	defer pool.Close()
 
 	jobRepo := db.NewJobRepo(pool)
+	attachmentStore, err := storage.NewAttachmentStore(ctx, cfg.AttachmentStorage)
+	if err != nil {
+		log.Fatalf("attachment storage: %v", err)
+	}
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
 	// Connects Client
@@ -70,6 +75,34 @@ func main() {
 	listMyJobsUC := &application.ListMyJobs{Jobs: jobRepo}
 	listOpenJobsUC := &application.ListOpenJobs{Jobs: jobRepo}
 	closeJobUC := &application.CloseJob{Jobs: jobRepo, Proposals: proposalCli, Connects: connectsCli, Clock: clockImpl}
+	uploadAttachmentUC := &application.UploadJobAttachment{Jobs: jobRepo, Storage: attachmentStore}
+	deleteAttachmentUC := &application.DeleteJobAttachment{Jobs: jobRepo, Storage: attachmentStore}
+	inviteFreelancerUC := &application.InviteFreelancerToJob{Jobs: jobRepo, Clock: clockImpl}
+	listApplicantsUC := &application.ListJobApplicants{Jobs: jobRepo, Proposals: proposalCli}
+	setApplicantUC := &application.SetApplicantStage{Proposals: proposalCli}
+	setVisibilityUC := &application.SetJobVisibility{Jobs: jobRepo, Clock: clockImpl}
+	setBudgetRangeUC := &application.SetJobBudgetRange{Jobs: jobRepo, Clock: clockImpl}
+	setExperienceUC := &application.SetJobExperienceLevel{Jobs: jobRepo, Clock: clockImpl}
+	pauseJobUC := &application.PauseJob{Jobs: jobRepo, Clock: clockImpl}
+	reopenJobUC := &application.ReopenJob{Jobs: jobRepo, Clock: clockImpl}
+	markFilledUC := &application.MarkJobFilled{Jobs: jobRepo, Clock: clockImpl}
+	searchJobsUC := &application.SearchJobs{Jobs: jobRepo}
+	listFacetsUC := &application.ListJobFacets{Jobs: jobRepo}
+	listAttachmentsUC := &application.ListJobAttachments{Jobs: jobRepo}
+	getAttachmentURLUC := &application.GetJobAttachmentDownloadURL{Jobs: jobRepo}
+	getPublicJobUC := &application.GetPublicJobDetail{Jobs: jobRepo}
+	listInvitedJobsUC := &application.ListInvitedJobs{Jobs: jobRepo}
+	respondInviteUC := &application.RespondToJobInvite{Jobs: jobRepo, Clock: clockImpl}
+	saveJobUC := &application.SaveJob{Jobs: jobRepo, Clock: clockImpl}
+	unsaveJobUC := &application.UnsaveJob{Jobs: jobRepo}
+	listSavedJobsUC := &application.ListSavedJobs{Jobs: jobRepo}
+	hireApplicantUC := &application.HireApplicant{Jobs: jobRepo, Proposals: proposalCli, Clock: clockImpl}
+	rejectAllUC := &application.RejectAllApplicants{Jobs: jobRepo, Proposals: proposalCli}
+	reopenHiringUC := &application.ReopenHiringForJob{Jobs: jobRepo, Clock: clockImpl}
+	getJobStatsUC := &application.GetJobStats{Jobs: jobRepo, Proposals: proposalCli}
+	searchJobsV2UC := &application.SearchJobsV2{Jobs: jobRepo}
+	markCompletedUC := &application.MarkJobCompleted{Jobs: jobRepo, Clock: clockImpl}
+	cancelWithSettleUC := &application.CancelJobWithSettlementPolicy{Jobs: jobRepo, Proposals: proposalCli, Connects: connectsCli, Clock: clockImpl}
 
 	jobServer := grpcadapter.NewJobServer(
 		createJobUC,
@@ -78,6 +111,34 @@ func main() {
 		listMyJobsUC,
 		listOpenJobsUC,
 		closeJobUC,
+		uploadAttachmentUC,
+		deleteAttachmentUC,
+		inviteFreelancerUC,
+		listApplicantsUC,
+		setApplicantUC,
+		setVisibilityUC,
+		setBudgetRangeUC,
+		setExperienceUC,
+		pauseJobUC,
+		reopenJobUC,
+		markFilledUC,
+		searchJobsUC,
+		listFacetsUC,
+		listAttachmentsUC,
+		getAttachmentURLUC,
+		getPublicJobUC,
+		listInvitedJobsUC,
+		respondInviteUC,
+		saveJobUC,
+		unsaveJobUC,
+		listSavedJobsUC,
+		hireApplicantUC,
+		rejectAllUC,
+		reopenHiringUC,
+		getJobStatsUC,
+		searchJobsV2UC,
+		markCompletedUC,
+		cancelWithSettleUC,
 		jwtParser,
 	)
 

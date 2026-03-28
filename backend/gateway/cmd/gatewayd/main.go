@@ -51,13 +51,21 @@ func main() {
 	}
 	defer verificationConn.Close()
 
+	jobConn, err := grpc.NewClient(cfg.JobServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("job service dial: %v", err)
+	}
+	defer jobConn.Close()
+
 	authClient := clients.NewAuthClient(authConn)
 	userClient := clients.NewUserClient(userConn)
 	verificationClient := clients.NewVerificationClient(verificationConn)
+	jobClient := clients.NewJobClient(jobConn)
 	authHandler := handlers.NewAuthHandler(cfg, authClient)
 	userHandler := handlers.NewUserHandler(userClient)
 	verificationHandler := handlers.NewVerificationHandler(verificationClient)
-	engine := router.New(cfg, authHandler, verificationHandler, userHandler)
+	jobHandler := handlers.NewJobHandler(jobClient)
+	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler)
 
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPListenAddr,
