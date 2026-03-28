@@ -75,7 +75,6 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.Use(middleware.RequireAuth(jwtParser))
 
 	// Profile core: identity and onboarding lifecycle.
-	userRoutes.GET("/me", userHandler.GetMeUser)
 	userRoutes.GET("/me/profile", userHandler.GetMe)
 	userRoutes.PATCH("/me/profile", userHandler.UpdateMeProfile)
 	userRoutes.DELETE("/me/profile", userHandler.DeleteMeProfile)
@@ -94,34 +93,28 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.GET("/me/avatar", userHandler.GetMeAvatar)
 	userRoutes.DELETE("/me/avatar", userHandler.RemoveMeAvatar)
 
-	// Portfolio: CRUD and ordering for showcase projects.
+	// Portfolio: CRUD for showcase projects.
 	userRoutes.POST("/me/portfolio", userHandler.CreateMePortfolioItem)
-	userRoutes.GET("/me/portfolio", userHandler.ListMyPortfolioItems)
 	userRoutes.PATCH("/me/portfolio/:itemId", userHandler.UpdateMePortfolioItem)
 	userRoutes.DELETE("/me/portfolio/:itemId", userHandler.DeleteMePortfolioItem)
-	userRoutes.PUT("/me/portfolio:reorder", userHandler.ReorderMePortfolioItems)
 
 	// Employment: work history timeline entries.
 	userRoutes.POST("/me/employment", userHandler.CreateMeEmployment)
-	userRoutes.GET("/me/employment", userHandler.ListMyEmployment)
 	userRoutes.PATCH("/me/employment/:employmentId", userHandler.UpdateMeEmployment)
 	userRoutes.DELETE("/me/employment/:employmentId", userHandler.DeleteMeEmployment)
 
 	// Education: academic history entries.
 	userRoutes.POST("/me/education", userHandler.CreateMeEducation)
-	userRoutes.GET("/me/education", userHandler.ListMyEducation)
 	userRoutes.PATCH("/me/education/:educationId", userHandler.UpdateMeEducation)
 	userRoutes.DELETE("/me/education/:educationId", userHandler.DeleteMeEducation)
 
 	// Certifications: credential records management.
 	userRoutes.POST("/me/certifications", userHandler.CreateMeCertification)
-	userRoutes.GET("/me/certifications", userHandler.ListMyCertifications)
 	userRoutes.PATCH("/me/certifications/:certificationId", userHandler.UpdateMeCertification)
 	userRoutes.DELETE("/me/certifications/:certificationId", userHandler.DeleteMeCertification)
 
-	// Languages: proficiency list upsert and retrieval.
+	// Languages: proficiency list upsert.
 	userRoutes.PUT("/me/languages", userHandler.UpsertMeLanguages)
-	userRoutes.GET("/me/languages", userHandler.GetMeLanguages)
 
 	// Freelancer preferences: availability, rates, and work style.
 	userRoutes.PUT("/me/availability", userHandler.SetMeAvailability)
@@ -131,11 +124,9 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.PUT("/me/work-preferences", userHandler.SetMeWorkPreferences)
 	userRoutes.GET("/me/work-preferences", userHandler.GetMeWorkPreferences)
 
-	// Client hiring: profile, company, and hiring controls.
+	// Client hiring: profile and hiring controls.
 	userRoutes.GET("/me/client-profile", userHandler.GetMeClientProfile)
 	userRoutes.PATCH("/me/client-profile", userHandler.UpdateMeClientProfile)
-	userRoutes.GET("/me/company", userHandler.GetMeCompany)
-	userRoutes.PATCH("/me/company", userHandler.UpdateMeCompany)
 	userRoutes.GET("/me/hiring-preferences", userHandler.GetMeHiringPreferences)
 	userRoutes.PATCH("/me/hiring-preferences", userHandler.UpdateMeHiringPreferences)
 
@@ -152,11 +143,8 @@ func registerAdminUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHan
 	adminUserRoutes := api.Group("/admin/users")
 	adminUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
 	adminUserRoutes.GET("", userHandler.ListUsers)
-	adminUserRoutes.GET("/:userId", userHandler.GetUser)
 	adminUserRoutes.GET("/:userId/profile", userHandler.GetProfile)
 	adminUserRoutes.PATCH("/:userId/account-status", userHandler.UpdateAccountStatus)
-	adminUserRoutes.POST("/:userId/impersonation-token", userHandler.CreateImpersonationToken)
-	adminUserRoutes.GET("/:userId/audit-summary", userHandler.GetUserAuditSummary)
 }
 
 func registerInternalUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler, jwtParser *auth.JWTParser) {
