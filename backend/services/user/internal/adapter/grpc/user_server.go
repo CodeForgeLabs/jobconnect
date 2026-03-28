@@ -152,21 +152,6 @@ func (s *UserServer) CreateProfile(ctx context.Context, req *userv1.CreateProfil
 	return &userv1.CreateProfileResponse{Success: true, ProfileId: out.ProfileID}, nil
 }
 
-func (s *UserServer) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.GetUserUC.Execute(ctx, application.GetUserInput{UserID: userID})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetUserResponse{User: toProtoUser(out.Profile)}, nil
-}
-
 func (s *UserServer) GetProfile(ctx context.Context, req *userv1.GetProfileRequest) (*userv1.GetProfileResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -366,48 +351,6 @@ func (s *UserServer) ListUsers(ctx context.Context, req *userv1.ListUsersRequest
 	}
 
 	return &userv1.ListUsersResponse{Users: users, NextPageToken: out.NextPageToken}, nil
-}
-
-func (s *UserServer) CreateImpersonationToken(ctx context.Context, req *userv1.CreateImpersonationTokenRequest) (*userv1.CreateImpersonationTokenResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	requesterID, err := uuid.Parse(req.GetRequesterUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid requester_user_id")
-	}
-	targetUserID, err := uuid.Parse(req.GetTargetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid target_user_id")
-	}
-
-	out, err := s.ProfileDetailsRepo.CreateImpersonationToken(ctx, requesterID, targetUserID, req.GetReason(), req.GetTtlSeconds())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	return &userv1.CreateImpersonationTokenResponse{Token: out.Token, ExpiresAtUnix: out.ExpiresAt.Unix()}, nil
-}
-
-func (s *UserServer) GetUserAuditSummary(ctx context.Context, req *userv1.GetUserAuditSummaryRequest) (*userv1.GetUserAuditSummaryResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	requesterID, err := uuid.Parse(req.GetRequesterUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid requester_user_id")
-	}
-	targetUserID, err := uuid.Parse(req.GetTargetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid target_user_id")
-	}
-
-	out, err := s.ProfileDetailsRepo.GetUserAuditSummary(ctx, requesterID, targetUserID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	return &userv1.GetUserAuditSummaryResponse{Summary: toProtoUserAuditSummary(out)}, nil
 }
 
 func (s *UserServer) UploadAvatar(ctx context.Context, req *userv1.UploadAvatarRequest) (*userv1.UploadAvatarResponse, error) {
@@ -796,49 +739,6 @@ func (s *UserServer) UpdateClientProfile(ctx context.Context, req *userv1.Update
 	return &userv1.UpdateClientProfileResponse{Profile: toProtoClientProfileSettings(out)}, nil
 }
 
-func (s *UserServer) GetCompany(ctx context.Context, req *userv1.GetCompanyRequest) (*userv1.GetCompanyResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.GetCompany(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetCompanyResponse{Company: toProtoCompanySettings(out)}, nil
-}
-
-func (s *UserServer) UpdateCompany(ctx context.Context, req *userv1.UpdateCompanyRequest) (*userv1.UpdateCompanyResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	current, err := s.ProfileDetailsRepo.GetCompany(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	if req.CompanyName != nil {
-		current.CompanyName = strings.TrimSpace(req.GetCompanyName())
-	}
-	if req.BillingAddress != nil {
-		current.BillingAddress = strings.TrimSpace(req.GetBillingAddress())
-	}
-	if req.TaxId != nil {
-		current.TaxID = strings.TrimSpace(req.GetTaxId())
-	}
-	out, err := s.ProfileDetailsRepo.UpdateCompany(ctx, userID, current)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.UpdateCompanyResponse{Company: toProtoCompanySettings(out)}, nil
-}
-
 func (s *UserServer) GetHiringPreferences(ctx context.Context, req *userv1.GetHiringPreferencesRequest) (*userv1.GetHiringPreferencesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1059,25 +959,6 @@ func (s *UserServer) DeletePortfolioItem(ctx context.Context, req *userv1.Delete
 	return &userv1.DeletePortfolioItemResponse{Deleted: deleted}, nil
 }
 
-func (s *UserServer) ListMyPortfolioItems(ctx context.Context, req *userv1.ListMyPortfolioItemsRequest) (*userv1.ListMyPortfolioItemsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.ListMyPortfolioItems(ctx, userID, req.GetPageSize(), req.GetPageToken())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	items := make([]*userv1.PortfolioItem, 0, len(out.Items))
-	for _, item := range out.Items {
-		items = append(items, toProtoPortfolioItem(item))
-	}
-	return &userv1.ListMyPortfolioItemsResponse{Items: items, NextPageToken: out.NextPageToken}, nil
-}
-
 func (s *UserServer) ListPublicPortfolioItems(ctx context.Context, req *userv1.ListPublicPortfolioItemsRequest) (*userv1.ListPublicPortfolioItemsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1095,25 +976,6 @@ func (s *UserServer) ListPublicPortfolioItems(ctx context.Context, req *userv1.L
 		items = append(items, toProtoPortfolioItem(item))
 	}
 	return &userv1.ListPublicPortfolioItemsResponse{Items: items, NextPageToken: out.NextPageToken}, nil
-}
-
-func (s *UserServer) ReorderPortfolioItems(ctx context.Context, req *userv1.ReorderPortfolioItemsRequest) (*userv1.ReorderPortfolioItemsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	items, err := s.ProfileDetailsRepo.ReorderPortfolioItems(ctx, userID, req.GetOrderedItemIds())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	out := make([]*userv1.PortfolioItem, 0, len(items))
-	for _, item := range items {
-		out = append(out, toProtoPortfolioItem(item))
-	}
-	return &userv1.ReorderPortfolioItemsResponse{Items: out}, nil
 }
 
 func (s *UserServer) CreateEmployment(ctx context.Context, req *userv1.CreateEmploymentRequest) (*userv1.CreateEmploymentResponse, error) {
@@ -1191,25 +1053,6 @@ func (s *UserServer) DeleteEmployment(ctx context.Context, req *userv1.DeleteEmp
 		return nil, toStatus(err)
 	}
 	return &userv1.DeleteEmploymentResponse{Deleted: deleted}, nil
-}
-
-func (s *UserServer) ListMyEmployment(ctx context.Context, req *userv1.ListMyEmploymentRequest) (*userv1.ListMyEmploymentResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.ListMyEmployment(ctx, userID, req.GetPageSize(), req.GetPageToken())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	items := make([]*userv1.Employment, 0, len(out.Items))
-	for _, item := range out.Items {
-		items = append(items, toProtoEmployment(item))
-	}
-	return &userv1.ListMyEmploymentResponse{Employment: items, NextPageToken: out.NextPageToken}, nil
 }
 
 func (s *UserServer) ListPublicEmployment(ctx context.Context, req *userv1.ListPublicEmploymentRequest) (*userv1.ListPublicEmploymentResponse, error) {
@@ -1308,25 +1151,6 @@ func (s *UserServer) DeleteEducation(ctx context.Context, req *userv1.DeleteEduc
 	return &userv1.DeleteEducationResponse{Deleted: deleted}, nil
 }
 
-func (s *UserServer) ListMyEducation(ctx context.Context, req *userv1.ListMyEducationRequest) (*userv1.ListMyEducationResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.ListMyEducation(ctx, userID, req.GetPageSize(), req.GetPageToken())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	items := make([]*userv1.Education, 0, len(out.Items))
-	for _, item := range out.Items {
-		items = append(items, toProtoEducation(item))
-	}
-	return &userv1.ListMyEducationResponse{Education: items, NextPageToken: out.NextPageToken}, nil
-}
-
 func (s *UserServer) ListPublicEducation(ctx context.Context, req *userv1.ListPublicEducationRequest) (*userv1.ListPublicEducationResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1420,25 +1244,6 @@ func (s *UserServer) DeleteCertification(ctx context.Context, req *userv1.Delete
 	return &userv1.DeleteCertificationResponse{Deleted: deleted}, nil
 }
 
-func (s *UserServer) ListMyCertifications(ctx context.Context, req *userv1.ListMyCertificationsRequest) (*userv1.ListMyCertificationsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.ListMyCertifications(ctx, userID, req.GetPageSize(), req.GetPageToken())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	items := make([]*userv1.Certification, 0, len(out.Items))
-	for _, item := range out.Items {
-		items = append(items, toProtoCertification(item))
-	}
-	return &userv1.ListMyCertificationsResponse{Certifications: items, NextPageToken: out.NextPageToken}, nil
-}
-
 func (s *UserServer) ListPublicCertifications(ctx context.Context, req *userv1.ListPublicCertificationsRequest) (*userv1.ListPublicCertificationsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1475,21 +1280,6 @@ func (s *UserServer) UpsertLanguages(ctx context.Context, req *userv1.UpsertLang
 		return nil, toStatus(err)
 	}
 	return &userv1.UpsertLanguagesResponse{Languages: toProtoLanguages(out)}, nil
-}
-
-func (s *UserServer) GetMyLanguages(ctx context.Context, req *userv1.GetMyLanguagesRequest) (*userv1.GetMyLanguagesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.GetMyLanguages(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetMyLanguagesResponse{Languages: toProtoLanguages(out)}, nil
 }
 
 func (s *UserServer) GetPublicLanguages(ctx context.Context, req *userv1.GetPublicLanguagesRequest) (*userv1.GetPublicLanguagesResponse, error) {
@@ -1776,14 +1566,6 @@ func toProtoClientProfileSettings(in application.ClientProfileSettings) *userv1.
 	}
 }
 
-func toProtoCompanySettings(in application.CompanySettings) *userv1.CompanySettings {
-	return &userv1.CompanySettings{
-		CompanyName:    in.CompanyName,
-		BillingAddress: in.BillingAddress,
-		TaxId:          in.TaxID,
-	}
-}
-
 func toProtoHiringPreferences(in application.HiringPreferences) *userv1.HiringPreferences {
 	return &userv1.HiringPreferences{
 		MinHourlyRate:             in.MinHourlyRate,
@@ -1820,22 +1602,6 @@ func toProtoUserSummary(in application.UserSummary) *userv1.User {
 		AvatarUrl:     in.AvatarURL,
 		CreatedAtUnix: in.CreatedAt.Unix(),
 		UpdatedAtUnix: in.UpdatedAt.Unix(),
-	}
-}
-
-func toProtoUserAuditSummary(in application.UserAuditSummary) *userv1.UserAuditSummary {
-	avatarUpdatedAtUnix := int64(0)
-	if in.AvatarUpdatedAt != nil {
-		avatarUpdatedAtUnix = in.AvatarUpdatedAt.Unix()
-	}
-	return &userv1.UserAuditSummary{
-		UserId:                in.UserID.String(),
-		Status:                mapAccountStatusToProto(in.Status),
-		Visibility:            mapVisibilityToProto(in.Visibility),
-		ProfileUpdatedAtUnix:  in.ProfileUpdatedAt.Unix(),
-		AvatarUpdatedAtUnix:   avatarUpdatedAtUnix,
-		SavedFreelancersCount: in.SavedFreelancersCount,
-		PortfolioItemsCount:   in.PortfolioItemsCount,
 	}
 }
 
