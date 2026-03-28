@@ -14,6 +14,7 @@ type Config struct {
 	AuthServiceGRPCAddr         string
 	UserServiceGRPCAddr         string
 	VerificationServiceGRPCAddr string
+	JobServiceGRPCAddr          string
 	JWTSecret                   []byte
 	OAuthStateSecret            []byte
 	ChallengeProofSecret        []byte
@@ -51,6 +52,7 @@ func LoadFromEnv() (Config, error) {
 		AuthServiceGRPCAddr:         getEnv("AUTH_SERVICE_GRPC_ADDR", "auth:50051"),
 		UserServiceGRPCAddr:         getEnv("USER_SERVICE_GRPC_ADDR", "user:50052"),
 		VerificationServiceGRPCAddr: getEnv("VERIFICATION_SERVICE_GRPC_ADDR", "verification:50060"),
+		JobServiceGRPCAddr:          getEnv("JOB_SERVICE_GRPC_ADDR", "job:50053"),
 		JWTSecret:                   []byte(secret),
 		OAuthStateSecret:            []byte(getEnv("GATEWAY_OAUTH_STATE_SECRET", secret)),
 		ChallengeProofSecret:        []byte(getEnv("GATEWAY_CHALLENGE_PROOF_SECRET", secret)),
@@ -82,6 +84,9 @@ func LoadFromEnv() (Config, error) {
 	}
 	if cfg.VerificationServiceGRPCAddr == "" {
 		return Config{}, fmt.Errorf("VERIFICATION_SERVICE_GRPC_ADDR is required")
+	}
+	if cfg.JobServiceGRPCAddr == "" {
+		return Config{}, fmt.Errorf("JOB_SERVICE_GRPC_ADDR is required")
 	}
 	return cfg, nil
 }

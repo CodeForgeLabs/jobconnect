@@ -17,17 +17,20 @@ type UpdateJob struct {
 }
 
 type UpdateJobInput struct {
-	JobID       int64
-	ClientID    uuid.UUID
-	Title       *string
-	Description *string
-	RequiredSkills []string
-	JobType     *string
-	BudgetFixed *float64
-	HourlyRate  *float64
-	Currency    *string
-	Deadline    *int64
-	Attachments []domain.Attachment
+	JobID               int64
+	ClientID            uuid.UUID
+	Title               *string
+	Description         *string
+	RequiredSkills      []string
+	ClearRequiredSkills bool
+	JobType             *string
+	BudgetFixed         *float64
+	HourlyRate          *float64
+	Currency            *string
+	Deadline            *int64
+	ClearDeadline       bool
+	Attachments         []domain.Attachment
+	ClearAttachments    bool
 }
 
 type UpdateJobOutput struct {
@@ -74,7 +77,9 @@ func (uc *UpdateJob) Execute(ctx context.Context, in UpdateJobInput) (UpdateJobO
 		}
 		job.Description = desc
 	}
-	if len(in.RequiredSkills) > 0 {
+	if in.ClearRequiredSkills {
+		job.RequiredSkills = []string{}
+	} else if len(in.RequiredSkills) > 0 {
 		if len(in.RequiredSkills) > 100 {
 			return UpdateJobOutput{}, fmt.Errorf("too many required_skills")
 		}
@@ -108,14 +113,18 @@ func (uc *UpdateJob) Execute(ctx context.Context, in UpdateJobInput) (UpdateJobO
 		}
 		job.Currency = cur
 	}
-	if in.Deadline != nil && *in.Deadline > 0 {
+	if in.ClearDeadline {
+		job.Deadline = nil
+	} else if in.Deadline != nil && *in.Deadline > 0 {
 		deadline := time.Unix(*in.Deadline, 0).UTC()
 		if !deadline.After(uc.Clock.Now()) {
 			return UpdateJobOutput{}, fmt.Errorf("deadline must be in the future")
 		}
 		job.Deadline = &deadline
 	}
-	if len(in.Attachments) > 0 {
+	if in.ClearAttachments {
+		job.Attachments = []domain.Attachment{}
+	} else if len(in.Attachments) > 0 {
 		if len(in.Attachments) > 20 {
 			return UpdateJobOutput{}, fmt.Errorf("too many attachments")
 		}
@@ -130,6 +139,7 @@ func (uc *UpdateJob) Execute(ctx context.Context, in UpdateJobInput) (UpdateJobO
 				return UpdateJobOutput{}, fmt.Errorf("attachment url is required")
 			}
 		}
+		job.Attachments = in.Attachments
 	}
 
 	// Re-validate budget/type consistency after partial updates.

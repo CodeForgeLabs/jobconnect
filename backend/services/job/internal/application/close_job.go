@@ -37,8 +37,9 @@ func (uc *CloseJob) Execute(ctx context.Context, in CloseJobInput) (CloseJobOutp
 	if err := domain.ValidateCloseReason(in.Reason); err != nil {
 		return CloseJobOutput{}, err
 	}
+	normalizedReason := strings.ToLower(strings.TrimSpace(in.Reason))
 
-	err := uc.Jobs.Close(ctx, in.JobID, in.ClientID, strings.TrimSpace(in.Reason), uc.Clock.Now())
+	err := uc.Jobs.Close(ctx, in.JobID, in.ClientID, normalizedReason, uc.Clock.Now())
 	if err != nil {
 		return CloseJobOutput{}, err
 	}
@@ -46,7 +47,7 @@ func (uc *CloseJob) Execute(ctx context.Context, in CloseJobInput) (CloseJobOutp
 	// Refund Connects (Best effort refund loop for MVP)
 	// In production, this might be handled via an async event/message queue
 	// to avoid blocking the client request and ensure strict retry semantics on the consumer side.
-	if in.Reason == domain.CloseReasonCanceled {
+	if normalizedReason == domain.CloseReasonCanceled {
 		proposals, err := uc.Proposals.ListProposalsByJob(ctx, in.JobID)
 		if err == nil {
 			for _, p := range proposals {

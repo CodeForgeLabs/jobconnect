@@ -44,3 +44,10 @@ func requireClientRole(role string) error {
 	}
 	return status.Error(codes.PermissionDenied, "client role required")
 }
+
+func requireFreelancerRole(role string) error {
+	if strings.EqualFold(strings.TrimSpace(role), "freelancer") {
+		return nil
+	}
+	return status.Error(codes.PermissionDenied, "freelancer role required")
+}
