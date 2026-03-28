@@ -72,38 +72,6 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
 }
 
-func (h *UserHandler) GetMeUser(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	resp, err := h.client.GetUser(c.Request.Context(), &userv1.GetUserRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "user", resp.GetUser())
-}
-
-func (h *UserHandler) GetUser(c *gin.Context) {
-	userID := strings.TrimSpace(c.Param("userId"))
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
-		return
-	}
-
-	resp, err := h.client.GetUser(c.Request.Context(), &userv1.GetUserRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "user", resp.GetUser())
-}
-
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userID := strings.TrimSpace(c.Param("userId"))
 	if userID == "" {
@@ -551,55 +519,6 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"users": itemsPayload, "next_page_token": resp.GetNextPageToken()})
 }
 
-func (h *UserHandler) CreateImpersonationToken(c *gin.Context) {
-	requesterID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	targetID := strings.TrimSpace(c.Param("userId"))
-	if targetID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
-		return
-	}
-
-	req := &userv1.CreateImpersonationTokenRequest{RequesterUserId: requesterID, TargetUserId: targetID}
-	if !bindProtoJSON(c, req) {
-		return
-	}
-
-	resp, err := h.client.CreateImpersonationToken(c.Request.Context(), req)
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"token": resp.GetToken(), "expires_at_unix": resp.GetExpiresAtUnix()})
-}
-
-func (h *UserHandler) GetUserAuditSummary(c *gin.Context) {
-	requesterID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	targetID := strings.TrimSpace(c.Param("userId"))
-	if targetID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
-		return
-	}
-
-	resp, err := h.client.GetUserAuditSummary(c.Request.Context(), &userv1.GetUserAuditSummaryRequest{RequesterUserId: requesterID, TargetUserId: targetID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "summary", resp.GetSummary())
-}
-
 func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -668,59 +587,6 @@ func (h *UserHandler) DeleteMePortfolioItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"deleted": resp.GetDeleted()})
-}
-
-func (h *UserHandler) ListMyPortfolioItems(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	pageSize, pageToken, err := parsePagination(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	resp, err := h.client.ListMyPortfolioItems(c.Request.Context(), &userv1.ListMyPortfolioItemsRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	itemsPayload, err := protoSliceToAny(resp.GetItems())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"items": itemsPayload, "next_page_token": resp.GetNextPageToken()})
-}
-
-func (h *UserHandler) ReorderMePortfolioItems(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	req := &userv1.ReorderPortfolioItemsRequest{UserId: userID}
-	if !bindProtoJSON(c, req) {
-		return
-	}
-
-	resp, err := h.client.ReorderPortfolioItems(c.Request.Context(), req)
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	itemsPayload, err := protoSliceToAny(resp.GetItems())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"items": itemsPayload})
 }
 
 func (h *UserHandler) ListPublicPortfolioItems(c *gin.Context) {
@@ -820,33 +686,6 @@ func (h *UserHandler) DeleteMeEmployment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"deleted": resp.GetDeleted()})
 }
 
-func (h *UserHandler) ListMyEmployment(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	pageSize, pageToken, err := parsePagination(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	resp, err := h.client.ListMyEmployment(c.Request.Context(), &userv1.ListMyEmploymentRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	itemsPayload, err := protoSliceToAny(resp.GetEmployment())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"employment": itemsPayload, "next_page_token": resp.GetNextPageToken()})
-}
-
 func (h *UserHandler) ListPublicEmployment(c *gin.Context) {
 	userID := strings.TrimSpace(c.Param("userId"))
 	if userID == "" {
@@ -942,33 +781,6 @@ func (h *UserHandler) DeleteMeEducation(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"deleted": resp.GetDeleted()})
-}
-
-func (h *UserHandler) ListMyEducation(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	pageSize, pageToken, err := parsePagination(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	resp, err := h.client.ListMyEducation(c.Request.Context(), &userv1.ListMyEducationRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	itemsPayload, err := protoSliceToAny(resp.GetEducation())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"education": itemsPayload, "next_page_token": resp.GetNextPageToken()})
 }
 
 func (h *UserHandler) ListPublicEducation(c *gin.Context) {
@@ -1068,33 +880,6 @@ func (h *UserHandler) DeleteMeCertification(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"deleted": resp.GetDeleted()})
 }
 
-func (h *UserHandler) ListMyCertifications(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	pageSize, pageToken, err := parsePagination(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	resp, err := h.client.ListMyCertifications(c.Request.Context(), &userv1.ListMyCertificationsRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	itemsPayload, err := protoSliceToAny(resp.GetCertifications())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"certifications": itemsPayload, "next_page_token": resp.GetNextPageToken()})
-}
-
 func (h *UserHandler) ListPublicCertifications(c *gin.Context) {
 	userID := strings.TrimSpace(c.Param("userId"))
 	if userID == "" {
@@ -1135,27 +920,6 @@ func (h *UserHandler) UpsertMeLanguages(c *gin.Context) {
 	}
 
 	resp, err := h.client.UpsertLanguages(c.Request.Context(), req)
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	itemsPayload, err := protoSliceToAny(resp.GetLanguages())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"languages": itemsPayload})
-}
-
-func (h *UserHandler) GetMeLanguages(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	resp, err := h.client.GetMyLanguages(c.Request.Context(), &userv1.GetMyLanguagesRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -1336,43 +1100,6 @@ func (h *UserHandler) UpdateMeClientProfile(c *gin.Context) {
 	}
 
 	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
-}
-
-func (h *UserHandler) GetMeCompany(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	resp, err := h.client.GetCompany(c.Request.Context(), &userv1.GetCompanyRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "company", resp.GetCompany())
-}
-
-func (h *UserHandler) UpdateMeCompany(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	req := &userv1.UpdateCompanyRequest{UserId: userID}
-	if !bindProtoJSON(c, req) {
-		return
-	}
-
-	resp, err := h.client.UpdateCompany(c.Request.Context(), req)
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "company", resp.GetCompany())
 }
 
 func (h *UserHandler) GetMeHiringPreferences(c *gin.Context) {

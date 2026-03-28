@@ -40,29 +40,6 @@ func TestListUsers_Unauthorized(t *testing.T) {
 	}
 }
 
-func TestGetUserAuditSummary_Unauthorized(t *testing.T) {
-	h := &UserHandler{}
-	ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/admin/users/abc/audit-summary")
-	ctx.Params = gin.Params{{Key: "userId", Value: "abc"}}
-
-	h.GetUserAuditSummary(ctx)
-
-	if rec.Code != http.StatusUnauthorized {
-		t.Fatalf("expected status %d, got %d", http.StatusUnauthorized, rec.Code)
-	}
-}
-
-func TestCreateImpersonationToken_Unauthorized(t *testing.T) {
-	h := &UserHandler{}
-	ctx, rec := newJSONTestContext(http.MethodPost, "/api/v1/admin/users/abc/impersonation-token")
-	ctx.Params = gin.Params{{Key: "userId", Value: "abc"}}
-
-	h.CreateImpersonationToken(ctx)
-
-	if rec.Code != http.StatusUnauthorized {
-		t.Fatalf("expected status %d, got %d", http.StatusUnauthorized, rec.Code)
-	}
-}
 
 func TestSetMeAvailability_Unauthorized(t *testing.T) {
 	h := &UserHandler{}
