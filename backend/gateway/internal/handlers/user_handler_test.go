@@ -29,7 +29,6 @@ func TestListUsers_Unauthorized(t *testing.T) {
 	}
 }
 
-
 func TestSetMeAvailability_Unauthorized(t *testing.T) {
 	h := &UserHandler{}
 	ctx, rec := newJSONTestContext(http.MethodPut, "/api/v1/users/me/availability")
