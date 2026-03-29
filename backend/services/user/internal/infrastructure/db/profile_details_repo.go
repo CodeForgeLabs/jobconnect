@@ -982,35 +982,43 @@ func (r *ProfileRepo) GetWorkPreferences(ctx context.Context, userID uuid.UUID) 
 	return out, nil
 }
 
-func (r *ProfileRepo) GetClientProfile(ctx context.Context, userID uuid.UUID) (application.ClientProfileSettings, error) {
+func (r *ProfileRepo) GetCompany(ctx context.Context, userID uuid.UUID) (application.CompanySettings, error) {
 	profileID, err := r.clientProfileID(ctx, userID)
 	if err != nil {
-		return application.ClientProfileSettings{}, err
+		return application.CompanySettings{}, err
 	}
 
-	out := application.ClientProfileSettings{}
+	out := application.CompanySettings{}
 	err = r.pool.QueryRow(ctx, `
 		select
 			coalesce(company_name, ''),
 			coalesce(billing_address, ''),
-			coalesce(tax_id, ''),
-			coalesce(verification_status, '')
+			coalesce(tax_id, '')
 		from client_profiles
 		where profile_id = $1
-	`, profileID).Scan(&out.CompanyName, &out.BillingAddress, &out.TaxID, &out.VerificationStatus)
+	`, profileID).Scan(&out.CompanyName, &out.BillingAddress, &out.TaxID)
 	if err != nil {
 		if isNoRows(err) {
 			return out, nil
 		}
-		return application.ClientProfileSettings{}, err
+		return application.CompanySettings{}, err
 	}
 	return out, nil
 }
 
-func (r *ProfileRepo) UpdateClientProfile(ctx context.Context, userID uuid.UUID, in application.ClientProfileSettings) (application.ClientProfileSettings, error) {
+func (r *ProfileRepo) UpdateCompany(ctx context.Context, userID uuid.UUID, in application.CompanySettings) (application.CompanySettings, error) {
 	profileID, err := r.clientProfileID(ctx, userID)
 	if err != nil {
-		return application.ClientProfileSettings{}, err
+		return application.CompanySettings{}, err
+	}
+
+	verificationStatus := ""
+	if err := r.pool.QueryRow(ctx, `
+		select coalesce(verification_status, '')
+		from client_profiles
+		where profile_id = $1
+	`, profileID).Scan(&verificationStatus); err != nil && !isNoRows(err) {
+		return application.CompanySettings{}, err
 	}
 
 	if _, err := r.pool.Exec(ctx, `
@@ -1021,36 +1029,15 @@ func (r *ProfileRepo) UpdateClientProfile(ctx context.Context, userID uuid.UUID,
 			billing_address = excluded.billing_address,
 			tax_id = excluded.tax_id,
 			verification_status = excluded.verification_status
-	`, profileID, strings.TrimSpace(in.CompanyName), strings.TrimSpace(in.BillingAddress), strings.TrimSpace(in.TaxID), strings.TrimSpace(in.VerificationStatus)); err != nil {
-		return application.ClientProfileSettings{}, err
+	`, profileID, strings.TrimSpace(in.CompanyName), strings.TrimSpace(in.BillingAddress), strings.TrimSpace(in.TaxID), strings.TrimSpace(verificationStatus)); err != nil {
+		return application.CompanySettings{}, err
 	}
 
-	return r.GetClientProfile(ctx, userID)
-}
-
-func (r *ProfileRepo) GetCompany(ctx context.Context, userID uuid.UUID) (application.CompanySettings, error) {
-	profile, err := r.GetClientProfile(ctx, userID)
+	updated, err := r.GetCompany(ctx, userID)
 	if err != nil {
 		return application.CompanySettings{}, err
 	}
-	return application.CompanySettings{CompanyName: profile.CompanyName, BillingAddress: profile.BillingAddress, TaxID: profile.TaxID}, nil
-}
-
-func (r *ProfileRepo) UpdateCompany(ctx context.Context, userID uuid.UUID, in application.CompanySettings) (application.CompanySettings, error) {
-	current, err := r.GetClientProfile(ctx, userID)
-	if err != nil {
-		return application.CompanySettings{}, err
-	}
-	updated, err := r.UpdateClientProfile(ctx, userID, application.ClientProfileSettings{
-		CompanyName:        in.CompanyName,
-		BillingAddress:     in.BillingAddress,
-		TaxID:              in.TaxID,
-		VerificationStatus: current.VerificationStatus,
-	})
-	if err != nil {
-		return application.CompanySettings{}, err
-	}
-	return application.CompanySettings{CompanyName: updated.CompanyName, BillingAddress: updated.BillingAddress, TaxID: updated.TaxID}, nil
+	return updated, nil
 }
 
 func (r *ProfileRepo) GetHiringPreferences(ctx context.Context, userID uuid.UUID) (application.HiringPreferences, error) {

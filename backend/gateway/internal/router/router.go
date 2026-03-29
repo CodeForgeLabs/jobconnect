@@ -171,8 +171,6 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.GET("/me/work-preferences", userHandler.GetMeWorkPreferences)
 
 	// Client hiring: profile and hiring controls.
-	userRoutes.GET("/me/client-profile", userHandler.GetMeClientProfile)
-	userRoutes.PATCH("/me/client-profile", userHandler.UpdateMeClientProfile)
 	userRoutes.GET("/me/hiring-preferences", userHandler.GetMeHiringPreferences)
 	userRoutes.PATCH("/me/hiring-preferences", userHandler.UpdateMeHiringPreferences)
 

@@ -18,17 +18,6 @@ func newJSONTestContext(method, target string) (*gin.Context, *httptest.Response
 	return ctx, rec
 }
 
-func TestGetMeClientProfile_Unauthorized(t *testing.T) {
-	h := &UserHandler{}
-	ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/users/me/client-profile")
-
-	h.GetMeClientProfile(ctx)
-
-	if rec.Code != http.StatusUnauthorized {
-		t.Fatalf("expected status %d, got %d", http.StatusUnauthorized, rec.Code)
-	}
-}
-
 func TestListUsers_Unauthorized(t *testing.T) {
 	h := &UserHandler{}
 	ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/admin/users")

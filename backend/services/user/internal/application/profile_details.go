@@ -108,13 +108,6 @@ type WorkPreferences struct {
 	ContractTypes          []string
 }
 
-type ClientProfileSettings struct {
-	CompanyName        string
-	BillingAddress     string
-	TaxID              string
-	VerificationStatus string
-}
-
 type CompanySettings struct {
 	CompanyName    string
 	BillingAddress string
@@ -222,8 +215,6 @@ type ProfileDetailsRepository interface {
 	SetWorkPreferences(ctx context.Context, userID uuid.UUID, in WorkPreferences) (WorkPreferences, error)
 	GetWorkPreferences(ctx context.Context, userID uuid.UUID) (WorkPreferences, error)
 
-	GetClientProfile(ctx context.Context, userID uuid.UUID) (ClientProfileSettings, error)
-	UpdateClientProfile(ctx context.Context, userID uuid.UUID, in ClientProfileSettings) (ClientProfileSettings, error)
 	GetCompany(ctx context.Context, userID uuid.UUID) (CompanySettings, error)
 	UpdateCompany(ctx context.Context, userID uuid.UUID, in CompanySettings) (CompanySettings, error)
 	GetHiringPreferences(ctx context.Context, userID uuid.UUID) (HiringPreferences, error)

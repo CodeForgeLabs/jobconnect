@@ -696,49 +696,6 @@ func (s *UserServer) GetWorkPreferences(ctx context.Context, req *userv1.GetWork
 	return &userv1.GetWorkPreferencesResponse{Settings: toProtoWorkPreferences(out)}, nil
 }
 
-func (s *UserServer) GetClientProfile(ctx context.Context, req *userv1.GetClientProfileRequest) (*userv1.GetClientProfileResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.GetClientProfile(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetClientProfileResponse{Profile: toProtoClientProfileSettings(out)}, nil
-}
-
-func (s *UserServer) UpdateClientProfile(ctx context.Context, req *userv1.UpdateClientProfileRequest) (*userv1.UpdateClientProfileResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	current, err := s.ProfileDetailsRepo.GetClientProfile(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	if req.CompanyName != nil {
-		current.CompanyName = strings.TrimSpace(req.GetCompanyName())
-	}
-	if req.BillingAddress != nil {
-		current.BillingAddress = strings.TrimSpace(req.GetBillingAddress())
-	}
-	if req.TaxId != nil {
-		current.TaxID = strings.TrimSpace(req.GetTaxId())
-	}
-	out, err := s.ProfileDetailsRepo.UpdateClientProfile(ctx, userID, current)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.UpdateClientProfileResponse{Profile: toProtoClientProfileSettings(out)}, nil
-}
-
 func (s *UserServer) GetHiringPreferences(ctx context.Context, req *userv1.GetHiringPreferencesRequest) (*userv1.GetHiringPreferencesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1554,15 +1511,6 @@ func toProtoWorkPreferences(in application.WorkPreferences) *userv1.WorkPreferen
 		MinBudgetUsd:           in.MinBudgetUSD,
 		MaxBudgetUsd:           in.MaxBudgetUSD,
 		ContractTypes:          in.ContractTypes,
-	}
-}
-
-func toProtoClientProfileSettings(in application.ClientProfileSettings) *userv1.ClientProfileSettings {
-	return &userv1.ClientProfileSettings{
-		CompanyName:        in.CompanyName,
-		BillingAddress:     in.BillingAddress,
-		TaxId:              in.TaxID,
-		VerificationStatus: mapVerificationStatusToProto(in.VerificationStatus),
 	}
 }
 

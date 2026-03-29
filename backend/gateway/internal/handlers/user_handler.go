@@ -1065,63 +1065,6 @@ func (h *UserHandler) GetMeWorkPreferences(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
 }
 
-func (h *UserHandler) GetMeClientProfile(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	resp, err := h.client.GetProfile(c.Request.Context(), &userv1.GetProfileRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-	profile := resp.GetProfile()
-	if profile == nil || !strings.EqualFold(strings.TrimSpace(profile.GetRole()), "client") || profile.GetClient() == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "client profile not found"})
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "profile", profile.GetClient())
-}
-
-func (h *UserHandler) UpdateMeClientProfile(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	var body struct {
-		CompanyName    *string `json:"company_name"`
-		BillingAddress *string `json:"billing_address"`
-		TaxID          *string `json:"tax_id"`
-	}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	resp, err := h.client.UpdateProfile(c.Request.Context(), &userv1.UpdateProfileRequest{
-		UserId:         userID,
-		CompanyName:    body.CompanyName,
-		BillingAddress: body.BillingAddress,
-		TaxId:          body.TaxID,
-	})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-	profile := resp.GetProfile()
-	if profile == nil || !strings.EqualFold(strings.TrimSpace(profile.GetRole()), "client") || profile.GetClient() == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "client profile not found"})
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "profile", profile.GetClient())
-}
-
 func (h *UserHandler) GetMeHiringPreferences(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
