@@ -89,9 +89,13 @@ service UserService {
 
   // Client-specific endpoints.
   rpc GetClientProfile(GetClientProfileRequest)
-      returns (GetClientProfileResponse);
+      returns (GetClientProfileResponse) {
+    option deprecated = true;
+  }
   rpc UpdateClientProfile(UpdateClientProfileRequest)
-      returns (UpdateClientProfileResponse);
+      returns (UpdateClientProfileResponse) {
+    option deprecated = true;
+  }
   rpc GetHiringPreferences(GetHiringPreferencesRequest)
       returns (GetHiringPreferencesResponse);
   rpc UpdateHiringPreferences(UpdateHiringPreferencesRequest)

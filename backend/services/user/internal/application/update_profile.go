@@ -104,7 +104,7 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		if in.TaxID != nil {
 			client.TaxID = strings.TrimSpace(*in.TaxID)
 		}
-		if in.Headline != nil || in.ExperienceLevel != nil || len(in.Skills) > 0 {
+		if in.Headline != nil || in.ExperienceLevel != nil || len(in.Skills) > 0 || in.HourlyRate != nil || in.Availability != nil || in.Location != nil || in.LastActiveAtUnix != nil {
 			return UpdateProfileOutput{}, fmt.Errorf("freelancer fields are not allowed for client")
 		}
 	case domain.RoleFreelancer:
