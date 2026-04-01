@@ -44,14 +44,21 @@ func (uc *CreateJob) Execute(ctx context.Context, in CreateJobInput) (CreateJobO
 		BudgetFixed:     in.BudgetFixed,
 		HourlyRate:      in.HourlyRate,
 		Currency:        strings.ToUpper(strings.TrimSpace(in.Currency)),
-		BudgetMin:       in.BudgetFixed,
-		BudgetMax:       in.BudgetFixed,
 		Visibility:      domain.VisibilityPublic,
 		ExperienceLevel: domain.ExperienceIntermediate,
 		Attachments:     in.Attachments,
 		Status:          domain.JobStatusOpen,
 		CreatedAt:       now,
 		UpdatedAt:       now,
+	}
+
+	// Set budget range based on job type.
+	if job.JobType == domain.JobTypeFixed {
+		job.BudgetMin = in.BudgetFixed
+		job.BudgetMax = in.BudgetFixed
+	} else if job.JobType == domain.JobTypeHourly {
+		job.BudgetMin = in.HourlyRate
+		job.BudgetMax = in.HourlyRate
 	}
 
 	if in.Deadline != nil && *in.Deadline > 0 {

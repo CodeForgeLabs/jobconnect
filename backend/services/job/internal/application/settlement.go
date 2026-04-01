@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/google/uuid"
@@ -87,8 +88,12 @@ func (uc *CancelJobWithSettlementPolicy) Execute(ctx context.Context, in CancelJ
 					continue
 				}
 				refID := fmt.Sprintf("job_cancel_settle_%d_proposal_%d", in.JobID, p.ID)
-				_ = uc.Connects.RefundConnects(ctx, p.FreelancerID, p.ConnectsSpent, refID)
+				if err := uc.Connects.RefundConnects(ctx, p.FreelancerID, p.ConnectsSpent, refID); err != nil {
+					log.Printf("cancel_settle: refund failed for proposal %d (freelancer %s): %v", p.ID, p.FreelancerID, err)
+				}
 			}
+		} else {
+			log.Printf("cancel_settle: failed to fetch proposals for refunds (job %d): %v", in.JobID, propErr)
 		}
 	}
 

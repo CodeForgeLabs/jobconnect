@@ -33,16 +33,16 @@ func (uc *SearchJobs) Execute(ctx context.Context, in SearchJobsInput) (SearchJo
 	if err != nil {
 		return SearchJobsOutput{}, err
 	}
-	jobType := strings.ToLower(strings.TrimSpace(in.JobType))
-	if err := domain.ValidateJobType(jobType); err != nil && jobType != "" {
+	jobType, err := domain.ValidateJobType(in.JobType)
+	if err != nil && strings.TrimSpace(in.JobType) != "" {
 		return SearchJobsOutput{}, err
 	}
-	visibility := strings.ToLower(strings.TrimSpace(in.Visibility))
-	if err := domain.ValidateVisibility(visibility); err != nil {
+	visibility, err := domain.ValidateVisibility(in.Visibility)
+	if err != nil {
 		return SearchJobsOutput{}, err
 	}
-	level := strings.ToLower(strings.TrimSpace(in.ExperienceLevel))
-	if err := domain.ValidateExperienceLevel(level); err != nil {
+	level, err := domain.ValidateExperienceLevel(in.ExperienceLevel)
+	if err != nil {
 		return SearchJobsOutput{}, err
 	}
 
@@ -89,42 +89,17 @@ type ListJobFacetsOutput struct {
 }
 
 func (uc *ListJobFacets) Execute(ctx context.Context, in ListJobFacetsInput) (ListJobFacetsOutput, error) {
-	jobs, err := uc.Jobs.ListOpenFiltered(ctx, ListOpenFilter{
-		SearchQuery: strings.TrimSpace(in.Query),
-		Limit:       500,
-		Offset:      0,
-	})
+	result, err := uc.Jobs.FacetCounts(ctx, strings.TrimSpace(in.Query))
 	if err != nil {
 		return ListJobFacetsOutput{}, err
 	}
-
-	skills := map[string]int32{}
-	types := map[string]int32{}
-	levels := map[string]int32{}
-	vis := map[string]int32{}
-	status := map[string]int32{}
-
-	for _, j := range jobs {
-		types[j.JobType]++
-		levels[j.ExperienceLevel]++
-		vis[j.Visibility]++
-		status[j.Status]++
-		for _, s := range j.RequiredSkills {
-			k := strings.TrimSpace(s)
-			if k == "" {
-				continue
-			}
-			skills[k]++
-		}
-	}
-
 	return ListJobFacetsOutput{
-		Skills:           mapToFacetBuckets(skills),
-		JobTypes:         mapToFacetBuckets(types),
-		ExperienceLevels: mapToFacetBuckets(levels),
-		Visibility:       mapToFacetBuckets(vis),
-		Status:           mapToFacetBuckets(status),
-		Total:            int64(len(jobs)),
+		Skills:           result.Skills,
+		JobTypes:         result.JobTypes,
+		ExperienceLevels: result.ExperienceLevels,
+		Visibility:       result.Visibility,
+		Status:           result.Status,
+		Total:            result.Total,
 	}, nil
 }
 

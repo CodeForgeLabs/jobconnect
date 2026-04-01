@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"jobconnect/job/internal/domain"
+
 	"github.com/google/uuid"
 )
 
@@ -104,7 +106,7 @@ type ReopenHiringForJobInput struct {
 }
 
 type ReopenHiringForJobOutput struct {
-	JobID int64
+	Job domain.Job
 }
 
 func (uc *ReopenHiringForJob) Execute(ctx context.Context, in ReopenHiringForJobInput) (ReopenHiringForJobOutput, error) {
@@ -114,8 +116,9 @@ func (uc *ReopenHiringForJob) Execute(ctx context.Context, in ReopenHiringForJob
 	if in.ClientID == uuid.Nil {
 		return ReopenHiringForJobOutput{}, fmt.Errorf("client_id is required")
 	}
-	if _, err := uc.Jobs.ReopenHiring(ctx, in.JobID, in.ClientID, uc.Clock.Now()); err != nil {
+	job, err := uc.Jobs.ReopenHiring(ctx, in.JobID, in.ClientID, uc.Clock.Now())
+	if err != nil {
 		return ReopenHiringForJobOutput{}, err
 	}
-	return ReopenHiringForJobOutput{JobID: in.JobID}, nil
+	return ReopenHiringForJobOutput{Job: job}, nil
 }

@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"jobconnect/job/internal/domain"
@@ -53,14 +54,13 @@ func (uc *CloseJob) Execute(ctx context.Context, in CloseJobInput) (CloseJobOutp
 			for _, p := range proposals {
 				if p.ConnectsSpent > 0 {
 					refID := fmt.Sprintf("job_canceled_%d_proposal_%d", in.JobID, p.ID)
-					// We ignore errors on individual refunds for MVP to not fail the loop.
-					// A real implementation would queue these.
-					_ = uc.Connects.RefundConnects(ctx, p.FreelancerID, p.ConnectsSpent, refID)
+					if err := uc.Connects.RefundConnects(ctx, p.FreelancerID, p.ConnectsSpent, refID); err != nil {
+						log.Printf("close_job: refund failed for proposal %d (freelancer %s): %v", p.ID, p.FreelancerID, err)
+					}
 				}
 			}
 		} else {
-			// Log error, but job is already closed
-			fmt.Printf("failed to fetch proposals for refunds: %v\n", err)
+			log.Printf("close_job: failed to fetch proposals for refunds (job %d): %v", in.JobID, err)
 		}
 	}
 

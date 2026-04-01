@@ -34,16 +34,16 @@ func (uc *SearchJobsV2) Execute(ctx context.Context, in SearchJobsV2Input) (Sear
 	if err != nil {
 		return SearchJobsV2Output{}, err
 	}
-	jobType := strings.ToLower(strings.TrimSpace(in.JobType))
-	if err := domain.ValidateJobType(jobType); err != nil && jobType != "" {
+	jobType, err := domain.ValidateJobType(in.JobType)
+	if err != nil && strings.TrimSpace(in.JobType) != "" {
 		return SearchJobsV2Output{}, err
 	}
-	visibility := strings.ToLower(strings.TrimSpace(in.Visibility))
-	if err := domain.ValidateVisibility(visibility); err != nil {
+	visibility, err := domain.ValidateVisibility(in.Visibility)
+	if err != nil {
 		return SearchJobsV2Output{}, err
 	}
-	level := strings.ToLower(strings.TrimSpace(in.ExperienceLevel))
-	if err := domain.ValidateExperienceLevel(level); err != nil {
+	level, err := domain.ValidateExperienceLevel(in.ExperienceLevel)
+	if err != nil {
 		return SearchJobsV2Output{}, err
 	}
 	jobs, err := uc.Jobs.ListOpenFilteredV2(ctx, ListOpenFilter{

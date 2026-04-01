@@ -40,78 +40,82 @@ type Attachment struct {
 }
 
 type Job struct {
-	ID              int64
-	ClientID        uuid.UUID
-	Title           string
-	Description     string
-	RequiredSkills  []string
-	JobType         string
-	BudgetFixed     float64
-	HourlyRate      float64
-	Currency        string
-	BudgetMin       float64
-	BudgetMax       float64
-	Visibility      string
-	ExperienceLevel string
-	Deadline        *time.Time
-	Attachments     []Attachment
-	Status          string
-	CloseReason     string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	ClosedAt        *time.Time
-	PausedAt        *time.Time
-	FilledAt        *time.Time
+	ID                 int64
+	ClientID           uuid.UUID
+	Title              string
+	Description        string
+	RequiredSkills     []string
+	JobType            string
+	BudgetFixed        float64
+	HourlyRate         float64
+	Currency           string
+	BudgetMin          float64
+	BudgetMax          float64
+	Visibility         string
+	ExperienceLevel    string
+	Deadline           *time.Time
+	Attachments        []Attachment
+	Status             string
+	CloseReason        string
+	SettlementPolicy   string
+	CancellationReason string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	ClosedAt           *time.Time
+	PausedAt           *time.Time
+	FilledAt           *time.Time
+	CompletedAt        *time.Time
+	CanceledAt         *time.Time
 }
 
-func ValidateJobType(jobType string) error {
+func ValidateJobType(jobType string) (string, error) {
 	jobType = strings.ToLower(strings.TrimSpace(jobType))
 	switch jobType {
 	case JobTypeFixed, JobTypeHourly:
-		return nil
+		return jobType, nil
 	default:
-		return fmt.Errorf("invalid job_type")
+		return "", fmt.Errorf("invalid job_type")
 	}
 }
 
-func ValidateStatus(status string) error {
-	if status == "" {
-		return nil
-	}
+func ValidateStatus(status string) (string, error) {
 	status = strings.ToLower(strings.TrimSpace(status))
+	if status == "" {
+		return "", nil
+	}
 	switch status {
 	case JobStatusOpen, JobStatusClosed:
-		return nil
+		return status, nil
 	case JobStatusPaused, JobStatusFilled:
-		return nil
+		return status, nil
 	default:
-		return fmt.Errorf("invalid status")
+		return "", fmt.Errorf("invalid status")
 	}
 }
 
-func ValidateVisibility(visibility string) error {
-	if visibility == "" {
-		return nil
-	}
+func ValidateVisibility(visibility string) (string, error) {
 	visibility = strings.ToLower(strings.TrimSpace(visibility))
+	if visibility == "" {
+		return "", nil
+	}
 	switch visibility {
 	case VisibilityPublic, VisibilityPrivate, VisibilityInviteOnly:
-		return nil
+		return visibility, nil
 	default:
-		return fmt.Errorf("invalid visibility")
+		return "", fmt.Errorf("invalid visibility")
 	}
 }
 
-func ValidateExperienceLevel(level string) error {
-	if level == "" {
-		return nil
-	}
+func ValidateExperienceLevel(level string) (string, error) {
 	level = strings.ToLower(strings.TrimSpace(level))
+	if level == "" {
+		return "", nil
+	}
 	switch level {
 	case ExperienceEntry, ExperienceIntermediate, ExperienceExpert:
-		return nil
+		return level, nil
 	default:
-		return fmt.Errorf("invalid experience_level")
+		return "", fmt.Errorf("invalid experience_level")
 	}
 }
 
@@ -133,7 +137,7 @@ func ValidateCreate(job Job, now time.Time) error {
 	if len(job.Description) > 10000 {
 		return fmt.Errorf("description too long")
 	}
-	if err := ValidateJobType(job.JobType); err != nil {
+	if _, err := ValidateJobType(job.JobType); err != nil {
 		return err
 	}
 	if job.JobType == JobTypeFixed {

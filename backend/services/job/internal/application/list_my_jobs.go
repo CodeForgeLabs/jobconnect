@@ -36,8 +36,8 @@ func (uc *ListMyJobs) Execute(ctx context.Context, in ListMyJobsInput) (ListMyJo
 	if in.ClientID == uuid.Nil {
 		return ListMyJobsOutput{}, fmt.Errorf("client_id is required")
 	}
-	status := strings.ToLower(strings.TrimSpace(in.Status))
-	if err := domain.ValidateStatus(status); err != nil {
+	status, err := domain.ValidateStatus(in.Status)
+	if err != nil {
 		return ListMyJobsOutput{}, err
 	}
 	limit := normalizePageSize(in.PageSize)
