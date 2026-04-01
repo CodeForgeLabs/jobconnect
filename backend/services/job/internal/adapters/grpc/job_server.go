@@ -51,79 +51,81 @@ type JobServer struct {
 	TokenParser        TokenParser
 }
 
-func NewJobServer(
-	createJob *application.CreateJob,
-	getJob *application.GetJob,
-	updateJob *application.UpdateJob,
-	listMyJobs *application.ListMyJobs,
-	listOpenJobs *application.ListOpenJobs,
-	closeJob *application.CloseJob,
-	uploadAttachment *application.UploadJobAttachment,
-	deleteAttachment *application.DeleteJobAttachment,
-	inviteFreelancer *application.InviteFreelancerToJob,
-	listApplicants *application.ListJobApplicants,
-	setApplicant *application.SetApplicantStage,
-	setVisibility *application.SetJobVisibility,
-	setBudgetRange *application.SetJobBudgetRange,
-	setExperience *application.SetJobExperienceLevel,
-	pauseJob *application.PauseJob,
-	reopenJob *application.ReopenJob,
-	markFilled *application.MarkJobFilled,
-	searchJobs *application.SearchJobs,
-	listFacets *application.ListJobFacets,
-	listAttachments *application.ListJobAttachments,
-	getAttachmentURL *application.GetJobAttachmentDownloadURL,
-	getPublicJob *application.GetPublicJobDetail,
-	listInvitedJobs *application.ListInvitedJobs,
-	respondInvite *application.RespondToJobInvite,
-	saveJob *application.SaveJob,
-	unsaveJob *application.UnsaveJob,
-	listSavedJobs *application.ListSavedJobs,
-	hireApplicant *application.HireApplicant,
-	rejectAll *application.RejectAllApplicants,
-	reopenHiring *application.ReopenHiringForJob,
-	getJobStats *application.GetJobStats,
-	searchJobsV2 *application.SearchJobsV2,
-	markCompleted *application.MarkJobCompleted,
-	cancelWithSettle *application.CancelJobWithSettlementPolicy,
-	tokenParser TokenParser,
-) *JobServer {
+type JobServerConfig struct {
+	CreateJobUC        *application.CreateJob
+	GetJobUC           *application.GetJob
+	UpdateJobUC        *application.UpdateJob
+	ListMyJobsUC       *application.ListMyJobs
+	ListOpenJobsUC     *application.ListOpenJobs
+	CloseJobUC         *application.CloseJob
+	UploadAttachmentUC *application.UploadJobAttachment
+	DeleteAttachmentUC *application.DeleteJobAttachment
+	InviteFreelancerUC *application.InviteFreelancerToJob
+	ListApplicantsUC   *application.ListJobApplicants
+	SetApplicantUC     *application.SetApplicantStage
+	SetVisibilityUC    *application.SetJobVisibility
+	SetBudgetRangeUC   *application.SetJobBudgetRange
+	SetExperienceUC    *application.SetJobExperienceLevel
+	PauseJobUC         *application.PauseJob
+	ReopenJobUC        *application.ReopenJob
+	MarkFilledUC       *application.MarkJobFilled
+	SearchJobsUC       *application.SearchJobs
+	ListFacetsUC       *application.ListJobFacets
+	ListAttachmentsUC  *application.ListJobAttachments
+	GetAttachmentURLUC *application.GetJobAttachmentDownloadURL
+	GetPublicJobUC     *application.GetPublicJobDetail
+	ListInvitedJobsUC  *application.ListInvitedJobs
+	RespondInviteUC    *application.RespondToJobInvite
+	SaveJobUC          *application.SaveJob
+	UnsaveJobUC        *application.UnsaveJob
+	ListSavedJobsUC    *application.ListSavedJobs
+	HireApplicantUC    *application.HireApplicant
+	RejectAllUC        *application.RejectAllApplicants
+	ReopenHiringUC     *application.ReopenHiringForJob
+	GetJobStatsUC      *application.GetJobStats
+	SearchJobsV2UC     *application.SearchJobsV2
+	MarkCompletedUC    *application.MarkJobCompleted
+	CancelWithSettleUC *application.CancelJobWithSettlementPolicy
+	TokenParser        TokenParser
+}
+
+func NewJobServer(cfg JobServerConfig) *JobServer {
 	return &JobServer{
-		CreateJobUC:        createJob,
-		GetJobUC:           getJob,
-		UpdateJobUC:        updateJob,
-		ListMyJobsUC:       listMyJobs,
-		ListOpenJobsUC:     listOpenJobs,
-		CloseJobUC:         closeJob,
-		UploadAttachmentUC: uploadAttachment,
-		DeleteAttachmentUC: deleteAttachment,
-		InviteFreelancerUC: inviteFreelancer,
-		ListApplicantsUC:   listApplicants,
-		SetApplicantUC:     setApplicant,
-		SetVisibilityUC:    setVisibility,
-		SetBudgetRangeUC:   setBudgetRange,
-		SetExperienceUC:    setExperience,
-		PauseJobUC:         pauseJob,
-		ReopenJobUC:        reopenJob,
-		MarkFilledUC:       markFilled,
-		SearchJobsUC:       searchJobs,
-		ListFacetsUC:       listFacets,
-		ListAttachmentsUC:  listAttachments,
-		GetAttachmentURLUC: getAttachmentURL,
-		GetPublicJobUC:     getPublicJob,
-		ListInvitedJobsUC:  listInvitedJobs,
-		RespondInviteUC:    respondInvite,
-		SaveJobUC:          saveJob,
-		UnsaveJobUC:        unsaveJob,
-		ListSavedJobsUC:    listSavedJobs,
-		HireApplicantUC:    hireApplicant,
-		RejectAllUC:        rejectAll,
-		ReopenHiringUC:     reopenHiring,
-		GetJobStatsUC:      getJobStats,
-		SearchJobsV2UC:     searchJobsV2,
-		MarkCompletedUC:    markCompleted,
-		CancelWithSettleUC: cancelWithSettle,
-		TokenParser:        tokenParser,
+		CreateJobUC:        cfg.CreateJobUC,
+		GetJobUC:           cfg.GetJobUC,
+		UpdateJobUC:        cfg.UpdateJobUC,
+		ListMyJobsUC:       cfg.ListMyJobsUC,
+		ListOpenJobsUC:     cfg.ListOpenJobsUC,
+		CloseJobUC:         cfg.CloseJobUC,
+		UploadAttachmentUC: cfg.UploadAttachmentUC,
+		DeleteAttachmentUC: cfg.DeleteAttachmentUC,
+		InviteFreelancerUC: cfg.InviteFreelancerUC,
+		ListApplicantsUC:   cfg.ListApplicantsUC,
+		SetApplicantUC:     cfg.SetApplicantUC,
+		SetVisibilityUC:    cfg.SetVisibilityUC,
+		SetBudgetRangeUC:   cfg.SetBudgetRangeUC,
+		SetExperienceUC:    cfg.SetExperienceUC,
+		PauseJobUC:         cfg.PauseJobUC,
+		ReopenJobUC:        cfg.ReopenJobUC,
+		MarkFilledUC:       cfg.MarkFilledUC,
+		SearchJobsUC:       cfg.SearchJobsUC,
+		ListFacetsUC:       cfg.ListFacetsUC,
+		ListAttachmentsUC:  cfg.ListAttachmentsUC,
+		GetAttachmentURLUC: cfg.GetAttachmentURLUC,
+		GetPublicJobUC:     cfg.GetPublicJobUC,
+		ListInvitedJobsUC:  cfg.ListInvitedJobsUC,
+		RespondInviteUC:    cfg.RespondInviteUC,
+		SaveJobUC:          cfg.SaveJobUC,
+		UnsaveJobUC:        cfg.UnsaveJobUC,
+		ListSavedJobsUC:    cfg.ListSavedJobsUC,
+		HireApplicantUC:    cfg.HireApplicantUC,
+		RejectAllUC:        cfg.RejectAllUC,
+		ReopenHiringUC:     cfg.ReopenHiringUC,
+		GetJobStatsUC:      cfg.GetJobStatsUC,
+		SearchJobsV2UC:     cfg.SearchJobsV2UC,
+		MarkCompletedUC:    cfg.MarkCompletedUC,
+		CancelWithSettleUC: cfg.CancelWithSettleUC,
+		TokenParser:        cfg.TokenParser,
 	}
 }
 
@@ -862,7 +864,7 @@ func (s *JobServer) ReopenHiringForJob(ctx context.Context, req *jobv1.ReopenHir
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &jobv1.ReopenHiringForJobResponse{Job: &jobv1.Job{Id: out.JobID}}, nil
+	return &jobv1.ReopenHiringForJobResponse{Job: toProtoJob(out.Job)}, nil
 }
 
 func (s *JobServer) GetJobStats(ctx context.Context, req *jobv1.GetJobStatsRequest) (*jobv1.GetJobStatsResponse, error) {
@@ -1183,13 +1185,18 @@ func toProtoFacets(in []application.FacetBucket) []*jobv1.FacetValue {
 }
 
 func mergeStatusFilter(raw string, enum jobv1.JobStatus) string {
-	if enum == jobv1.JobStatus_JOB_STATUS_OPEN {
+	switch enum {
+	case jobv1.JobStatus_JOB_STATUS_OPEN:
 		return domain.JobStatusOpen
-	}
-	if enum == jobv1.JobStatus_JOB_STATUS_CLOSED {
+	case jobv1.JobStatus_JOB_STATUS_CLOSED:
 		return domain.JobStatusClosed
+	case jobv1.JobStatus_JOB_STATUS_PAUSED:
+		return domain.JobStatusPaused
+	case jobv1.JobStatus_JOB_STATUS_FILLED:
+		return domain.JobStatusFilled
+	default:
+		return raw
 	}
-	return raw
 }
 
 func mergeJobTypeFilter(raw string, enum jobv1.JobType) (string, error) {

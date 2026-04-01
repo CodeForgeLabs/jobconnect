@@ -21,6 +21,8 @@ import (
 	"jobconnect/job/internal/infrastructure/tokens"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -104,50 +106,52 @@ func main() {
 	markCompletedUC := &application.MarkJobCompleted{Jobs: jobRepo, Clock: clockImpl}
 	cancelWithSettleUC := &application.CancelJobWithSettlementPolicy{Jobs: jobRepo, Proposals: proposalCli, Connects: connectsCli, Clock: clockImpl}
 
-	jobServer := grpcadapter.NewJobServer(
-		createJobUC,
-		getJobUC,
-		updateJobUC,
-		listMyJobsUC,
-		listOpenJobsUC,
-		closeJobUC,
-		uploadAttachmentUC,
-		deleteAttachmentUC,
-		inviteFreelancerUC,
-		listApplicantsUC,
-		setApplicantUC,
-		setVisibilityUC,
-		setBudgetRangeUC,
-		setExperienceUC,
-		pauseJobUC,
-		reopenJobUC,
-		markFilledUC,
-		searchJobsUC,
-		listFacetsUC,
-		listAttachmentsUC,
-		getAttachmentURLUC,
-		getPublicJobUC,
-		listInvitedJobsUC,
-		respondInviteUC,
-		saveJobUC,
-		unsaveJobUC,
-		listSavedJobsUC,
-		hireApplicantUC,
-		rejectAllUC,
-		reopenHiringUC,
-		getJobStatsUC,
-		searchJobsV2UC,
-		markCompletedUC,
-		cancelWithSettleUC,
-		jwtParser,
-	)
+	jobServer := grpcadapter.NewJobServer(grpcadapter.JobServerConfig{
+		CreateJobUC:        createJobUC,
+		GetJobUC:           getJobUC,
+		UpdateJobUC:        updateJobUC,
+		ListMyJobsUC:       listMyJobsUC,
+		ListOpenJobsUC:     listOpenJobsUC,
+		CloseJobUC:         closeJobUC,
+		UploadAttachmentUC: uploadAttachmentUC,
+		DeleteAttachmentUC: deleteAttachmentUC,
+		InviteFreelancerUC: inviteFreelancerUC,
+		ListApplicantsUC:   listApplicantsUC,
+		SetApplicantUC:     setApplicantUC,
+		SetVisibilityUC:    setVisibilityUC,
+		SetBudgetRangeUC:   setBudgetRangeUC,
+		SetExperienceUC:    setExperienceUC,
+		PauseJobUC:         pauseJobUC,
+		ReopenJobUC:        reopenJobUC,
+		MarkFilledUC:       markFilledUC,
+		SearchJobsUC:       searchJobsUC,
+		ListFacetsUC:       listFacetsUC,
+		ListAttachmentsUC:  listAttachmentsUC,
+		GetAttachmentURLUC: getAttachmentURLUC,
+		GetPublicJobUC:     getPublicJobUC,
+		ListInvitedJobsUC:  listInvitedJobsUC,
+		RespondInviteUC:    respondInviteUC,
+		SaveJobUC:          saveJobUC,
+		UnsaveJobUC:        unsaveJobUC,
+		ListSavedJobsUC:    listSavedJobsUC,
+		HireApplicantUC:    hireApplicantUC,
+		RejectAllUC:        rejectAllUC,
+		ReopenHiringUC:     reopenHiringUC,
+		GetJobStatsUC:      getJobStatsUC,
+		SearchJobsV2UC:     searchJobsV2UC,
+		MarkCompletedUC:    markCompletedUC,
+		CancelWithSettleUC: cancelWithSettleUC,
+		TokenParser:        jwtParser,
+	})
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
 	if err != nil {
 		log.Fatalf("listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(recoveryUnaryInterceptor),
+	)
 	grpcadapter.NewServer(jobServer).Register(grpcServer)
 
 	go func() {
@@ -180,6 +184,21 @@ func gracefulStop(srv *grpc.Server) {
 	case <-time.After(5 * time.Second):
 		srv.Stop()
 	}
+}
+
+func recoveryUnaryInterceptor(
+	ctx context.Context,
+	req any,
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (resp any, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("PANIC recovered in %s: %v", info.FullMethod, r)
+			err = status.Errorf(codes.Internal, "internal server error")
+		}
+	}()
+	return handler(ctx, req)
 }
 
 func loadDotEnv(paths ...string) error {
