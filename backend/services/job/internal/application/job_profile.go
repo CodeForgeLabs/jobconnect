@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"jobconnect/job/internal/domain"
 
@@ -32,8 +31,8 @@ func (uc *SetJobVisibility) Execute(ctx context.Context, in SetJobVisibilityInpu
 	if in.ClientID == uuid.Nil {
 		return SetJobVisibilityOutput{}, fmt.Errorf("client_id is required")
 	}
-	visibility := strings.ToLower(strings.TrimSpace(in.Visibility))
-	if err := domain.ValidateVisibility(visibility); err != nil {
+	visibility, err := domain.ValidateVisibility(in.Visibility)
+	if err != nil {
 		return SetJobVisibilityOutput{}, err
 	}
 	if visibility == "" {
@@ -106,8 +105,8 @@ func (uc *SetJobExperienceLevel) Execute(ctx context.Context, in SetJobExperienc
 	if in.ClientID == uuid.Nil {
 		return SetJobExperienceLevelOutput{}, fmt.Errorf("client_id is required")
 	}
-	level := strings.ToLower(strings.TrimSpace(in.ExperienceLevel))
-	if err := domain.ValidateExperienceLevel(level); err != nil {
+	level, err := domain.ValidateExperienceLevel(in.ExperienceLevel)
+	if err != nil {
 		return SetJobExperienceLevelOutput{}, err
 	}
 	if level == "" {
