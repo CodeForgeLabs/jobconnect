@@ -91,8 +91,8 @@ func (uc *UpdateJob) Execute(ctx context.Context, in UpdateJobInput) (UpdateJobO
 		job.RequiredSkills = in.RequiredSkills
 	}
 	if in.JobType != nil {
-		jt := strings.ToLower(strings.TrimSpace(*in.JobType))
-		if err := domain.ValidateJobType(jt); err != nil {
+		jt, err := domain.ValidateJobType(*in.JobType)
+		if err != nil {
 			return UpdateJobOutput{}, err
 		}
 		job.JobType = jt

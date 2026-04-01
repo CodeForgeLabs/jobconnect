@@ -41,6 +41,16 @@ type JobRepository interface {
 	MarkFilled(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
 	ReopenHiring(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
 	Close(ctx context.Context, jobID int64, clientID uuid.UUID, reason string, closedAt time.Time) error
+	FacetCounts(ctx context.Context, query string) (FacetCountsResult, error)
+}
+
+type FacetCountsResult struct {
+	Skills           []FacetBucket
+	JobTypes         []FacetBucket
+	ExperienceLevels []FacetBucket
+	Visibility       []FacetBucket
+	Status           []FacetBucket
+	Total            int64
 }
 
 type AttachmentObjectStore interface {
