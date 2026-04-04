@@ -15,9 +15,6 @@ const (
 	AccountStatusSuspended = "SUSPENDED"
 	AccountStatusDeleted   = "DELETED"
 
-	ProfileVisibilityPublic  = "PUBLIC"
-	ProfileVisibilityPrivate = "PRIVATE"
-
 	VerificationStatusPending  = "PENDING"
 	VerificationStatusVerified = "VERIFIED"
 	VerificationStatusRejected = "REJECTED"
@@ -43,7 +40,7 @@ type Profile struct {
 	Bio              string
 	AccountStatus    string
 	SuspensionReason string
-	Visibility       string
+	LastActiveAt     *time.Time
 	DeletedAt        *time.Time
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
@@ -67,7 +64,6 @@ type FreelancerProfile struct {
 	HourlyRate         float64
 	Availability       string
 	Location           string
-	LastActiveAt       *time.Time
 }
 
 type Reputation struct {

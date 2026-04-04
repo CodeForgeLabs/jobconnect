@@ -14,7 +14,6 @@ type UpdateAccountStatusInput struct {
 	UserID           uuid.UUID
 	Status           string
 	SuspensionReason *string
-	Visibility       string
 }
 
 type UpdateAccountStatusOutput struct {
@@ -37,12 +36,6 @@ func (uc *UpdateAccountStatus) Execute(ctx context.Context, in UpdateAccountStat
 	if err := domain.ValidateAccountStatus(status); err != nil {
 		return UpdateAccountStatusOutput{}, err
 	}
-	visibility := strings.ToUpper(strings.TrimSpace(in.Visibility))
-	visibility = strings.TrimPrefix(visibility, "PROFILE_VISIBILITY_")
-	if err := domain.ValidateProfileVisibility(visibility); err != nil {
-		return UpdateAccountStatusOutput{}, err
-	}
-
 	reason := ""
 	if in.SuspensionReason != nil {
 		reason = strings.TrimSpace(*in.SuspensionReason)
@@ -55,7 +48,7 @@ func (uc *UpdateAccountStatus) Execute(ctx context.Context, in UpdateAccountStat
 	}
 
 	now := uc.Clock.Now()
-	profile, client, freelancer, err := uc.Profiles.UpdateAccountState(ctx, in.UserID, status, reason, visibility, now)
+	profile, client, freelancer, err := uc.Profiles.UpdateAccountState(ctx, in.UserID, status, reason, now)
 	if err != nil {
 		return UpdateAccountStatusOutput{}, err
 	}

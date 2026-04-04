@@ -75,14 +75,3 @@ func ValidateAccountStatus(status string) error {
 		return fmt.Errorf("invalid account status")
 	}
 }
-
-func ValidateProfileVisibility(visibility string) error {
-	normalized := strings.TrimSpace(strings.ToUpper(visibility))
-	normalized = strings.TrimPrefix(normalized, "PROFILE_VISIBILITY_")
-	switch normalized {
-	case ProfileVisibilityPublic, ProfileVisibilityPrivate:
-		return nil
-	default:
-		return fmt.Errorf("invalid profile visibility")
-	}
-}

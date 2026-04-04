@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/google/uuid"
 	"jobconnect/user/internal/domain"
@@ -32,9 +31,6 @@ func (uc *GetPublicProfile) Execute(ctx context.Context, in GetPublicProfileInpu
 		return GetPublicProfileOutput{}, err
 	}
 	if profile.Role != domain.RoleFreelancer {
-		return GetPublicProfileOutput{}, fmt.Errorf("not found")
-	}
-	if !strings.EqualFold(strings.TrimSpace(profile.Visibility), domain.ProfileVisibilityPublic) {
 		return GetPublicProfileOutput{}, fmt.Errorf("not found")
 	}
 	if freelancer == nil {

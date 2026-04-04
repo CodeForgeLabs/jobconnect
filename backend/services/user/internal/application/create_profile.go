@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"jobconnect/user/internal/domain"
@@ -12,14 +13,15 @@ import (
 
 // CreateProfileInput is the input for CreateProfile use-case.
 type CreateProfileInput struct {
-	UserID      uuid.UUID
-	Role        string
-	FirstName   string
-	LastName    string
-	DisplayName string
-	AvatarURL   string
-	Client      *domain.ClientProfile
-	Freelancer  *domain.FreelancerProfile
+	UserID       uuid.UUID
+	Role         string
+	FirstName    string
+	LastName     string
+	DisplayName  string
+	ContactEmail string
+	AvatarURL    string
+	Client       *domain.ClientProfile
+	Freelancer   *domain.FreelancerProfile
 }
 
 // CreateProfileOutput is the output of CreateProfile use-case.
@@ -74,7 +76,10 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 		}
 	}
 
-	displayName := domain.BuildDisplayName(in.FirstName, in.LastName)
+	displayName := strings.TrimSpace(in.DisplayName)
+	if displayName == "" {
+		displayName = domain.BuildDisplayName(in.FirstName, in.LastName)
+	}
 	if displayName == "" {
 		return CreateProfileOutput{}, fmt.Errorf("display_name is required")
 	}
@@ -92,8 +97,8 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 		DisplayName:   displayName,
 		AvatarURL:     in.AvatarURL,
 		Language:      "en",
+		ContactEmail:  in.ContactEmail,
 		AccountStatus: domain.AccountStatusActive,
-		Visibility:    domain.ProfileVisibilityPublic,
 		CreatedAt:     now,
 		UpdatedAt:     now,
 	}

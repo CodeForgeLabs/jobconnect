@@ -29,7 +29,6 @@ type PortfolioItem struct {
 	RoleInProject string
 	CompletedAt   *time.Time
 	SortOrder     int32
-	Visibility    string
 	Tags          []string
 	Media         []PortfolioMedia
 	CreatedAt     time.Time
@@ -48,7 +47,6 @@ type Employment struct {
 	EndDate        *time.Time
 	Description    string
 	SortOrder      int32
-	Visibility     string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
@@ -65,7 +63,6 @@ type Education struct {
 	Grade        string
 	Description  string
 	SortOrder    int32
-	Visibility   string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
@@ -80,7 +77,6 @@ type Certification struct {
 	IssueDate           *time.Time
 	ExpirationDate      *time.Time
 	DoesNotExpire       bool
-	Visibility          string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
 }
@@ -88,7 +84,6 @@ type Certification struct {
 type LanguageProficiency struct {
 	LanguageCode string
 	Proficiency  string
-	Visibility   string
 }
 
 type AvailabilitySettings struct {
@@ -144,7 +139,6 @@ type UserSummary struct {
 	UserID      uuid.UUID
 	Role        string
 	Status      string
-	Visibility  string
 	FirstName   string
 	LastName    string
 	DisplayName string
@@ -161,7 +155,6 @@ type ImpersonationToken struct {
 type UserAuditSummary struct {
 	UserID                uuid.UUID
 	Status                string
-	Visibility            string
 	ProfileUpdatedAt      time.Time
 	AvatarUpdatedAt       *time.Time
 	SavedFreelancersCount uint32
