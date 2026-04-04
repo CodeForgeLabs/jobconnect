@@ -4,94 +4,84 @@ package user.v1;
 option go_package = "jobconnect/user/gen/user;userv1";
 
 service UserService {
-  rpc CreateProfile(CreateProfileRequest) returns (CreateProfileResponse);
-  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
-  rpc GetPublicProfile(GetPublicProfileRequest)
-      returns (GetPublicProfileResponse);
-  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
-  rpc DeleteProfile(DeleteProfileRequest) returns (DeleteProfileResponse);
-  rpc GetOnboardingStatus(GetOnboardingStatusRequest)
-      returns (GetOnboardingStatusResponse);
-  rpc UpdateAccountStatus(UpdateAccountStatusRequest)
-      returns (UpdateAccountStatusResponse);
-  rpc UploadAvatar(UploadAvatarRequest) returns (UploadAvatarResponse);
-  rpc GetAvatar(GetAvatarRequest) returns (GetAvatarResponse);
-  rpc RemoveAvatar(RemoveAvatarRequest) returns (RemoveAvatarResponse);
+  // Self endpoints.
+  rpc CreateMyProfile(CreateMyProfileRequest) returns (CreateMyProfileResponse);
+  rpc GetMyProfile(GetMyProfileRequest) returns (GetMyProfileResponse);
+  rpc PatchMyProfileCore(PatchMyProfileCoreRequest)
+      returns (PatchMyProfileCoreResponse);
+  rpc PatchMyClientProfile(PatchMyClientProfileRequest)
+      returns (PatchMyClientProfileResponse);
+  rpc PatchMyFreelancerProfile(PatchMyFreelancerProfileRequest)
+      returns (PatchMyFreelancerProfileResponse);
+  rpc DeleteMyProfile(DeleteMyProfileRequest) returns (DeleteMyProfileResponse);
+  rpc GetMyOnboardingStatus(GetMyOnboardingStatusRequest)
+      returns (GetMyOnboardingStatusResponse);
 
-  // Portfolio endpoints.
-  rpc CreatePortfolioItem(CreatePortfolioItemRequest)
-      returns (CreatePortfolioItemResponse); // look at what they could
-                                             // potentially be like
-  rpc UpdatePortfolioItem(UpdatePortfolioItemRequest)
-      returns (UpdatePortfolioItemResponse);
-  rpc DeletePortfolioItem(DeletePortfolioItemRequest)
-      returns (DeletePortfolioItemResponse);
-  rpc ListPublicPortfolioItems(ListPublicPortfolioItemsRequest)
-      returns (ListPublicPortfolioItemsResponse);
+  rpc UpsertMyAvatar(UploadMyAvatarRequest) returns (UploadMyAvatarResponse);
+  rpc GetMyAvatar(GetMyAvatarRequest) returns (GetMyAvatarResponse);
+  rpc RemoveMyAvatar(RemoveMyAvatarRequest) returns (RemoveMyAvatarResponse);
 
-  // Employment and education endpoints.
-  rpc CreateEmployment(CreateEmploymentRequest)
-      returns (CreateEmploymentResponse);
-  rpc UpdateEmployment(UpdateEmploymentRequest)
-      returns (UpdateEmploymentResponse);
-  rpc DeleteEmployment(DeleteEmploymentRequest)
-      returns (DeleteEmploymentResponse);
-  rpc ListPublicEmployment(ListPublicEmploymentRequest)
-      returns (ListPublicEmploymentResponse);
-  rpc CreateEducation(CreateEducationRequest) returns (CreateEducationResponse);
-  rpc UpdateEducation(UpdateEducationRequest) returns (UpdateEducationResponse);
-  rpc DeleteEducation(DeleteEducationRequest) returns (DeleteEducationResponse);
-  rpc ListPublicEducation(ListPublicEducationRequest)
-      returns (ListPublicEducationResponse);
+  rpc CreateMyPortfolioItem(CreateMyPortfolioItemRequest)
+      returns (CreateMyPortfolioItemResponse);
+  rpc GetMyPortfolioItem(GetMyPortfolioItemRequest)
+      returns (GetMyPortfolioItemResponse);
+  rpc UpdateMyPortfolioItem(UpdateMyPortfolioItemRequest)
+      returns (UpdateMyPortfolioItemResponse);
+  rpc DeleteMyPortfolioItem(DeleteMyPortfolioItemRequest)
+      returns (DeleteMyPortfolioItemResponse);
+  rpc ListMyPortfolioItems(ListMyPortfolioItemsRequest)
+      returns (ListMyPortfolioItemsResponse);
 
-  // Certifications and languages endpoints.
-  rpc CreateCertification(CreateCertificationRequest)
-      returns (CreateCertificationResponse);
-  rpc UpdateCertification(UpdateCertificationRequest)
-      returns (UpdateCertificationResponse);
-  rpc DeleteCertification(DeleteCertificationRequest)
-      returns (DeleteCertificationResponse);
-  rpc ListPublicCertifications(ListPublicCertificationsRequest)
-      returns (ListPublicCertificationsResponse);
-  rpc UpsertLanguages(UpsertLanguagesRequest) returns (UpsertLanguagesResponse);
-  rpc GetPublicLanguages(GetPublicLanguagesRequest)
-      returns (GetPublicLanguagesResponse);
+  rpc CreateMyEmployment(CreateMyEmploymentRequest)
+      returns (CreateMyEmploymentResponse);
+  rpc GetMyEmployment(GetMyEmploymentRequest) returns (GetMyEmploymentResponse);
+  rpc UpdateMyEmployment(UpdateMyEmploymentRequest)
+      returns (UpdateMyEmploymentResponse);
+  rpc DeleteMyEmployment(DeleteMyEmploymentRequest)
+      returns (DeleteMyEmploymentResponse);
+  rpc ListMyEmployment(ListMyEmploymentRequest)
+      returns (ListMyEmploymentResponse);
 
-  // Shared account settings endpoints.
-  rpc GetAccountSettings(GetAccountSettingsRequest)
-      returns (GetAccountSettingsResponse);
-  rpc UpdateAccountSettings(UpdateAccountSettingsRequest)
-      returns (UpdateAccountSettingsResponse);
-  rpc GetPrivacySettings(GetPrivacySettingsRequest)
-      returns (GetPrivacySettingsResponse);
-  rpc UpdatePrivacySettings(UpdatePrivacySettingsRequest)
-      returns (UpdatePrivacySettingsResponse);
-  rpc GetNotificationSettings(GetNotificationSettingsRequest)
-      returns (GetNotificationSettingsResponse);
-  rpc UpdateNotificationSettings(UpdateNotificationSettingsRequest)
-      returns (UpdateNotificationSettingsResponse);
+  rpc CreateMyEducation(CreateMyEducationRequest)
+      returns (CreateMyEducationResponse);
+  rpc GetMyEducation(GetMyEducationRequest) returns (GetMyEducationResponse);
+  rpc UpdateMyEducation(UpdateMyEducationRequest)
+      returns (UpdateMyEducationResponse);
+  rpc DeleteMyEducation(DeleteMyEducationRequest)
+      returns (DeleteMyEducationResponse);
+  rpc ListMyEducation(ListMyEducationRequest)
+      returns (ListMyEducationResponse);
 
-  // Internal lightweight read-model endpoints (for inter-service calls).
-  rpc GetInternalUserBasic(GetInternalUserBasicRequest)
-      returns (GetInternalUserBasicResponse);
-  rpc GetInternalUserProfile(GetInternalUserProfileRequest)
-      returns (GetInternalUserProfileResponse);
+  rpc CreateMyCertification(CreateMyCertificationRequest)
+      returns (CreateMyCertificationResponse);
+  rpc GetMyCertification(GetMyCertificationRequest)
+      returns (GetMyCertificationResponse);
+  rpc UpdateMyCertification(UpdateMyCertificationRequest)
+      returns (UpdateMyCertificationResponse);
+  rpc DeleteMyCertification(DeleteMyCertificationRequest)
+      returns (DeleteMyCertificationResponse);
+  rpc ListMyCertifications(ListMyCertificationsRequest)
+      returns (ListMyCertificationsResponse);
 
-  // Freelancer preference endpoints.
-  rpc SetAvailability(SetAvailabilityRequest) returns (SetAvailabilityResponse);
-  rpc GetAvailability(GetAvailabilityRequest) returns (GetAvailabilityResponse);
-  rpc SetRates(SetRatesRequest) returns (SetRatesResponse);
-  rpc GetRates(GetRatesRequest) returns (GetRatesResponse);
-  rpc SetWorkPreferences(SetWorkPreferencesRequest)
-      returns (SetWorkPreferencesResponse);
-  rpc GetWorkPreferences(GetWorkPreferencesRequest)
-      returns (GetWorkPreferencesResponse);
+  rpc UpsertMyLanguages(UpsertMyLanguagesRequest)
+      returns (UpsertMyLanguagesResponse);
+  rpc GetMyLanguages(GetMyLanguagesRequest) returns (GetMyLanguagesResponse);
 
-  // Client-specific endpoints.
-  rpc GetHiringPreferences(GetHiringPreferencesRequest)
-      returns (GetHiringPreferencesResponse);
-  rpc UpdateHiringPreferences(UpdateHiringPreferencesRequest)
-      returns (UpdateHiringPreferencesResponse);
+  rpc PatchMyAvailability(PatchMyAvailabilityRequest)
+      returns (PatchMyAvailabilityResponse);
+  rpc GetMyAvailability(GetMyAvailabilityRequest)
+      returns (GetMyAvailabilityResponse);
+  rpc PatchMyRates(PatchMyRatesRequest) returns (PatchMyRatesResponse);
+  rpc GetMyRates(GetMyRatesRequest) returns (GetMyRatesResponse);
+  rpc PatchMyWorkPreferences(PatchMyWorkPreferencesRequest)
+      returns (PatchMyWorkPreferencesResponse);
+  rpc GetMyWorkPreferences(GetMyWorkPreferencesRequest)
+      returns (GetMyWorkPreferencesResponse);
+
+  rpc GetMyHiringPreferences(GetMyHiringPreferencesRequest)
+      returns (GetMyHiringPreferencesResponse);
+  rpc PatchMyHiringPreferences(PatchMyHiringPreferencesRequest)
+      returns (PatchMyHiringPreferencesResponse);
   rpc SaveFreelancer(SaveFreelancerRequest) returns (SaveFreelancerResponse);
   rpc ListSavedFreelancers(ListSavedFreelancersRequest)
       returns (ListSavedFreelancersResponse);
@@ -102,30 +92,54 @@ service UserService {
   rpc GetFreelancerNote(GetFreelancerNoteRequest)
       returns (GetFreelancerNoteResponse);
 
+    // Public endpoints.
+  rpc GetPublicProfile(GetPublicProfileRequest)
+      returns (GetPublicProfileResponse);
+  rpc ListPublicPortfolioItems(ListPublicPortfolioItemsRequest)
+      returns (ListPublicPortfolioItemsResponse);
+  rpc ListPublicEmployment(ListPublicEmploymentRequest)
+      returns (ListPublicEmploymentResponse);
+  rpc ListPublicEducation(ListPublicEducationRequest)
+      returns (ListPublicEducationResponse);
+  rpc ListPublicCertifications(ListPublicCertificationsRequest)
+      returns (ListPublicCertificationsResponse);
+  rpc GetPublicLanguages(GetPublicLanguagesRequest)
+      returns (GetPublicLanguagesResponse);
+
+  // Admin endpoints.
+  rpc GetUserProfile(GetUserProfileRequest) returns (GetUserProfileResponse);
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc PatchUserGovernance(PatchUserGovernanceRequest)
+      returns (PatchUserGovernanceResponse);
+  rpc GetUserAuditSummary(GetUserAuditSummaryRequest)
+      returns (GetUserAuditSummaryResponse);
+
+    // Internal endpoints.
+  rpc GetInternalUserBasic(GetInternalUserBasicRequest)
+      returns (GetInternalUserBasicResponse);
+  rpc GetInternalUserProfile(GetInternalUserProfileRequest)
+      returns (GetInternalUserProfileResponse);
+  rpc PatchFreelancerMetrics(PatchFreelancerMetricsRequest)
+      returns (PatchFreelancerMetricsResponse);
+  rpc TouchLastActive(TouchLastActiveRequest) returns (TouchLastActiveResponse);
+}
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_CLIENT = 1;
+  USER_ROLE_FREELANCER = 2;
+  USER_ROLE_ADMIN = 3;
 }
 
 enum AccountStatus {
   ACCOUNT_STATUS_UNSPECIFIED = 0;
   ACCOUNT_STATUS_ACTIVE = 1;
   ACCOUNT_STATUS_SUSPENDED = 2;
-  ACCOUNT_STATUS_DELETED = 3; // explore whether this is really needed
-}
-
-enum ProfileVisibility {
-  PROFILE_VISIBILITY_UNSPECIFIED = 0; // explore whether this is needed
-  PROFILE_VISIBILITY_PUBLIC = 1;
-  PROFILE_VISIBILITY_PRIVATE = 2;
-}
-
-enum OnboardingStepStatus {
-  ONBOARDING_STEP_STATUS_UNSPECIFIED = 0; // explore whether this is needed
-  ONBOARDING_STEP_STATUS_NOT_STARTED = 1;
-  ONBOARDING_STEP_STATUS_COMPLETED = 2;
+  ACCOUNT_STATUS_DELETED = 3;
 }
 
 enum VerificationStatus {
-  VERIFICATION_STATUS_UNSPECIFIED = 0; // explore whether this is needed
+  VERIFICATION_STATUS_UNSPECIFIED = 0;
   VERIFICATION_STATUS_PENDING = 1;
   VERIFICATION_STATUS_VERIFIED = 2;
   VERIFICATION_STATUS_REJECTED = 3;
@@ -140,7 +154,6 @@ enum Availability {
   AVAILABILITY_UNAVAILABLE = 4;
 }
 
-// TODO: limits on file size
 enum PortfolioMediaType {
   PORTFOLIO_MEDIA_TYPE_UNSPECIFIED = 0;
   PORTFOLIO_MEDIA_TYPE_IMAGE = 1;
@@ -149,637 +162,37 @@ enum PortfolioMediaType {
   PORTFOLIO_MEDIA_TYPE_LINK = 4;
 }
 
-message CreateProfileRequest {
-  string user_id = 1;
-  // Matches AuthService role values: "client", "freelancer", "admin".
-  string role = 2;
-  string first_name = 3;
-  string last_name = 4;
-  string display_name = 5;
-  string avatar_url = 6;
-
-  oneof role_details {
-    ClientProfileInput client = 7;
-    FreelancerProfileInput freelancer = 8;
-  }
+enum LanguageProficiencyLevel {
+  LANGUAGE_PROFICIENCY_LEVEL_UNSPECIFIED = 0;
+  LANGUAGE_PROFICIENCY_LEVEL_BASIC = 1;
+  LANGUAGE_PROFICIENCY_LEVEL_CONVERSATIONAL = 2;
+  LANGUAGE_PROFICIENCY_LEVEL_FLUENT = 3;
+  LANGUAGE_PROFICIENCY_LEVEL_NATIVE = 4;
 }
 
-message CreateProfileResponse {
-  bool success = 1;
-  int64 profile_id = 2;
+enum OnboardingStepStatus {
+  ONBOARDING_STEP_STATUS_UNSPECIFIED = 0;
+  ONBOARDING_STEP_STATUS_NOT_STARTED = 1;
+  ONBOARDING_STEP_STATUS_COMPLETED = 2;
 }
 
-message GetProfileRequest { string user_id = 1; }
-
-message GetProfileResponse { Profile profile = 1; }
-
-message GetPublicProfileRequest { string user_id = 1; }
-
-message GetPublicProfileResponse { PublicProfile profile = 1; }
-
-message UpdateProfileRequest {
-  string user_id = 1;
-  optional string display_name = 2;
-  optional string avatar_url = 3;
-  optional string language = 4;
-  optional string contact_email = 5;
-  optional string contact_phone = 6;
-  optional string bio = 7;
-  optional string first_name = 8;
-  optional string last_name = 9;
-  optional string company_name = 10;
-  optional string billing_address = 11;
-  optional string tax_id = 12;
-  optional string headline = 13;
-  repeated string skills = 14;
-  optional string experience_level = 15;
-  optional double hourly_rate = 16;
-  optional Availability availability = 17;
-  optional string location = 18;
-  optional int64 last_active_at_unix = 19;
+message StringList {
+  repeated string values = 1;
 }
 
-message UpdateProfileResponse {
-  Profile profile = 1;
-  ProfileCompleteness completeness = 2;
+message PagingRequest {
+  uint32 page_size = 1;
+  string page_token = 2;
 }
 
-message DeleteProfileRequest {
-  string user_id = 1;
-  bool hard_delete = 2;
+message PagingResponse {
+  string next_page_token = 1;
 }
 
-message DeleteProfileResponse { bool deleted = 1; }
-
-message GetOnboardingStatusRequest { string user_id = 1; }
-
-message GetOnboardingStatusResponse {
-  ProfileCompleteness completeness = 1;
-  repeated OnboardingStep steps = 2;
-}
-
-message UpdateAccountStatusRequest {
-  string user_id = 1;
-  AccountStatus status = 2;
-  optional string suspension_reason = 3;
-  ProfileVisibility visibility = 4;
-}
-
-message UpdateAccountStatusResponse { Profile profile = 1; }
-
-message UploadAvatarRequest {
-  string user_id = 1;
-  string file_name = 2;
-  string content_type = 3;
-  bytes content = 4;
-}
-
-message UploadAvatarResponse {
-  string avatar_url = 1;
-  string preview_url = 2;
-  string content_type = 3;
-  int64 size_bytes = 4;
-  int32 width = 5;
-  int32 height = 6;
-}
-
-message GetAvatarRequest { string user_id = 1; }
-
-message GetAvatarResponse {
-  string file_name = 1;
-  string content_type = 2;
-  bytes content = 3;
-}
-
-message RemoveAvatarRequest { string user_id = 1; }
-
-message RemoveAvatarResponse { bool removed = 1; }
-
-message PortfolioMedia {
-  int64 id = 1;
-  PortfolioMediaType media_type = 2;
-  string storage_key = 3;
-  string external_url = 4;
-  string file_name = 5;
-  string content_type = 6;
-  int64 size_bytes = 7;
-  int32 width = 8;
-  int32 height = 9;
-  int32 sort_order = 10;
-}
-
-message PortfolioItem {
-  int64 id = 1;
+message UserCore {
+  int64 profile_id = 1;
   string user_id = 2;
-  string title = 3;
-  string description = 4;
-  string project_url = 5;
-  string role_in_project = 6;
-  int64 completed_at_unix = 7;
-  int32 sort_order = 8;
-  ProfileVisibility visibility = 9;
-  repeated string tags = 10;
-  repeated PortfolioMedia media = 11;
-  int64 created_at_unix = 12;
-  int64 updated_at_unix = 13;
-}
-
-message CreatePortfolioItemRequest {
-  string user_id = 1;
-  string title = 2;
-  string description = 3;
-  string project_url = 4;
-  string role_in_project = 5;
-  int64 completed_at_unix = 6;
-  ProfileVisibility visibility = 7;
-  repeated string tags = 8;
-  repeated PortfolioMedia media = 9;
-}
-
-message CreatePortfolioItemResponse { PortfolioItem item = 1; }
-
-message UpdatePortfolioItemRequest {
-  string user_id = 1;
-  int64 item_id = 2;
-  optional string title = 3;
-  optional string description = 4;
-  optional string project_url = 5;
-  optional string role_in_project = 6;
-  optional int64 completed_at_unix = 7;
-  optional ProfileVisibility visibility = 8;
-  repeated string tags = 9;
-  repeated PortfolioMedia media = 10;
-}
-
-message UpdatePortfolioItemResponse { PortfolioItem item = 1; }
-
-message DeletePortfolioItemRequest {
-  string user_id = 1;
-  int64 item_id = 2;
-}
-
-message DeletePortfolioItemResponse { bool deleted = 1; }
-
-message ListPublicPortfolioItemsRequest {
-  string user_id = 1;
-  uint32 page_size = 2;
-  string page_token = 3;
-}
-
-message ListPublicPortfolioItemsResponse {
-  repeated PortfolioItem items = 1;
-  string next_page_token = 2;
-}
-
-message Employment {
-  int64 id = 1;
-  string user_id = 2;
-  string company_name = 3;
-  string title = 4;
-  string employment_type = 5;
-  string location = 6;
-  bool is_current = 7;
-  int64 start_date_unix = 8;
-  int64 end_date_unix = 9;
-  string description = 10;
-  int32 sort_order = 11;
-  ProfileVisibility visibility = 12;
-  int64 created_at_unix = 13;
-  int64 updated_at_unix = 14;
-}
-
-message Education {
-  int64 id = 1;
-  string user_id = 2;
-  string school_name = 3;
-  string degree = 4;
-  string field_of_study = 5;
-  bool is_current = 6;
-  int64 start_date_unix = 7;
-  int64 end_date_unix = 8;
-  string grade = 9;
-  string description = 10;
-  int32 sort_order = 11;
-  ProfileVisibility visibility = 12;
-  int64 created_at_unix = 13;
-  int64 updated_at_unix = 14;
-}
-
-message CreateEmploymentRequest {
-  string user_id = 1;
-  string company_name = 2;
-  string title = 3;
-  string employment_type = 4;
-  string location = 5;
-  bool is_current = 6;
-  int64 start_date_unix = 7;
-  int64 end_date_unix = 8;
-  string description = 9;
-  ProfileVisibility visibility = 10;
-}
-
-message CreateEmploymentResponse { Employment employment = 1; }
-
-message UpdateEmploymentRequest {
-  string user_id = 1;
-  int64 employment_id = 2;
-  optional string company_name = 3;
-  optional string title = 4;
-  optional string employment_type = 5;
-  optional string location = 6;
-  optional bool is_current = 7;
-  optional int64 start_date_unix = 8;
-  optional int64 end_date_unix = 9;
-  optional string description = 10;
-  optional ProfileVisibility visibility = 11;
-}
-
-message UpdateEmploymentResponse { Employment employment = 1; }
-
-message DeleteEmploymentRequest {
-  string user_id = 1;
-  int64 employment_id = 2;
-}
-
-message DeleteEmploymentResponse { bool deleted = 1; }
-
-message ListPublicEmploymentRequest {
-  string user_id = 1;
-  uint32 page_size = 2;
-  string page_token = 3;
-}
-
-message ListPublicEmploymentResponse {
-  repeated Employment employment = 1;
-  string next_page_token = 2;
-}
-
-message CreateEducationRequest {
-  string user_id = 1;
-  string school_name = 2;
-  string degree = 3;
-  string field_of_study = 4;
-  bool is_current = 5;
-  int64 start_date_unix = 6;
-  int64 end_date_unix = 7;
-  string grade = 8;
-  string description = 9;
-  ProfileVisibility visibility = 10;
-}
-
-message CreateEducationResponse { Education education = 1; }
-
-message UpdateEducationRequest {
-  string user_id = 1;
-  int64 education_id = 2;
-  optional string school_name = 3;
-  optional string degree = 4;
-  optional string field_of_study = 5;
-  optional bool is_current = 6;
-  optional int64 start_date_unix = 7;
-  optional int64 end_date_unix = 8;
-  optional string grade = 9;
-  optional string description = 10;
-  optional ProfileVisibility visibility = 11;
-}
-
-message UpdateEducationResponse { Education education = 1; }
-
-message DeleteEducationRequest {
-  string user_id = 1;
-  int64 education_id = 2;
-}
-
-message DeleteEducationResponse { bool deleted = 1; }
-
-message ListPublicEducationRequest {
-  string user_id = 1;
-  uint32 page_size = 2;
-  string page_token = 3;
-}
-
-message ListPublicEducationResponse {
-  repeated Education education = 1;
-  string next_page_token = 2;
-}
-
-message Certification {
-  int64 id = 1;
-  string user_id = 2;
-  string name = 3;
-  string issuing_organization = 4;
-  string credential_id = 5;
-  string credential_url = 6;
-  int64 issue_date_unix = 7;
-  int64 expiration_date_unix = 8;
-  bool does_not_expire = 9;
-  ProfileVisibility visibility = 10;
-  int64 created_at_unix = 11;
-  int64 updated_at_unix = 12;
-}
-
-message LanguageProficiency {
-  string language_code = 1;
-  string proficiency = 2;
-  ProfileVisibility visibility = 3;
-}
-
-message CreateCertificationRequest {
-  string user_id = 1;
-  string name = 2;
-  string issuing_organization = 3;
-  string credential_id = 4;
-  string credential_url = 5;
-  int64 issue_date_unix = 6;
-  int64 expiration_date_unix = 7;
-  bool does_not_expire = 8;
-  ProfileVisibility visibility = 9;
-}
-
-message CreateCertificationResponse { Certification certification = 1; }
-
-message UpdateCertificationRequest {
-  string user_id = 1;
-  int64 certification_id = 2;
-  optional string name = 3;
-  optional string issuing_organization = 4;
-  optional string credential_id = 5;
-  optional string credential_url = 6;
-  optional int64 issue_date_unix = 7;
-  optional int64 expiration_date_unix = 8;
-  optional bool does_not_expire = 9;
-  optional ProfileVisibility visibility = 10;
-}
-
-message UpdateCertificationResponse { Certification certification = 1; }
-
-message DeleteCertificationRequest {
-  string user_id = 1;
-  int64 certification_id = 2;
-}
-
-message DeleteCertificationResponse { bool deleted = 1; }
-
-message ListPublicCertificationsRequest {
-  string user_id = 1;
-  uint32 page_size = 2;
-  string page_token = 3;
-}
-
-message ListPublicCertificationsResponse {
-  repeated Certification certifications = 1;
-  string next_page_token = 2;
-}
-
-message UpsertLanguagesRequest {
-  string user_id = 1;
-  repeated LanguageProficiency languages = 2;
-}
-
-message UpsertLanguagesResponse { repeated LanguageProficiency languages = 1; }
-
-message GetPublicLanguagesRequest { string user_id = 1; }
-
-message GetPublicLanguagesResponse {
-  repeated LanguageProficiency languages = 1;
-}
-
-message AccountSettings {
-  string language = 1;
-  string contact_email = 2;
-  string contact_phone = 3;
-  string locale = 4;
-  string timezone = 5;
-}
-
-message PrivacySettings {
-  bool discoverable = 1;
-  bool show_last_active = 2;
-  bool show_earnings = 3;
-}
-
-message NotificationSettings {
-  bool email_job_alerts = 1;
-  bool email_messages = 2;
-  bool email_billing = 3;
-  bool email_security = 4;
-  bool push_job_alerts = 5;
-  bool push_messages = 6;
-  bool push_billing = 7;
-  bool push_security = 8;
-}
-
-message GetAccountSettingsRequest { string user_id = 1; }
-
-message GetAccountSettingsResponse { AccountSettings settings = 1; }
-
-message UpdateAccountSettingsRequest {
-  string user_id = 1;
-  optional string language = 2;
-  optional string contact_email = 3;
-  optional string contact_phone = 4;
-  optional string locale = 5;
-  optional string timezone = 6;
-}
-
-message UpdateAccountSettingsResponse { AccountSettings settings = 1; }
-
-message GetPrivacySettingsRequest { string user_id = 1; }
-
-message GetPrivacySettingsResponse { PrivacySettings settings = 1; }
-
-message UpdatePrivacySettingsRequest {
-  string user_id = 1;
-  optional bool discoverable = 2;
-  optional bool show_last_active = 3;
-  optional bool show_earnings = 4;
-}
-
-message UpdatePrivacySettingsResponse { PrivacySettings settings = 1; }
-
-message GetNotificationSettingsRequest { string user_id = 1; }
-
-message GetNotificationSettingsResponse { NotificationSettings settings = 1; }
-
-message UpdateNotificationSettingsRequest {
-  string user_id = 1;
-  optional bool email_job_alerts = 2;
-  optional bool email_messages = 3;
-  optional bool email_billing = 4;
-  optional bool email_security = 5;
-  optional bool push_job_alerts = 6;
-  optional bool push_messages = 7;
-  optional bool push_billing = 8;
-  optional bool push_security = 9;
-}
-
-message UpdateNotificationSettingsResponse {
-  NotificationSettings settings = 1;
-}
-
-message GetInternalUserBasicRequest { string user_id = 1; }
-
-message GetInternalUserBasicResponse { User user = 1; }
-
-message GetInternalUserProfileRequest { string user_id = 1; }
-
-message GetInternalUserProfileResponse { Profile profile = 1; }
-
-message AvailabilitySettings {
-  Availability availability = 1;
-  uint32 weekly_capacity_hours = 2;
-}
-
-message RateSettings {
-  double hourly_rate = 1;
-  string currency = 2;
-}
-
-message WorkPreferences {
-  string preferred_project_length = 1;
-  double min_budget_usd = 2;
-  double max_budget_usd = 3;
-  repeated string contract_types = 4;
-}
-
-message SetAvailabilityRequest {
-  string user_id = 1;
-  Availability availability = 2;
-  uint32 weekly_capacity_hours = 3;
-}
-
-message SetAvailabilityResponse { AvailabilitySettings settings = 1; }
-
-message GetAvailabilityRequest { string user_id = 1; }
-
-message GetAvailabilityResponse { AvailabilitySettings settings = 1; }
-
-message SetRatesRequest {
-  string user_id = 1;
-  double hourly_rate = 2;
-  string currency = 3;
-}
-
-message SetRatesResponse { RateSettings settings = 1; }
-
-message GetRatesRequest { string user_id = 1; }
-
-message GetRatesResponse { RateSettings settings = 1; }
-
-message SetWorkPreferencesRequest {
-  string user_id = 1;
-  string preferred_project_length = 2;
-  double min_budget_usd = 3;
-  double max_budget_usd = 4;
-  repeated string contract_types = 5;
-}
-
-message SetWorkPreferencesResponse { WorkPreferences settings = 1; }
-
-message GetWorkPreferencesRequest { string user_id = 1; }
-
-message GetWorkPreferencesResponse { WorkPreferences settings = 1; }
-
-message HiringPreferences {
-  double min_hourly_rate = 1;
-  double max_hourly_rate = 2;
-  repeated string preferred_experience_levels = 3;
-  repeated string preferred_locations = 4;
-}
-
-message SavedFreelancer {
-  string freelancer_user_id = 1;
-  int64 saved_at_unix = 2;
-}
-
-message FreelancerNote {
-  string freelancer_user_id = 1;
-  string note = 2;
-  int64 updated_at_unix = 3;
-}
-
-message GetHiringPreferencesRequest { string user_id = 1; }
-
-message GetHiringPreferencesResponse { HiringPreferences preferences = 1; }
-
-message UpdateHiringPreferencesRequest {
-  string user_id = 1;
-  optional double min_hourly_rate = 2;
-  optional double max_hourly_rate = 3;
-  repeated string preferred_experience_levels = 4;
-  repeated string preferred_locations = 5;
-}
-
-message UpdateHiringPreferencesResponse { HiringPreferences preferences = 1; }
-
-message SaveFreelancerRequest {
-  string user_id = 1;
-  string freelancer_user_id = 2;
-}
-
-message SaveFreelancerResponse { SavedFreelancer saved = 1; }
-
-message ListSavedFreelancersRequest {
-  string user_id = 1;
-  uint32 page_size = 2;
-  string page_token = 3;
-}
-
-message ListSavedFreelancersResponse {
-  repeated SavedFreelancer freelancers = 1;
-  string next_page_token = 2;
-}
-
-message RemoveSavedFreelancerRequest {
-  string user_id = 1;
-  string freelancer_user_id = 2;
-}
-
-message RemoveSavedFreelancerResponse { bool removed = 1; }
-
-message UpsertFreelancerNoteRequest {
-  string user_id = 1;
-  string freelancer_user_id = 2;
-  string note = 3;
-}
-
-message UpsertFreelancerNoteResponse { FreelancerNote note = 1; }
-
-message GetFreelancerNoteRequest {
-  string user_id = 1;
-  string freelancer_user_id = 2;
-}
-
-message GetFreelancerNoteResponse { FreelancerNote note = 1; }
-
-message UserAuditSummary {
-  string user_id = 1;
-  AccountStatus status = 2;
-  ProfileVisibility visibility = 3;
-  int64 profile_updated_at_unix = 4;
-  int64 avatar_updated_at_unix = 5;
-  uint32 saved_freelancers_count = 6;
-  uint32 portfolio_items_count = 7;
-}
-
-message ListUsersRequest {
-  string requester_user_id = 1;
-  string q = 2;
-  string role = 3;
-  string status = 4;
-  uint32 page_size = 5;
-  string page_token = 6;
-}
-
-message ListUsersResponse {
-  repeated User users = 1;
-  string next_page_token = 2;
-}
-
-message Profile {
-  int64 id = 1;
-  string user_id = 2;
-  string role = 3;
+  UserRole role = 3;
   string first_name = 4;
   string last_name = 5;
   string display_name = 6;
@@ -788,26 +201,54 @@ message Profile {
   string contact_email = 9;
   string contact_phone = 10;
   string bio = 11;
-  bool deleted = 12;
-  ClientProfileInput client = 13;
-  FreelancerProfileInput freelancer = 14;
-  AccountStatus status = 15;
-  string suspension_reason = 16;
-  ProfileVisibility visibility = 17;
-  CapabilityFlags capabilities = 18;
+  AccountStatus account_status = 12;
+  string suspension_reason = 13;
+  string tax_id = 15;
+  VerificationStatus verification_status = 16;
+  int64 created_at_unix = 17;
+  int64 updated_at_unix = 18;
+  optional int64 deleted_at_unix = 19;
 }
 
-message User {
+message ClientProfile {
+  string company_name = 1;
+}
+
+message FreelancerMetrics {
+  double rating = 1;
+  double job_success_score = 2;
+  uint32 total_reviews = 3;
+  uint32 total_jobs = 4;
+  double total_earnings = 5;
+  optional int64 last_active_at_unix = 6;
+  VerificationStatus verification_status = 7;
+}
+
+message FreelancerProfile {
+  string headline = 1;
+  repeated string skills = 2;
+  double hourly_rate = 3;
+  Availability availability = 4;
+  string location = 5;
+  FreelancerMetrics metrics = 6;
+}
+
+message ProfileAvatar {
   string user_id = 1;
-  string role = 2;
-  AccountStatus status = 3;
-  ProfileVisibility visibility = 4;
-  string first_name = 5;
-  string last_name = 6;
-  string display_name = 7;
-  string avatar_url = 8;
-  int64 created_at_unix = 9;
-  int64 updated_at_unix = 10;
+  string file_name = 2;
+  string content_type = 3;
+  string storage_key = 4;
+  int64 size_bytes = 5;
+  int32 width = 6;
+  int32 height = 7;
+  int64 updated_at_unix = 8;
+}
+
+message UserProfile {
+  UserCore core = 1;
+  ClientProfile client = 2;
+  FreelancerProfile freelancer = 3;
+  CapabilityFlags capabilities = 4;
 }
 
 message PublicProfile {
@@ -817,13 +258,12 @@ message PublicProfile {
   string headline = 4;
   string bio = 5;
   repeated string skills = 6;
-  string experience_level = 7;
-  Reputation reputation = 8;
-  double hourly_rate = 9;
-  Availability availability = 10;
-  string location = 11;
-  int64 last_active_at_unix = 12;
-  VerificationStatus verification_status = 13;
+  double hourly_rate = 7;
+  Availability availability = 8;
+  string location = 9;
+  optional int64 last_active_at_unix = 10;
+  VerificationStatus verification_status = 11;
+  FreelancerMetrics metrics = 12;
 }
 
 message CapabilityFlags {
@@ -844,31 +284,809 @@ message OnboardingStep {
   OnboardingStepStatus status = 2;
 }
 
-message Reputation {
-  double job_success_score = 1;
-  double avg_rating = 2;
-  uint32 total_reviews = 3;
-  uint32 total_jobs = 4;
-  double total_earnings_usd = 5;
+message CreateMyProfileRequest {
+  string user_id = 1;
+  UserRole role = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string display_name = 5;
+  string contact_email = 7;
+
+  oneof role_profile {
+    ClientProfileCreateInput client = 8;
+    FreelancerProfileCreateInput freelancer = 9;
+  }
 }
 
-message ClientProfileInput {
+message ClientProfileCreateInput {
   string company_name = 1;
-  string billing_address = 2;
-  string tax_id = 3;
-  VerificationStatus verification_status = 4;
 }
 
-message FreelancerProfileInput {
+message FreelancerProfileCreateInput {
   string headline = 1;
-  string bio = 2;
-  repeated string skills = 3;
-  string experience_level = 4;
-  double rating = 5;
-  VerificationStatus verification_status = 6;
-  Reputation reputation = 7;
-  double hourly_rate = 8;
-  Availability availability = 9;
-  string location = 10;
-  int64 last_active_at_unix = 11;
+  repeated string skills = 2;
+  double hourly_rate = 3;
+  Availability availability = 4;
+  string location = 5;
+}
+
+message CreateMyProfileResponse {
+  bool success = 1;
+  UserProfile profile = 2;
+}
+
+message GetMyProfileRequest {
+  string user_id = 1;
+}
+
+message GetMyProfileResponse {
+  UserProfile profile = 1;
+  ProfileCompleteness completeness = 2;
+}
+
+message PatchMyProfileCoreRequest {
+  string user_id = 1;
+  optional string display_name = 2;
+  optional string language = 4;
+  optional string contact_email = 5;
+  optional string contact_phone = 6;
+  optional string bio = 7;
+}
+
+message PatchMyProfileCoreResponse {
+  UserProfile profile = 1;
+  ProfileCompleteness completeness = 2;
+}
+
+message PatchMyClientProfileRequest {
+  string user_id = 1;
+  optional string company_name = 2;
+}
+
+message PatchMyClientProfileResponse {
+  UserProfile profile = 1;
+}
+
+message PatchMyFreelancerProfileRequest {
+  string user_id = 1;
+  optional string headline = 2;
+  StringList skills = 3;
+  optional double hourly_rate = 4;
+  optional Availability availability = 5;
+  optional string location = 6;
+}
+
+message PatchMyFreelancerProfileResponse {
+  UserProfile profile = 1;
+}
+
+message DeleteMyProfileRequest {
+  string user_id = 1;
+  bool hard_delete = 2;
+}
+
+message DeleteMyProfileResponse {
+  bool deleted = 1;
+}
+
+message GetMyOnboardingStatusRequest {
+  string user_id = 1;
+}
+
+message GetMyOnboardingStatusResponse {
+  ProfileCompleteness completeness = 1;
+  repeated OnboardingStep steps = 2;
+}
+
+message UploadMyAvatarRequest {
+  string user_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+  bytes content = 4;
+}
+
+message UploadMyAvatarResponse {
+  string avatar_url = 1;
+  ProfileAvatar avatar = 2;
+}
+
+message GetMyAvatarRequest {
+  string user_id = 1;
+}
+
+message GetMyAvatarResponse {
+  ProfileAvatar avatar = 1;
+  bytes content = 2;
+}
+
+message RemoveMyAvatarRequest {
+  string user_id = 1;
+}
+
+message RemoveMyAvatarResponse {
+  bool removed = 1;
+}
+
+message PortfolioMedia {
+  int64 id = 1;
+  PortfolioMediaType media_type = 2;
+  string storage_key = 3;
+  string external_url = 4;
+  string file_name = 5;
+  string content_type = 6;
+  int64 size_bytes = 7;
+  int32 width = 8;
+  int32 height = 9;
+  int64 created_at_unix = 10;
+}
+
+message PortfolioItem {
+  int64 id = 1;
+  string user_id = 2;
+  string title = 3;
+  string description = 4;
+  string project_url = 5;
+  string role_in_project = 6;
+  optional int64 completed_at_unix = 7;
+  repeated string tags = 8;
+  repeated PortfolioMedia media = 9;
+  int64 created_at_unix = 10;
+  int64 updated_at_unix = 11;
+  int32 sort_order = 13;
+}
+
+message CreateMyPortfolioItemRequest {
+  string user_id = 1;
+  string title = 2;         // max 50 chars.
+  string description = 3;   // max 200 chars.
+  string project_url = 4;
+  string role_in_project = 5;
+  optional int64 completed_at_unix = 6;
+  repeated string tags = 7;
+  repeated PortfolioMediaInput media = 8;
+  optional int32 sort_order = 10;
+}
+
+message PortfolioMediaInput {
+  PortfolioMediaType media_type = 1;
+  string storage_key = 2;
+  string external_url = 3;
+  string file_name = 4;
+  string content_type = 5;
+  int64 size_bytes = 6;
+  int32 width = 7;
+  int32 height = 8;
+}
+
+message CreateMyPortfolioItemResponse {
+  PortfolioItem item = 1;
+}
+
+message GetMyPortfolioItemRequest {
+  string user_id = 1;
+  int64 item_id = 2;
+}
+
+message GetMyPortfolioItemResponse {
+  PortfolioItem item = 1;
+}
+
+message UpdateMyPortfolioItemRequest {
+  string user_id = 1;
+  int64 item_id = 2;
+  optional string title = 3;
+  optional string description = 4;
+  optional string project_url = 5;
+  optional string role_in_project = 6;
+  optional int64 completed_at_unix = 7;
+  StringList tags = 8;
+  PortfolioMediaInputList media = 9;
+  optional int32 sort_order = 11;
+}
+
+message PortfolioMediaInputList {
+  repeated PortfolioMediaInput values = 1;
+}
+
+message UpdateMyPortfolioItemResponse {
+  PortfolioItem item = 1;
+}
+
+message DeleteMyPortfolioItemRequest {
+  string user_id = 1;
+  int64 item_id = 2;
+}
+
+message DeleteMyPortfolioItemResponse {
+  bool deleted = 1;
+}
+
+message ListMyPortfolioItemsRequest {
+  string user_id = 1;
+  PagingRequest page = 2;
+}
+
+message ListMyPortfolioItemsResponse {
+  repeated PortfolioItem items = 1;
+  PagingResponse page = 2;
+}
+
+message ListPublicPortfolioItemsRequest {
+  string user_id = 1;
+  PagingRequest page = 2;
+}
+
+message ListPublicPortfolioItemsResponse {
+  repeated PortfolioItem items = 1;
+  PagingResponse page = 2;
+}
+
+message Employment {
+  int64 id = 1;
+  string user_id = 2;
+  string company_name = 3;
+  string title = 4;
+  string employment_type = 5;
+  string location = 6;
+  bool is_current = 7;
+  int64 start_date_unix = 8;
+  optional int64 end_date_unix = 9;
+  string description = 10;
+  int64 created_at_unix = 11;
+  int64 updated_at_unix = 12;
+  int32 sort_order = 14;
+}
+
+message CreateMyEmploymentRequest {
+  string user_id = 1;
+  string company_name = 2;
+  string title = 3;
+  string employment_type = 4;
+  string location = 5;
+  bool is_current = 6;
+  int64 start_date_unix = 7;
+  optional int64 end_date_unix = 8;
+  string description = 9;
+  optional int32 sort_order = 11;
+}
+
+message CreateMyEmploymentResponse {
+  Employment employment = 1;
+}
+
+message GetMyEmploymentRequest {
+  string user_id = 1;
+  int64 employment_id = 2;
+}
+
+message GetMyEmploymentResponse {
+  Employment employment = 1;
+}
+
+message UpdateMyEmploymentRequest {
+  string user_id = 1;
+  int64 employment_id = 2;
+  optional string company_name = 3;
+  optional string title = 4;
+  optional string employment_type = 5;
+  optional string location = 6;
+  optional bool is_current = 7;
+  optional int64 start_date_unix = 8;
+  optional int64 end_date_unix = 9;
+  optional string description = 10;
+  optional int32 sort_order = 12;
+}
+
+message UpdateMyEmploymentResponse {
+  Employment employment = 1;
+}
+
+message DeleteMyEmploymentRequest {
+  string user_id = 1;
+  int64 employment_id = 2;
+}
+
+message DeleteMyEmploymentResponse {
+  bool deleted = 1;
+}
+
+message ListMyEmploymentRequest {
+  string user_id = 1;
+  PagingRequest page = 2;
+}
+
+message ListMyEmploymentResponse {
+  repeated Employment employment = 1;
+  PagingResponse page = 2;
+}
+
+message ListPublicEmploymentRequest {
+  string user_id = 1;
+  PagingRequest page = 2;
+}
+
+message ListPublicEmploymentResponse {
+  repeated Employment employment = 1;
+  PagingResponse page = 2;
+}
+
+message Education {
+  int64 id = 1;
+  string user_id = 2;
+  string school_name = 3;
+  string degree = 4;
+  string field_of_study = 5;
+  bool is_current = 6;
+  optional int64 start_date_unix = 7;
+  optional int64 end_date_unix = 8;
+  string grade = 9;
+  string description = 10;
+  int64 created_at_unix = 11;
+  int64 updated_at_unix = 12;
+  int32 sort_order = 14;
+}
+
+message CreateMyEducationRequest {
+  string user_id = 1;
+  string school_name = 2;
+  string degree = 3;
+  string field_of_study = 4;
+  bool is_current = 5;
+  optional int64 start_date_unix = 6;
+  optional int64 end_date_unix = 7;
+  string grade = 8;
+  string description = 9;
+  optional int32 sort_order = 11;
+}
+
+message CreateMyEducationResponse {
+  Education education = 1;
+}
+
+message GetMyEducationRequest {
+  string user_id = 1;
+  int64 education_id = 2;
+}
+
+message GetMyEducationResponse {
+  Education education = 1;
+}
+
+message UpdateMyEducationRequest {
+  string user_id = 1;
+  int64 education_id = 2;
+  optional string school_name = 3;
+  optional string degree = 4;
+  optional string field_of_study = 5;
+  optional bool is_current = 6;
+  optional int64 start_date_unix = 7;
+  optional int64 end_date_unix = 8;
+  optional string grade = 9;
+  optional string description = 10;
+  optional int32 sort_order = 12;
+}
+
+message UpdateMyEducationResponse {
+  Education education = 1;
+}
+
+message DeleteMyEducationRequest {
+  string user_id = 1;
+  int64 education_id = 2;
+}
+
+message DeleteMyEducationResponse {
+  bool deleted = 1;
+}
+
+message ListMyEducationRequest {
+  string user_id = 1;
+  PagingRequest page = 2;
+}
+
+message ListMyEducationResponse {
+  repeated Education education = 1;
+  PagingResponse page = 2;
+}
+
+message ListPublicEducationRequest {
+  string user_id = 1;
+  PagingRequest page = 2;
+}
+
+message ListPublicEducationResponse {
+  repeated Education education = 1;
+  PagingResponse page = 2;
+}
+
+message Certification {
+  int64 id = 1;
+  string user_id = 2;
+  string name = 3;
+  string issuing_organization = 4;
+  string credential_id = 5;
+  string credential_url = 6;
+  optional int64 issue_date_unix = 7;
+  optional int64 expiration_date_unix = 8;
+  bool does_not_expire = 9;
+  int64 created_at_unix = 10;
+  int64 updated_at_unix = 11;
+}
+
+message CreateMyCertificationRequest {
+  string user_id = 1;
+  string name = 2;
+  string issuing_organization = 3;
+  string credential_id = 4;
+  string credential_url = 5;
+  optional int64 issue_date_unix = 6;
+  optional int64 expiration_date_unix = 7;
+  bool does_not_expire = 8;
+}
+
+message CreateMyCertificationResponse {
+  Certification certification = 1;
+}
+
+message GetMyCertificationRequest {
+  string user_id = 1;
+  int64 certification_id = 2;
+}
+
+message GetMyCertificationResponse {
+  Certification certification = 1;
+}
+
+message UpdateMyCertificationRequest {
+  string user_id = 1;
+  int64 certification_id = 2;
+  optional string name = 3;
+  optional string issuing_organization = 4;
+  optional string credential_id = 5;
+  optional string credential_url = 6;
+  optional int64 issue_date_unix = 7;
+  optional int64 expiration_date_unix = 8;
+  optional bool does_not_expire = 9;
+}
+
+message UpdateMyCertificationResponse {
+  Certification certification = 1;
+}
+
+message DeleteMyCertificationRequest {
+  string user_id = 1;
+  int64 certification_id = 2;
+}
+
+message DeleteMyCertificationResponse {
+  bool deleted = 1;
+}
+
+message ListMyCertificationsRequest {
+  string user_id = 1;
+  PagingRequest page = 2;
+}
+
+message ListMyCertificationsResponse {
+  repeated Certification certifications = 1;
+  PagingResponse page = 2;
+}
+
+message ListPublicCertificationsRequest {
+  string user_id = 1;
+  PagingRequest page = 2;
+}
+
+message ListPublicCertificationsResponse {
+  repeated Certification certifications = 1;
+  PagingResponse page = 2;
+}
+
+message LanguageProficiency {
+  string language_code = 1;
+  LanguageProficiencyLevel proficiency = 2;
+}
+
+message UpsertMyLanguagesRequest {
+  string user_id = 1;
+  repeated LanguageProficiency languages = 2;
+}
+
+message UpsertMyLanguagesResponse {
+  repeated LanguageProficiency languages = 1;
+}
+
+message GetMyLanguagesRequest {
+  string user_id = 1;
+}
+
+message GetMyLanguagesResponse {
+  repeated LanguageProficiency languages = 1;
+}
+
+message GetPublicLanguagesRequest {
+  string user_id = 1;
+}
+
+message GetPublicLanguagesResponse {
+  repeated LanguageProficiency languages = 1;
+}
+
+message AvailabilitySettings {
+  Availability availability = 1;
+  uint32 weekly_capacity_hours = 2;
+}
+
+message PatchMyAvailabilityRequest {
+  string user_id = 1;
+  optional Availability availability = 2;
+  optional uint32 weekly_capacity_hours = 3;
+}
+
+message PatchMyAvailabilityResponse {
+  AvailabilitySettings settings = 1;
+}
+
+message GetMyAvailabilityRequest {
+  string user_id = 1;
+}
+
+message GetMyAvailabilityResponse {
+  AvailabilitySettings settings = 1;
+}
+
+message RateSettings {
+  double hourly_rate = 1;
+}
+
+message PatchMyRatesRequest {
+  string user_id = 1;
+  optional double hourly_rate = 2;
+}
+
+message PatchMyRatesResponse {
+  RateSettings settings = 1;
+}
+
+message GetMyRatesRequest {
+  string user_id = 1;
+}
+
+message GetMyRatesResponse {
+  RateSettings settings = 1;
+}
+
+message WorkPreferences {
+  string preferred_project_length = 1;
+  double min_budget = 2;
+  double max_budget = 3;
+  repeated string contract_types = 4;
+}
+
+message PatchMyWorkPreferencesRequest {
+  string user_id = 1;
+  optional string preferred_project_length = 2;
+  optional double min_budget = 3;
+  optional double max_budget = 4;
+  StringList contract_types = 5;
+}
+
+message PatchMyWorkPreferencesResponse {
+  WorkPreferences settings = 1;
+}
+
+message GetMyWorkPreferencesRequest {
+  string user_id = 1;
+}
+
+message GetMyWorkPreferencesResponse {
+  WorkPreferences settings = 1;
+}
+
+message HiringPreferences {
+  double min_hourly_rate = 1;
+  double max_hourly_rate = 2;
+  repeated string preferred_experience_levels = 3;
+  repeated string preferred_locations = 4;
+}
+
+message GetMyHiringPreferencesRequest {
+  string user_id = 1;
+}
+
+message GetMyHiringPreferencesResponse {
+  HiringPreferences preferences = 1;
+}
+
+message PatchMyHiringPreferencesRequest {
+  string user_id = 1;
+  optional double min_hourly_rate = 2;
+  optional double max_hourly_rate = 3;
+  StringList preferred_experience_levels = 4;
+  StringList preferred_locations = 5;
+}
+
+message PatchMyHiringPreferencesResponse {
+  HiringPreferences preferences = 1;
+}
+
+message SavedFreelancer {
+  string freelancer_user_id = 1;
+  int64 saved_at_unix = 2;
+}
+
+message SaveFreelancerRequest {
+  string user_id = 1;
+  string freelancer_user_id = 2;
+}
+
+message SaveFreelancerResponse {
+  SavedFreelancer saved = 1;
+}
+
+message ListSavedFreelancersRequest {
+  string user_id = 1;
+  PagingRequest page = 2;
+}
+
+message ListSavedFreelancersResponse {
+  repeated SavedFreelancer freelancers = 1;
+  PagingResponse page = 2;
+}
+
+message RemoveSavedFreelancerRequest {
+  string user_id = 1;
+  string freelancer_user_id = 2;
+}
+
+message RemoveSavedFreelancerResponse {
+  bool removed = 1;
+}
+
+message FreelancerNote {
+  string freelancer_user_id = 1;
+  string note = 2; // max 100 chars.
+  int64 updated_at_unix = 3;
+}
+
+message UpsertFreelancerNoteRequest {
+  string user_id = 1;
+  string freelancer_user_id = 2;
+  string note = 3;
+}
+
+message UpsertFreelancerNoteResponse {
+  FreelancerNote note = 1;
+}
+
+message GetFreelancerNoteRequest {
+  string user_id = 1;
+  string freelancer_user_id = 2;
+}
+
+message GetFreelancerNoteResponse {
+  FreelancerNote note = 1;
+}
+
+message GetPublicProfileRequest {
+  string user_id = 1;
+}
+
+message GetPublicProfileResponse {
+  PublicProfile profile = 1;
+}
+
+message GetUserProfileRequest {
+  string requester_user_id = 1;
+  string target_user_id = 2;
+}
+
+message GetUserProfileResponse {
+  UserProfile profile = 1;
+}
+
+message PatchUserGovernanceRequest {
+  string requester_user_id = 1;
+  string target_user_id = 2;
+  optional AccountStatus account_status = 3;
+  optional string suspension_reason = 4;
+  optional string tax_id = 5;
+  optional VerificationStatus verification_status = 6;
+}
+
+message PatchUserGovernanceResponse {
+  UserProfile profile = 1;
+}
+
+message UserSummary {
+  string user_id = 1;
+  UserRole role = 2;
+  AccountStatus account_status = 3;
+  string first_name = 5;
+  string last_name = 6;
+  string display_name = 7;
+  string avatar_url = 8;
+  int64 created_at_unix = 9;
+  int64 updated_at_unix = 10;
+}
+
+message ListUsersRequest {
+  string requester_user_id = 1;
+  string q = 2;
+  optional UserRole role = 3;
+  optional AccountStatus account_status = 4;
+  PagingRequest page = 5;
+}
+
+message ListUsersResponse {
+  repeated UserSummary users = 1;
+  PagingResponse page = 2;
+}
+
+message UserAuditSummary {
+  string user_id = 1;
+  AccountStatus account_status = 2;
+  int64 profile_updated_at_unix = 4;
+  optional int64 avatar_updated_at_unix = 5;
+  uint32 saved_freelancers_count = 6;
+  uint32 portfolio_items_count = 7;
+}
+
+message GetUserAuditSummaryRequest {
+  string requester_user_id = 1;
+  string target_user_id = 2;
+}
+
+message GetUserAuditSummaryResponse {
+  UserAuditSummary summary = 1;
+}
+
+message GetInternalUserBasicRequest {
+  string user_id = 1;
+}
+
+message InternalUserBasic {
+  string user_id = 1;
+  UserRole role = 2;
+  AccountStatus account_status = 3;
+  string display_name = 5;
+  string avatar_url = 6;
+}
+
+message GetInternalUserBasicResponse {
+  InternalUserBasic user = 1;
+}
+
+message GetInternalUserProfileRequest {
+  string user_id = 1;
+}
+
+message GetInternalUserProfileResponse {
+  UserProfile profile = 1;
+}
+
+message PatchFreelancerMetricsRequest {
+  string source_system = 1;
+  string target_user_id = 2;
+  optional double rating = 3;
+  optional double job_success_score = 4;
+  optional uint32 total_reviews = 5;
+  optional uint32 total_jobs = 6;
+  optional double total_earnings = 7;
+  optional VerificationStatus verification_status = 8;
+  optional int64 last_active_at_unix = 9;
+}
+
+message PatchFreelancerMetricsResponse {
+  FreelancerMetrics metrics = 1;
+}
+
+message TouchLastActiveRequest {
+  string source_system = 1;
+  string target_user_id = 2;
+  optional int64 touched_at_unix = 3;
+}
+
+message TouchLastActiveResponse {
+  optional int64 last_active_at_unix = 1;
 }
