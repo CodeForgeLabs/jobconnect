@@ -63,7 +63,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.GetProfile(c.Request.Context(), &userv1.GetProfileRequest{UserId: userID})
+	resp, err := h.client.GetMyProfile(c.Request.Context(), &userv1.GetMyProfileRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -73,13 +73,19 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 }
 
 func (h *UserHandler) GetProfile(c *gin.Context) {
+	requesterID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
 	userID := strings.TrimSpace(c.Param("userId"))
 	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
 		return
 	}
 
-	resp, err := h.client.GetProfile(c.Request.Context(), &userv1.GetProfileRequest{UserId: userID})
+	resp, err := h.client.GetUserProfile(c.Request.Context(), &userv1.GetUserProfileRequest{RequesterUserId: requesterID, TargetUserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -148,6 +154,10 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if body.AvatarURL != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "avatar_url must be managed via avatar endpoints"})
+		return
+	}
 
 	var availability *userv1.Availability
 	if body.Availability != nil {
@@ -159,27 +169,59 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		availability = &parsed
 	}
 
-	resp, err := h.client.UpdateProfile(c.Request.Context(), &userv1.UpdateProfileRequest{
-		UserId:           userID,
-		DisplayName:      body.DisplayName,
-		AvatarUrl:        body.AvatarURL,
-		Language:         body.Language,
-		ContactEmail:     body.ContactEmail,
-		ContactPhone:     body.ContactPhone,
-		Bio:              body.Bio,
-		FirstName:        body.FirstName,
-		LastName:         body.LastName,
-		CompanyName:      body.CompanyName,
-		BillingAddress:   body.BillingAddress,
-		TaxId:            body.TaxID,
-		Headline:         body.Headline,
-		Skills:           body.Skills,
-		ExperienceLevel:  body.ExperienceLevel,
-		HourlyRate:       body.HourlyRate,
-		Availability:     availability,
-		Location:         body.Location,
-		LastActiveAtUnix: body.LastActiveAtUnix,
-	})
+	hasCore := body.DisplayName != nil || body.Language != nil || body.ContactEmail != nil || body.ContactPhone != nil || body.Bio != nil
+	if hasCore {
+		_, err := h.client.PatchMyProfileCore(c.Request.Context(), &userv1.PatchMyProfileCoreRequest{
+			UserId:       userID,
+			DisplayName:  body.DisplayName,
+			Language:     body.Language,
+			ContactEmail: body.ContactEmail,
+			ContactPhone: body.ContactPhone,
+			Bio:          body.Bio,
+		})
+		if err != nil {
+			writeGRPCError(c, err)
+			return
+		}
+	}
+
+	hasClient := body.CompanyName != nil
+	if hasClient {
+		_, err := h.client.PatchMyClientProfile(c.Request.Context(), &userv1.PatchMyClientProfileRequest{
+			UserId:      userID,
+			CompanyName: body.CompanyName,
+		})
+		if err != nil {
+			writeGRPCError(c, err)
+			return
+		}
+	}
+
+	hasFreelancer := body.Headline != nil || body.HourlyRate != nil || availability != nil || body.Location != nil || body.Skills != nil
+	if hasFreelancer {
+		freelancerReq := &userv1.PatchMyFreelancerProfileRequest{
+			UserId:       userID,
+			Headline:     body.Headline,
+			HourlyRate:   body.HourlyRate,
+			Availability: availability,
+			Location:     body.Location,
+		}
+		if body.Skills != nil {
+			freelancerReq.Skills = &userv1.StringList{Values: body.Skills}
+		}
+		_, err := h.client.PatchMyFreelancerProfile(c.Request.Context(), freelancerReq)
+		if err != nil {
+			writeGRPCError(c, err)
+			return
+		}
+	}
+
+	if !(hasCore || hasClient || hasFreelancer) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "at least one updatable field is required"})
+		return
+	}
+
+	resp, err := h.client.GetMyProfile(c.Request.Context(), &userv1.GetMyProfileRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -215,7 +257,7 @@ func (h *UserHandler) DeleteMeProfile(c *gin.Context) {
 		hardDelete = parsed
 	}
 
-	resp, err := h.client.DeleteProfile(c.Request.Context(), &userv1.DeleteProfileRequest{UserId: userID, HardDelete: hardDelete})
+	resp, err := h.client.DeleteMyProfile(c.Request.Context(), &userv1.DeleteMyProfileRequest{UserId: userID, HardDelete: hardDelete})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -230,7 +272,7 @@ func (h *UserHandler) GetMeOnboardingStatus(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.GetOnboardingStatus(c.Request.Context(), &userv1.GetOnboardingStatusRequest{UserId: userID})
+	resp, err := h.client.GetMyOnboardingStatus(c.Request.Context(), &userv1.GetMyOnboardingStatusRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -250,114 +292,27 @@ func (h *UserHandler) GetMeOnboardingStatus(c *gin.Context) {
 }
 
 func (h *UserHandler) GetMeAccountSettings(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	resp, err := h.client.GetAccountSettings(c.Request.Context(), &userv1.GetAccountSettingsRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
 }
 
 func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	req := &userv1.UpdateAccountSettingsRequest{UserId: userID}
-	if !bindProtoJSON(c, req) {
-		return
-	}
-
-	resp, err := h.client.UpdateAccountSettings(c.Request.Context(), req)
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
 }
 
 func (h *UserHandler) GetMePrivacySettings(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	resp, err := h.client.GetPrivacySettings(c.Request.Context(), &userv1.GetPrivacySettingsRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
 }
 
 func (h *UserHandler) UpdateMePrivacySettings(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	req := &userv1.UpdatePrivacySettingsRequest{UserId: userID}
-	if !bindProtoJSON(c, req) {
-		return
-	}
-
-	resp, err := h.client.UpdatePrivacySettings(c.Request.Context(), req)
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
 }
 
 func (h *UserHandler) GetMeNotificationSettings(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	resp, err := h.client.GetNotificationSettings(c.Request.Context(), &userv1.GetNotificationSettingsRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
 }
 
 func (h *UserHandler) UpdateMeNotificationSettings(c *gin.Context) {
-	userID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	req := &userv1.UpdateNotificationSettingsRequest{UserId: userID}
-	if !bindProtoJSON(c, req) {
-		return
-	}
-
-	resp, err := h.client.UpdateNotificationSettings(c.Request.Context(), req)
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
+	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
 }
 
 func (h *UserHandler) UploadMeAvatar(c *gin.Context) {
@@ -391,7 +346,7 @@ func (h *UserHandler) UploadMeAvatar(c *gin.Context) {
 		contentType = http.DetectContentType(content)
 	}
 
-	resp, err := h.client.UploadAvatar(c.Request.Context(), &userv1.UploadAvatarRequest{
+	resp, err := h.client.UpsertMyAvatar(c.Request.Context(), &userv1.UploadMyAvatarRequest{
 		UserId:      userID,
 		FileName:    fileHeader.Filename,
 		ContentType: contentType,
@@ -402,14 +357,13 @@ func (h *UserHandler) UploadMeAvatar(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"avatar_url":   resp.GetAvatarUrl(),
-		"preview_url":  resp.GetPreviewUrl(),
-		"content_type": resp.GetContentType(),
-		"size_bytes":   resp.GetSizeBytes(),
-		"width":        resp.GetWidth(),
-		"height":       resp.GetHeight(),
-	})
+	avatarPayload, err := protoToAny(resp.GetAvatar())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"avatar_url": resp.GetAvatarUrl(), "avatar": avatarPayload})
 }
 
 func (h *UserHandler) GetMeAvatar(c *gin.Context) {
@@ -419,16 +373,21 @@ func (h *UserHandler) GetMeAvatar(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.GetAvatar(c.Request.Context(), &userv1.GetAvatarRequest{UserId: userID})
+	resp, err := h.client.GetMyAvatar(c.Request.Context(), &userv1.GetMyAvatarRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
 	}
 
-	if fileName := strings.TrimSpace(resp.GetFileName()); fileName != "" {
+	avatar := resp.GetAvatar()
+	if fileName := strings.TrimSpace(avatar.GetFileName()); fileName != "" {
 		c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%q", fileName))
 	}
-	c.Data(http.StatusOK, resp.GetContentType(), resp.GetContent())
+	contentType := strings.TrimSpace(avatar.GetContentType())
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+	c.Data(http.StatusOK, contentType, resp.GetContent())
 }
 
 func (h *UserHandler) RemoveMeAvatar(c *gin.Context) {
@@ -438,7 +397,7 @@ func (h *UserHandler) RemoveMeAvatar(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.RemoveAvatar(c.Request.Context(), &userv1.RemoveAvatarRequest{UserId: userID})
+	resp, err := h.client.RemoveMyAvatar(c.Request.Context(), &userv1.RemoveMyAvatarRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -448,6 +407,12 @@ func (h *UserHandler) RemoveMeAvatar(c *gin.Context) {
 }
 
 func (h *UserHandler) UpdateAccountStatus(c *gin.Context) {
+	requesterID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
 	userID := strings.TrimSpace(c.Param("userId"))
 	if userID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
@@ -465,16 +430,12 @@ func (h *UserHandler) UpdateAccountStatus(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	visibility, err := parseVisibility(body.Visibility)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
+	statusValue := status
 
-	resp, err := h.client.UpdateAccountStatus(c.Request.Context(), &userv1.UpdateAccountStatusRequest{
-		UserId:           userID,
-		Status:           status,
-		Visibility:       visibility,
+	resp, err := h.client.PatchUserGovernance(c.Request.Context(), &userv1.PatchUserGovernanceRequest{
+		RequesterUserId:  requesterID,
+		TargetUserId:     userID,
+		AccountStatus:    &statusValue,
 		SuspensionReason: body.SuspensionReason,
 	})
 	if err != nil {
@@ -498,13 +459,32 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		return
 	}
 
+	var role *userv1.UserRole
+	if rawRole := strings.TrimSpace(c.Query("role")); rawRole != "" {
+		parsedRole, err := parseUserRole(rawRole)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		role = &parsedRole
+	}
+
+	var accountStatus *userv1.AccountStatus
+	if rawStatus := strings.TrimSpace(c.Query("status")); rawStatus != "" {
+		parsedStatus, err := parseAccountStatus(rawStatus)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		accountStatus = &parsedStatus
+	}
+
 	resp, err := h.client.ListUsers(c.Request.Context(), &userv1.ListUsersRequest{
 		RequesterUserId: requesterID,
 		Q:               strings.TrimSpace(c.Query("q")),
-		Role:            strings.TrimSpace(c.Query("role")),
-		Status:          strings.TrimSpace(c.Query("status")),
-		PageSize:        pageSize,
-		PageToken:       pageToken,
+		Role:            role,
+		AccountStatus:   accountStatus,
+		Page:            &userv1.PagingRequest{PageSize: pageSize, PageToken: pageToken},
 	})
 	if err != nil {
 		writeGRPCError(c, err)
@@ -516,7 +496,11 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"users": itemsPayload, "next_page_token": resp.GetNextPageToken()})
+	nextPageToken := ""
+	if resp.GetPage() != nil {
+		nextPageToken = resp.GetPage().GetNextPageToken()
+	}
+	c.JSON(http.StatusOK, gin.H{"users": itemsPayload, "next_page_token": nextPageToken})
 }
 
 func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
@@ -526,12 +510,12 @@ func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.CreatePortfolioItemRequest{UserId: userID}
+	req := &userv1.CreateMyPortfolioItemRequest{UserId: userID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.CreatePortfolioItem(c.Request.Context(), req)
+	resp, err := h.client.CreateMyPortfolioItem(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -553,12 +537,12 @@ func (h *UserHandler) UpdateMePortfolioItem(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.UpdatePortfolioItemRequest{UserId: userID, ItemId: itemID}
+	req := &userv1.UpdateMyPortfolioItemRequest{UserId: userID, ItemId: itemID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.UpdatePortfolioItem(c.Request.Context(), req)
+	resp, err := h.client.UpdateMyPortfolioItem(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -580,7 +564,7 @@ func (h *UserHandler) DeleteMePortfolioItem(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.DeletePortfolioItem(c.Request.Context(), &userv1.DeletePortfolioItemRequest{UserId: userID, ItemId: itemID})
+	resp, err := h.client.DeleteMyPortfolioItem(c.Request.Context(), &userv1.DeleteMyPortfolioItemRequest{UserId: userID, ItemId: itemID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -602,7 +586,7 @@ func (h *UserHandler) ListPublicPortfolioItems(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.ListPublicPortfolioItems(c.Request.Context(), &userv1.ListPublicPortfolioItemsRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
+	resp, err := h.client.ListPublicPortfolioItems(c.Request.Context(), &userv1.ListPublicPortfolioItemsRequest{UserId: userID, Page: &userv1.PagingRequest{PageSize: pageSize, PageToken: pageToken}})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -613,7 +597,11 @@ func (h *UserHandler) ListPublicPortfolioItems(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"items": itemsPayload, "next_page_token": resp.GetNextPageToken()})
+	nextPageToken := ""
+	if resp.GetPage() != nil {
+		nextPageToken = resp.GetPage().GetNextPageToken()
+	}
+	c.JSON(http.StatusOK, gin.H{"items": itemsPayload, "next_page_token": nextPageToken})
 }
 
 func (h *UserHandler) CreateMeEmployment(c *gin.Context) {
@@ -623,12 +611,12 @@ func (h *UserHandler) CreateMeEmployment(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.CreateEmploymentRequest{UserId: userID}
+	req := &userv1.CreateMyEmploymentRequest{UserId: userID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.CreateEmployment(c.Request.Context(), req)
+	resp, err := h.client.CreateMyEmployment(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -650,12 +638,12 @@ func (h *UserHandler) UpdateMeEmployment(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.UpdateEmploymentRequest{UserId: userID, EmploymentId: employmentID}
+	req := &userv1.UpdateMyEmploymentRequest{UserId: userID, EmploymentId: employmentID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.UpdateEmployment(c.Request.Context(), req)
+	resp, err := h.client.UpdateMyEmployment(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -677,7 +665,7 @@ func (h *UserHandler) DeleteMeEmployment(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.DeleteEmployment(c.Request.Context(), &userv1.DeleteEmploymentRequest{UserId: userID, EmploymentId: employmentID})
+	resp, err := h.client.DeleteMyEmployment(c.Request.Context(), &userv1.DeleteMyEmploymentRequest{UserId: userID, EmploymentId: employmentID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -699,7 +687,7 @@ func (h *UserHandler) ListPublicEmployment(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.ListPublicEmployment(c.Request.Context(), &userv1.ListPublicEmploymentRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
+	resp, err := h.client.ListPublicEmployment(c.Request.Context(), &userv1.ListPublicEmploymentRequest{UserId: userID, Page: &userv1.PagingRequest{PageSize: pageSize, PageToken: pageToken}})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -710,7 +698,11 @@ func (h *UserHandler) ListPublicEmployment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"employment": itemsPayload, "next_page_token": resp.GetNextPageToken()})
+	nextPageToken := ""
+	if resp.GetPage() != nil {
+		nextPageToken = resp.GetPage().GetNextPageToken()
+	}
+	c.JSON(http.StatusOK, gin.H{"employment": itemsPayload, "next_page_token": nextPageToken})
 }
 
 func (h *UserHandler) CreateMeEducation(c *gin.Context) {
@@ -720,12 +712,12 @@ func (h *UserHandler) CreateMeEducation(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.CreateEducationRequest{UserId: userID}
+	req := &userv1.CreateMyEducationRequest{UserId: userID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.CreateEducation(c.Request.Context(), req)
+	resp, err := h.client.CreateMyEducation(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -747,12 +739,12 @@ func (h *UserHandler) UpdateMeEducation(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.UpdateEducationRequest{UserId: userID, EducationId: educationID}
+	req := &userv1.UpdateMyEducationRequest{UserId: userID, EducationId: educationID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.UpdateEducation(c.Request.Context(), req)
+	resp, err := h.client.UpdateMyEducation(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -774,7 +766,7 @@ func (h *UserHandler) DeleteMeEducation(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.DeleteEducation(c.Request.Context(), &userv1.DeleteEducationRequest{UserId: userID, EducationId: educationID})
+	resp, err := h.client.DeleteMyEducation(c.Request.Context(), &userv1.DeleteMyEducationRequest{UserId: userID, EducationId: educationID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -796,7 +788,7 @@ func (h *UserHandler) ListPublicEducation(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.ListPublicEducation(c.Request.Context(), &userv1.ListPublicEducationRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
+	resp, err := h.client.ListPublicEducation(c.Request.Context(), &userv1.ListPublicEducationRequest{UserId: userID, Page: &userv1.PagingRequest{PageSize: pageSize, PageToken: pageToken}})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -807,7 +799,11 @@ func (h *UserHandler) ListPublicEducation(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"education": itemsPayload, "next_page_token": resp.GetNextPageToken()})
+	nextPageToken := ""
+	if resp.GetPage() != nil {
+		nextPageToken = resp.GetPage().GetNextPageToken()
+	}
+	c.JSON(http.StatusOK, gin.H{"education": itemsPayload, "next_page_token": nextPageToken})
 }
 
 func (h *UserHandler) CreateMeCertification(c *gin.Context) {
@@ -817,12 +813,12 @@ func (h *UserHandler) CreateMeCertification(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.CreateCertificationRequest{UserId: userID}
+	req := &userv1.CreateMyCertificationRequest{UserId: userID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.CreateCertification(c.Request.Context(), req)
+	resp, err := h.client.CreateMyCertification(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -844,12 +840,12 @@ func (h *UserHandler) UpdateMeCertification(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.UpdateCertificationRequest{UserId: userID, CertificationId: certificationID}
+	req := &userv1.UpdateMyCertificationRequest{UserId: userID, CertificationId: certificationID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.UpdateCertification(c.Request.Context(), req)
+	resp, err := h.client.UpdateMyCertification(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -871,7 +867,7 @@ func (h *UserHandler) DeleteMeCertification(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.DeleteCertification(c.Request.Context(), &userv1.DeleteCertificationRequest{UserId: userID, CertificationId: certificationID})
+	resp, err := h.client.DeleteMyCertification(c.Request.Context(), &userv1.DeleteMyCertificationRequest{UserId: userID, CertificationId: certificationID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -893,7 +889,7 @@ func (h *UserHandler) ListPublicCertifications(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.ListPublicCertifications(c.Request.Context(), &userv1.ListPublicCertificationsRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
+	resp, err := h.client.ListPublicCertifications(c.Request.Context(), &userv1.ListPublicCertificationsRequest{UserId: userID, Page: &userv1.PagingRequest{PageSize: pageSize, PageToken: pageToken}})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -904,7 +900,11 @@ func (h *UserHandler) ListPublicCertifications(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"certifications": itemsPayload, "next_page_token": resp.GetNextPageToken()})
+	nextPageToken := ""
+	if resp.GetPage() != nil {
+		nextPageToken = resp.GetPage().GetNextPageToken()
+	}
+	c.JSON(http.StatusOK, gin.H{"certifications": itemsPayload, "next_page_token": nextPageToken})
 }
 
 func (h *UserHandler) UpsertMeLanguages(c *gin.Context) {
@@ -914,12 +914,12 @@ func (h *UserHandler) UpsertMeLanguages(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.UpsertLanguagesRequest{UserId: userID}
+	req := &userv1.UpsertMyLanguagesRequest{UserId: userID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.UpsertLanguages(c.Request.Context(), req)
+	resp, err := h.client.UpsertMyLanguages(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -961,12 +961,12 @@ func (h *UserHandler) SetMeAvailability(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.SetAvailabilityRequest{UserId: userID}
+	req := &userv1.PatchMyAvailabilityRequest{UserId: userID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.SetAvailability(c.Request.Context(), req)
+	resp, err := h.client.PatchMyAvailability(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -982,7 +982,7 @@ func (h *UserHandler) GetMeAvailability(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.GetAvailability(c.Request.Context(), &userv1.GetAvailabilityRequest{UserId: userID})
+	resp, err := h.client.GetMyAvailability(c.Request.Context(), &userv1.GetMyAvailabilityRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -998,12 +998,12 @@ func (h *UserHandler) SetMeRates(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.SetRatesRequest{UserId: userID}
+	req := &userv1.PatchMyRatesRequest{UserId: userID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.SetRates(c.Request.Context(), req)
+	resp, err := h.client.PatchMyRates(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -1019,7 +1019,7 @@ func (h *UserHandler) GetMeRates(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.GetRates(c.Request.Context(), &userv1.GetRatesRequest{UserId: userID})
+	resp, err := h.client.GetMyRates(c.Request.Context(), &userv1.GetMyRatesRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -1035,12 +1035,12 @@ func (h *UserHandler) SetMeWorkPreferences(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.SetWorkPreferencesRequest{UserId: userID}
+	req := &userv1.PatchMyWorkPreferencesRequest{UserId: userID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.SetWorkPreferences(c.Request.Context(), req)
+	resp, err := h.client.PatchMyWorkPreferences(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -1056,7 +1056,7 @@ func (h *UserHandler) GetMeWorkPreferences(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.GetWorkPreferences(c.Request.Context(), &userv1.GetWorkPreferencesRequest{UserId: userID})
+	resp, err := h.client.GetMyWorkPreferences(c.Request.Context(), &userv1.GetMyWorkPreferencesRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -1072,7 +1072,7 @@ func (h *UserHandler) GetMeHiringPreferences(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.GetHiringPreferences(c.Request.Context(), &userv1.GetHiringPreferencesRequest{UserId: userID})
+	resp, err := h.client.GetMyHiringPreferences(c.Request.Context(), &userv1.GetMyHiringPreferencesRequest{UserId: userID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -1088,12 +1088,12 @@ func (h *UserHandler) UpdateMeHiringPreferences(c *gin.Context) {
 		return
 	}
 
-	req := &userv1.UpdateHiringPreferencesRequest{UserId: userID}
+	req := &userv1.PatchMyHiringPreferencesRequest{UserId: userID}
 	if !bindProtoJSON(c, req) {
 		return
 	}
 
-	resp, err := h.client.UpdateHiringPreferences(c.Request.Context(), req)
+	resp, err := h.client.PatchMyHiringPreferences(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -1137,7 +1137,7 @@ func (h *UserHandler) ListMeSavedFreelancers(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.client.ListSavedFreelancers(c.Request.Context(), &userv1.ListSavedFreelancersRequest{UserId: userID, PageSize: pageSize, PageToken: pageToken})
+	resp, err := h.client.ListSavedFreelancers(c.Request.Context(), &userv1.ListSavedFreelancersRequest{UserId: userID, Page: &userv1.PagingRequest{PageSize: pageSize, PageToken: pageToken}})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -1148,7 +1148,11 @@ func (h *UserHandler) ListMeSavedFreelancers(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"freelancers": itemsPayload, "next_page_token": resp.GetNextPageToken()})
+	nextPageToken := ""
+	if resp.GetPage() != nil {
+		nextPageToken = resp.GetPage().GetNextPageToken()
+	}
+	c.JSON(http.StatusOK, gin.H{"freelancers": itemsPayload, "next_page_token": nextPageToken})
 }
 
 func (h *UserHandler) RemoveMeSavedFreelancer(c *gin.Context) {
@@ -1318,6 +1322,21 @@ func parseAvailability(raw string) (userv1.Availability, error) {
 	}
 }
 
+func parseUserRole(raw string) (userv1.UserRole, error) {
+	normalized := strings.ToUpper(strings.TrimSpace(raw))
+	normalized = strings.TrimPrefix(normalized, "USER_ROLE_")
+	switch normalized {
+	case "CLIENT":
+		return userv1.UserRole_USER_ROLE_CLIENT, nil
+	case "FREELANCER":
+		return userv1.UserRole_USER_ROLE_FREELANCER, nil
+	case "ADMIN":
+		return userv1.UserRole_USER_ROLE_ADMIN, nil
+	default:
+		return userv1.UserRole_USER_ROLE_UNSPECIFIED, fmt.Errorf("invalid role")
+	}
+}
+
 func parseAccountStatus(raw string) (userv1.AccountStatus, error) {
 	normalized := strings.ToUpper(strings.TrimSpace(raw))
 	normalized = strings.TrimPrefix(normalized, "ACCOUNT_STATUS_")
@@ -1330,18 +1349,5 @@ func parseAccountStatus(raw string) (userv1.AccountStatus, error) {
 		return userv1.AccountStatus_ACCOUNT_STATUS_DELETED, nil
 	default:
 		return userv1.AccountStatus_ACCOUNT_STATUS_UNSPECIFIED, fmt.Errorf("invalid status")
-	}
-}
-
-func parseVisibility(raw string) (userv1.ProfileVisibility, error) {
-	normalized := strings.ToUpper(strings.TrimSpace(raw))
-	normalized = strings.TrimPrefix(normalized, "PROFILE_VISIBILITY_")
-	switch normalized {
-	case "PUBLIC":
-		return userv1.ProfileVisibility_PROFILE_VISIBILITY_PUBLIC, nil
-	case "PRIVATE":
-		return userv1.ProfileVisibility_PROFILE_VISIBILITY_PRIVATE, nil
-	default:
-		return userv1.ProfileVisibility_PROFILE_VISIBILITY_UNSPECIFIED, fmt.Errorf("invalid visibility")
 	}
 }
