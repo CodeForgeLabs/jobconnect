@@ -141,10 +141,10 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		}
 		if in.LastActiveAtUnix != nil {
 			if *in.LastActiveAtUnix <= 0 {
-				freelancer.LastActiveAt = nil
+				profile.LastActiveAt = nil
 			} else {
 				t := time.Unix(*in.LastActiveAtUnix, 0).UTC()
-				freelancer.LastActiveAt = &t
+				profile.LastActiveAt = &t
 			}
 		}
 		if in.CompanyName != nil || in.BillingAddress != nil || in.TaxID != nil {

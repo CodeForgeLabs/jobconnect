@@ -89,7 +89,7 @@ func NewUserServer(
 	}
 }
 
-func (s *UserServer) CreateProfile(ctx context.Context, req *userv1.CreateProfileRequest) (*userv1.CreateProfileResponse, error) {
+func (s *UserServer) CreateMyProfile(ctx context.Context, req *userv1.CreateMyProfileRequest) (*userv1.CreateMyProfileResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
@@ -100,59 +100,47 @@ func (s *UserServer) CreateProfile(ctx context.Context, req *userv1.CreateProfil
 
 	var client *domain.ClientProfile
 	if req.GetClient() != nil {
-		client = &domain.ClientProfile{
-			CompanyName:        req.GetClient().CompanyName,
-			BillingAddress:     req.GetClient().BillingAddress,
-			TaxID:              req.GetClient().TaxId,
-			VerificationStatus: mapVerificationStatusFromProto(req.GetClient().VerificationStatus),
-		}
+		client = &domain.ClientProfile{CompanyName: req.GetClient().CompanyName}
 	}
+
 	var freelancer *domain.FreelancerProfile
 	if req.GetFreelancer() != nil {
-		var lastActiveAt *time.Time
-		if req.GetFreelancer().LastActiveAtUnix > 0 {
-			t := fromUnix(req.GetFreelancer().LastActiveAtUnix)
-			lastActiveAt = &t
-		}
 		freelancer = &domain.FreelancerProfile{
-			Headline:           req.GetFreelancer().Headline,
-			Bio:                req.GetFreelancer().Bio,
-			Skills:             req.GetFreelancer().Skills,
-			ExperienceLevel:    req.GetFreelancer().ExperienceLevel,
-			Rating:             req.GetFreelancer().Rating,
-			VerificationStatus: mapVerificationStatusFromProto(req.GetFreelancer().VerificationStatus),
-			Reputation: domain.Reputation{
-				JobSuccessScore:  req.GetFreelancer().GetReputation().GetJobSuccessScore(),
-				AvgRating:        req.GetFreelancer().GetReputation().GetAvgRating(),
-				TotalReviews:     req.GetFreelancer().GetReputation().GetTotalReviews(),
-				TotalJobs:        req.GetFreelancer().GetReputation().GetTotalJobs(),
-				TotalEarningsUSD: req.GetFreelancer().GetReputation().GetTotalEarningsUsd(),
-			},
+			Headline:     req.GetFreelancer().Headline,
+			Skills:       req.GetFreelancer().Skills,
 			HourlyRate:   req.GetFreelancer().HourlyRate,
 			Availability: mapAvailabilityFromProto(req.GetFreelancer().Availability),
 			Location:     req.GetFreelancer().Location,
-			LastActiveAt: lastActiveAt,
 		}
 	}
 
-	out, err := s.CreateProfileUC.Execute(ctx, application.CreateProfileInput{
-		UserID:      userID,
-		Role:        req.Role,
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		DisplayName: req.DisplayName,
-		AvatarURL:   req.AvatarUrl,
-		Client:      client,
-		Freelancer:  freelancer,
+	_, err = s.CreateProfileUC.Execute(ctx, application.CreateProfileInput{
+		UserID:       userID,
+		Role:         mapRoleFromProto(req.Role),
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+		DisplayName:  req.DisplayName,
+		ContactEmail: req.ContactEmail,
+		AvatarURL:    "",
+		Client:       client,
+		Freelancer:   freelancer,
 	})
 	if err != nil {
 		return nil, toStatus(err)
 	}
 
-	return &userv1.CreateProfileResponse{Success: true, ProfileId: out.ProfileID}, nil
+	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.CreateMyProfileResponse{
+		Success: true,
+		Profile: s.toProtoUserProfile(out.Profile, out.Client, out.Freelancer),
+	}, nil
 }
 
-func (s *UserServer) GetProfile(ctx context.Context, req *userv1.GetProfileRequest) (*userv1.GetProfileResponse, error) {
+func (s *UserServer) GetMyProfile(ctx context.Context, req *userv1.GetMyProfileRequest) (*userv1.GetMyProfileResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
@@ -164,96 +152,42 @@ func (s *UserServer) GetProfile(ctx context.Context, req *userv1.GetProfileReque
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.GetProfileResponse{Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
-}
-
-func (s *UserServer) GetInternalUserBasic(ctx context.Context, req *userv1.GetInternalUserBasicRequest) (*userv1.GetInternalUserBasicResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.GetUserUC.Execute(ctx, application.GetUserInput{UserID: userID})
+	statusOut, err := s.GetOnboardingStatusUC.Execute(ctx, application.GetOnboardingStatusInput{UserID: userID})
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.GetInternalUserBasicResponse{User: toProtoUser(out.Profile)}, nil
+	return &userv1.GetMyProfileResponse{
+		Profile: s.toProtoUserProfile(out.Profile, out.Client, out.Freelancer),
+		Completeness: &userv1.ProfileCompleteness{
+			Percent:               statusOut.Percent,
+			MissingRequiredFields: statusOut.Missing,
+		},
+	}, nil
 }
 
-func (s *UserServer) GetInternalUserProfile(ctx context.Context, req *userv1.GetInternalUserProfileRequest) (*userv1.GetInternalUserProfileResponse, error) {
+func (s *UserServer) PatchMyProfileCore(ctx context.Context, req *userv1.PatchMyProfileCoreRequest) (*userv1.PatchMyProfileCoreResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
 	userID, err := uuid.Parse(req.UserId)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetInternalUserProfileResponse{Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
-}
-
-func (s *UserServer) GetPublicProfile(ctx context.Context, req *userv1.GetPublicProfileRequest) (*userv1.GetPublicProfileResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.GetPublicProfileUC.Execute(ctx, application.GetPublicProfileInput{UserID: userID})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetPublicProfileResponse{Profile: toProtoPublicProfile(out.Profile, out.Freelancer)}, nil
-}
-
-func (s *UserServer) UpdateProfile(ctx context.Context, req *userv1.UpdateProfileRequest) (*userv1.UpdateProfileResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-
-	var availability *string
-	if req.Availability != nil {
-		value := mapAvailabilityFromProto(req.GetAvailability())
-		availability = &value
 	}
 
 	out, err := s.UpdateProfileUC.Execute(ctx, application.UpdateProfileInput{
-		UserID:           userID,
-		DisplayName:      req.DisplayName,
-		AvatarURL:        req.AvatarUrl,
-		Language:         req.Language,
-		ContactEmail:     req.ContactEmail,
-		ContactPhone:     req.ContactPhone,
-		Bio:              req.Bio,
-		FirstName:        req.FirstName,
-		LastName:         req.LastName,
-		CompanyName:      req.CompanyName,
-		BillingAddress:   req.BillingAddress,
-		TaxID:            req.TaxId,
-		Headline:         req.Headline,
-		Skills:           req.Skills,
-		ExperienceLevel:  req.ExperienceLevel,
-		HourlyRate:       req.HourlyRate,
-		Availability:     availability,
-		Location:         req.Location,
-		LastActiveAtUnix: req.LastActiveAtUnix,
+		UserID:       userID,
+		DisplayName:  req.DisplayName,
+		Language:     req.Language,
+		ContactEmail: req.ContactEmail,
+		ContactPhone: req.ContactPhone,
+		Bio:          req.Bio,
 	})
 	if err != nil {
 		return nil, toStatus(err)
 	}
 
-	return &userv1.UpdateProfileResponse{
-		Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer),
+	return &userv1.PatchMyProfileCoreResponse{
+		Profile: s.toProtoUserProfile(out.Profile, out.Client, out.Freelancer),
 		Completeness: &userv1.ProfileCompleteness{
 			Percent:               out.Completeness,
 			MissingRequiredFields: out.Missing,
@@ -261,7 +195,55 @@ func (s *UserServer) UpdateProfile(ctx context.Context, req *userv1.UpdateProfil
 	}, nil
 }
 
-func (s *UserServer) DeleteProfile(ctx context.Context, req *userv1.DeleteProfileRequest) (*userv1.DeleteProfileResponse, error) {
+func (s *UserServer) PatchMyClientProfile(ctx context.Context, req *userv1.PatchMyClientProfileRequest) (*userv1.PatchMyClientProfileResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	out, err := s.UpdateProfileUC.Execute(ctx, application.UpdateProfileInput{
+		UserID:      userID,
+		CompanyName: req.CompanyName,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.PatchMyClientProfileResponse{Profile: s.toProtoUserProfile(out.Profile, out.Client, out.Freelancer)}, nil
+}
+
+func (s *UserServer) PatchMyFreelancerProfile(ctx context.Context, req *userv1.PatchMyFreelancerProfileRequest) (*userv1.PatchMyFreelancerProfileResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	skills := []string(nil)
+	if req.Skills != nil {
+		skills = req.GetSkills().GetValues()
+	}
+	out, err := s.UpdateProfileUC.Execute(ctx, application.UpdateProfileInput{
+		UserID:       userID,
+		Headline:     req.Headline,
+		Skills:       skills,
+		HourlyRate:   req.HourlyRate,
+		Availability: stringPtrFromAvailability(req.Availability),
+		Location:     req.Location,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.PatchMyFreelancerProfileResponse{Profile: s.toProtoUserProfile(out.Profile, out.Client, out.Freelancer)}, nil
+}
+
+func (s *UserServer) DeleteMyProfile(ctx context.Context, req *userv1.DeleteMyProfileRequest) (*userv1.DeleteMyProfileResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
@@ -273,10 +255,10 @@ func (s *UserServer) DeleteProfile(ctx context.Context, req *userv1.DeleteProfil
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.DeleteProfileResponse{Deleted: out.Deleted}, nil
+	return &userv1.DeleteMyProfileResponse{Deleted: out.Deleted}, nil
 }
 
-func (s *UserServer) GetOnboardingStatus(ctx context.Context, req *userv1.GetOnboardingStatusRequest) (*userv1.GetOnboardingStatusResponse, error) {
+func (s *UserServer) GetMyOnboardingStatus(ctx context.Context, req *userv1.GetMyOnboardingStatusRequest) (*userv1.GetMyOnboardingStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
@@ -288,7 +270,7 @@ func (s *UserServer) GetOnboardingStatus(ctx context.Context, req *userv1.GetOnb
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.GetOnboardingStatusResponse{
+	return &userv1.GetMyOnboardingStatusResponse{
 		Completeness: &userv1.ProfileCompleteness{
 			Percent:               out.Percent,
 			MissingRequiredFields: out.Missing,
@@ -297,63 +279,7 @@ func (s *UserServer) GetOnboardingStatus(ctx context.Context, req *userv1.GetOnb
 	}, nil
 }
 
-func (s *UserServer) UpdateAccountStatus(ctx context.Context, req *userv1.UpdateAccountStatusRequest) (*userv1.UpdateAccountStatusResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.UserId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-
-	var suspensionReason *string
-	if req.SuspensionReason != nil {
-		s := req.GetSuspensionReason()
-		suspensionReason = &s
-	}
-
-	out, err := s.UpdateAccountStatusUC.Execute(ctx, application.UpdateAccountStatusInput{
-		UserID:           userID,
-		Status:           req.GetStatus().String(),
-		SuspensionReason: suspensionReason,
-		Visibility:       req.GetVisibility().String(),
-	})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	return &userv1.UpdateAccountStatusResponse{Profile: s.toProtoProfile(out.Profile, out.Client, out.Freelancer)}, nil
-}
-
-func (s *UserServer) ListUsers(ctx context.Context, req *userv1.ListUsersRequest) (*userv1.ListUsersResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	requesterID, err := uuid.Parse(req.GetRequesterUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid requester_user_id")
-	}
-
-	out, err := s.ProfileDetailsRepo.ListUsers(ctx, requesterID, application.ListUsersFilter{
-		Q:         strings.TrimSpace(req.GetQ()),
-		Role:      strings.TrimSpace(req.GetRole()),
-		Status:    strings.TrimSpace(req.GetStatus()),
-		PageSize:  req.GetPageSize(),
-		PageToken: req.GetPageToken(),
-	})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	users := make([]*userv1.User, 0, len(out.Items))
-	for _, item := range out.Items {
-		users = append(users, toProtoUserSummary(item))
-	}
-
-	return &userv1.ListUsersResponse{Users: users, NextPageToken: out.NextPageToken}, nil
-}
-
-func (s *UserServer) UploadAvatar(ctx context.Context, req *userv1.UploadAvatarRequest) (*userv1.UploadAvatarResponse, error) {
+func (s *UserServer) UpsertMyAvatar(ctx context.Context, req *userv1.UploadMyAvatarRequest) (*userv1.UploadMyAvatarResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
@@ -370,17 +296,22 @@ func (s *UserServer) UploadAvatar(ctx context.Context, req *userv1.UploadAvatarR
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.UploadAvatarResponse{
-		AvatarUrl:   out.AvatarURL,
-		PreviewUrl:  out.PreviewURL,
-		ContentType: out.ContentType,
-		SizeBytes:   out.SizeBytes,
-		Width:       out.Width,
-		Height:      out.Height,
+	return &userv1.UploadMyAvatarResponse{
+		AvatarUrl: out.AvatarURL,
+		Avatar: &userv1.ProfileAvatar{
+			UserId:        req.UserId,
+			FileName:      req.FileName,
+			ContentType:   out.ContentType,
+			StorageKey:    "",
+			SizeBytes:     out.SizeBytes,
+			Width:         out.Width,
+			Height:        out.Height,
+			UpdatedAtUnix: time.Now().UTC().Unix(),
+		},
 	}, nil
 }
 
-func (s *UserServer) GetAvatar(ctx context.Context, req *userv1.GetAvatarRequest) (*userv1.GetAvatarResponse, error) {
+func (s *UserServer) GetMyAvatar(ctx context.Context, req *userv1.GetMyAvatarRequest) (*userv1.GetMyAvatarResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
@@ -392,10 +323,22 @@ func (s *UserServer) GetAvatar(ctx context.Context, req *userv1.GetAvatarRequest
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.GetAvatarResponse{FileName: out.FileName, ContentType: out.ContentType, Content: out.Content}, nil
+	return &userv1.GetMyAvatarResponse{
+		Avatar: &userv1.ProfileAvatar{
+			UserId:        req.UserId,
+			FileName:      out.FileName,
+			ContentType:   out.ContentType,
+			StorageKey:    "",
+			SizeBytes:     int64(len(out.Content)),
+			Width:         0,
+			Height:        0,
+			UpdatedAtUnix: 0,
+		},
+		Content: out.Content,
+	}, nil
 }
 
-func (s *UserServer) RemoveAvatar(ctx context.Context, req *userv1.RemoveAvatarRequest) (*userv1.RemoveAvatarResponse, error) {
+func (s *UserServer) RemoveMyAvatar(ctx context.Context, req *userv1.RemoveMyAvatarRequest) (*userv1.RemoveMyAvatarResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
@@ -407,1297 +350,108 @@ func (s *UserServer) RemoveAvatar(ctx context.Context, req *userv1.RemoveAvatarR
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.RemoveAvatarResponse{Removed: out.Removed}, nil
+	return &userv1.RemoveMyAvatarResponse{Removed: out.Removed}, nil
 }
 
-func (s *UserServer) GetAccountSettings(ctx context.Context, req *userv1.GetAccountSettingsRequest) (*userv1.GetAccountSettingsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-
-	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	settings := &userv1.AccountSettings{
-		Language:     out.Profile.Language,
-		ContactEmail: out.Profile.ContactEmail,
-		ContactPhone: out.Profile.ContactPhone,
-	}
-
-	return &userv1.GetAccountSettingsResponse{Settings: settings}, nil
-}
-
-func (s *UserServer) UpdateAccountSettings(ctx context.Context, req *userv1.UpdateAccountSettingsRequest) (*userv1.UpdateAccountSettingsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	if req.Locale != nil || req.Timezone != nil {
-		return nil, status.Error(codes.InvalidArgument, "locale and timezone are not supported yet")
+func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.UserProfile {
+	out := &userv1.UserProfile{
+		Core: &userv1.UserCore{
+			ProfileId:          profile.ID,
+			UserId:             profile.UserID.String(),
+			Role:               toProtoRole(profile.Role),
+			FirstName:          profile.FirstName,
+			LastName:           profile.LastName,
+			DisplayName:        profile.DisplayName,
+			AvatarUrl:          profile.AvatarURL,
+			Language:           profile.Language,
+			ContactEmail:       profile.ContactEmail,
+			ContactPhone:       profile.ContactPhone,
+			Bio:                profile.Bio,
+			AccountStatus:      toProtoAccountStatus(profile.AccountStatus),
+			SuspensionReason:   profile.SuspensionReason,
+			TaxId:              "",
+			VerificationStatus: toProtoVerificationStatus(""),
+			CreatedAtUnix:      profile.CreatedAt.Unix(),
+			UpdatedAtUnix:      profile.UpdatedAt.Unix(),
+		},
+		Capabilities: toProtoCapabilities(s.CapabilityPolicy, profile, client, freelancer),
 	}
 
-	out, err := s.UpdateProfileUC.Execute(ctx, application.UpdateProfileInput{
-		UserID:       userID,
-		Language:     req.Language,
-		ContactEmail: req.ContactEmail,
-		ContactPhone: req.ContactPhone,
-	})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	settings := &userv1.AccountSettings{
-		Language:     out.Profile.Language,
-		ContactEmail: out.Profile.ContactEmail,
-		ContactPhone: out.Profile.ContactPhone,
-	}
-
-	return &userv1.UpdateAccountSettingsResponse{Settings: settings}, nil
-}
-
-func (s *UserServer) GetPrivacySettings(ctx context.Context, req *userv1.GetPrivacySettingsRequest) (*userv1.GetPrivacySettingsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-
-	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	settings := &userv1.PrivacySettings{
-		Discoverable:   strings.EqualFold(out.Profile.Visibility, "PUBLIC"),
-		ShowLastActive: true,
-		ShowEarnings:   false,
-	}
-
-	return &userv1.GetPrivacySettingsResponse{Settings: settings}, nil
-}
-
-func (s *UserServer) UpdatePrivacySettings(ctx context.Context, req *userv1.UpdatePrivacySettingsRequest) (*userv1.UpdatePrivacySettingsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	if req.ShowLastActive != nil || req.ShowEarnings != nil {
-		return nil, status.Error(codes.InvalidArgument, "show_last_active and show_earnings are not supported yet")
-	}
-
-	profileOut, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	discoverable := strings.EqualFold(profileOut.Profile.Visibility, "PUBLIC")
-	if req.Discoverable != nil {
-		visibility := "PRIVATE"
-		if req.GetDiscoverable() {
-			visibility = "PUBLIC"
-		}
-
-		statusOut, err := s.UpdateAccountStatusUC.Execute(ctx, application.UpdateAccountStatusInput{
-			UserID:           userID,
-			Status:           profileOut.Profile.AccountStatus,
-			SuspensionReason: stringPtrOrNil(profileOut.Profile.SuspensionReason),
-			Visibility:       visibility,
-		})
-		if err != nil {
-			return nil, toStatus(err)
-		}
-		discoverable = strings.EqualFold(statusOut.Profile.Visibility, "PUBLIC")
-	}
-
-	return &userv1.UpdatePrivacySettingsResponse{Settings: &userv1.PrivacySettings{
-		Discoverable:   discoverable,
-		ShowLastActive: true,
-		ShowEarnings:   false,
-	}}, nil
-}
-
-func (s *UserServer) GetNotificationSettings(ctx context.Context, req *userv1.GetNotificationSettingsRequest) (*userv1.GetNotificationSettingsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	if _, err := uuid.Parse(req.GetUserId()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	settings := defaultNotificationSettings()
-	return &userv1.GetNotificationSettingsResponse{Settings: &settings}, nil
-}
-
-func (s *UserServer) UpdateNotificationSettings(ctx context.Context, req *userv1.UpdateNotificationSettingsRequest) (*userv1.UpdateNotificationSettingsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	if _, err := uuid.Parse(req.GetUserId()); err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-
-	settings := defaultNotificationSettings()
-	if req.EmailJobAlerts != nil {
-		settings.EmailJobAlerts = req.GetEmailJobAlerts()
-	}
-	if req.EmailMessages != nil {
-		settings.EmailMessages = req.GetEmailMessages()
-	}
-	if req.EmailBilling != nil {
-		settings.EmailBilling = req.GetEmailBilling()
-	}
-	if req.EmailSecurity != nil {
-		settings.EmailSecurity = req.GetEmailSecurity()
-	}
-	if req.PushJobAlerts != nil {
-		settings.PushJobAlerts = req.GetPushJobAlerts()
-	}
-	if req.PushMessages != nil {
-		settings.PushMessages = req.GetPushMessages()
-	}
-	if req.PushBilling != nil {
-		settings.PushBilling = req.GetPushBilling()
-	}
-	if req.PushSecurity != nil {
-		settings.PushSecurity = req.GetPushSecurity()
-	}
-
-	return &userv1.UpdateNotificationSettingsResponse{Settings: &settings}, nil
-}
-
-func (s *UserServer) SetAvailability(ctx context.Context, req *userv1.SetAvailabilityRequest) (*userv1.SetAvailabilityResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	if req.GetAvailability() == userv1.Availability_AVAILABILITY_UNSPECIFIED {
-		return nil, status.Error(codes.InvalidArgument, "availability is required")
-	}
-	out, err := s.ProfileDetailsRepo.SetAvailability(ctx, userID, application.AvailabilitySettings{
-		Availability:        mapAvailabilityFromProto(req.GetAvailability()),
-		WeeklyCapacityHours: req.GetWeeklyCapacityHours(),
-	})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.SetAvailabilityResponse{Settings: toProtoAvailabilitySettings(out)}, nil
-}
-
-func (s *UserServer) GetAvailability(ctx context.Context, req *userv1.GetAvailabilityRequest) (*userv1.GetAvailabilityResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.GetAvailability(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetAvailabilityResponse{Settings: toProtoAvailabilitySettings(out)}, nil
-}
-
-func (s *UserServer) SetRates(ctx context.Context, req *userv1.SetRatesRequest) (*userv1.SetRatesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	if req.GetHourlyRate() < 0 {
-		return nil, status.Error(codes.InvalidArgument, "hourly_rate must be greater than or equal to 0")
-	}
-	currency := strings.ToUpper(strings.TrimSpace(req.GetCurrency()))
-	if currency == "" {
-		currency = "USD"
-	}
-	if currency != "USD" {
-		return nil, status.Error(codes.InvalidArgument, "only USD is supported")
-	}
-
-	out, err := s.ProfileDetailsRepo.SetRates(ctx, userID, application.RateSettings{HourlyRate: req.GetHourlyRate(), Currency: currency})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.SetRatesResponse{Settings: toProtoRateSettings(out)}, nil
-}
-
-func (s *UserServer) GetRates(ctx context.Context, req *userv1.GetRatesRequest) (*userv1.GetRatesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.GetRates(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetRatesResponse{Settings: toProtoRateSettings(out)}, nil
-}
-
-func (s *UserServer) SetWorkPreferences(ctx context.Context, req *userv1.SetWorkPreferencesRequest) (*userv1.SetWorkPreferencesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	if req.GetMinBudgetUsd() < 0 || req.GetMaxBudgetUsd() < 0 {
-		return nil, status.Error(codes.InvalidArgument, "budget values must be greater than or equal to 0")
-	}
-	if req.GetMaxBudgetUsd() > 0 && req.GetMinBudgetUsd() > req.GetMaxBudgetUsd() {
-		return nil, status.Error(codes.InvalidArgument, "min_budget_usd cannot be greater than max_budget_usd")
-	}
-	out, err := s.ProfileDetailsRepo.SetWorkPreferences(ctx, userID, application.WorkPreferences{
-		PreferredProjectLength: strings.TrimSpace(req.GetPreferredProjectLength()),
-		MinBudgetUSD:           req.GetMinBudgetUsd(),
-		MaxBudgetUSD:           req.GetMaxBudgetUsd(),
-		ContractTypes:          req.GetContractTypes(),
-	})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.SetWorkPreferencesResponse{Settings: toProtoWorkPreferences(out)}, nil
-}
-
-func (s *UserServer) GetWorkPreferences(ctx context.Context, req *userv1.GetWorkPreferencesRequest) (*userv1.GetWorkPreferencesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.GetWorkPreferences(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetWorkPreferencesResponse{Settings: toProtoWorkPreferences(out)}, nil
-}
-
-func (s *UserServer) GetHiringPreferences(ctx context.Context, req *userv1.GetHiringPreferencesRequest) (*userv1.GetHiringPreferencesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.GetHiringPreferences(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetHiringPreferencesResponse{Preferences: toProtoHiringPreferences(out)}, nil
-}
-
-func (s *UserServer) UpdateHiringPreferences(ctx context.Context, req *userv1.UpdateHiringPreferencesRequest) (*userv1.UpdateHiringPreferencesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	current, err := s.ProfileDetailsRepo.GetHiringPreferences(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	if req.MinHourlyRate != nil {
-		current.MinHourlyRate = req.GetMinHourlyRate()
-	}
-	if req.MaxHourlyRate != nil {
-		current.MaxHourlyRate = req.GetMaxHourlyRate()
-	}
-	if len(req.GetPreferredExperienceLevels()) > 0 {
-		current.PreferredExperienceLevels = req.GetPreferredExperienceLevels()
-	}
-	if len(req.GetPreferredLocations()) > 0 {
-		current.PreferredLocations = req.GetPreferredLocations()
-	}
-	if current.MinHourlyRate < 0 || current.MaxHourlyRate < 0 {
-		return nil, status.Error(codes.InvalidArgument, "hourly rates must be greater than or equal to 0")
-	}
-	if current.MaxHourlyRate > 0 && current.MinHourlyRate > current.MaxHourlyRate {
-		return nil, status.Error(codes.InvalidArgument, "min_hourly_rate cannot be greater than max_hourly_rate")
-	}
-	out, err := s.ProfileDetailsRepo.UpdateHiringPreferences(ctx, userID, current)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.UpdateHiringPreferencesResponse{Preferences: toProtoHiringPreferences(out)}, nil
-}
-
-func (s *UserServer) SaveFreelancer(ctx context.Context, req *userv1.SaveFreelancerRequest) (*userv1.SaveFreelancerResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	freelancerID, err := uuid.Parse(req.GetFreelancerUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
-	}
-	out, err := s.ProfileDetailsRepo.SaveFreelancer(ctx, userID, freelancerID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.SaveFreelancerResponse{Saved: toProtoSavedFreelancer(out)}, nil
-}
-
-func (s *UserServer) ListSavedFreelancers(ctx context.Context, req *userv1.ListSavedFreelancersRequest) (*userv1.ListSavedFreelancersResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.ListSavedFreelancers(ctx, userID, req.GetPageSize(), req.GetPageToken())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	items := make([]*userv1.SavedFreelancer, 0, len(out.Items))
-	for _, item := range out.Items {
-		items = append(items, toProtoSavedFreelancer(item))
-	}
-	return &userv1.ListSavedFreelancersResponse{Freelancers: items, NextPageToken: out.NextPageToken}, nil
-}
-
-func (s *UserServer) RemoveSavedFreelancer(ctx context.Context, req *userv1.RemoveSavedFreelancerRequest) (*userv1.RemoveSavedFreelancerResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	freelancerID, err := uuid.Parse(req.GetFreelancerUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
-	}
-	removed, err := s.ProfileDetailsRepo.RemoveSavedFreelancer(ctx, userID, freelancerID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.RemoveSavedFreelancerResponse{Removed: removed}, nil
-}
-
-func (s *UserServer) UpsertFreelancerNote(ctx context.Context, req *userv1.UpsertFreelancerNoteRequest) (*userv1.UpsertFreelancerNoteResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	freelancerID, err := uuid.Parse(req.GetFreelancerUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
-	}
-	out, err := s.ProfileDetailsRepo.UpsertFreelancerNote(ctx, userID, freelancerID, req.GetNote())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.UpsertFreelancerNoteResponse{Note: toProtoFreelancerNote(out)}, nil
-}
-
-func (s *UserServer) GetFreelancerNote(ctx context.Context, req *userv1.GetFreelancerNoteRequest) (*userv1.GetFreelancerNoteResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	freelancerID, err := uuid.Parse(req.GetFreelancerUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
-	}
-	out, err := s.ProfileDetailsRepo.GetFreelancerNote(ctx, userID, freelancerID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetFreelancerNoteResponse{Note: toProtoFreelancerNote(out)}, nil
-}
-
-func (s *UserServer) CreatePortfolioItem(ctx context.Context, req *userv1.CreatePortfolioItemRequest) (*userv1.CreatePortfolioItemResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	item, err := s.ProfileDetailsRepo.CreatePortfolioItem(ctx, userID, toAppPortfolioItem(req))
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.CreatePortfolioItemResponse{Item: toProtoPortfolioItem(item)}, nil
-}
-
-func (s *UserServer) UpdatePortfolioItem(ctx context.Context, req *userv1.UpdatePortfolioItemRequest) (*userv1.UpdatePortfolioItemResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	current, err := s.ProfileDetailsRepo.GetPortfolioItem(ctx, userID, req.GetItemId())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	if req.Title != nil {
-		current.Title = req.GetTitle()
-	}
-	if req.Description != nil {
-		current.Description = req.GetDescription()
-	}
-	if req.ProjectUrl != nil {
-		current.ProjectURL = req.GetProjectUrl()
-	}
-	if req.RoleInProject != nil {
-		current.RoleInProject = req.GetRoleInProject()
-	}
-	if req.CompletedAtUnix != nil {
-		current.CompletedAt = unixPtr(req.GetCompletedAtUnix())
-	}
-	if req.Visibility != nil {
-		current.Visibility = mapVisibilityFromProto(req.GetVisibility())
-	}
-	if len(req.GetTags()) > 0 {
-		current.Tags = req.GetTags()
-	}
-	if len(req.GetMedia()) > 0 {
-		current.Media = toAppPortfolioMediaSlice(req.GetMedia())
-	}
-	item, err := s.ProfileDetailsRepo.UpdatePortfolioItem(ctx, userID, req.GetItemId(), current)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.UpdatePortfolioItemResponse{Item: toProtoPortfolioItem(item)}, nil
-}
-
-func (s *UserServer) DeletePortfolioItem(ctx context.Context, req *userv1.DeletePortfolioItemRequest) (*userv1.DeletePortfolioItemResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	deleted, err := s.ProfileDetailsRepo.DeletePortfolioItem(ctx, userID, req.GetItemId())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.DeletePortfolioItemResponse{Deleted: deleted}, nil
-}
-
-func (s *UserServer) ListPublicPortfolioItems(ctx context.Context, req *userv1.ListPublicPortfolioItemsRequest) (*userv1.ListPublicPortfolioItemsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.ListPublicPortfolioItems(ctx, userID, req.GetPageSize(), req.GetPageToken())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	items := make([]*userv1.PortfolioItem, 0, len(out.Items))
-	for _, item := range out.Items {
-		items = append(items, toProtoPortfolioItem(item))
-	}
-	return &userv1.ListPublicPortfolioItemsResponse{Items: items, NextPageToken: out.NextPageToken}, nil
-}
-
-func (s *UserServer) CreateEmployment(ctx context.Context, req *userv1.CreateEmploymentRequest) (*userv1.CreateEmploymentResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	in := application.Employment{CompanyName: req.GetCompanyName(), Title: req.GetTitle(), EmploymentType: req.GetEmploymentType(), Location: req.GetLocation(), IsCurrent: req.GetIsCurrent(), StartDate: unixPtr(req.GetStartDateUnix()), EndDate: unixPtr(req.GetEndDateUnix()), Description: req.GetDescription(), Visibility: mapVisibilityFromProto(req.GetVisibility())}
-	out, err := s.ProfileDetailsRepo.CreateEmployment(ctx, userID, in)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.CreateEmploymentResponse{Employment: toProtoEmployment(out)}, nil
-}
-
-func (s *UserServer) UpdateEmployment(ctx context.Context, req *userv1.UpdateEmploymentRequest) (*userv1.UpdateEmploymentResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	current, err := s.ProfileDetailsRepo.GetEmployment(ctx, userID, req.GetEmploymentId())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	if req.CompanyName != nil {
-		current.CompanyName = req.GetCompanyName()
-	}
-	if req.Title != nil {
-		current.Title = req.GetTitle()
-	}
-	if req.EmploymentType != nil {
-		current.EmploymentType = req.GetEmploymentType()
-	}
-	if req.Location != nil {
-		current.Location = req.GetLocation()
-	}
-	if req.IsCurrent != nil {
-		current.IsCurrent = req.GetIsCurrent()
-	}
-	if req.StartDateUnix != nil {
-		current.StartDate = unixPtr(req.GetStartDateUnix())
-	}
-	if req.EndDateUnix != nil {
-		current.EndDate = unixPtr(req.GetEndDateUnix())
-	}
-	if req.Description != nil {
-		current.Description = req.GetDescription()
-	}
-	if req.Visibility != nil {
-		current.Visibility = mapVisibilityFromProto(req.GetVisibility())
-	}
-	out, err := s.ProfileDetailsRepo.UpdateEmployment(ctx, userID, req.GetEmploymentId(), current)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.UpdateEmploymentResponse{Employment: toProtoEmployment(out)}, nil
-}
-
-func (s *UserServer) DeleteEmployment(ctx context.Context, req *userv1.DeleteEmploymentRequest) (*userv1.DeleteEmploymentResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	deleted, err := s.ProfileDetailsRepo.DeleteEmployment(ctx, userID, req.GetEmploymentId())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.DeleteEmploymentResponse{Deleted: deleted}, nil
-}
-
-func (s *UserServer) ListPublicEmployment(ctx context.Context, req *userv1.ListPublicEmploymentRequest) (*userv1.ListPublicEmploymentResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.ListPublicEmployment(ctx, userID, req.GetPageSize(), req.GetPageToken())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	items := make([]*userv1.Employment, 0, len(out.Items))
-	for _, item := range out.Items {
-		items = append(items, toProtoEmployment(item))
-	}
-	return &userv1.ListPublicEmploymentResponse{Employment: items, NextPageToken: out.NextPageToken}, nil
-}
-
-func (s *UserServer) CreateEducation(ctx context.Context, req *userv1.CreateEducationRequest) (*userv1.CreateEducationResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	in := application.Education{SchoolName: req.GetSchoolName(), Degree: req.GetDegree(), FieldOfStudy: req.GetFieldOfStudy(), IsCurrent: req.GetIsCurrent(), StartDate: unixPtr(req.GetStartDateUnix()), EndDate: unixPtr(req.GetEndDateUnix()), Grade: req.GetGrade(), Description: req.GetDescription(), Visibility: mapVisibilityFromProto(req.GetVisibility())}
-	out, err := s.ProfileDetailsRepo.CreateEducation(ctx, userID, in)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.CreateEducationResponse{Education: toProtoEducation(out)}, nil
-}
-
-func (s *UserServer) UpdateEducation(ctx context.Context, req *userv1.UpdateEducationRequest) (*userv1.UpdateEducationResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	current, err := s.ProfileDetailsRepo.GetEducation(ctx, userID, req.GetEducationId())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	if req.SchoolName != nil {
-		current.SchoolName = req.GetSchoolName()
-	}
-	if req.Degree != nil {
-		current.Degree = req.GetDegree()
-	}
-	if req.FieldOfStudy != nil {
-		current.FieldOfStudy = req.GetFieldOfStudy()
-	}
-	if req.IsCurrent != nil {
-		current.IsCurrent = req.GetIsCurrent()
-	}
-	if req.StartDateUnix != nil {
-		current.StartDate = unixPtr(req.GetStartDateUnix())
-	}
-	if req.EndDateUnix != nil {
-		current.EndDate = unixPtr(req.GetEndDateUnix())
-	}
-	if req.Grade != nil {
-		current.Grade = req.GetGrade()
-	}
-	if req.Description != nil {
-		current.Description = req.GetDescription()
-	}
-	if req.Visibility != nil {
-		current.Visibility = mapVisibilityFromProto(req.GetVisibility())
-	}
-	out, err := s.ProfileDetailsRepo.UpdateEducation(ctx, userID, req.GetEducationId(), current)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.UpdateEducationResponse{Education: toProtoEducation(out)}, nil
-}
-
-func (s *UserServer) DeleteEducation(ctx context.Context, req *userv1.DeleteEducationRequest) (*userv1.DeleteEducationResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	deleted, err := s.ProfileDetailsRepo.DeleteEducation(ctx, userID, req.GetEducationId())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.DeleteEducationResponse{Deleted: deleted}, nil
-}
-
-func (s *UserServer) ListPublicEducation(ctx context.Context, req *userv1.ListPublicEducationRequest) (*userv1.ListPublicEducationResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.ListPublicEducation(ctx, userID, req.GetPageSize(), req.GetPageToken())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	items := make([]*userv1.Education, 0, len(out.Items))
-	for _, item := range out.Items {
-		items = append(items, toProtoEducation(item))
-	}
-	return &userv1.ListPublicEducationResponse{Education: items, NextPageToken: out.NextPageToken}, nil
-}
-
-func (s *UserServer) CreateCertification(ctx context.Context, req *userv1.CreateCertificationRequest) (*userv1.CreateCertificationResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	in := application.Certification{Name: req.GetName(), IssuingOrganization: req.GetIssuingOrganization(), CredentialID: req.GetCredentialId(), CredentialURL: req.GetCredentialUrl(), IssueDate: unixPtr(req.GetIssueDateUnix()), ExpirationDate: unixPtr(req.GetExpirationDateUnix()), DoesNotExpire: req.GetDoesNotExpire(), Visibility: mapVisibilityFromProto(req.GetVisibility())}
-	out, err := s.ProfileDetailsRepo.CreateCertification(ctx, userID, in)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.CreateCertificationResponse{Certification: toProtoCertification(out)}, nil
-}
-
-func (s *UserServer) UpdateCertification(ctx context.Context, req *userv1.UpdateCertificationRequest) (*userv1.UpdateCertificationResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	current, err := s.ProfileDetailsRepo.GetCertification(ctx, userID, req.GetCertificationId())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	if req.Name != nil {
-		current.Name = req.GetName()
-	}
-	if req.IssuingOrganization != nil {
-		current.IssuingOrganization = req.GetIssuingOrganization()
-	}
-	if req.CredentialId != nil {
-		current.CredentialID = req.GetCredentialId()
-	}
-	if req.CredentialUrl != nil {
-		current.CredentialURL = req.GetCredentialUrl()
-	}
-	if req.IssueDateUnix != nil {
-		current.IssueDate = unixPtr(req.GetIssueDateUnix())
-	}
-	if req.ExpirationDateUnix != nil {
-		current.ExpirationDate = unixPtr(req.GetExpirationDateUnix())
-	}
-	if req.DoesNotExpire != nil {
-		current.DoesNotExpire = req.GetDoesNotExpire()
-	}
-	if req.Visibility != nil {
-		current.Visibility = mapVisibilityFromProto(req.GetVisibility())
-	}
-	out, err := s.ProfileDetailsRepo.UpdateCertification(ctx, userID, req.GetCertificationId(), current)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.UpdateCertificationResponse{Certification: toProtoCertification(out)}, nil
-}
-
-func (s *UserServer) DeleteCertification(ctx context.Context, req *userv1.DeleteCertificationRequest) (*userv1.DeleteCertificationResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	deleted, err := s.ProfileDetailsRepo.DeleteCertification(ctx, userID, req.GetCertificationId())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.DeleteCertificationResponse{Deleted: deleted}, nil
-}
-
-func (s *UserServer) ListPublicCertifications(ctx context.Context, req *userv1.ListPublicCertificationsRequest) (*userv1.ListPublicCertificationsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.ListPublicCertifications(ctx, userID, req.GetPageSize(), req.GetPageToken())
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	items := make([]*userv1.Certification, 0, len(out.Items))
-	for _, item := range out.Items {
-		items = append(items, toProtoCertification(item))
-	}
-	return &userv1.ListPublicCertificationsResponse{Certifications: items, NextPageToken: out.NextPageToken}, nil
-}
-
-func (s *UserServer) UpsertLanguages(ctx context.Context, req *userv1.UpsertLanguagesRequest) (*userv1.UpsertLanguagesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	langs := make([]application.LanguageProficiency, 0, len(req.GetLanguages()))
-	for _, l := range req.GetLanguages() {
-		langs = append(langs, application.LanguageProficiency{LanguageCode: l.GetLanguageCode(), Proficiency: l.GetProficiency(), Visibility: mapVisibilityFromProto(l.GetVisibility())})
-	}
-	out, err := s.ProfileDetailsRepo.UpsertLanguages(ctx, userID, langs)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.UpsertLanguagesResponse{Languages: toProtoLanguages(out)}, nil
-}
-
-func (s *UserServer) GetPublicLanguages(ctx context.Context, req *userv1.GetPublicLanguagesRequest) (*userv1.GetPublicLanguagesResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-	out, err := s.ProfileDetailsRepo.GetPublicLanguages(ctx, userID)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &userv1.GetPublicLanguagesResponse{Languages: toProtoLanguages(out)}, nil
-}
-
-func (s *UserServer) toProtoProfile(p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.Profile {
-	out := &userv1.Profile{
-		Id:               p.ID,
-		UserId:           p.UserID.String(),
-		Role:             p.Role,
-		FirstName:        p.FirstName,
-		LastName:         p.LastName,
-		DisplayName:      p.DisplayName,
-		AvatarUrl:        p.AvatarURL,
-		Language:         p.Language,
-		ContactEmail:     p.ContactEmail,
-		ContactPhone:     p.ContactPhone,
-		Bio:              p.Bio,
-		Deleted:          p.DeletedAt != nil,
-		Status:           mapAccountStatusToProto(p.AccountStatus),
-		SuspensionReason: p.SuspensionReason,
-		Visibility:       mapVisibilityToProto(p.Visibility),
-		Capabilities:     toProtoCapabilities(s.CapabilityPolicy, p, client, freelancer),
-	}
 	if client != nil {
-		out.Client = &userv1.ClientProfileInput{
-			CompanyName:        client.CompanyName,
-			BillingAddress:     client.BillingAddress,
-			TaxId:              client.TaxID,
-			VerificationStatus: mapVerificationStatusToProto(client.VerificationStatus),
-		}
+		out.Client = &userv1.ClientProfile{CompanyName: client.CompanyName}
+		out.Core.TaxId = client.TaxID
+		out.Core.VerificationStatus = toProtoVerificationStatus(client.VerificationStatus)
 	}
 	if freelancer != nil {
-		var lastActiveUnix int64
-		if freelancer.LastActiveAt != nil {
-			lastActiveUnix = freelancer.LastActiveAt.Unix()
-		}
-		out.Freelancer = &userv1.FreelancerProfileInput{
-			Headline:           freelancer.Headline,
-			Bio:                freelancer.Bio,
-			Skills:             freelancer.Skills,
-			ExperienceLevel:    freelancer.ExperienceLevel,
-			Rating:             freelancer.Rating,
-			VerificationStatus: mapVerificationStatusToProto(freelancer.VerificationStatus),
-			Reputation: &userv1.Reputation{
-				JobSuccessScore:  freelancer.Reputation.JobSuccessScore,
-				AvgRating:        freelancer.Reputation.AvgRating,
-				TotalReviews:     freelancer.Reputation.TotalReviews,
-				TotalJobs:        freelancer.Reputation.TotalJobs,
-				TotalEarningsUsd: freelancer.Reputation.TotalEarningsUSD,
+		out.Freelancer = &userv1.FreelancerProfile{
+			Headline:     freelancer.Headline,
+			Skills:       freelancer.Skills,
+			HourlyRate:   freelancer.HourlyRate,
+			Availability: toProtoAvailability(freelancer.Availability),
+			Location:     freelancer.Location,
+			Metrics: &userv1.FreelancerMetrics{
+				Rating:             freelancer.Rating,
+				JobSuccessScore:    freelancer.Reputation.JobSuccessScore,
+				TotalReviews:       freelancer.Reputation.TotalReviews,
+				TotalJobs:          freelancer.Reputation.TotalJobs,
+				TotalEarnings:      freelancer.Reputation.TotalEarningsUSD,
+				VerificationStatus: toProtoVerificationStatus(freelancer.VerificationStatus),
 			},
-			HourlyRate:       freelancer.HourlyRate,
-			Availability:     mapAvailabilityToProto(freelancer.Availability),
-			Location:         freelancer.Location,
-			LastActiveAtUnix: lastActiveUnix,
 		}
+		if profile.LastActiveAt != nil {
+			lastActive := profile.LastActiveAt.Unix()
+			out.Freelancer.Metrics.LastActiveAtUnix = &lastActive
+		}
+		out.Core.VerificationStatus = toProtoVerificationStatus(freelancer.VerificationStatus)
+	}
+	if profile.DeletedAt != nil && !profile.DeletedAt.IsZero() {
+		deletedAt := profile.DeletedAt.Unix()
+		out.Core.DeletedAtUnix = &deletedAt
 	}
 	return out
-}
-
-func toProtoUser(p domain.Profile) *userv1.User {
-	return &userv1.User{
-		UserId:        p.UserID.String(),
-		Role:          p.Role,
-		Status:        mapAccountStatusToProto(p.AccountStatus),
-		Visibility:    mapVisibilityToProto(p.Visibility),
-		FirstName:     p.FirstName,
-		LastName:      p.LastName,
-		DisplayName:   p.DisplayName,
-		AvatarUrl:     p.AvatarURL,
-		CreatedAtUnix: p.CreatedAt.Unix(),
-		UpdatedAtUnix: p.UpdatedAt.Unix(),
-	}
-}
-
-func toProtoPublicProfile(p domain.Profile, freelancer *domain.FreelancerProfile) *userv1.PublicProfile {
-	if freelancer == nil {
-		return &userv1.PublicProfile{UserId: p.UserID.String()}
-	}
-	var lastActiveUnix int64
-	if freelancer.LastActiveAt != nil {
-		lastActiveUnix = freelancer.LastActiveAt.Unix()
-	}
-	return &userv1.PublicProfile{
-		UserId:          p.UserID.String(),
-		DisplayName:     p.DisplayName,
-		AvatarUrl:       p.AvatarURL,
-		Headline:        freelancer.Headline,
-		Bio:             freelancer.Bio,
-		Skills:          freelancer.Skills,
-		ExperienceLevel: freelancer.ExperienceLevel,
-		Reputation: &userv1.Reputation{
-			JobSuccessScore:  freelancer.Reputation.JobSuccessScore,
-			AvgRating:        freelancer.Reputation.AvgRating,
-			TotalReviews:     freelancer.Reputation.TotalReviews,
-			TotalJobs:        freelancer.Reputation.TotalJobs,
-			TotalEarningsUsd: freelancer.Reputation.TotalEarningsUSD,
-		},
-		HourlyRate:         freelancer.HourlyRate,
-		Availability:       mapAvailabilityToProto(freelancer.Availability),
-		Location:           freelancer.Location,
-		LastActiveAtUnix:   lastActiveUnix,
-		VerificationStatus: mapVerificationStatusToProto(freelancer.VerificationStatus),
-	}
-}
-
-func toAppPortfolioItem(req *userv1.CreatePortfolioItemRequest) application.PortfolioItem {
-	return application.PortfolioItem{
-		Title:         req.GetTitle(),
-		Description:   req.GetDescription(),
-		ProjectURL:    req.GetProjectUrl(),
-		RoleInProject: req.GetRoleInProject(),
-		CompletedAt:   unixPtr(req.GetCompletedAtUnix()),
-		Visibility:    mapVisibilityFromProto(req.GetVisibility()),
-		Tags:          req.GetTags(),
-		Media:         toAppPortfolioMediaSlice(req.GetMedia()),
-	}
-}
-
-func toAppPortfolioMediaSlice(items []*userv1.PortfolioMedia) []application.PortfolioMedia {
-	out := make([]application.PortfolioMedia, 0, len(items))
-	for _, m := range items {
-		out = append(out, application.PortfolioMedia{
-			ID:          m.GetId(),
-			MediaType:   mapPortfolioMediaTypeFromProto(m.GetMediaType()),
-			StorageKey:  m.GetStorageKey(),
-			ExternalURL: m.GetExternalUrl(),
-			FileName:    m.GetFileName(),
-			ContentType: m.GetContentType(),
-			SizeBytes:   m.GetSizeBytes(),
-			Width:       m.GetWidth(),
-			Height:      m.GetHeight(),
-			SortOrder:   m.GetSortOrder(),
-		})
-	}
-	return out
-}
-
-func toProtoPortfolioItem(item application.PortfolioItem) *userv1.PortfolioItem {
-	media := make([]*userv1.PortfolioMedia, 0, len(item.Media))
-	for _, m := range item.Media {
-		media = append(media, &userv1.PortfolioMedia{
-			Id:          m.ID,
-			MediaType:   mapPortfolioMediaTypeToProto(m.MediaType),
-			StorageKey:  m.StorageKey,
-			ExternalUrl: m.ExternalURL,
-			FileName:    m.FileName,
-			ContentType: m.ContentType,
-			SizeBytes:   m.SizeBytes,
-			Width:       m.Width,
-			Height:      m.Height,
-			SortOrder:   m.SortOrder,
-		})
-	}
-	var completedAt int64
-	if item.CompletedAt != nil {
-		completedAt = item.CompletedAt.Unix()
-	}
-	return &userv1.PortfolioItem{
-		Id:              item.ID,
-		UserId:          item.UserID.String(),
-		Title:           item.Title,
-		Description:     item.Description,
-		ProjectUrl:      item.ProjectURL,
-		RoleInProject:   item.RoleInProject,
-		CompletedAtUnix: completedAt,
-		SortOrder:       item.SortOrder,
-		Visibility:      mapVisibilityToProto(item.Visibility),
-		Tags:            item.Tags,
-		Media:           media,
-		CreatedAtUnix:   item.CreatedAt.Unix(),
-		UpdatedAtUnix:   item.UpdatedAt.Unix(),
-	}
-}
-
-func toProtoEmployment(in application.Employment) *userv1.Employment {
-	return &userv1.Employment{
-		Id:             in.ID,
-		UserId:         in.UserID.String(),
-		CompanyName:    in.CompanyName,
-		Title:          in.Title,
-		EmploymentType: in.EmploymentType,
-		Location:       in.Location,
-		IsCurrent:      in.IsCurrent,
-		StartDateUnix:  timePtrUnix(in.StartDate),
-		EndDateUnix:    timePtrUnix(in.EndDate),
-		Description:    in.Description,
-		SortOrder:      in.SortOrder,
-		Visibility:     mapVisibilityToProto(in.Visibility),
-		CreatedAtUnix:  in.CreatedAt.Unix(),
-		UpdatedAtUnix:  in.UpdatedAt.Unix(),
-	}
-}
-
-func toProtoEducation(in application.Education) *userv1.Education {
-	return &userv1.Education{
-		Id:            in.ID,
-		UserId:        in.UserID.String(),
-		SchoolName:    in.SchoolName,
-		Degree:        in.Degree,
-		FieldOfStudy:  in.FieldOfStudy,
-		IsCurrent:     in.IsCurrent,
-		StartDateUnix: timePtrUnix(in.StartDate),
-		EndDateUnix:   timePtrUnix(in.EndDate),
-		Grade:         in.Grade,
-		Description:   in.Description,
-		SortOrder:     in.SortOrder,
-		Visibility:    mapVisibilityToProto(in.Visibility),
-		CreatedAtUnix: in.CreatedAt.Unix(),
-		UpdatedAtUnix: in.UpdatedAt.Unix(),
-	}
-}
-
-func toProtoCertification(in application.Certification) *userv1.Certification {
-	return &userv1.Certification{
-		Id:                  in.ID,
-		UserId:              in.UserID.String(),
-		Name:                in.Name,
-		IssuingOrganization: in.IssuingOrganization,
-		CredentialId:        in.CredentialID,
-		CredentialUrl:       in.CredentialURL,
-		IssueDateUnix:       timePtrUnix(in.IssueDate),
-		ExpirationDateUnix:  timePtrUnix(in.ExpirationDate),
-		DoesNotExpire:       in.DoesNotExpire,
-		Visibility:          mapVisibilityToProto(in.Visibility),
-		CreatedAtUnix:       in.CreatedAt.Unix(),
-		UpdatedAtUnix:       in.UpdatedAt.Unix(),
-	}
-}
-
-func toProtoLanguages(items []application.LanguageProficiency) []*userv1.LanguageProficiency {
-	out := make([]*userv1.LanguageProficiency, 0, len(items))
-	for _, item := range items {
-		out = append(out, &userv1.LanguageProficiency{
-			LanguageCode: item.LanguageCode,
-			Proficiency:  item.Proficiency,
-			Visibility:   mapVisibilityToProto(item.Visibility),
-		})
-	}
-	return out
-}
-
-func toProtoAvailabilitySettings(in application.AvailabilitySettings) *userv1.AvailabilitySettings {
-	return &userv1.AvailabilitySettings{
-		Availability:        mapAvailabilityToProto(in.Availability),
-		WeeklyCapacityHours: in.WeeklyCapacityHours,
-	}
-}
-
-func toProtoRateSettings(in application.RateSettings) *userv1.RateSettings {
-	return &userv1.RateSettings{
-		HourlyRate: in.HourlyRate,
-		Currency:   in.Currency,
-	}
-}
-
-func toProtoWorkPreferences(in application.WorkPreferences) *userv1.WorkPreferences {
-	return &userv1.WorkPreferences{
-		PreferredProjectLength: in.PreferredProjectLength,
-		MinBudgetUsd:           in.MinBudgetUSD,
-		MaxBudgetUsd:           in.MaxBudgetUSD,
-		ContractTypes:          in.ContractTypes,
-	}
-}
-
-func toProtoHiringPreferences(in application.HiringPreferences) *userv1.HiringPreferences {
-	return &userv1.HiringPreferences{
-		MinHourlyRate:             in.MinHourlyRate,
-		MaxHourlyRate:             in.MaxHourlyRate,
-		PreferredExperienceLevels: in.PreferredExperienceLevels,
-		PreferredLocations:        in.PreferredLocations,
-	}
-}
-
-func toProtoSavedFreelancer(in application.SavedFreelancer) *userv1.SavedFreelancer {
-	return &userv1.SavedFreelancer{
-		FreelancerUserId: in.FreelancerUserID.String(),
-		SavedAtUnix:      in.SavedAt.Unix(),
-	}
-}
-
-func toProtoFreelancerNote(in application.FreelancerNote) *userv1.FreelancerNote {
-	return &userv1.FreelancerNote{
-		FreelancerUserId: in.FreelancerUserID.String(),
-		Note:             in.Note,
-		UpdatedAtUnix:    in.UpdatedAt.Unix(),
-	}
-}
-
-func toProtoUserSummary(in application.UserSummary) *userv1.User {
-	return &userv1.User{
-		UserId:        in.UserID.String(),
-		Role:          in.Role,
-		Status:        mapAccountStatusToProto(in.Status),
-		Visibility:    mapVisibilityToProto(in.Visibility),
-		FirstName:     in.FirstName,
-		LastName:      in.LastName,
-		DisplayName:   in.DisplayName,
-		AvatarUrl:     in.AvatarURL,
-		CreatedAtUnix: in.CreatedAt.Unix(),
-		UpdatedAtUnix: in.UpdatedAt.Unix(),
-	}
-}
-
-func unixPtr(v int64) *time.Time {
-	if v <= 0 {
-		return nil
-	}
-	t := time.Unix(v, 0).UTC()
-	return &t
-}
-
-func timePtrUnix(v *time.Time) int64 {
-	if v == nil {
-		return 0
-	}
-	return v.Unix()
-}
-
-func stringPtrOrNil(v string) *string {
-	v = strings.TrimSpace(v)
-	if v == "" {
-		return nil
-	}
-	return &v
-}
-
-func defaultNotificationSettings() userv1.NotificationSettings {
-	return userv1.NotificationSettings{
-		EmailJobAlerts: true,
-		EmailMessages:  true,
-		EmailBilling:   true,
-		EmailSecurity:  true,
-		PushJobAlerts:  true,
-		PushMessages:   true,
-		PushBilling:    false,
-		PushSecurity:   true,
-	}
 }
 
 func toProtoOnboardingSteps(steps []application.OnboardingStep) []*userv1.OnboardingStep {
 	out := make([]*userv1.OnboardingStep, 0, len(steps))
 	for _, step := range steps {
-		status := userv1.OnboardingStepStatus_ONBOARDING_STEP_STATUS_NOT_STARTED
+		statusValue := userv1.OnboardingStepStatus_ONBOARDING_STEP_STATUS_NOT_STARTED
 		if step.Completed {
-			status = userv1.OnboardingStepStatus_ONBOARDING_STEP_STATUS_COMPLETED
+			statusValue = userv1.OnboardingStepStatus_ONBOARDING_STEP_STATUS_COMPLETED
 		}
-		out = append(out, &userv1.OnboardingStep{Key: step.Key, Status: status})
+		out = append(out, &userv1.OnboardingStep{Key: step.Key, Status: statusValue})
 	}
 	return out
 }
 
-func mapAccountStatusToProto(status string) userv1.AccountStatus {
-	switch strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(status), "ACCOUNT_STATUS_")) {
-	case "SUSPENDED":
-		return userv1.AccountStatus_ACCOUNT_STATUS_SUSPENDED
-	case "DELETED":
-		return userv1.AccountStatus_ACCOUNT_STATUS_DELETED
-	default:
-		return userv1.AccountStatus_ACCOUNT_STATUS_ACTIVE
+func toProtoCapabilities(policy CapabilityPolicy, p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.CapabilityFlags {
+	active := strings.EqualFold(strings.TrimPrefix(strings.TrimSpace(p.AccountStatus), "ACCOUNT_STATUS_"), domain.AccountStatusActive)
+	isFreelancer := p.Role == domain.RoleFreelancer
+	isClient := p.Role == domain.RoleClient
+	freelancerVerified := freelancer != nil && strings.EqualFold(strings.TrimSpace(freelancer.VerificationStatus), domain.VerificationStatusVerified)
+	hasHeadline := freelancer != nil && strings.TrimSpace(freelancer.Headline) != ""
+	hasEnoughSkills := freelancer != nil && len(freelancer.Skills) >= policy.MinSkillsForDiscovery
+	hasDiscoverableFreelancerProfile := freelancer != nil && hasEnoughSkills && (!policy.RequireHeadlineForFreelancer || hasHeadline)
+	hasDiscoverableClientProfile := client != nil && (!policy.RequireCompanyNameForClient || strings.TrimSpace(client.CompanyName) != "")
+
+	return &userv1.CapabilityFlags{
+		CanApplyJobs:     active && isFreelancer,
+		CanPostJobs:      active && isClient,
+		CanWithdrawFunds: active && isFreelancer && (!policy.RequireVerifiedForWithdraw || freelancerVerified),
+		CanMessage:       active || policy.AllowMessagingWhenSuspended,
+		CanBeDiscovered:  active && (hasDiscoverableFreelancerProfile || hasDiscoverableClientProfile),
 	}
 }
 
-func mapVisibilityToProto(visibility string) userv1.ProfileVisibility {
-	switch strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(visibility), "PROFILE_VISIBILITY_")) {
-	case "PRIVATE":
-		return userv1.ProfileVisibility_PROFILE_VISIBILITY_PRIVATE
+func mapRoleFromProto(role userv1.UserRole) string {
+	switch role {
+	case userv1.UserRole_USER_ROLE_CLIENT:
+		return domain.RoleClient
+	case userv1.UserRole_USER_ROLE_FREELANCER:
+		return domain.RoleFreelancer
+	case userv1.UserRole_USER_ROLE_ADMIN:
+		return domain.RoleAdmin
 	default:
-		return userv1.ProfileVisibility_PROFILE_VISIBILITY_PUBLIC
-	}
-}
-
-func mapVisibilityFromProto(visibility userv1.ProfileVisibility) string {
-	switch visibility {
-	case userv1.ProfileVisibility_PROFILE_VISIBILITY_PRIVATE:
-		return domain.ProfileVisibilityPrivate
-	case userv1.ProfileVisibility_PROFILE_VISIBILITY_PUBLIC:
-		return domain.ProfileVisibilityPublic
-	default:
-		return domain.ProfileVisibilityPublic
-	}
-}
-
-func mapPortfolioMediaTypeToProto(v string) userv1.PortfolioMediaType {
-	switch strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(v), "PORTFOLIO_MEDIA_TYPE_")) {
-	case "IMAGE":
-		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE
-	case "VIDEO":
-		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_VIDEO
-	case "FILE":
-		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_FILE
-	case "LINK":
-		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_LINK
-	default:
-		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_UNSPECIFIED
-	}
-}
-
-func mapPortfolioMediaTypeFromProto(v userv1.PortfolioMediaType) string {
-	switch v {
-	case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE:
-		return "IMAGE"
-	case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_VIDEO:
-		return "VIDEO"
-	case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_FILE:
-		return "FILE"
-	case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_LINK:
-		return "LINK"
-	default:
-		return "UNSPECIFIED"
-	}
-}
-
-func mapVerificationStatusToProto(status string) userv1.VerificationStatus {
-	switch strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(status), "VERIFICATION_STATUS_")) {
-	case "VERIFIED":
-		return userv1.VerificationStatus_VERIFICATION_STATUS_VERIFIED
-	case "REJECTED":
-		return userv1.VerificationStatus_VERIFICATION_STATUS_REJECTED
-	case "EXPIRED":
-		return userv1.VerificationStatus_VERIFICATION_STATUS_EXPIRED
-	default:
-		return userv1.VerificationStatus_VERIFICATION_STATUS_PENDING
-	}
-}
-
-func mapVerificationStatusFromProto(status userv1.VerificationStatus) string {
-	switch status {
-	case userv1.VerificationStatus_VERIFICATION_STATUS_VERIFIED:
-		return domain.VerificationStatusVerified
-	case userv1.VerificationStatus_VERIFICATION_STATUS_REJECTED:
-		return domain.VerificationStatusRejected
-	case userv1.VerificationStatus_VERIFICATION_STATUS_EXPIRED:
-		return domain.VerificationStatusExpired
-	default:
-		return domain.VerificationStatusPending
-	}
-}
-
-func mapAvailabilityToProto(availability string) userv1.Availability {
-	switch strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(availability), "AVAILABILITY_")) {
-	case "FULL_TIME":
-		return userv1.Availability_AVAILABILITY_FULL_TIME
-	case "PART_TIME":
-		return userv1.Availability_AVAILABILITY_PART_TIME
-	case "UNAVAILABLE":
-		return userv1.Availability_AVAILABILITY_UNAVAILABLE
-	default:
-		return userv1.Availability_AVAILABILITY_AS_NEEDED
+		return ""
 	}
 }
 
@@ -1714,35 +468,68 @@ func mapAvailabilityFromProto(availability userv1.Availability) string {
 	}
 }
 
-func fromUnix(unixSec int64) time.Time {
-	return time.Unix(unixSec, 0).UTC()
+func stringPtrFromAvailability(availability *userv1.Availability) *string {
+	if availability == nil {
+		return nil
+	}
+	mapped := mapAvailabilityFromProto(*availability)
+	return &mapped
 }
 
-func toProtoCapabilities(policy CapabilityPolicy, p domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.CapabilityFlags {
-	active := strings.EqualFold(strings.TrimPrefix(strings.TrimSpace(p.AccountStatus), "ACCOUNT_STATUS_"), domain.AccountStatusActive)
-	publicVisible := strings.EqualFold(strings.TrimPrefix(strings.TrimSpace(p.Visibility), "PROFILE_VISIBILITY_"), domain.ProfileVisibilityPublic)
+func toProtoRole(role string) userv1.UserRole {
+	switch strings.TrimSpace(strings.ToLower(role)) {
+	case domain.RoleClient:
+		return userv1.UserRole_USER_ROLE_CLIENT
+	case domain.RoleFreelancer:
+		return userv1.UserRole_USER_ROLE_FREELANCER
+	case domain.RoleAdmin:
+		return userv1.UserRole_USER_ROLE_ADMIN
+	default:
+		return userv1.UserRole_USER_ROLE_UNSPECIFIED
+	}
+}
 
-	isFreelancer := p.Role == domain.RoleFreelancer
-	isClient := p.Role == domain.RoleClient
+func toProtoAccountStatus(statusValue string) userv1.AccountStatus {
+	s := strings.TrimPrefix(strings.ToUpper(strings.TrimSpace(statusValue)), "ACCOUNT_STATUS_")
+	switch s {
+	case domain.AccountStatusActive:
+		return userv1.AccountStatus_ACCOUNT_STATUS_ACTIVE
+	case domain.AccountStatusSuspended:
+		return userv1.AccountStatus_ACCOUNT_STATUS_SUSPENDED
+	case domain.AccountStatusDeleted:
+		return userv1.AccountStatus_ACCOUNT_STATUS_DELETED
+	default:
+		return userv1.AccountStatus_ACCOUNT_STATUS_UNSPECIFIED
+	}
+}
 
-	freelancerVerified := freelancer != nil && strings.EqualFold(strings.TrimSpace(freelancer.VerificationStatus), domain.VerificationStatusVerified)
-	hasHeadline := freelancer != nil && strings.TrimSpace(freelancer.Headline) != ""
-	hasEnoughSkills := freelancer != nil && len(freelancer.Skills) >= policy.MinSkillsForDiscovery
-	hasDiscoverableFreelancerProfile := freelancer != nil && hasEnoughSkills && (!policy.RequireHeadlineForFreelancer || hasHeadline)
-	hasDiscoverableClientProfile := client != nil && (!policy.RequireCompanyNameForClient || strings.TrimSpace(client.CompanyName) != "")
+func toProtoVerificationStatus(value string) userv1.VerificationStatus {
+	s := strings.TrimPrefix(strings.ToUpper(strings.TrimSpace(value)), "VERIFICATION_STATUS_")
+	switch s {
+	case domain.VerificationStatusPending:
+		return userv1.VerificationStatus_VERIFICATION_STATUS_PENDING
+	case domain.VerificationStatusVerified:
+		return userv1.VerificationStatus_VERIFICATION_STATUS_VERIFIED
+	case domain.VerificationStatusRejected:
+		return userv1.VerificationStatus_VERIFICATION_STATUS_REJECTED
+	case domain.VerificationStatusExpired:
+		return userv1.VerificationStatus_VERIFICATION_STATUS_EXPIRED
+	default:
+		return userv1.VerificationStatus_VERIFICATION_STATUS_UNSPECIFIED
+	}
+}
 
-	canApplyJobs := active && isFreelancer
-	canPostJobs := active && isClient
-	canWithdrawFunds := active && isFreelancer && (!policy.RequireVerifiedForWithdraw || freelancerVerified)
-	canMessage := active || policy.AllowMessagingWhenSuspended
-	canBeDiscovered := active && (!policy.RequirePublicForDiscovery || publicVisible) && (hasDiscoverableFreelancerProfile || hasDiscoverableClientProfile)
-
-	return &userv1.CapabilityFlags{
-		CanApplyJobs:     canApplyJobs,
-		CanPostJobs:      canPostJobs,
-		CanWithdrawFunds: canWithdrawFunds,
-		CanMessage:       canMessage,
-		CanBeDiscovered:  canBeDiscovered,
+func toProtoAvailability(value string) userv1.Availability {
+	s := strings.TrimPrefix(strings.ToUpper(strings.TrimSpace(value)), "AVAILABILITY_")
+	switch s {
+	case strings.TrimPrefix(domain.AvailabilityFullTime, "AVAILABILITY_"):
+		return userv1.Availability_AVAILABILITY_FULL_TIME
+	case strings.TrimPrefix(domain.AvailabilityPartTime, "AVAILABILITY_"):
+		return userv1.Availability_AVAILABILITY_PART_TIME
+	case strings.TrimPrefix(domain.AvailabilityUnavailable, "AVAILABILITY_"):
+		return userv1.Availability_AVAILABILITY_UNAVAILABLE
+	default:
+		return userv1.Availability_AVAILABILITY_AS_NEEDED
 	}
 }
 
@@ -1752,6 +539,8 @@ func toStatus(err error) error {
 	}
 	msg := err.Error()
 	switch {
+	case contains(msg, "duplicate key"), contains(msg, "23505"):
+		return status.Error(codes.AlreadyExists, "profile already exists for user_id")
 	case contains(msg, "not found"):
 		return status.Error(codes.NotFound, msg)
 	case contains(msg, "required"), contains(msg, "invalid"), contains(msg, "not allowed"):
@@ -1759,7 +548,6 @@ func toStatus(err error) error {
 	case contains(msg, "unsupported"), contains(msg, "exceeds"), contains(msg, "too small"):
 		return status.Error(codes.InvalidArgument, msg)
 	default:
-		// Surface the underlying error for debugging via gRPC clients (e.g., Postman).
 		return status.Error(codes.Internal, msg)
 	}
 }

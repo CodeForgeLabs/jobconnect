@@ -46,7 +46,7 @@ func (r *ProfileRepo) freelancerProfileID(ctx context.Context, userID uuid.UUID,
 	`
 	args := []any{userID, domain.RoleFreelancer}
 	if publicOnly {
-		query += ` and account_status = 'ACTIVE' and visibility = 'PUBLIC'`
+		query += ` and account_status = 'ACTIVE'`
 	}
 
 	var profileID int64
@@ -90,11 +90,11 @@ func (r *ProfileRepo) CreatePortfolioItem(ctx context.Context, userID uuid.UUID,
 	var out application.PortfolioItem
 	var completedAt *time.Time
 	err = tx.QueryRow(ctx, `
-		insert into portfolio_items (profile_id, title, description, project_url, role_in_project, completed_at, sort_order, visibility)
-		values ($1,$2,$3,$4,$5,$6,$7,$8)
-		returning id, title, description, project_url, role_in_project, completed_at, sort_order, visibility, created_at, updated_at
-	`, profileID, in.Title, in.Description, in.ProjectURL, in.RoleInProject, in.CompletedAt, in.SortOrder, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Visibility), "PROFILE_VISIBILITY_"))).Scan(
-		&out.ID, &out.Title, &out.Description, &out.ProjectURL, &out.RoleInProject, &completedAt, &out.SortOrder, &out.Visibility, &out.CreatedAt, &out.UpdatedAt,
+		insert into portfolio_items (profile_id, title, description, project_url, role_in_project, completed_at, sort_order)
+		values ($1,$2,$3,$4,$5,$6,$7)
+		returning id, title, description, project_url, role_in_project, completed_at, sort_order, created_at, updated_at
+	`, profileID, in.Title, in.Description, in.ProjectURL, in.RoleInProject, in.CompletedAt, in.SortOrder).Scan(
+		&out.ID, &out.Title, &out.Description, &out.ProjectURL, &out.RoleInProject, &completedAt, &out.SortOrder, &out.CreatedAt, &out.UpdatedAt,
 	)
 	if err != nil {
 		return application.PortfolioItem{}, err
@@ -145,9 +145,9 @@ func (r *ProfileRepo) UpdatePortfolioItem(ctx context.Context, userID uuid.UUID,
 
 	res, err := tx.Exec(ctx, `
 		update portfolio_items
-		set title=$3, description=$4, project_url=$5, role_in_project=$6, completed_at=$7, sort_order=$8, visibility=$9, updated_at=now()
+		set title=$3, description=$4, project_url=$5, role_in_project=$6, completed_at=$7, sort_order=$8, updated_at=now()
 		where id=$1 and profile_id=$2 and deleted_at is null
-	`, itemID, profileID, in.Title, in.Description, in.ProjectURL, in.RoleInProject, in.CompletedAt, in.SortOrder, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Visibility), "PROFILE_VISIBILITY_")))
+	`, itemID, profileID, in.Title, in.Description, in.ProjectURL, in.RoleInProject, in.CompletedAt, in.SortOrder)
 	if err != nil {
 		return application.PortfolioItem{}, err
 	}
@@ -219,14 +219,11 @@ func (r *ProfileRepo) listPortfolioItems(ctx context.Context, userID uuid.UUID, 
 	}
 
 	query := `
-		select id, title, description, project_url, role_in_project, completed_at, sort_order, visibility, created_at, updated_at
+		select id, title, description, project_url, role_in_project, completed_at, sort_order, created_at, updated_at
 		from portfolio_items
 		where profile_id = $1 and deleted_at is null
 	`
 	args := []any{profileID, limit, offset}
-	if publicOnly {
-		query += ` and visibility = 'PUBLIC'`
-	}
 	query += ` order by sort_order asc, id asc limit $2 offset $3`
 
 	rows, err := r.pool.Query(ctx, query, args...)
@@ -239,7 +236,7 @@ func (r *ProfileRepo) listPortfolioItems(ctx context.Context, userID uuid.UUID, 
 	for rows.Next() {
 		var it application.PortfolioItem
 		var completedAt *time.Time
-		if err := rows.Scan(&it.ID, &it.Title, &it.Description, &it.ProjectURL, &it.RoleInProject, &completedAt, &it.SortOrder, &it.Visibility, &it.CreatedAt, &it.UpdatedAt); err != nil {
+		if err := rows.Scan(&it.ID, &it.Title, &it.Description, &it.ProjectURL, &it.RoleInProject, &completedAt, &it.SortOrder, &it.CreatedAt, &it.UpdatedAt); err != nil {
 			return application.ListResult[application.PortfolioItem]{}, err
 		}
 		it.UserID = userID
@@ -302,16 +299,13 @@ func (r *ProfileRepo) getPortfolioItem(ctx context.Context, userID uuid.UUID, it
 		return application.PortfolioItem{}, err
 	}
 	query := `
-		select id, title, description, project_url, role_in_project, completed_at, sort_order, visibility, created_at, updated_at
+		select id, title, description, project_url, role_in_project, completed_at, sort_order, created_at, updated_at
 		from portfolio_items
 		where id = $1 and profile_id = $2 and deleted_at is null
 	`
-	if publicOnly {
-		query += ` and visibility = 'PUBLIC'`
-	}
 	var out application.PortfolioItem
 	var completedAt *time.Time
-	if err := r.pool.QueryRow(ctx, query, itemID, profileID).Scan(&out.ID, &out.Title, &out.Description, &out.ProjectURL, &out.RoleInProject, &completedAt, &out.SortOrder, &out.Visibility, &out.CreatedAt, &out.UpdatedAt); err != nil {
+	if err := r.pool.QueryRow(ctx, query, itemID, profileID).Scan(&out.ID, &out.Title, &out.Description, &out.ProjectURL, &out.RoleInProject, &completedAt, &out.SortOrder, &out.CreatedAt, &out.UpdatedAt); err != nil {
 		if isNoRows(err) {
 			return application.PortfolioItem{}, ErrNotFound
 		}
@@ -379,11 +373,11 @@ func (r *ProfileRepo) CreateEmployment(ctx context.Context, userID uuid.UUID, in
 	}
 	var out application.Employment
 	err = r.pool.QueryRow(ctx, `
-		insert into profile_employment (profile_id, company_name, title, employment_type, location, is_current, start_date, end_date, description, sort_order, visibility)
-		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-		returning id, company_name, title, coalesce(employment_type, ''), coalesce(location, ''), is_current, start_date, end_date, coalesce(description, ''), sort_order, visibility, created_at, updated_at
-	`, profileID, in.CompanyName, in.Title, in.EmploymentType, in.Location, in.IsCurrent, in.StartDate, in.EndDate, in.Description, in.SortOrder, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Visibility), "PROFILE_VISIBILITY_"))).Scan(
-		&out.ID, &out.CompanyName, &out.Title, &out.EmploymentType, &out.Location, &out.IsCurrent, &out.StartDate, &out.EndDate, &out.Description, &out.SortOrder, &out.Visibility, &out.CreatedAt, &out.UpdatedAt,
+		insert into profile_employment (profile_id, company_name, title, employment_type, location, is_current, start_date, end_date, description, sort_order)
+		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+		returning id, company_name, title, coalesce(employment_type, ''), coalesce(location, ''), is_current, start_date, end_date, coalesce(description, ''), sort_order, created_at, updated_at
+	`, profileID, in.CompanyName, in.Title, in.EmploymentType, in.Location, in.IsCurrent, in.StartDate, in.EndDate, in.Description, in.SortOrder).Scan(
+		&out.ID, &out.CompanyName, &out.Title, &out.EmploymentType, &out.Location, &out.IsCurrent, &out.StartDate, &out.EndDate, &out.Description, &out.SortOrder, &out.CreatedAt, &out.UpdatedAt,
 	)
 	if err != nil {
 		return application.Employment{}, err
@@ -403,9 +397,9 @@ func (r *ProfileRepo) UpdateEmployment(ctx context.Context, userID uuid.UUID, em
 	}
 	res, err := r.pool.Exec(ctx, `
 		update profile_employment
-		set company_name=$3, title=$4, employment_type=$5, location=$6, is_current=$7, start_date=$8, end_date=$9, description=$10, sort_order=$11, visibility=$12, updated_at=now()
+		set company_name=$3, title=$4, employment_type=$5, location=$6, is_current=$7, start_date=$8, end_date=$9, description=$10, sort_order=$11, updated_at=now()
 		where id=$1 and profile_id=$2 and deleted_at is null
-	`, employmentID, profileID, in.CompanyName, in.Title, in.EmploymentType, in.Location, in.IsCurrent, in.StartDate, in.EndDate, in.Description, in.SortOrder, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Visibility), "PROFILE_VISIBILITY_")))
+	`, employmentID, profileID, in.CompanyName, in.Title, in.EmploymentType, in.Location, in.IsCurrent, in.StartDate, in.EndDate, in.Description, in.SortOrder)
 	if err != nil {
 		return application.Employment{}, err
 	}
@@ -448,13 +442,10 @@ func (r *ProfileRepo) listEmployment(ctx context.Context, userID uuid.UUID, page
 		return application.ListResult[application.Employment]{}, err
 	}
 	query := `
-		select id, company_name, title, coalesce(employment_type, ''), coalesce(location, ''), is_current, start_date, end_date, coalesce(description, ''), sort_order, visibility, created_at, updated_at
+		select id, company_name, title, coalesce(employment_type, ''), coalesce(location, ''), is_current, start_date, end_date, coalesce(description, ''), sort_order, created_at, updated_at
 		from profile_employment
 		where profile_id = $1 and deleted_at is null
 	`
-	if publicOnly {
-		query += ` and visibility = 'PUBLIC'`
-	}
 	query += ` order by sort_order asc, start_date desc nulls last, id desc limit $2 offset $3`
 	rows, err := r.pool.Query(ctx, query, profileID, limit, offset)
 	if err != nil {
@@ -464,7 +455,7 @@ func (r *ProfileRepo) listEmployment(ctx context.Context, userID uuid.UUID, page
 	items := make([]application.Employment, 0, limit)
 	for rows.Next() {
 		var it application.Employment
-		if err := rows.Scan(&it.ID, &it.CompanyName, &it.Title, &it.EmploymentType, &it.Location, &it.IsCurrent, &it.StartDate, &it.EndDate, &it.Description, &it.SortOrder, &it.Visibility, &it.CreatedAt, &it.UpdatedAt); err != nil {
+		if err := rows.Scan(&it.ID, &it.CompanyName, &it.Title, &it.EmploymentType, &it.Location, &it.IsCurrent, &it.StartDate, &it.EndDate, &it.Description, &it.SortOrder, &it.CreatedAt, &it.UpdatedAt); err != nil {
 			return application.ListResult[application.Employment]{}, err
 		}
 		it.UserID = userID
@@ -479,15 +470,12 @@ func (r *ProfileRepo) getEmployment(ctx context.Context, userID uuid.UUID, emplo
 		return application.Employment{}, err
 	}
 	query := `
-		select id, company_name, title, coalesce(employment_type, ''), coalesce(location, ''), is_current, start_date, end_date, coalesce(description, ''), sort_order, visibility, created_at, updated_at
+		select id, company_name, title, coalesce(employment_type, ''), coalesce(location, ''), is_current, start_date, end_date, coalesce(description, ''), sort_order, created_at, updated_at
 		from profile_employment
 		where id = $1 and profile_id = $2 and deleted_at is null
 	`
-	if publicOnly {
-		query += ` and visibility = 'PUBLIC'`
-	}
 	var out application.Employment
-	if err := r.pool.QueryRow(ctx, query, employmentID, profileID).Scan(&out.ID, &out.CompanyName, &out.Title, &out.EmploymentType, &out.Location, &out.IsCurrent, &out.StartDate, &out.EndDate, &out.Description, &out.SortOrder, &out.Visibility, &out.CreatedAt, &out.UpdatedAt); err != nil {
+	if err := r.pool.QueryRow(ctx, query, employmentID, profileID).Scan(&out.ID, &out.CompanyName, &out.Title, &out.EmploymentType, &out.Location, &out.IsCurrent, &out.StartDate, &out.EndDate, &out.Description, &out.SortOrder, &out.CreatedAt, &out.UpdatedAt); err != nil {
 		if isNoRows(err) {
 			return application.Employment{}, ErrNotFound
 		}
@@ -504,11 +492,11 @@ func (r *ProfileRepo) CreateEducation(ctx context.Context, userID uuid.UUID, in 
 	}
 	var out application.Education
 	err = r.pool.QueryRow(ctx, `
-		insert into profile_education (profile_id, school_name, degree, field_of_study, start_date, end_date, is_current, grade, description, sort_order, visibility)
-		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-		returning id, school_name, coalesce(degree, ''), coalesce(field_of_study, ''), is_current, start_date, end_date, coalesce(grade, ''), coalesce(description, ''), sort_order, visibility, created_at, updated_at
-	`, profileID, in.SchoolName, in.Degree, in.FieldOfStudy, in.StartDate, in.EndDate, in.IsCurrent, in.Grade, in.Description, in.SortOrder, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Visibility), "PROFILE_VISIBILITY_"))).Scan(
-		&out.ID, &out.SchoolName, &out.Degree, &out.FieldOfStudy, &out.IsCurrent, &out.StartDate, &out.EndDate, &out.Grade, &out.Description, &out.SortOrder, &out.Visibility, &out.CreatedAt, &out.UpdatedAt,
+		insert into profile_education (profile_id, school_name, degree, field_of_study, start_date, end_date, is_current, grade, description, sort_order)
+		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+		returning id, school_name, coalesce(degree, ''), coalesce(field_of_study, ''), is_current, start_date, end_date, coalesce(grade, ''), coalesce(description, ''), sort_order, created_at, updated_at
+	`, profileID, in.SchoolName, in.Degree, in.FieldOfStudy, in.StartDate, in.EndDate, in.IsCurrent, in.Grade, in.Description, in.SortOrder).Scan(
+		&out.ID, &out.SchoolName, &out.Degree, &out.FieldOfStudy, &out.IsCurrent, &out.StartDate, &out.EndDate, &out.Grade, &out.Description, &out.SortOrder, &out.CreatedAt, &out.UpdatedAt,
 	)
 	if err != nil {
 		return application.Education{}, err
@@ -528,9 +516,9 @@ func (r *ProfileRepo) UpdateEducation(ctx context.Context, userID uuid.UUID, edu
 	}
 	res, err := r.pool.Exec(ctx, `
 		update profile_education
-		set school_name=$3, degree=$4, field_of_study=$5, is_current=$6, start_date=$7, end_date=$8, grade=$9, description=$10, sort_order=$11, visibility=$12, updated_at=now()
+		set school_name=$3, degree=$4, field_of_study=$5, is_current=$6, start_date=$7, end_date=$8, grade=$9, description=$10, sort_order=$11, updated_at=now()
 		where id=$1 and profile_id=$2 and deleted_at is null
-	`, educationID, profileID, in.SchoolName, in.Degree, in.FieldOfStudy, in.IsCurrent, in.StartDate, in.EndDate, in.Grade, in.Description, in.SortOrder, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Visibility), "PROFILE_VISIBILITY_")))
+	`, educationID, profileID, in.SchoolName, in.Degree, in.FieldOfStudy, in.IsCurrent, in.StartDate, in.EndDate, in.Grade, in.Description, in.SortOrder)
 	if err != nil {
 		return application.Education{}, err
 	}
@@ -573,13 +561,10 @@ func (r *ProfileRepo) listEducation(ctx context.Context, userID uuid.UUID, pageS
 		return application.ListResult[application.Education]{}, err
 	}
 	query := `
-		select id, school_name, coalesce(degree, ''), coalesce(field_of_study, ''), is_current, start_date, end_date, coalesce(grade, ''), coalesce(description, ''), sort_order, visibility, created_at, updated_at
+		select id, school_name, coalesce(degree, ''), coalesce(field_of_study, ''), is_current, start_date, end_date, coalesce(grade, ''), coalesce(description, ''), sort_order, created_at, updated_at
 		from profile_education
 		where profile_id = $1 and deleted_at is null
 	`
-	if publicOnly {
-		query += ` and visibility = 'PUBLIC'`
-	}
 	query += ` order by sort_order asc, start_date desc nulls last, id desc limit $2 offset $3`
 	rows, err := r.pool.Query(ctx, query, profileID, limit, offset)
 	if err != nil {
@@ -589,7 +574,7 @@ func (r *ProfileRepo) listEducation(ctx context.Context, userID uuid.UUID, pageS
 	items := make([]application.Education, 0, limit)
 	for rows.Next() {
 		var it application.Education
-		if err := rows.Scan(&it.ID, &it.SchoolName, &it.Degree, &it.FieldOfStudy, &it.IsCurrent, &it.StartDate, &it.EndDate, &it.Grade, &it.Description, &it.SortOrder, &it.Visibility, &it.CreatedAt, &it.UpdatedAt); err != nil {
+		if err := rows.Scan(&it.ID, &it.SchoolName, &it.Degree, &it.FieldOfStudy, &it.IsCurrent, &it.StartDate, &it.EndDate, &it.Grade, &it.Description, &it.SortOrder, &it.CreatedAt, &it.UpdatedAt); err != nil {
 			return application.ListResult[application.Education]{}, err
 		}
 		it.UserID = userID
@@ -604,15 +589,12 @@ func (r *ProfileRepo) getEducation(ctx context.Context, userID uuid.UUID, educat
 		return application.Education{}, err
 	}
 	query := `
-		select id, school_name, coalesce(degree, ''), coalesce(field_of_study, ''), is_current, start_date, end_date, coalesce(grade, ''), coalesce(description, ''), sort_order, visibility, created_at, updated_at
+		select id, school_name, coalesce(degree, ''), coalesce(field_of_study, ''), is_current, start_date, end_date, coalesce(grade, ''), coalesce(description, ''), sort_order, created_at, updated_at
 		from profile_education
 		where id = $1 and profile_id = $2 and deleted_at is null
 	`
-	if publicOnly {
-		query += ` and visibility = 'PUBLIC'`
-	}
 	var out application.Education
-	if err := r.pool.QueryRow(ctx, query, educationID, profileID).Scan(&out.ID, &out.SchoolName, &out.Degree, &out.FieldOfStudy, &out.IsCurrent, &out.StartDate, &out.EndDate, &out.Grade, &out.Description, &out.SortOrder, &out.Visibility, &out.CreatedAt, &out.UpdatedAt); err != nil {
+	if err := r.pool.QueryRow(ctx, query, educationID, profileID).Scan(&out.ID, &out.SchoolName, &out.Degree, &out.FieldOfStudy, &out.IsCurrent, &out.StartDate, &out.EndDate, &out.Grade, &out.Description, &out.SortOrder, &out.CreatedAt, &out.UpdatedAt); err != nil {
 		if isNoRows(err) {
 			return application.Education{}, ErrNotFound
 		}
@@ -629,11 +611,11 @@ func (r *ProfileRepo) CreateCertification(ctx context.Context, userID uuid.UUID,
 	}
 	var out application.Certification
 	err = r.pool.QueryRow(ctx, `
-		insert into profile_certifications (profile_id, name, issuing_organization, credential_id, credential_url, issue_date, expiration_date, does_not_expire, visibility)
-		values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
-		returning id, name, issuing_organization, coalesce(credential_id, ''), coalesce(credential_url, ''), issue_date, expiration_date, does_not_expire, visibility, created_at, updated_at
-	`, profileID, in.Name, in.IssuingOrganization, in.CredentialID, in.CredentialURL, in.IssueDate, in.ExpirationDate, in.DoesNotExpire, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Visibility), "PROFILE_VISIBILITY_"))).Scan(
-		&out.ID, &out.Name, &out.IssuingOrganization, &out.CredentialID, &out.CredentialURL, &out.IssueDate, &out.ExpirationDate, &out.DoesNotExpire, &out.Visibility, &out.CreatedAt, &out.UpdatedAt,
+		insert into profile_certifications (profile_id, name, issuing_organization, credential_id, credential_url, issue_date, expiration_date, does_not_expire)
+		values ($1,$2,$3,$4,$5,$6,$7,$8)
+		returning id, name, issuing_organization, coalesce(credential_id, ''), coalesce(credential_url, ''), issue_date, expiration_date, does_not_expire, created_at, updated_at
+	`, profileID, in.Name, in.IssuingOrganization, in.CredentialID, in.CredentialURL, in.IssueDate, in.ExpirationDate, in.DoesNotExpire).Scan(
+		&out.ID, &out.Name, &out.IssuingOrganization, &out.CredentialID, &out.CredentialURL, &out.IssueDate, &out.ExpirationDate, &out.DoesNotExpire, &out.CreatedAt, &out.UpdatedAt,
 	)
 	if err != nil {
 		return application.Certification{}, err
@@ -653,9 +635,9 @@ func (r *ProfileRepo) UpdateCertification(ctx context.Context, userID uuid.UUID,
 	}
 	res, err := r.pool.Exec(ctx, `
 		update profile_certifications
-		set name=$3, issuing_organization=$4, credential_id=$5, credential_url=$6, issue_date=$7, expiration_date=$8, does_not_expire=$9, visibility=$10, updated_at=now()
+		set name=$3, issuing_organization=$4, credential_id=$5, credential_url=$6, issue_date=$7, expiration_date=$8, does_not_expire=$9, updated_at=now()
 		where id=$1 and profile_id=$2 and deleted_at is null
-	`, certificationID, profileID, in.Name, in.IssuingOrganization, in.CredentialID, in.CredentialURL, in.IssueDate, in.ExpirationDate, in.DoesNotExpire, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Visibility), "PROFILE_VISIBILITY_")))
+	`, certificationID, profileID, in.Name, in.IssuingOrganization, in.CredentialID, in.CredentialURL, in.IssueDate, in.ExpirationDate, in.DoesNotExpire)
 	if err != nil {
 		return application.Certification{}, err
 	}
@@ -698,13 +680,10 @@ func (r *ProfileRepo) listCertifications(ctx context.Context, userID uuid.UUID, 
 		return application.ListResult[application.Certification]{}, err
 	}
 	query := `
-		select id, name, issuing_organization, coalesce(credential_id, ''), coalesce(credential_url, ''), issue_date, expiration_date, does_not_expire, visibility, created_at, updated_at
+		select id, name, issuing_organization, coalesce(credential_id, ''), coalesce(credential_url, ''), issue_date, expiration_date, does_not_expire, created_at, updated_at
 		from profile_certifications
 		where profile_id = $1 and deleted_at is null
 	`
-	if publicOnly {
-		query += ` and visibility = 'PUBLIC'`
-	}
 	query += ` order by issue_date desc nulls last, id desc limit $2 offset $3`
 	rows, err := r.pool.Query(ctx, query, profileID, limit, offset)
 	if err != nil {
@@ -714,7 +693,7 @@ func (r *ProfileRepo) listCertifications(ctx context.Context, userID uuid.UUID, 
 	items := make([]application.Certification, 0, limit)
 	for rows.Next() {
 		var it application.Certification
-		if err := rows.Scan(&it.ID, &it.Name, &it.IssuingOrganization, &it.CredentialID, &it.CredentialURL, &it.IssueDate, &it.ExpirationDate, &it.DoesNotExpire, &it.Visibility, &it.CreatedAt, &it.UpdatedAt); err != nil {
+		if err := rows.Scan(&it.ID, &it.Name, &it.IssuingOrganization, &it.CredentialID, &it.CredentialURL, &it.IssueDate, &it.ExpirationDate, &it.DoesNotExpire, &it.CreatedAt, &it.UpdatedAt); err != nil {
 			return application.ListResult[application.Certification]{}, err
 		}
 		it.UserID = userID
@@ -729,15 +708,12 @@ func (r *ProfileRepo) getCertification(ctx context.Context, userID uuid.UUID, ce
 		return application.Certification{}, err
 	}
 	query := `
-		select id, name, issuing_organization, coalesce(credential_id, ''), coalesce(credential_url, ''), issue_date, expiration_date, does_not_expire, visibility, created_at, updated_at
+		select id, name, issuing_organization, coalesce(credential_id, ''), coalesce(credential_url, ''), issue_date, expiration_date, does_not_expire, created_at, updated_at
 		from profile_certifications
 		where id = $1 and profile_id = $2 and deleted_at is null
 	`
-	if publicOnly {
-		query += ` and visibility = 'PUBLIC'`
-	}
 	var out application.Certification
-	if err := r.pool.QueryRow(ctx, query, certificationID, profileID).Scan(&out.ID, &out.Name, &out.IssuingOrganization, &out.CredentialID, &out.CredentialURL, &out.IssueDate, &out.ExpirationDate, &out.DoesNotExpire, &out.Visibility, &out.CreatedAt, &out.UpdatedAt); err != nil {
+	if err := r.pool.QueryRow(ctx, query, certificationID, profileID).Scan(&out.ID, &out.Name, &out.IssuingOrganization, &out.CredentialID, &out.CredentialURL, &out.IssueDate, &out.ExpirationDate, &out.DoesNotExpire, &out.CreatedAt, &out.UpdatedAt); err != nil {
 		if isNoRows(err) {
 			return application.Certification{}, ErrNotFound
 		}
@@ -767,14 +743,10 @@ func (r *ProfileRepo) UpsertLanguages(ctx context.Context, userID uuid.UUID, lan
 			continue
 		}
 		proficiency := strings.ToUpper(strings.TrimSpace(lang.Proficiency))
-		visibility := strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(lang.Visibility), "PROFILE_VISIBILITY_"))
-		if visibility == "" {
-			visibility = domain.ProfileVisibilityPublic
-		}
 		if _, err := tx.Exec(ctx, `
-			insert into profile_languages (profile_id, language_code, proficiency, visibility, created_at, updated_at)
-			values ($1,$2,$3,$4, now(), now())
-		`, profileID, code, proficiency, visibility); err != nil {
+			insert into profile_languages (profile_id, language_code, proficiency, created_at, updated_at)
+			values ($1,$2,$3, now(), now())
+		`, profileID, code, proficiency); err != nil {
 			return nil, err
 		}
 	}
@@ -797,10 +769,7 @@ func (r *ProfileRepo) getLanguages(ctx context.Context, userID uuid.UUID, public
 	if err != nil {
 		return nil, err
 	}
-	query := `select language_code, proficiency, visibility from profile_languages where profile_id = $1`
-	if publicOnly {
-		query += ` and visibility = 'PUBLIC'`
-	}
+	query := `select language_code, proficiency from profile_languages where profile_id = $1`
 	query += ` order by language_code asc`
 	rows, err := r.pool.Query(ctx, query, profileID)
 	if err != nil {
@@ -810,7 +779,7 @@ func (r *ProfileRepo) getLanguages(ctx context.Context, userID uuid.UUID, public
 	out := make([]application.LanguageProficiency, 0)
 	for rows.Next() {
 		var lp application.LanguageProficiency
-		if err := rows.Scan(&lp.LanguageCode, &lp.Proficiency, &lp.Visibility); err != nil {
+		if err := rows.Scan(&lp.LanguageCode, &lp.Proficiency); err != nil {
 			return nil, err
 		}
 		out = append(out, lp)
@@ -992,11 +961,11 @@ func (r *ProfileRepo) GetCompany(ctx context.Context, userID uuid.UUID) (applica
 	err = r.pool.QueryRow(ctx, `
 		select
 			coalesce(company_name, ''),
-			coalesce(billing_address, ''),
-			coalesce(tax_id, '')
-		from client_profiles
-		where profile_id = $1
-	`, profileID).Scan(&out.CompanyName, &out.BillingAddress, &out.TaxID)
+			coalesce(p.tax_id, '')
+		from client_profiles cp
+		join profiles p on p.id = cp.profile_id
+		where cp.profile_id = $1
+	`, profileID).Scan(&out.CompanyName, &out.TaxID)
 	if err != nil {
 		if isNoRows(err) {
 			return out, nil
@@ -1012,24 +981,21 @@ func (r *ProfileRepo) UpdateCompany(ctx context.Context, userID uuid.UUID, in ap
 		return application.CompanySettings{}, err
 	}
 
-	verificationStatus := ""
-	if err := r.pool.QueryRow(ctx, `
-		select coalesce(verification_status, '')
-		from client_profiles
-		where profile_id = $1
-	`, profileID).Scan(&verificationStatus); err != nil && !isNoRows(err) {
+	if _, err := r.pool.Exec(ctx, `
+		insert into client_profiles (profile_id, company_name)
+		values ($1, $2)
+		on conflict (profile_id) do update set
+			company_name = excluded.company_name
+	`, profileID, strings.TrimSpace(in.CompanyName)); err != nil {
 		return application.CompanySettings{}, err
 	}
 
 	if _, err := r.pool.Exec(ctx, `
-		insert into client_profiles (profile_id, company_name, billing_address, tax_id, verification_status)
-		values ($1, $2, $3, $4, $5)
-		on conflict (profile_id) do update set
-			company_name = excluded.company_name,
-			billing_address = excluded.billing_address,
-			tax_id = excluded.tax_id,
-			verification_status = excluded.verification_status
-	`, profileID, strings.TrimSpace(in.CompanyName), strings.TrimSpace(in.BillingAddress), strings.TrimSpace(in.TaxID), strings.TrimSpace(verificationStatus)); err != nil {
+		update profiles
+		set tax_id = $2,
+			updated_at = now()
+		where id = $1
+	`, profileID, strings.TrimSpace(in.TaxID)); err != nil {
 		return application.CompanySettings{}, err
 	}
 
@@ -1259,7 +1225,6 @@ func (r *ProfileRepo) ListUsers(ctx context.Context, requesterUserID uuid.UUID, 
 			user_id,
 			role,
 			coalesce(account_status, 'ACTIVE'),
-			coalesce(visibility, 'PUBLIC'),
 			coalesce(first_name, ''),
 			coalesce(last_name, ''),
 			coalesce(display_name, ''),
@@ -1300,7 +1265,7 @@ func (r *ProfileRepo) ListUsers(ctx context.Context, requesterUserID uuid.UUID, 
 	items := make([]application.UserSummary, 0, limit)
 	for rows.Next() {
 		var item application.UserSummary
-		if err := rows.Scan(&item.UserID, &item.Role, &item.Status, &item.Visibility, &item.FirstName, &item.LastName, &item.DisplayName, &item.AvatarURL, &item.CreatedAt, &item.UpdatedAt); err != nil {
+		if err := rows.Scan(&item.UserID, &item.Role, &item.Status, &item.FirstName, &item.LastName, &item.DisplayName, &item.AvatarURL, &item.CreatedAt, &item.UpdatedAt); err != nil {
 			return application.ListResult[application.UserSummary]{}, err
 		}
 		items = append(items, item)
@@ -1349,11 +1314,10 @@ func (r *ProfileRepo) GetUserAuditSummary(ctx context.Context, requesterUserID u
 	err := r.pool.QueryRow(ctx, `
 		select
 			coalesce(account_status, 'ACTIVE'),
-			coalesce(visibility, 'PUBLIC'),
 			updated_at
 		from profiles
 		where user_id = $1 and deleted_at is null
-	`, targetUserID).Scan(&out.Status, &out.Visibility, &out.ProfileUpdatedAt)
+	`, targetUserID).Scan(&out.Status, &out.ProfileUpdatedAt)
 	if err != nil {
 		if isNoRows(err) {
 			return application.UserAuditSummary{}, ErrNotFound
