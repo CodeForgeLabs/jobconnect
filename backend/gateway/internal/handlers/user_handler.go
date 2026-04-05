@@ -42,7 +42,6 @@ type updateProfileRequest struct {
 	TaxID            *string  `json:"tax_id"`
 	Headline         *string  `json:"headline"`
 	Skills           []string `json:"skills"`
-	ExperienceLevel  *string  `json:"experience_level"`
 	HourlyRate       *float64 `json:"hourly_rate"`
 	Availability     *string  `json:"availability"`
 	Location         *string  `json:"location"`
@@ -198,7 +197,7 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "language must be updated via /users/me/settings"})
 		return
 	}
-	if body.FirstName != nil || body.LastName != nil || body.TaxID != nil || body.ExperienceLevel != nil || body.LastActiveAtUnix != nil {
+	if body.FirstName != nil || body.LastName != nil || body.TaxID != nil || body.LastActiveAtUnix != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported profile fields in this endpoint"})
 		return
 	}
