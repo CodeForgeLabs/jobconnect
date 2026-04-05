@@ -77,7 +77,7 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 	if in.TaxID != nil {
 		status := normalizeVerificationStatus(profile.VerificationStatus)
 		if status == domain.VerificationStatusPending || status == domain.VerificationStatusVerified {
-			return UpdateProfileOutput{}, fmt.Errorf("tax_id cannot be changed while verification is pending or verified")
+			return UpdateProfileOutput{}, fmt.Errorf("tax_id update is not allowed while verification is pending or verified")
 		}
 		profile.TaxID = strings.TrimSpace(*in.TaxID)
 	}
