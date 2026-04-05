@@ -175,7 +175,9 @@ func (s *UserServer) PatchMyProfile(ctx context.Context, req *userv1.PatchMyProf
 
 	if req.Core != nil {
 		in.DisplayName = req.Core.DisplayName
-		in.Language = req.Core.Language
+		if req.Core.Language != nil {
+			return nil, status.Error(codes.InvalidArgument, "language must be updated via PatchMySettings")
+		}
 		in.ContactEmail = req.Core.ContactEmail
 		in.ContactPhone = req.Core.ContactPhone
 		in.Bio = req.Core.Bio
