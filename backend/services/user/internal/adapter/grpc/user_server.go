@@ -152,15 +152,84 @@ func (s *UserServer) GetMyProfile(ctx context.Context, req *userv1.GetMyProfileR
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	statusOut, err := s.GetOnboardingStatusUC.Execute(ctx, application.GetOnboardingStatusInput{UserID: userID})
-	if err != nil {
-		return nil, toStatus(err)
-	}
+	statusOut := s.GetOnboardingStatusUC.Build(out.Profile, out.Client, out.Freelancer)
 	return &userv1.GetMyProfileResponse{
 		Profile: s.toProtoUserProfile(out.Profile, out.Client, out.Freelancer),
 		Completeness: &userv1.ProfileCompleteness{
 			Percent:               statusOut.Percent,
 			MissingRequiredFields: statusOut.Missing,
+		},
+	}, nil
+}
+
+func (s *UserServer) PatchMyProfile(ctx context.Context, req *userv1.PatchMyProfileRequest) (*userv1.PatchMyProfileResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	in := application.UpdateProfileInput{UserID: userID}
+
+	if req.Core != nil {
+		in.DisplayName = req.Core.DisplayName
+		in.Language = req.Core.Language
+		in.ContactEmail = req.Core.ContactEmail
+		in.ContactPhone = req.Core.ContactPhone
+		in.Bio = req.Core.Bio
+	}
+
+	if req.GetClient() != nil {
+		in.CompanyName = req.GetClient().CompanyName
+	}
+
+	if req.GetFreelancer() != nil {
+		in.Headline = req.GetFreelancer().Headline
+		if req.GetFreelancer().Skills != nil {
+			in.Skills = req.GetFreelancer().Skills.GetValues()
+		}
+		in.HourlyRate = req.GetFreelancer().HourlyRate
+		in.Availability = stringPtrFromAvailability(req.GetFreelancer().Availability)
+		in.Location = req.GetFreelancer().Location
+	}
+
+	if hasClearField(req.ClearFields, "contact_phone") {
+		empty := ""
+		in.ContactPhone = &empty
+	}
+	if hasClearField(req.ClearFields, "bio") {
+		empty := ""
+		in.Bio = &empty
+	}
+	if hasClearField(req.ClearFields, "company_name") {
+		empty := ""
+		in.CompanyName = &empty
+	}
+	if hasClearField(req.ClearFields, "headline") {
+		empty := ""
+		in.Headline = &empty
+	}
+	if hasClearField(req.ClearFields, "location") {
+		empty := ""
+		in.Location = &empty
+	}
+	if hasClearField(req.ClearFields, "skills") {
+		// UpdateProfile applies skills replacement only when input has length > 0.
+		in.Skills = []string{""}
+	}
+
+	out, err := s.UpdateProfileUC.Execute(ctx, in)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.PatchMyProfileResponse{
+		Profile: s.toProtoUserProfile(out.Profile, out.Client, out.Freelancer),
+		Completeness: &userv1.ProfileCompleteness{
+			Percent:               out.Completeness,
+			MissingRequiredFields: out.Missing,
 		},
 	}, nil
 }
@@ -554,4 +623,13 @@ func toStatus(err error) error {
 
 func contains(s, sub string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(sub))
+}
+
+func hasClearField(fields []string, target string) bool {
+	for _, field := range fields {
+		if strings.EqualFold(strings.TrimSpace(field), target) {
+			return true
+		}
+	}
+	return false
 }
