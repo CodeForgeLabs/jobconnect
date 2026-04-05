@@ -26,16 +26,14 @@ const Jobcard = ({
   const normalizedRating = Math.max(0, Math.min(5, Math.round(rating * 2) / 2));
 
   return (
-    <div className="flex flex-col gap-1 rounded-lg bg-white py-4 px-6 ">
-      <div className="mb-3 flex items-start justify-between gap-4">
-        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
-
+    <div className="flex flex-col  rounded-lg bg-white py-4 px-6 ">
+      <div className="mb-1 flex items-start justify-between gap-4">
+        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center gap-3 text-sm text-gray-700">
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-gray-700">
         {type === "hourly" ? (
           <span className="flex items-center gap-1">
-            
             <span className="font-semibold text-jobBlue">
               $ Hourly : {pay}/hr
             </span>
@@ -70,8 +68,9 @@ const Jobcard = ({
         </div>
       ) : null}
 
-      <div className="flex justify-between mt-2 border-t border-gray-200 pt-4">
-        <div className="flex items-center rating rating-xs rating-half pointer-events-none">
+      <div className="flex justify-between border-t border-gray-200 pt-4">
+        <div className="flex items-center gap-1">
+          <div className="flex items-center rating rating-xs rating-half pointer-events-none">
             <input
               type="radio"
               name={ratingGroupName}
@@ -148,14 +147,13 @@ const Jobcard = ({
               checked={normalizedRating === 5}
             />
           </div>
+          <p className="text-xs text-gray-400">Payment verified</p>
+        </div>
 
-         <button className="text-[12px] rounded-lg bg-jobBlue px-5 py-2 text-white hover:bg-blue-600">
-        Apply Now
-      </button>
-
+        <button className="text-[12px] rounded-lg bg-jobBlue px-5 py-2 text-white hover:bg-blue-600">
+          Apply Now
+        </button>
       </div>
-
-     
     </div>
   );
 };
