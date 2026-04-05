@@ -14,7 +14,6 @@ func verificationCountsComplete(status string) bool {
 func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) (uint32, []string) {
 	required := map[string]string{
 		"display_name":  profile.DisplayName,
-		"language":      profile.Language,
 		"contact_email": profile.ContactEmail,
 	}
 
@@ -22,7 +21,6 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 	case domain.RoleClient:
 		if client != nil {
 			required["company_name"] = client.CompanyName
-			required["billing_address"] = client.BillingAddress
 			required["tax_id"] = client.TaxID
 			if verificationCountsComplete(client.VerificationStatus) {
 				required["verification_status"] = "filled"
@@ -31,7 +29,6 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 			}
 		} else {
 			required["company_name"] = ""
-			required["billing_address"] = ""
 			required["tax_id"] = ""
 			required["verification_status"] = ""
 		}
@@ -84,7 +81,7 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 
 func computeOnboardingSteps(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) []OnboardingStep {
 	steps := []OnboardingStep{
-		{Key: "profile_completed", Completed: strings.TrimSpace(profile.DisplayName) != "" && strings.TrimSpace(profile.Language) != "" && strings.TrimSpace(profile.ContactEmail) != ""},
+		{Key: "profile_completed", Completed: strings.TrimSpace(profile.DisplayName) != "" && strings.TrimSpace(profile.ContactEmail) != ""},
 		{Key: "avatar_uploaded", Completed: strings.TrimSpace(profile.AvatarURL) != ""},
 	}
 
