@@ -24,7 +24,6 @@ CREATE TABLE IF NOT EXISTS freelancer_profiles (
     headline VARCHAR,
     bio TEXT,
     skills JSONB,
-    experience_level VARCHAR,
     rating DECIMAL,
     verification_status VARCHAR,
     created_at TIMESTAMP DEFAULT NOW()

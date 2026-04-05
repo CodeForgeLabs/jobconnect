@@ -35,8 +35,7 @@ ALTER TABLE client_profiles
 
 -- 3) freelancer_profiles: remove legacy fields and normalize earnings column name.
 ALTER TABLE freelancer_profiles
-    DROP COLUMN IF EXISTS bio,
-    DROP COLUMN IF EXISTS experience_level;
+    DROP COLUMN IF EXISTS bio;
 
 ALTER TABLE freelancer_profiles
     RENAME COLUMN total_earnings_usd TO total_earnings;
