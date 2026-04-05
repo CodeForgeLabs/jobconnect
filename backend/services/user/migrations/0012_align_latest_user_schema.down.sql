@@ -46,7 +46,8 @@ ALTER TABLE freelancer_profiles
     RENAME COLUMN total_earnings TO total_earnings_usd;
 
 ALTER TABLE freelancer_profiles
-    ADD COLUMN IF NOT EXISTS bio TEXT;
+    ADD COLUMN IF NOT EXISTS bio TEXT,
+    ADD COLUMN IF NOT EXISTS verification_status VARCHAR;
 
 -- 7) Restore dropped legacy client_profiles columns.
 ALTER TABLE client_profiles

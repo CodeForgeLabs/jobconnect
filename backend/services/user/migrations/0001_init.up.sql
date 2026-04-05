@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS client_profiles (
     profile_id INT NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
     company_name VARCHAR,
     tax_id VARCHAR,
-    verification_status VARCHAR,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -25,6 +24,5 @@ CREATE TABLE IF NOT EXISTS freelancer_profiles (
     bio TEXT,
     skills JSONB,
     rating DECIMAL,
-    verification_status VARCHAR,
     created_at TIMESTAMP DEFAULT NOW()
 );

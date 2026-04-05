@@ -13,19 +13,38 @@ WHERE cp.profile_id = p.id
   AND p.tax_id IS NULL
   AND cp.tax_id IS NOT NULL;
 
-UPDATE profiles p
-SET verification_status = fp.verification_status
-FROM freelancer_profiles fp
-WHERE fp.profile_id = p.id
-  AND p.verification_status IS NULL
-  AND fp.verification_status IS NOT NULL;
+DO $$
+BEGIN
+        IF EXISTS (
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                    AND table_name = 'freelancer_profiles'
+                    AND column_name = 'verification_status'
+        ) THEN
+                UPDATE profiles p
+                SET verification_status = fp.verification_status
+                FROM freelancer_profiles fp
+                WHERE fp.profile_id = p.id
+                    AND p.verification_status IS NULL
+                    AND fp.verification_status IS NOT NULL;
+        END IF;
 
-UPDATE profiles p
-SET verification_status = cp.verification_status
-FROM client_profiles cp
-WHERE cp.profile_id = p.id
-  AND p.verification_status IS NULL
-  AND cp.verification_status IS NOT NULL;
+        IF EXISTS (
+                SELECT 1
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                    AND table_name = 'client_profiles'
+                    AND column_name = 'verification_status'
+        ) THEN
+                UPDATE profiles p
+                SET verification_status = cp.verification_status
+                FROM client_profiles cp
+                WHERE cp.profile_id = p.id
+                    AND p.verification_status IS NULL
+                    AND cp.verification_status IS NOT NULL;
+        END IF;
+END $$;
 
 -- 2) client_profiles: keep only latest-table fields.
 ALTER TABLE client_profiles
@@ -35,7 +54,8 @@ ALTER TABLE client_profiles
 
 -- 3) freelancer_profiles: remove legacy fields and normalize earnings column name.
 ALTER TABLE freelancer_profiles
-    DROP COLUMN IF EXISTS bio;
+    DROP COLUMN IF EXISTS bio,
+    DROP COLUMN IF EXISTS verification_status;
 
 ALTER TABLE freelancer_profiles
     RENAME COLUMN total_earnings_usd TO total_earnings;
