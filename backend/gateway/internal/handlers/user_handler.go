@@ -52,6 +52,10 @@ type updateAccountStatusRequest struct {
 	SuspensionReason *string `json:"suspension_reason"`
 }
 
+type updateAccountSettingsRequest struct {
+	UILocale *string `json:"ui_locale"`
+}
+
 func NewUserHandler(client userv1.UserServiceClient) *UserHandler {
 	return &UserHandler{client: client}
 }
@@ -291,11 +295,61 @@ func (h *UserHandler) GetMeOnboardingStatus(c *gin.Context) {
 }
 
 func (h *UserHandler) GetMeAccountSettings(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetMySettings(c.Request.Context(), &userv1.GetMySettingsRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	settingsPayload, err := protoToAny(resp.GetSettings())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"settings": settingsPayload})
 }
 
 func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	var body updateAccountSettingsRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if body.UILocale == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "at least one updatable setting is required"})
+		return
+	}
+
+	resp, err := h.client.PatchMySettings(c.Request.Context(), &userv1.PatchMySettingsRequest{
+		UserId:   userID,
+		UiLocale: body.UILocale,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	settingsPayload, err := protoToAny(resp.GetSettings())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"settings": settingsPayload})
 }
 
 func (h *UserHandler) GetMePrivacySettings(c *gin.Context) {
