@@ -172,6 +172,10 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "avatar_url must be managed via avatar endpoints"})
 		return
 	}
+	if body.FirstName != nil || body.LastName != nil || body.BillingAddress != nil || body.TaxID != nil || body.ExperienceLevel != nil || body.LastActiveAtUnix != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported profile fields in this endpoint"})
+		return
+	}
 
 	var availability *userv1.Availability
 	if body.Availability != nil {
