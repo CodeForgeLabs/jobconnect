@@ -8,12 +8,6 @@ service UserService {
   rpc CreateMyProfile(CreateMyProfileRequest) returns (CreateMyProfileResponse);
   rpc GetMyProfile(GetMyProfileRequest) returns (GetMyProfileResponse);
   rpc PatchMyProfile(PatchMyProfileRequest) returns (PatchMyProfileResponse);
-  rpc PatchMyProfileCore(PatchMyProfileCoreRequest)
-      returns (PatchMyProfileCoreResponse);
-  rpc PatchMyClientProfile(PatchMyClientProfileRequest)
-      returns (PatchMyClientProfileResponse);
-  rpc PatchMyFreelancerProfile(PatchMyFreelancerProfileRequest)
-      returns (PatchMyFreelancerProfileResponse);
   rpc DeleteMyProfile(DeleteMyProfileRequest) returns (DeleteMyProfileResponse);
   rpc GetMyOnboardingStatus(GetMyOnboardingStatusRequest)
       returns (GetMyOnboardingStatusResponse);
@@ -388,42 +382,6 @@ message PatchMySettingsRequest {
 
 message PatchMySettingsResponse {
   UserSettings settings = 1;
-}
-
-message PatchMyProfileCoreRequest {
-  string user_id = 1;
-  optional string display_name = 2;
-  optional string language = 4;
-  optional string contact_email = 5;
-  optional string contact_phone = 6;
-  optional string bio = 7;
-}
-
-message PatchMyProfileCoreResponse {
-  UserProfile profile = 1;
-  ProfileCompleteness completeness = 2;
-}
-
-message PatchMyClientProfileRequest {
-  string user_id = 1;
-  optional string company_name = 2;
-}
-
-message PatchMyClientProfileResponse {
-  UserProfile profile = 1;
-}
-
-message PatchMyFreelancerProfileRequest {
-  string user_id = 1;
-  optional string headline = 2;
-  StringList skills = 3;
-  optional double hourly_rate = 4;
-  optional Availability availability = 5;
-  optional string location = 6;
-}
-
-message PatchMyFreelancerProfileResponse {
-  UserProfile profile = 1;
 }
 
 message DeleteMyProfileRequest {

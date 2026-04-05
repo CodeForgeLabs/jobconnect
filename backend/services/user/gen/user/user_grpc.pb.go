@@ -22,9 +22,6 @@ const (
 	UserService_CreateMyProfile_FullMethodName          = "/user.v1.UserService/CreateMyProfile"
 	UserService_GetMyProfile_FullMethodName             = "/user.v1.UserService/GetMyProfile"
 	UserService_PatchMyProfile_FullMethodName           = "/user.v1.UserService/PatchMyProfile"
-	UserService_PatchMyProfileCore_FullMethodName       = "/user.v1.UserService/PatchMyProfileCore"
-	UserService_PatchMyClientProfile_FullMethodName     = "/user.v1.UserService/PatchMyClientProfile"
-	UserService_PatchMyFreelancerProfile_FullMethodName = "/user.v1.UserService/PatchMyFreelancerProfile"
 	UserService_DeleteMyProfile_FullMethodName          = "/user.v1.UserService/DeleteMyProfile"
 	UserService_GetMyOnboardingStatus_FullMethodName    = "/user.v1.UserService/GetMyOnboardingStatus"
 	UserService_GetMySettings_FullMethodName            = "/user.v1.UserService/GetMySettings"
@@ -91,9 +88,6 @@ type UserServiceClient interface {
 	CreateMyProfile(ctx context.Context, in *CreateMyProfileRequest, opts ...grpc.CallOption) (*CreateMyProfileResponse, error)
 	GetMyProfile(ctx context.Context, in *GetMyProfileRequest, opts ...grpc.CallOption) (*GetMyProfileResponse, error)
 	PatchMyProfile(ctx context.Context, in *PatchMyProfileRequest, opts ...grpc.CallOption) (*PatchMyProfileResponse, error)
-	PatchMyProfileCore(ctx context.Context, in *PatchMyProfileCoreRequest, opts ...grpc.CallOption) (*PatchMyProfileCoreResponse, error)
-	PatchMyClientProfile(ctx context.Context, in *PatchMyClientProfileRequest, opts ...grpc.CallOption) (*PatchMyClientProfileResponse, error)
-	PatchMyFreelancerProfile(ctx context.Context, in *PatchMyFreelancerProfileRequest, opts ...grpc.CallOption) (*PatchMyFreelancerProfileResponse, error)
 	DeleteMyProfile(ctx context.Context, in *DeleteMyProfileRequest, opts ...grpc.CallOption) (*DeleteMyProfileResponse, error)
 	GetMyOnboardingStatus(ctx context.Context, in *GetMyOnboardingStatusRequest, opts ...grpc.CallOption) (*GetMyOnboardingStatusResponse, error)
 	GetMySettings(ctx context.Context, in *GetMySettingsRequest, opts ...grpc.CallOption) (*GetMySettingsResponse, error)
@@ -187,36 +181,6 @@ func (c *userServiceClient) PatchMyProfile(ctx context.Context, in *PatchMyProfi
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PatchMyProfileResponse)
 	err := c.cc.Invoke(ctx, UserService_PatchMyProfile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) PatchMyProfileCore(ctx context.Context, in *PatchMyProfileCoreRequest, opts ...grpc.CallOption) (*PatchMyProfileCoreResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PatchMyProfileCoreResponse)
-	err := c.cc.Invoke(ctx, UserService_PatchMyProfileCore_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) PatchMyClientProfile(ctx context.Context, in *PatchMyClientProfileRequest, opts ...grpc.CallOption) (*PatchMyClientProfileResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PatchMyClientProfileResponse)
-	err := c.cc.Invoke(ctx, UserService_PatchMyClientProfile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) PatchMyFreelancerProfile(ctx context.Context, in *PatchMyFreelancerProfileRequest, opts ...grpc.CallOption) (*PatchMyFreelancerProfileResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PatchMyFreelancerProfileResponse)
-	err := c.cc.Invoke(ctx, UserService_PatchMyFreelancerProfile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -791,9 +755,6 @@ type UserServiceServer interface {
 	CreateMyProfile(context.Context, *CreateMyProfileRequest) (*CreateMyProfileResponse, error)
 	GetMyProfile(context.Context, *GetMyProfileRequest) (*GetMyProfileResponse, error)
 	PatchMyProfile(context.Context, *PatchMyProfileRequest) (*PatchMyProfileResponse, error)
-	PatchMyProfileCore(context.Context, *PatchMyProfileCoreRequest) (*PatchMyProfileCoreResponse, error)
-	PatchMyClientProfile(context.Context, *PatchMyClientProfileRequest) (*PatchMyClientProfileResponse, error)
-	PatchMyFreelancerProfile(context.Context, *PatchMyFreelancerProfileRequest) (*PatchMyFreelancerProfileResponse, error)
 	DeleteMyProfile(context.Context, *DeleteMyProfileRequest) (*DeleteMyProfileResponse, error)
 	GetMyOnboardingStatus(context.Context, *GetMyOnboardingStatusRequest) (*GetMyOnboardingStatusResponse, error)
 	GetMySettings(context.Context, *GetMySettingsRequest) (*GetMySettingsResponse, error)
@@ -871,15 +832,6 @@ func (UnimplementedUserServiceServer) GetMyProfile(context.Context, *GetMyProfil
 }
 func (UnimplementedUserServiceServer) PatchMyProfile(context.Context, *PatchMyProfileRequest) (*PatchMyProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PatchMyProfile not implemented")
-}
-func (UnimplementedUserServiceServer) PatchMyProfileCore(context.Context, *PatchMyProfileCoreRequest) (*PatchMyProfileCoreResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PatchMyProfileCore not implemented")
-}
-func (UnimplementedUserServiceServer) PatchMyClientProfile(context.Context, *PatchMyClientProfileRequest) (*PatchMyClientProfileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PatchMyClientProfile not implemented")
-}
-func (UnimplementedUserServiceServer) PatchMyFreelancerProfile(context.Context, *PatchMyFreelancerProfileRequest) (*PatchMyFreelancerProfileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PatchMyFreelancerProfile not implemented")
 }
 func (UnimplementedUserServiceServer) DeleteMyProfile(context.Context, *DeleteMyProfileRequest) (*DeleteMyProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteMyProfile not implemented")
@@ -1120,60 +1072,6 @@ func _UserService_PatchMyProfile_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).PatchMyProfile(ctx, req.(*PatchMyProfileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_PatchMyProfileCore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PatchMyProfileCoreRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).PatchMyProfileCore(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_PatchMyProfileCore_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).PatchMyProfileCore(ctx, req.(*PatchMyProfileCoreRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_PatchMyClientProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PatchMyClientProfileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).PatchMyClientProfile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_PatchMyClientProfile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).PatchMyClientProfile(ctx, req.(*PatchMyClientProfileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_PatchMyFreelancerProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PatchMyFreelancerProfileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).PatchMyFreelancerProfile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_PatchMyFreelancerProfile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).PatchMyFreelancerProfile(ctx, req.(*PatchMyFreelancerProfileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2204,18 +2102,6 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PatchMyProfile",
 			Handler:    _UserService_PatchMyProfile_Handler,
-		},
-		{
-			MethodName: "PatchMyProfileCore",
-			Handler:    _UserService_PatchMyProfileCore_Handler,
-		},
-		{
-			MethodName: "PatchMyClientProfile",
-			Handler:    _UserService_PatchMyClientProfile_Handler,
-		},
-		{
-			MethodName: "PatchMyFreelancerProfile",
-			Handler:    _UserService_PatchMyFreelancerProfile_Handler,
 		},
 		{
 			MethodName: "DeleteMyProfile",
