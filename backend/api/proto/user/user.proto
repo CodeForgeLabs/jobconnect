@@ -65,12 +65,6 @@ service UserService {
       returns (UpsertMyLanguagesResponse);
   rpc GetMyLanguages(GetMyLanguagesRequest) returns (GetMyLanguagesResponse);
 
-  rpc PatchMyAvailability(PatchMyAvailabilityRequest)
-      returns (PatchMyAvailabilityResponse);
-  rpc GetMyAvailability(GetMyAvailabilityRequest)
-      returns (GetMyAvailabilityResponse);
-  rpc PatchMyRates(PatchMyRatesRequest) returns (PatchMyRatesResponse);
-  rpc GetMyRates(GetMyRatesRequest) returns (GetMyRatesResponse);
   rpc PatchMyWorkPreferences(PatchMyWorkPreferencesRequest)
       returns (PatchMyWorkPreferencesResponse);
   rpc GetMyWorkPreferences(GetMyWorkPreferencesRequest)
@@ -842,43 +836,8 @@ message AvailabilitySettings {
   uint32 weekly_capacity_hours = 2;
 }
 
-message PatchMyAvailabilityRequest {
-  string user_id = 1;
-  optional Availability availability = 2;
-  optional uint32 weekly_capacity_hours = 3;
-}
-
-message PatchMyAvailabilityResponse {
-  AvailabilitySettings settings = 1;
-}
-
-message GetMyAvailabilityRequest {
-  string user_id = 1;
-}
-
-message GetMyAvailabilityResponse {
-  AvailabilitySettings settings = 1;
-}
-
 message RateSettings {
   double hourly_rate = 1;
-}
-
-message PatchMyRatesRequest {
-  string user_id = 1;
-  optional double hourly_rate = 2;
-}
-
-message PatchMyRatesResponse {
-  RateSettings settings = 1;
-}
-
-message GetMyRatesRequest {
-  string user_id = 1;
-}
-
-message GetMyRatesResponse {
-  RateSettings settings = 1;
 }
 
 message WorkPreferences {

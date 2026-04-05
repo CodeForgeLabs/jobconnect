@@ -51,10 +51,6 @@ const (
 	UserService_ListMyCertifications_FullMethodName     = "/user.v1.UserService/ListMyCertifications"
 	UserService_UpsertMyLanguages_FullMethodName        = "/user.v1.UserService/UpsertMyLanguages"
 	UserService_GetMyLanguages_FullMethodName           = "/user.v1.UserService/GetMyLanguages"
-	UserService_PatchMyAvailability_FullMethodName      = "/user.v1.UserService/PatchMyAvailability"
-	UserService_GetMyAvailability_FullMethodName        = "/user.v1.UserService/GetMyAvailability"
-	UserService_PatchMyRates_FullMethodName             = "/user.v1.UserService/PatchMyRates"
-	UserService_GetMyRates_FullMethodName               = "/user.v1.UserService/GetMyRates"
 	UserService_PatchMyWorkPreferences_FullMethodName   = "/user.v1.UserService/PatchMyWorkPreferences"
 	UserService_GetMyWorkPreferences_FullMethodName     = "/user.v1.UserService/GetMyWorkPreferences"
 	UserService_GetMyHiringPreferences_FullMethodName   = "/user.v1.UserService/GetMyHiringPreferences"
@@ -117,10 +113,6 @@ type UserServiceClient interface {
 	ListMyCertifications(ctx context.Context, in *ListMyCertificationsRequest, opts ...grpc.CallOption) (*ListMyCertificationsResponse, error)
 	UpsertMyLanguages(ctx context.Context, in *UpsertMyLanguagesRequest, opts ...grpc.CallOption) (*UpsertMyLanguagesResponse, error)
 	GetMyLanguages(ctx context.Context, in *GetMyLanguagesRequest, opts ...grpc.CallOption) (*GetMyLanguagesResponse, error)
-	PatchMyAvailability(ctx context.Context, in *PatchMyAvailabilityRequest, opts ...grpc.CallOption) (*PatchMyAvailabilityResponse, error)
-	GetMyAvailability(ctx context.Context, in *GetMyAvailabilityRequest, opts ...grpc.CallOption) (*GetMyAvailabilityResponse, error)
-	PatchMyRates(ctx context.Context, in *PatchMyRatesRequest, opts ...grpc.CallOption) (*PatchMyRatesResponse, error)
-	GetMyRates(ctx context.Context, in *GetMyRatesRequest, opts ...grpc.CallOption) (*GetMyRatesResponse, error)
 	PatchMyWorkPreferences(ctx context.Context, in *PatchMyWorkPreferencesRequest, opts ...grpc.CallOption) (*PatchMyWorkPreferencesResponse, error)
 	GetMyWorkPreferences(ctx context.Context, in *GetMyWorkPreferencesRequest, opts ...grpc.CallOption) (*GetMyWorkPreferencesResponse, error)
 	GetMyHiringPreferences(ctx context.Context, in *GetMyHiringPreferencesRequest, opts ...grpc.CallOption) (*GetMyHiringPreferencesResponse, error)
@@ -477,46 +469,6 @@ func (c *userServiceClient) GetMyLanguages(ctx context.Context, in *GetMyLanguag
 	return out, nil
 }
 
-func (c *userServiceClient) PatchMyAvailability(ctx context.Context, in *PatchMyAvailabilityRequest, opts ...grpc.CallOption) (*PatchMyAvailabilityResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PatchMyAvailabilityResponse)
-	err := c.cc.Invoke(ctx, UserService_PatchMyAvailability_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) GetMyAvailability(ctx context.Context, in *GetMyAvailabilityRequest, opts ...grpc.CallOption) (*GetMyAvailabilityResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetMyAvailabilityResponse)
-	err := c.cc.Invoke(ctx, UserService_GetMyAvailability_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) PatchMyRates(ctx context.Context, in *PatchMyRatesRequest, opts ...grpc.CallOption) (*PatchMyRatesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PatchMyRatesResponse)
-	err := c.cc.Invoke(ctx, UserService_PatchMyRates_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) GetMyRates(ctx context.Context, in *GetMyRatesRequest, opts ...grpc.CallOption) (*GetMyRatesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetMyRatesResponse)
-	err := c.cc.Invoke(ctx, UserService_GetMyRates_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *userServiceClient) PatchMyWorkPreferences(ctx context.Context, in *PatchMyWorkPreferencesRequest, opts ...grpc.CallOption) (*PatchMyWorkPreferencesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PatchMyWorkPreferencesResponse)
@@ -784,10 +736,6 @@ type UserServiceServer interface {
 	ListMyCertifications(context.Context, *ListMyCertificationsRequest) (*ListMyCertificationsResponse, error)
 	UpsertMyLanguages(context.Context, *UpsertMyLanguagesRequest) (*UpsertMyLanguagesResponse, error)
 	GetMyLanguages(context.Context, *GetMyLanguagesRequest) (*GetMyLanguagesResponse, error)
-	PatchMyAvailability(context.Context, *PatchMyAvailabilityRequest) (*PatchMyAvailabilityResponse, error)
-	GetMyAvailability(context.Context, *GetMyAvailabilityRequest) (*GetMyAvailabilityResponse, error)
-	PatchMyRates(context.Context, *PatchMyRatesRequest) (*PatchMyRatesResponse, error)
-	GetMyRates(context.Context, *GetMyRatesRequest) (*GetMyRatesResponse, error)
 	PatchMyWorkPreferences(context.Context, *PatchMyWorkPreferencesRequest) (*PatchMyWorkPreferencesResponse, error)
 	GetMyWorkPreferences(context.Context, *GetMyWorkPreferencesRequest) (*GetMyWorkPreferencesResponse, error)
 	GetMyHiringPreferences(context.Context, *GetMyHiringPreferencesRequest) (*GetMyHiringPreferencesResponse, error)
@@ -919,18 +867,6 @@ func (UnimplementedUserServiceServer) UpsertMyLanguages(context.Context, *Upsert
 }
 func (UnimplementedUserServiceServer) GetMyLanguages(context.Context, *GetMyLanguagesRequest) (*GetMyLanguagesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMyLanguages not implemented")
-}
-func (UnimplementedUserServiceServer) PatchMyAvailability(context.Context, *PatchMyAvailabilityRequest) (*PatchMyAvailabilityResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PatchMyAvailability not implemented")
-}
-func (UnimplementedUserServiceServer) GetMyAvailability(context.Context, *GetMyAvailabilityRequest) (*GetMyAvailabilityResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetMyAvailability not implemented")
-}
-func (UnimplementedUserServiceServer) PatchMyRates(context.Context, *PatchMyRatesRequest) (*PatchMyRatesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PatchMyRates not implemented")
-}
-func (UnimplementedUserServiceServer) GetMyRates(context.Context, *GetMyRatesRequest) (*GetMyRatesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetMyRates not implemented")
 }
 func (UnimplementedUserServiceServer) PatchMyWorkPreferences(context.Context, *PatchMyWorkPreferencesRequest) (*PatchMyWorkPreferencesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PatchMyWorkPreferences not implemented")
@@ -1598,78 +1534,6 @@ func _UserService_GetMyLanguages_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_PatchMyAvailability_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PatchMyAvailabilityRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).PatchMyAvailability(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_PatchMyAvailability_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).PatchMyAvailability(ctx, req.(*PatchMyAvailabilityRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_GetMyAvailability_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetMyAvailabilityRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).GetMyAvailability(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_GetMyAvailability_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetMyAvailability(ctx, req.(*GetMyAvailabilityRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_PatchMyRates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PatchMyRatesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).PatchMyRates(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_PatchMyRates_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).PatchMyRates(ctx, req.(*PatchMyRatesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_GetMyRates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetMyRatesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).GetMyRates(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_GetMyRates_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetMyRates(ctx, req.(*GetMyRatesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _UserService_PatchMyWorkPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PatchMyWorkPreferencesRequest)
 	if err := dec(in); err != nil {
@@ -2218,22 +2082,6 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMyLanguages",
 			Handler:    _UserService_GetMyLanguages_Handler,
-		},
-		{
-			MethodName: "PatchMyAvailability",
-			Handler:    _UserService_PatchMyAvailability_Handler,
-		},
-		{
-			MethodName: "GetMyAvailability",
-			Handler:    _UserService_GetMyAvailability_Handler,
-		},
-		{
-			MethodName: "PatchMyRates",
-			Handler:    _UserService_PatchMyRates_Handler,
-		},
-		{
-			MethodName: "GetMyRates",
-			Handler:    _UserService_GetMyRates_Handler,
 		},
 		{
 			MethodName: "PatchMyWorkPreferences",
