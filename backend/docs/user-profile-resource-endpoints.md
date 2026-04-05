@@ -9,6 +9,11 @@ This document tracks portfolio, employment, education, certifications, and langu
 - PATCH `/api/v1/users/me/profile` -> `PatchMyProfile` (single unified patch path for core + role fields)
 - GET `/api/v1/users/me/onboarding-status` -> `GetMyOnboardingStatus`
 
+Profile patch ownership notes:
+- `availability` and `hourly_rate` are updated through `PATCH /api/v1/users/me/profile` (the dedicated availability/rates endpoints were removed).
+- `language` must be updated via account settings (`PATCH /api/v1/users/me/settings` with `ui_locale`).
+- `tax_id` is patchable via `PATCH /api/v1/users/me/profile` only when verification is not `PENDING` and not `VERIFIED`.
+
 ### Account Settings
 - GET `/api/v1/users/me/settings` -> `GetMySettings`
 - PATCH `/api/v1/users/me/settings` -> `PatchMySettings` (`ui_locale` support)
@@ -53,6 +58,7 @@ This document tracks portfolio, employment, education, certifications, and langu
 - User service gRPC methods are implemented and use Postgres-backed repositories.
 - Profile patching uses a single unified gateway-to-user-service call path.
 - App locale updates are routed through account settings (`/users/me/settings`) instead of profile patch.
+- Legacy duplicate availability/rates endpoints are removed from the gateway and user contract.
 
 ## Next Implementation Work
 
