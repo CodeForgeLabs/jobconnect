@@ -69,7 +69,17 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		return
 	}
 
-	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
+	profilePayload, err := protoToAny(resp.GetProfile())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	completenessPayload, err := protoToAny(resp.GetCompleteness())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"profile": profilePayload, "completeness": completenessPayload})
 }
 
 func (h *UserHandler) GetProfile(c *gin.Context) {
@@ -170,58 +180,47 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 	}
 
 	hasCore := body.DisplayName != nil || body.Language != nil || body.ContactEmail != nil || body.ContactPhone != nil || body.Bio != nil
+	hasClient := body.CompanyName != nil
+	hasFreelancer := body.Headline != nil || body.HourlyRate != nil || availability != nil || body.Location != nil || body.Skills != nil
+
+	if !(hasCore || hasClient || hasFreelancer) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "at least one updatable field is required"})
+		return
+	}
+	if hasClient && hasFreelancer {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "client and freelancer fields cannot be patched together"})
+		return
+	}
+
+	req := &userv1.PatchMyProfileRequest{UserId: userID}
 	if hasCore {
-		_, err := h.client.PatchMyProfileCore(c.Request.Context(), &userv1.PatchMyProfileCoreRequest{
-			UserId:       userID,
+		req.Core = &userv1.PatchMyProfileCoreInput{
 			DisplayName:  body.DisplayName,
 			Language:     body.Language,
 			ContactEmail: body.ContactEmail,
 			ContactPhone: body.ContactPhone,
 			Bio:          body.Bio,
-		})
-		if err != nil {
-			writeGRPCError(c, err)
-			return
 		}
 	}
-
-	hasClient := body.CompanyName != nil
 	if hasClient {
-		_, err := h.client.PatchMyClientProfile(c.Request.Context(), &userv1.PatchMyClientProfileRequest{
-			UserId:      userID,
-			CompanyName: body.CompanyName,
-		})
-		if err != nil {
-			writeGRPCError(c, err)
-			return
+		req.RoleProfile = &userv1.PatchMyProfileRequest_Client{
+			Client: &userv1.PatchMyClientProfileInput{CompanyName: body.CompanyName},
 		}
 	}
-
-	hasFreelancer := body.Headline != nil || body.HourlyRate != nil || availability != nil || body.Location != nil || body.Skills != nil
 	if hasFreelancer {
-		freelancerReq := &userv1.PatchMyFreelancerProfileRequest{
-			UserId:       userID,
+		freelancer := &userv1.PatchMyFreelancerProfileInput{
 			Headline:     body.Headline,
 			HourlyRate:   body.HourlyRate,
 			Availability: availability,
 			Location:     body.Location,
 		}
 		if body.Skills != nil {
-			freelancerReq.Skills = &userv1.StringList{Values: body.Skills}
+			freelancer.Skills = &userv1.StringList{Values: body.Skills}
 		}
-		_, err := h.client.PatchMyFreelancerProfile(c.Request.Context(), freelancerReq)
-		if err != nil {
-			writeGRPCError(c, err)
-			return
-		}
+		req.RoleProfile = &userv1.PatchMyProfileRequest_Freelancer{Freelancer: freelancer}
 	}
 
-	if !(hasCore || hasClient || hasFreelancer) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "at least one updatable field is required"})
-		return
-	}
-
-	resp, err := h.client.GetMyProfile(c.Request.Context(), &userv1.GetMyProfileRequest{UserId: userID})
+	resp, err := h.client.PatchMyProfile(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
