@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	userv1 "jobconnect/user/gen/user"
+	verificationv1 "jobconnect/verification/gen/verification/v1"
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -22,7 +23,8 @@ var protoJSON = protojson.MarshalOptions{
 }
 
 type UserHandler struct {
-	client userv1.UserServiceClient
+	client             userv1.UserServiceClient
+	verificationClient verificationv1.VerificationServiceClient
 }
 
 type updateProfileRequest struct {
@@ -56,8 +58,8 @@ type updateAccountSettingsRequest struct {
 	UILocale *string `json:"ui_locale"`
 }
 
-func NewUserHandler(client userv1.UserServiceClient) *UserHandler {
-	return &UserHandler{client: client}
+func NewUserHandler(client userv1.UserServiceClient, verificationClient verificationv1.VerificationServiceClient) *UserHandler {
+	return &UserHandler{client: client, verificationClient: verificationClient}
 }
 
 func (h *UserHandler) GetMe(c *gin.Context) {
@@ -83,7 +85,24 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"profile": profilePayload, "completeness": completenessPayload})
+
+	verificationPayload := any(nil)
+	if h.verificationClient != nil {
+		verificationResp, err := h.verificationClient.GetMyVerificationStatus(c.Request.Context(), &verificationv1.GetMyVerificationStatusRequest{UserId: userID})
+		if err != nil {
+			writeGRPCError(c, err)
+			return
+		}
+		if verificationResp != nil && verificationResp.GetRequest() != nil {
+			verificationPayload, err = protoToAny(verificationResp.GetRequest())
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+				return
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"profile": profilePayload, "completeness": completenessPayload, "verification": verificationPayload})
 }
 
 func (h *UserHandler) GetProfile(c *gin.Context) {
