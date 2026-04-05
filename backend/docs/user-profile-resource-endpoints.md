@@ -4,6 +4,15 @@ This document tracks portfolio, employment, education, certifications, and langu
 
 ## Gateway Routes
 
+### Profile + Onboarding
+- GET `/api/v1/users/me/profile` -> `GetMyProfile` (returns profile + completeness)
+- PATCH `/api/v1/users/me/profile` -> `PatchMyProfile` (single unified patch path for core + role fields)
+- GET `/api/v1/users/me/onboarding-status` -> `GetMyOnboardingStatus`
+
+### Account Settings
+- GET `/api/v1/users/me/settings` -> `GetMySettings`
+- PATCH `/api/v1/users/me/settings` -> `PatchMySettings` (`ui_locale` support)
+
 ### Portfolio
 - POST `/api/v1/users/me/portfolio` -> `CreatePortfolioItem`
 - GET `/api/v1/users/me/portfolio` -> `ListMyPortfolioItems`
@@ -42,6 +51,8 @@ This document tracks portfolio, employment, education, certifications, and langu
 - RPC contracts are defined in `api/proto/user/user.proto`.
 - Gateway routes and handlers are wired.
 - User service gRPC methods are implemented and use Postgres-backed repositories.
+- Profile patching uses a single unified gateway-to-user-service call path.
+- App locale updates are routed through account settings (`/users/me/settings`) instead of profile patch.
 
 ## Next Implementation Work
 
