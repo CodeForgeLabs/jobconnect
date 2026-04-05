@@ -5,7 +5,7 @@ This document tracks portfolio, employment, education, certifications, and langu
 ## Gateway Routes
 
 ### Profile + Onboarding
-- GET `/api/v1/users/me/profile` -> `GetMyProfile` (returns profile + completeness)
+- GET `/api/v1/users/me/profile` -> `GetMyProfile` + verification status composition (returns profile + completeness + verification)
 - PATCH `/api/v1/users/me/profile` -> `PatchMyProfile` (single unified patch path for core + role fields)
 - GET `/api/v1/users/me/onboarding-status` -> `GetMyOnboardingStatus`
 
