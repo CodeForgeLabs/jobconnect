@@ -39,17 +39,6 @@ func TestListUsers_Unauthorized(t *testing.T) {
 	}
 }
 
-func TestSetMeAvailability_Unauthorized(t *testing.T) {
-	h := &UserHandler{}
-	ctx, rec := newJSONTestContext(http.MethodPut, "/api/v1/users/me/availability")
-
-	h.SetMeAvailability(ctx)
-
-	if rec.Code != http.StatusUnauthorized {
-		t.Fatalf("expected status %d, got %d", http.StatusUnauthorized, rec.Code)
-	}
-}
-
 func TestListUsers_InvalidPageSize_ReturnsBadRequest(t *testing.T) {
 	h := &UserHandler{}
 	ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/admin/users?page_size=101")

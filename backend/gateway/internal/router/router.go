@@ -162,11 +162,7 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	// Languages: proficiency list upsert.
 	userRoutes.PUT("/me/languages", userHandler.UpsertMeLanguages)
 
-	// Freelancer preferences: availability, rates, and work style.
-	userRoutes.PUT("/me/availability", userHandler.SetMeAvailability)
-	userRoutes.GET("/me/availability", userHandler.GetMeAvailability)
-	userRoutes.PUT("/me/rates", userHandler.SetMeRates)
-	userRoutes.GET("/me/rates", userHandler.GetMeRates)
+	// Freelancer preferences: work style and client matching.
 	userRoutes.PUT("/me/work-preferences", userHandler.SetMeWorkPreferences)
 	userRoutes.GET("/me/work-preferences", userHandler.GetMeWorkPreferences)
 
