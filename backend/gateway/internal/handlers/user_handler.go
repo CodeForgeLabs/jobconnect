@@ -12,6 +12,8 @@ import (
 	verificationv1 "jobconnect/verification/gen/verification/v1"
 
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -90,8 +92,10 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 	if h.verificationClient != nil {
 		verificationResp, err := h.verificationClient.GetMyVerificationStatus(c.Request.Context(), &verificationv1.GetMyVerificationStatusRequest{UserId: userID})
 		if err != nil {
-			writeGRPCError(c, err)
-			return
+			if st, ok := grpcstatus.FromError(err); !ok || st.Code() != codes.NotFound {
+				writeGRPCError(c, err)
+				return
+			}
 		}
 		if verificationResp != nil && verificationResp.GetRequest() != nil {
 			verificationPayload, err = protoToAny(verificationResp.GetRequest())
