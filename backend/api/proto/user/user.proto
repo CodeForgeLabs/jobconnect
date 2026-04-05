@@ -7,6 +7,7 @@ service UserService {
   // Self endpoints.
   rpc CreateMyProfile(CreateMyProfileRequest) returns (CreateMyProfileResponse);
   rpc GetMyProfile(GetMyProfileRequest) returns (GetMyProfileResponse);
+  rpc PatchMyProfile(PatchMyProfileRequest) returns (PatchMyProfileResponse);
   rpc PatchMyProfileCore(PatchMyProfileCoreRequest)
       returns (PatchMyProfileCoreResponse);
   rpc PatchMyClientProfile(PatchMyClientProfileRequest)
@@ -16,6 +17,9 @@ service UserService {
   rpc DeleteMyProfile(DeleteMyProfileRequest) returns (DeleteMyProfileResponse);
   rpc GetMyOnboardingStatus(GetMyOnboardingStatusRequest)
       returns (GetMyOnboardingStatusResponse);
+  rpc GetMySettings(GetMySettingsRequest) returns (GetMySettingsResponse);
+  rpc PatchMySettings(PatchMySettingsRequest)
+    returns (PatchMySettingsResponse);
 
   rpc UpsertMyAvatar(UploadMyAvatarRequest) returns (UploadMyAvatarResponse);
   rpc GetMyAvatar(GetMyAvatarRequest) returns (GetMyAvatarResponse);
@@ -322,6 +326,68 @@ message GetMyProfileRequest {
 message GetMyProfileResponse {
   UserProfile profile = 1;
   ProfileCompleteness completeness = 2;
+}
+
+message PatchMyProfileCoreInput {
+  optional string display_name = 1;
+  optional string language = 2;
+  optional string contact_email = 3;
+  optional string contact_phone = 4;
+  optional string bio = 5;
+}
+
+message PatchMyClientProfileInput {
+  optional string company_name = 1;
+}
+
+message PatchMyFreelancerProfileInput {
+  optional string headline = 1;
+  StringList skills = 2;
+  optional double hourly_rate = 3;
+  optional Availability availability = 4;
+  optional string location = 5;
+}
+
+message PatchMyProfileRequest {
+  string user_id = 1;
+  PatchMyProfileCoreInput core = 2;
+
+  oneof role_profile {
+    PatchMyClientProfileInput client = 3;
+    PatchMyFreelancerProfileInput freelancer = 4;
+  }
+
+  repeated string clear_fields = 5;
+}
+
+message PatchMyProfileResponse {
+  UserProfile profile = 1;
+  ProfileCompleteness completeness = 2;
+}
+
+message UserSettings {
+  string ui_locale = 1;
+  bool email_notifications_enabled = 2;
+  bool push_notifications_enabled = 3;
+}
+
+message GetMySettingsRequest {
+  string user_id = 1;
+}
+
+message GetMySettingsResponse {
+  UserSettings settings = 1;
+}
+
+message PatchMySettingsRequest {
+  string user_id = 1;
+  optional string ui_locale = 2;
+  optional bool email_notifications_enabled = 3;
+  optional bool push_notifications_enabled = 4;
+}
+
+message PatchMySettingsResponse {
+  UserSettings settings = 1;
 }
 
 message PatchMyProfileCoreRequest {
