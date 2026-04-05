@@ -98,3 +98,42 @@ func TestUpdateProfileClientRejectsFreelancerSkillsEvenWhenEmpty(t *testing.T) {
 		t.Fatalf("did not expect Update to be called on validation failure")
 	}
 }
+
+func TestUpdateProfileTaxIDBlockedWhenVerificationPending(t *testing.T) {
+	userID := uuid.New()
+	taxID := "TIN-123"
+	repo := &updateProfileRepoMock{
+		profile: domain.Profile{UserID: userID, Role: domain.RoleClient, VerificationStatus: domain.VerificationStatusPending},
+		client:  &domain.ClientProfile{CompanyName: "Acme"},
+	}
+	uc := &UpdateProfile{Profiles: repo}
+
+	_, err := uc.Execute(context.Background(), UpdateProfileInput{UserID: userID, TaxID: &taxID})
+	if err == nil {
+		t.Fatalf("expected tax lock error")
+	}
+	if repo.updateCalled {
+		t.Fatalf("did not expect Update when tax_id is locked")
+	}
+}
+
+func TestUpdateProfileTaxIDAllowedWhenVerificationRejected(t *testing.T) {
+	userID := uuid.New()
+	taxID := "TIN-123"
+	repo := &updateProfileRepoMock{
+		profile: domain.Profile{UserID: userID, Role: domain.RoleClient, VerificationStatus: domain.VerificationStatusRejected},
+		client:  &domain.ClientProfile{CompanyName: "Acme"},
+	}
+	uc := &UpdateProfile{Profiles: repo}
+
+	_, err := uc.Execute(context.Background(), UpdateProfileInput{UserID: userID, TaxID: &taxID})
+	if err != nil {
+		t.Fatalf("Execute() error = %v", err)
+	}
+	if !repo.updateCalled {
+		t.Fatalf("expected Update to be called")
+	}
+	if repo.updatedProfile.TaxID != taxID {
+		t.Fatalf("expected updated tax_id %q, got %q", taxID, repo.updatedProfile.TaxID)
+	}
+}
