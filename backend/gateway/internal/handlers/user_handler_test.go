@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,6 +16,15 @@ func newJSONTestContext(method, target string) (*gin.Context, *httptest.Response
 	rec := httptest.NewRecorder()
 	ctx, _ := gin.CreateTestContext(rec)
 	ctx.Request = httptest.NewRequest(method, target, nil)
+	return ctx, rec
+}
+
+func newJSONBodyTestContext(method, target, body string) (*gin.Context, *httptest.ResponseRecorder) {
+	gin.SetMode(gin.TestMode)
+	rec := httptest.NewRecorder()
+	ctx, _ := gin.CreateTestContext(rec)
+	ctx.Request = httptest.NewRequest(method, target, bytes.NewBufferString(body))
+	ctx.Request.Header.Set("Content-Type", "application/json")
 	return ctx, rec
 }
 
@@ -88,5 +98,53 @@ func TestParsePagination_InvalidInteger(t *testing.T) {
 	_, _, err := parsePagination(ctx)
 	if err == nil {
 		t.Fatalf("expected error for invalid page_size")
+	}
+}
+
+func TestUpdateMeProfile_Unauthorized(t *testing.T) {
+	h := &UserHandler{}
+	ctx, rec := newJSONTestContext(http.MethodPatch, "/api/v1/users/me/profile")
+
+	h.UpdateMeProfile(ctx)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status %d, got %d", http.StatusUnauthorized, rec.Code)
+	}
+}
+
+func TestUpdateMeProfile_MixedRolePayloadRejected(t *testing.T) {
+	h := &UserHandler{}
+	body := `{"company_name":"Acme","headline":"Builder"}`
+	ctx, rec := newJSONBodyTestContext(http.MethodPatch, "/api/v1/users/me/profile", body)
+	ctx.Set(middleware.ContextUserID, "11111111-1111-1111-1111-111111111111")
+
+	h.UpdateMeProfile(ctx)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
+	}
+}
+
+func TestGetMeAccountSettings_Unauthorized(t *testing.T) {
+	h := &UserHandler{}
+	ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/users/me/settings")
+
+	h.GetMeAccountSettings(ctx)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status %d, got %d", http.StatusUnauthorized, rec.Code)
+	}
+}
+
+func TestUpdateMeAccountSettings_RequiresPayload(t *testing.T) {
+	h := &UserHandler{}
+	body := `{}`
+	ctx, rec := newJSONBodyTestContext(http.MethodPatch, "/api/v1/users/me/settings", body)
+	ctx.Set(middleware.ContextUserID, "11111111-1111-1111-1111-111111111111")
+
+	h.UpdateMeAccountSettings(ctx)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
 	}
 }
