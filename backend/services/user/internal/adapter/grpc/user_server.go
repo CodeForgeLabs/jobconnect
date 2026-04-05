@@ -348,6 +348,56 @@ func (s *UserServer) GetMyOnboardingStatus(ctx context.Context, req *userv1.GetM
 	}, nil
 }
 
+func (s *UserServer) GetMySettings(ctx context.Context, req *userv1.GetMySettingsRequest) (*userv1.GetMySettingsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetMySettingsResponse{Settings: toDefaultSettings(out.Profile.Language)}, nil
+}
+
+func (s *UserServer) PatchMySettings(ctx context.Context, req *userv1.PatchMySettingsRequest) (*userv1.PatchMySettingsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	updateIn := application.UpdateProfileInput{UserID: userID}
+	if req.UiLocale != nil {
+		locale := strings.TrimSpace(req.GetUiLocale())
+		if locale == "" {
+			return nil, status.Error(codes.InvalidArgument, "ui_locale cannot be empty")
+		}
+		updateIn.Language = &locale
+	}
+
+	if req.EmailNotificationsEnabled != nil || req.PushNotificationsEnabled != nil {
+		return nil, status.Error(codes.Unimplemented, "notification settings are not implemented yet")
+	}
+
+	if updateIn.Language != nil {
+		if _, err := s.UpdateProfileUC.Execute(ctx, updateIn); err != nil {
+			return nil, toStatus(err)
+		}
+	}
+
+	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.PatchMySettingsResponse{Settings: toDefaultSettings(out.Profile.Language)}, nil
+}
+
 func (s *UserServer) UpsertMyAvatar(ctx context.Context, req *userv1.UploadMyAvatarRequest) (*userv1.UploadMyAvatarResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -623,6 +673,18 @@ func toStatus(err error) error {
 
 func contains(s, sub string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(sub))
+}
+
+func toDefaultSettings(uiLocale string) *userv1.UserSettings {
+	locale := strings.TrimSpace(uiLocale)
+	if locale == "" {
+		locale = "en"
+	}
+	return &userv1.UserSettings{
+		UiLocale:                  locale,
+		EmailNotificationsEnabled: true,
+		PushNotificationsEnabled:  true,
+	}
 }
 
 func hasClearField(fields []string, target string) bool {
