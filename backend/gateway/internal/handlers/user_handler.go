@@ -172,6 +172,10 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "avatar_url must be managed via avatar endpoints"})
 		return
 	}
+	if body.Language != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "language must be updated via /users/me/settings"})
+		return
+	}
 	if body.FirstName != nil || body.LastName != nil || body.BillingAddress != nil || body.TaxID != nil || body.ExperienceLevel != nil || body.LastActiveAtUnix != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported profile fields in this endpoint"})
 		return
@@ -187,7 +191,7 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		availability = &parsed
 	}
 
-	hasCore := body.DisplayName != nil || body.Language != nil || body.ContactEmail != nil || body.ContactPhone != nil || body.Bio != nil
+	hasCore := body.DisplayName != nil || body.ContactEmail != nil || body.ContactPhone != nil || body.Bio != nil
 	hasClient := body.CompanyName != nil
 	hasFreelancer := body.Headline != nil || body.HourlyRate != nil || availability != nil || body.Location != nil || body.Skills != nil
 
@@ -204,7 +208,6 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 	if hasCore {
 		req.Core = &userv1.PatchMyProfileCoreInput{
 			DisplayName:  body.DisplayName,
-			Language:     body.Language,
 			ContactEmail: body.ContactEmail,
 			ContactPhone: body.ContactPhone,
 			Bio:          body.Bio,

@@ -138,6 +138,19 @@ func TestUpdateMeProfile_UnsupportedLegacyFieldsRejected(t *testing.T) {
 	}
 }
 
+func TestUpdateMeProfile_LanguageRejectedInFavorOfSettings(t *testing.T) {
+	h := &UserHandler{}
+	body := `{"language":"fr"}`
+	ctx, rec := newJSONBodyTestContext(http.MethodPatch, "/api/v1/users/me/profile", body)
+	ctx.Set(middleware.ContextUserID, "11111111-1111-1111-1111-111111111111")
+
+	h.UpdateMeProfile(ctx)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
+	}
+}
+
 func TestGetMeAccountSettings_Unauthorized(t *testing.T) {
 	h := &UserHandler{}
 	ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/users/me/settings")
