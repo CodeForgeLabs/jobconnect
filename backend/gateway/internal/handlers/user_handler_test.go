@@ -116,7 +116,7 @@ func TestUpdateMeProfile_MixedRolePayloadRejected(t *testing.T) {
 
 func TestUpdateMeProfile_UnsupportedLegacyFieldsRejected(t *testing.T) {
 	h := &UserHandler{}
-	body := `{"tax_id":"TIN-001"}`
+	body := `{"first_name":"Jane"}`
 	ctx, rec := newJSONBodyTestContext(http.MethodPatch, "/api/v1/users/me/profile", body)
 	ctx.Set(middleware.ContextUserID, "11111111-1111-1111-1111-111111111111")
 

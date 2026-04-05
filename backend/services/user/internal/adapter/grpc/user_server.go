@@ -181,6 +181,7 @@ func (s *UserServer) PatchMyProfile(ctx context.Context, req *userv1.PatchMyProf
 		in.ContactEmail = req.Core.ContactEmail
 		in.ContactPhone = req.Core.ContactPhone
 		in.Bio = req.Core.Bio
+		in.TaxID = req.Core.TaxId
 	}
 
 	if req.GetClient() != nil {
@@ -204,6 +205,10 @@ func (s *UserServer) PatchMyProfile(ctx context.Context, req *userv1.PatchMyProf
 	if hasClearField(req.ClearFields, "bio") {
 		empty := ""
 		in.Bio = &empty
+	}
+	if hasClearField(req.ClearFields, "tax_id") {
+		empty := ""
+		in.TaxID = &empty
 	}
 	if hasClearField(req.ClearFields, "company_name") {
 		empty := ""
@@ -411,8 +416,8 @@ func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.C
 			Bio:                profile.Bio,
 			AccountStatus:      toProtoAccountStatus(profile.AccountStatus),
 			SuspensionReason:   profile.SuspensionReason,
-			TaxId:              "",
-			VerificationStatus: toProtoVerificationStatus(""),
+			TaxId:              profile.TaxID,
+			VerificationStatus: toProtoVerificationStatus(profile.VerificationStatus),
 			CreatedAtUnix:      profile.CreatedAt.Unix(),
 			UpdatedAtUnix:      profile.UpdatedAt.Unix(),
 		},
@@ -421,8 +426,6 @@ func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.C
 
 	if client != nil {
 		out.Client = &userv1.ClientProfile{CompanyName: client.CompanyName}
-		out.Core.TaxId = client.TaxID
-		out.Core.VerificationStatus = toProtoVerificationStatus(client.VerificationStatus)
 	}
 	if freelancer != nil {
 		out.Freelancer = &userv1.FreelancerProfile{
@@ -444,7 +447,6 @@ func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.C
 			lastActive := profile.LastActiveAt.Unix()
 			out.Freelancer.Metrics.LastActiveAtUnix = &lastActive
 		}
-		out.Core.VerificationStatus = toProtoVerificationStatus(freelancer.VerificationStatus)
 	}
 	if profile.DeletedAt != nil && !profile.DeletedAt.IsZero() {
 		deletedAt := profile.DeletedAt.Unix()

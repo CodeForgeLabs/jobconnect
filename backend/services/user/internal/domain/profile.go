@@ -38,6 +38,8 @@ type Profile struct {
 	ContactEmail     string
 	ContactPhone     string
 	Bio              string
+	TaxID            string
+	VerificationStatus string
 	AccountStatus    string
 	SuspensionReason string
 	LastActiveAt     *time.Time

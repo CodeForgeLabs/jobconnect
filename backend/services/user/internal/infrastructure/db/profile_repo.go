@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 
 	"jobconnect/user/internal/domain"
@@ -33,16 +34,14 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 
 	var profileID int64
 	var taxID *string
-	var verificationStatus *string
-	if client != nil {
-		v := client.TaxID
+	if strings.TrimSpace(profile.TaxID) != "" {
+		v := strings.TrimSpace(profile.TaxID)
 		taxID = &v
-		vs := client.VerificationStatus
-		verificationStatus = &vs
 	}
-	if freelancer != nil {
-		vs := freelancer.VerificationStatus
-		verificationStatus = &vs
+	var verificationStatus *string
+	if strings.TrimSpace(profile.VerificationStatus) != "" {
+		v := strings.TrimSpace(profile.VerificationStatus)
+		verificationStatus = &v
 	}
 
 	err = tx.QueryRow(ctx, `
@@ -74,7 +73,6 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 				headline,
 				skills,
 				rating,
-				verification_status,
 				job_success_score,
 				total_reviews,
 				total_jobs,
@@ -83,8 +81,8 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 				availability,
 				location
 			)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-		`, profileID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.VerificationStatus, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		`, profileID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location)
 		if err != nil {
 			return 0, err
 		}
@@ -151,6 +149,8 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 		return domain.Profile{}, nil, nil, err
 	}
 	profile.DeletedAt = deletedAt
+	profile.TaxID = profileTaxID
+	profile.VerificationStatus = profileVerificationStatus
 
 	var client *domain.ClientProfile
 	if profile.Role == domain.RoleClient {
@@ -165,8 +165,8 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 				return domain.Profile{}, nil, nil, err
 			}
 		} else {
-			cp.TaxID = profileTaxID
-			cp.VerificationStatus = profileVerificationStatus
+			cp.TaxID = profile.TaxID
+			cp.VerificationStatus = profile.VerificationStatus
 			client = cp
 		}
 	}
@@ -179,7 +179,6 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			select coalesce(headline, ''),
 				coalesce(skills, '[]'::jsonb),
 				coalesce(rating, 0),
-				coalesce(verification_status, ''),
 				coalesce(job_success_score, 0),
 				coalesce(total_reviews, 0),
 				coalesce(total_jobs, 0),
@@ -189,7 +188,7 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 				coalesce(location, '')
 			from freelancer_profiles
 			where profile_id = $1
-		`, profile.ID).Scan(&fp.Headline, &skillsRaw, &fp.Rating, &fp.VerificationStatus, &fp.Reputation.JobSuccessScore, &fp.Reputation.TotalReviews, &fp.Reputation.TotalJobs, &fp.Reputation.TotalEarningsUSD, &fp.HourlyRate, &fp.Availability, &fp.Location)
+		`, profile.ID).Scan(&fp.Headline, &skillsRaw, &fp.Rating, &fp.Reputation.JobSuccessScore, &fp.Reputation.TotalReviews, &fp.Reputation.TotalJobs, &fp.Reputation.TotalEarningsUSD, &fp.HourlyRate, &fp.Availability, &fp.Location)
 		if err != nil {
 			if !isNoRows(err) {
 				return domain.Profile{}, nil, nil, err
@@ -198,9 +197,7 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			if len(skillsRaw) > 0 {
 				_ = json.Unmarshal(skillsRaw, &fp.Skills)
 			}
-			if fp.VerificationStatus == "" {
-				fp.VerificationStatus = profileVerificationStatus
-			}
+			fp.VerificationStatus = profile.VerificationStatus
 			fp.Reputation.AvgRating = fp.Rating
 			freelancer = fp
 		}
@@ -219,15 +216,8 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 	}()
 
 	profile.UpdatedAt = time.Now().UTC()
-	var taxID *string
-	var verificationStatus *string
-	if client != nil {
-		taxID = &client.TaxID
-		verificationStatus = &client.VerificationStatus
-	}
-	if freelancer != nil {
-		verificationStatus = &freelancer.VerificationStatus
-	}
+	taxID := &profile.TaxID
+	verificationStatus := &profile.VerificationStatus
 	_, err = tx.Exec(ctx, `
 		update profiles
 		set first_name = $2,
@@ -273,7 +263,6 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 				headline,
 				skills,
 				rating,
-				verification_status,
 				job_success_score,
 				total_reviews,
 				total_jobs,
@@ -282,12 +271,11 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 				availability,
 				location
 			)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 			on conflict (profile_id) do update set
 				headline = excluded.headline,
 				skills = excluded.skills,
 				rating = excluded.rating,
-				verification_status = excluded.verification_status,
 				job_success_score = excluded.job_success_score,
 				total_reviews = excluded.total_reviews,
 				total_jobs = excluded.total_jobs,
@@ -295,7 +283,7 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 				hourly_rate = excluded.hourly_rate,
 				availability = excluded.availability,
 				location = excluded.location
-		`, profile.ID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.VerificationStatus, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location)
+		`, profile.ID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location)
 		if err != nil {
 			return err
 		}

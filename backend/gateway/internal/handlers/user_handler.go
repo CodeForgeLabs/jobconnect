@@ -197,7 +197,7 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "language must be updated via /users/me/settings"})
 		return
 	}
-	if body.FirstName != nil || body.LastName != nil || body.TaxID != nil || body.LastActiveAtUnix != nil {
+	if body.FirstName != nil || body.LastName != nil || body.LastActiveAtUnix != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported profile fields in this endpoint"})
 		return
 	}
@@ -212,7 +212,7 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		availability = &parsed
 	}
 
-	hasCore := body.DisplayName != nil || body.ContactEmail != nil || body.ContactPhone != nil || body.Bio != nil
+	hasCore := body.DisplayName != nil || body.ContactEmail != nil || body.ContactPhone != nil || body.Bio != nil || body.TaxID != nil
 	hasClient := body.CompanyName != nil
 	hasFreelancer := body.Headline != nil || body.HourlyRate != nil || availability != nil || body.Location != nil || body.Skills != nil
 
@@ -232,6 +232,7 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 			ContactEmail: body.ContactEmail,
 			ContactPhone: body.ContactPhone,
 			Bio:          body.Bio,
+			TaxId:        body.TaxID,
 		}
 	}
 	if hasClient {

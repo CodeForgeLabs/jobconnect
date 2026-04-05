@@ -98,9 +98,19 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 		AvatarURL:     in.AvatarURL,
 		Language:      "en",
 		ContactEmail:  in.ContactEmail,
+		TaxID:         "",
+		VerificationStatus: "",
 		AccountStatus: domain.AccountStatusActive,
 		CreatedAt:     now,
 		UpdatedAt:     now,
+	}
+
+	if in.Client != nil {
+		profile.TaxID = strings.TrimSpace(in.Client.TaxID)
+		profile.VerificationStatus = strings.TrimSpace(in.Client.VerificationStatus)
+	}
+	if in.Freelancer != nil {
+		profile.VerificationStatus = strings.TrimSpace(in.Freelancer.VerificationStatus)
 	}
 
 	profileID, err := uc.Profiles.Create(ctx, profile, in.Client, in.Freelancer)

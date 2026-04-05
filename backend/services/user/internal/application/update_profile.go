@@ -74,6 +74,13 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 	if in.Bio != nil {
 		profile.Bio = strings.TrimSpace(*in.Bio)
 	}
+	if in.TaxID != nil {
+		status := normalizeVerificationStatus(profile.VerificationStatus)
+		if status == domain.VerificationStatusPending || status == domain.VerificationStatusVerified {
+			return UpdateProfileOutput{}, fmt.Errorf("tax_id cannot be changed while verification is pending or verified")
+		}
+		profile.TaxID = strings.TrimSpace(*in.TaxID)
+	}
 	if in.FirstName != nil {
 		if err := domain.ValidateOptionalName("first_name", *in.FirstName); err != nil {
 			return UpdateProfileOutput{}, err
@@ -100,9 +107,6 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		}
 		if in.BillingAddress != nil {
 			client.BillingAddress = strings.TrimSpace(*in.BillingAddress)
-		}
-		if in.TaxID != nil {
-			client.TaxID = strings.TrimSpace(*in.TaxID)
 		}
 		if in.Headline != nil || in.ExperienceLevel != nil || in.Skills != nil || in.HourlyRate != nil || in.Availability != nil || in.Location != nil || in.LastActiveAtUnix != nil {
 			return UpdateProfileOutput{}, fmt.Errorf("freelancer fields are not allowed for client")
@@ -147,7 +151,7 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 				profile.LastActiveAt = &t
 			}
 		}
-		if in.CompanyName != nil || in.BillingAddress != nil || in.TaxID != nil {
+		if in.CompanyName != nil || in.BillingAddress != nil {
 			return UpdateProfileOutput{}, fmt.Errorf("client fields are not allowed for freelancer")
 		}
 	case domain.RoleAdmin:
@@ -168,4 +172,10 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		Completeness: completeness,
 		Missing:      missing,
 	}, nil
+}
+
+func normalizeVerificationStatus(value string) string {
+	normalized := strings.TrimSpace(strings.ToUpper(value))
+	normalized = strings.TrimPrefix(normalized, "VERIFICATION_STATUS_")
+	return normalized
 }

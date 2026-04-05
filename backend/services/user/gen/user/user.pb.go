@@ -1819,6 +1819,7 @@ type PatchMyProfileCoreInput struct {
 	ContactEmail  *string                `protobuf:"bytes,3,opt,name=contact_email,json=contactEmail,proto3,oneof" json:"contact_email,omitempty"`
 	ContactPhone  *string                `protobuf:"bytes,4,opt,name=contact_phone,json=contactPhone,proto3,oneof" json:"contact_phone,omitempty"`
 	Bio           *string                `protobuf:"bytes,5,opt,name=bio,proto3,oneof" json:"bio,omitempty"`
+	TaxId         *string                `protobuf:"bytes,6,opt,name=tax_id,json=taxId,proto3,oneof" json:"tax_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1884,6 +1885,13 @@ func (x *PatchMyProfileCoreInput) GetContactPhone() string {
 func (x *PatchMyProfileCoreInput) GetBio() string {
 	if x != nil && x.Bio != nil {
 		return *x.Bio
+	}
+	return ""
+}
+
+func (x *PatchMyProfileCoreInput) GetTaxId() string {
+	if x != nil && x.TaxId != nil {
+		return *x.TaxId
 	}
 	return ""
 }
@@ -9909,18 +9917,20 @@ const file_user_user_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x88\x01\n" +
 	"\x14GetMyProfileResponse\x12.\n" +
 	"\aprofile\x18\x01 \x01(\v2\x14.user.v1.UserProfileR\aprofile\x12@\n" +
-	"\fcompleteness\x18\x02 \x01(\v2\x1c.user.v1.ProfileCompletenessR\fcompleteness\"\x97\x02\n" +
+	"\fcompleteness\x18\x02 \x01(\v2\x1c.user.v1.ProfileCompletenessR\fcompleteness\"\xbe\x02\n" +
 	"\x17PatchMyProfileCoreInput\x12&\n" +
 	"\fdisplay_name\x18\x01 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\x1f\n" +
 	"\blanguage\x18\x02 \x01(\tH\x01R\blanguage\x88\x01\x01\x12(\n" +
 	"\rcontact_email\x18\x03 \x01(\tH\x02R\fcontactEmail\x88\x01\x01\x12(\n" +
 	"\rcontact_phone\x18\x04 \x01(\tH\x03R\fcontactPhone\x88\x01\x01\x12\x15\n" +
-	"\x03bio\x18\x05 \x01(\tH\x04R\x03bio\x88\x01\x01B\x0f\n" +
+	"\x03bio\x18\x05 \x01(\tH\x04R\x03bio\x88\x01\x01\x12\x1a\n" +
+	"\x06tax_id\x18\x06 \x01(\tH\x05R\x05taxId\x88\x01\x01B\x0f\n" +
 	"\r_display_nameB\v\n" +
 	"\t_languageB\x10\n" +
 	"\x0e_contact_emailB\x10\n" +
 	"\x0e_contact_phoneB\x06\n" +
-	"\x04_bio\"T\n" +
+	"\x04_bioB\t\n" +
+	"\a_tax_id\"T\n" +
 	"\x19PatchMyClientProfileInput\x12&\n" +
 	"\fcompany_name\x18\x01 \x01(\tH\x00R\vcompanyName\x88\x01\x01B\x0f\n" +
 	"\r_company_name\"\xaf\x02\n" +
