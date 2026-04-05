@@ -216,8 +216,7 @@ func (s *UserServer) PatchMyProfile(ctx context.Context, req *userv1.PatchMyProf
 		in.Location = &empty
 	}
 	if hasClearField(req.ClearFields, "skills") {
-		// UpdateProfile applies skills replacement only when input has length > 0.
-		in.Skills = []string{""}
+		in.Skills = []string{}
 	}
 
 	out, err := s.UpdateProfileUC.Execute(ctx, in)

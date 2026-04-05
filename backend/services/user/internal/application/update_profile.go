@@ -104,7 +104,7 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		if in.TaxID != nil {
 			client.TaxID = strings.TrimSpace(*in.TaxID)
 		}
-		if in.Headline != nil || in.ExperienceLevel != nil || len(in.Skills) > 0 || in.HourlyRate != nil || in.Availability != nil || in.Location != nil || in.LastActiveAtUnix != nil {
+		if in.Headline != nil || in.ExperienceLevel != nil || in.Skills != nil || in.HourlyRate != nil || in.Availability != nil || in.Location != nil || in.LastActiveAtUnix != nil {
 			return UpdateProfileOutput{}, fmt.Errorf("freelancer fields are not allowed for client")
 		}
 	case domain.RoleFreelancer:
@@ -117,7 +117,7 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		if in.ExperienceLevel != nil {
 			freelancer.ExperienceLevel = strings.TrimSpace(*in.ExperienceLevel)
 		}
-		if len(in.Skills) > 0 {
+		if in.Skills != nil {
 			skills := make([]string, 0, len(in.Skills))
 			for _, item := range in.Skills {
 				trimmed := strings.TrimSpace(item)
@@ -151,7 +151,7 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 			return UpdateProfileOutput{}, fmt.Errorf("client fields are not allowed for freelancer")
 		}
 	case domain.RoleAdmin:
-		if in.CompanyName != nil || in.BillingAddress != nil || in.TaxID != nil || in.Headline != nil || in.ExperienceLevel != nil || len(in.Skills) > 0 || in.HourlyRate != nil || in.Availability != nil || in.Location != nil || in.LastActiveAtUnix != nil {
+		if in.CompanyName != nil || in.BillingAddress != nil || in.TaxID != nil || in.Headline != nil || in.ExperienceLevel != nil || in.Skills != nil || in.HourlyRate != nil || in.Availability != nil || in.Location != nil || in.LastActiveAtUnix != nil {
 			return UpdateProfileOutput{}, fmt.Errorf("role-specific fields are not allowed for admin")
 		}
 	}
