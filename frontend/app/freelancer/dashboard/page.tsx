@@ -189,7 +189,7 @@ const FreelancerDashboard = () => {
         </div>
       </div>
 
-      <div className="flex  ">
+      <div className="flex gap-4 justify-between ">
         <div className="flex w-[65%] flex-col gap-4">
           <div className="flex w-full items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-800">
@@ -214,7 +214,24 @@ const FreelancerDashboard = () => {
           </div>
         </div>
 
-        <div></div>
+        <div className="w-[32%]">
+          <div className=" bg-white border border-gray-200 rounded-lg ">
+            <div className="flex justify-between p-4">
+              <h2 className="text-sm font-semibold text-gray-800">
+              Active Contracts
+            </h2>
+            <p className="text-xs text-gray-500 mt-1">
+              10
+            </p>
+            </div>
+
+            <div className="border-t border-gray-200 h-10 p-4">
+
+            </div>
+            
+            
+          </div>
+        </div>
       </div>
     </div>
   );
