@@ -165,3 +165,11 @@ func readinessRecommendation(missingKey string) string {
 		return fmt.Sprintf("Complete missing requirement: %s", missingKey)
 	}
 }
+
+func hasWorkPreferencesSet(in WorkPreferences) bool {
+	return strings.TrimSpace(in.PreferredProjectLength) != "" || in.MinBudgetUSD > 0 || in.MaxBudgetUSD > 0 || len(in.ContractTypes) > 0
+}
+
+func hasHiringPreferencesSet(in HiringPreferences) bool {
+	return in.MinHourlyRate > 0 || in.MaxHourlyRate > 0 || len(in.PreferredExperienceLevels) > 0 || len(in.PreferredLocations) > 0
+}

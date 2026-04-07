@@ -57,7 +57,7 @@ func main() {
 	getPublicProfileUC := &application.GetPublicProfile{Profiles: profileRepo}
 	updateProfileUC := &application.UpdateProfile{Profiles: profileRepo, Clock: clockImpl}
 	deleteProfileUC := &application.DeleteProfile{Profiles: profileRepo, Clock: clockImpl}
-	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo}
+	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo, Details: profileRepo}
 	updateAccountStatusUC := &application.UpdateAccountStatus{Profiles: profileRepo, Clock: clockImpl}
 	uploadAvatarUC := &application.UploadAvatar{
 		Profiles:  profileRepo,
