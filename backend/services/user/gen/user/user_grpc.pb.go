@@ -45,6 +45,10 @@ const (
 	UserService_GetFreelancerNote_FullMethodName        = "/user.v1.UserService/GetFreelancerNote"
 	UserService_GetPublicProfile_FullMethodName         = "/user.v1.UserService/GetPublicProfile"
 	UserService_ListPublicPortfolioItems_FullMethodName = "/user.v1.UserService/ListPublicPortfolioItems"
+	UserService_ListPublicEmployment_FullMethodName     = "/user.v1.UserService/ListPublicEmployment"
+	UserService_ListPublicEducation_FullMethodName      = "/user.v1.UserService/ListPublicEducation"
+	UserService_ListPublicCertifications_FullMethodName = "/user.v1.UserService/ListPublicCertifications"
+	UserService_GetPublicLanguages_FullMethodName       = "/user.v1.UserService/GetPublicLanguages"
 	UserService_GetUserProfile_FullMethodName           = "/user.v1.UserService/GetUserProfile"
 	UserService_ListUsers_FullMethodName                = "/user.v1.UserService/ListUsers"
 	UserService_PatchUserGovernance_FullMethodName      = "/user.v1.UserService/PatchUserGovernance"
@@ -87,6 +91,10 @@ type UserServiceClient interface {
 	// Public endpoints.
 	GetPublicProfile(ctx context.Context, in *GetPublicProfileRequest, opts ...grpc.CallOption) (*GetPublicProfileResponse, error)
 	ListPublicPortfolioItems(ctx context.Context, in *ListPublicPortfolioItemsRequest, opts ...grpc.CallOption) (*ListPublicPortfolioItemsResponse, error)
+	ListPublicEmployment(ctx context.Context, in *ListPublicEmploymentRequest, opts ...grpc.CallOption) (*ListPublicEmploymentResponse, error)
+	ListPublicEducation(ctx context.Context, in *ListPublicEducationRequest, opts ...grpc.CallOption) (*ListPublicEducationResponse, error)
+	ListPublicCertifications(ctx context.Context, in *ListPublicCertificationsRequest, opts ...grpc.CallOption) (*ListPublicCertificationsResponse, error)
+	GetPublicLanguages(ctx context.Context, in *GetPublicLanguagesRequest, opts ...grpc.CallOption) (*GetPublicLanguagesResponse, error)
 	// Admin endpoints.
 	GetUserProfile(ctx context.Context, in *GetUserProfileRequest, opts ...grpc.CallOption) (*GetUserProfileResponse, error)
 	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
@@ -367,6 +375,46 @@ func (c *userServiceClient) ListPublicPortfolioItems(ctx context.Context, in *Li
 	return out, nil
 }
 
+func (c *userServiceClient) ListPublicEmployment(ctx context.Context, in *ListPublicEmploymentRequest, opts ...grpc.CallOption) (*ListPublicEmploymentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPublicEmploymentResponse)
+	err := c.cc.Invoke(ctx, UserService_ListPublicEmployment_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListPublicEducation(ctx context.Context, in *ListPublicEducationRequest, opts ...grpc.CallOption) (*ListPublicEducationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPublicEducationResponse)
+	err := c.cc.Invoke(ctx, UserService_ListPublicEducation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) ListPublicCertifications(ctx context.Context, in *ListPublicCertificationsRequest, opts ...grpc.CallOption) (*ListPublicCertificationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPublicCertificationsResponse)
+	err := c.cc.Invoke(ctx, UserService_ListPublicCertifications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetPublicLanguages(ctx context.Context, in *GetPublicLanguagesRequest, opts ...grpc.CallOption) (*GetPublicLanguagesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPublicLanguagesResponse)
+	err := c.cc.Invoke(ctx, UserService_GetPublicLanguages_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) GetUserProfile(ctx context.Context, in *GetUserProfileRequest, opts ...grpc.CallOption) (*GetUserProfileResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetUserProfileResponse)
@@ -479,6 +527,10 @@ type UserServiceServer interface {
 	// Public endpoints.
 	GetPublicProfile(context.Context, *GetPublicProfileRequest) (*GetPublicProfileResponse, error)
 	ListPublicPortfolioItems(context.Context, *ListPublicPortfolioItemsRequest) (*ListPublicPortfolioItemsResponse, error)
+	ListPublicEmployment(context.Context, *ListPublicEmploymentRequest) (*ListPublicEmploymentResponse, error)
+	ListPublicEducation(context.Context, *ListPublicEducationRequest) (*ListPublicEducationResponse, error)
+	ListPublicCertifications(context.Context, *ListPublicCertificationsRequest) (*ListPublicCertificationsResponse, error)
+	GetPublicLanguages(context.Context, *GetPublicLanguagesRequest) (*GetPublicLanguagesResponse, error)
 	// Admin endpoints.
 	GetUserProfile(context.Context, *GetUserProfileRequest) (*GetUserProfileResponse, error)
 	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
@@ -576,6 +628,18 @@ func (UnimplementedUserServiceServer) GetPublicProfile(context.Context, *GetPubl
 }
 func (UnimplementedUserServiceServer) ListPublicPortfolioItems(context.Context, *ListPublicPortfolioItemsRequest) (*ListPublicPortfolioItemsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPublicPortfolioItems not implemented")
+}
+func (UnimplementedUserServiceServer) ListPublicEmployment(context.Context, *ListPublicEmploymentRequest) (*ListPublicEmploymentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPublicEmployment not implemented")
+}
+func (UnimplementedUserServiceServer) ListPublicEducation(context.Context, *ListPublicEducationRequest) (*ListPublicEducationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPublicEducation not implemented")
+}
+func (UnimplementedUserServiceServer) ListPublicCertifications(context.Context, *ListPublicCertificationsRequest) (*ListPublicCertificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPublicCertifications not implemented")
+}
+func (UnimplementedUserServiceServer) GetPublicLanguages(context.Context, *GetPublicLanguagesRequest) (*GetPublicLanguagesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPublicLanguages not implemented")
 }
 func (UnimplementedUserServiceServer) GetUserProfile(context.Context, *GetUserProfileRequest) (*GetUserProfileResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserProfile not implemented")
@@ -1090,6 +1154,78 @@ func _UserService_ListPublicPortfolioItems_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_ListPublicEmployment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPublicEmploymentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListPublicEmployment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListPublicEmployment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListPublicEmployment(ctx, req.(*ListPublicEmploymentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListPublicEducation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPublicEducationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListPublicEducation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListPublicEducation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListPublicEducation(ctx, req.(*ListPublicEducationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_ListPublicCertifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPublicCertificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListPublicCertifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListPublicCertifications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListPublicCertifications(ctx, req.(*ListPublicCertificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetPublicLanguages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPublicLanguagesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetPublicLanguages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetPublicLanguages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetPublicLanguages(ctx, req.(*GetPublicLanguagesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_GetUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetUserProfileRequest)
 	if err := dec(in); err != nil {
@@ -1344,6 +1480,22 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPublicPortfolioItems",
 			Handler:    _UserService_ListPublicPortfolioItems_Handler,
+		},
+		{
+			MethodName: "ListPublicEmployment",
+			Handler:    _UserService_ListPublicEmployment_Handler,
+		},
+		{
+			MethodName: "ListPublicEducation",
+			Handler:    _UserService_ListPublicEducation_Handler,
+		},
+		{
+			MethodName: "ListPublicCertifications",
+			Handler:    _UserService_ListPublicCertifications_Handler,
+		},
+		{
+			MethodName: "GetPublicLanguages",
+			Handler:    _UserService_GetPublicLanguages_Handler,
 		},
 		{
 			MethodName: "GetUserProfile",
