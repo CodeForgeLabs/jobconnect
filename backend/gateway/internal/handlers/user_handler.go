@@ -342,7 +342,12 @@ func (h *UserHandler) GetMeOnboardingStatus(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"completeness": completenessPayload, "steps": stepsPayload})
+	readinessPayload, err := protoToAny(resp.GetReadiness())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"completeness": completenessPayload, "readiness": readinessPayload, "steps": stepsPayload})
 }
 
 func (h *UserHandler) GetMeAccountSettings(c *gin.Context) {

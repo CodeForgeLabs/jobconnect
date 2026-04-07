@@ -272,6 +272,11 @@ func (s *UserServer) GetMyOnboardingStatus(ctx context.Context, req *userv1.GetM
 			Percent:               out.Percent,
 			MissingRequiredFields: out.Missing,
 		},
+		Readiness: &userv1.ProfileReadiness{
+			Percent:               out.ReadinessPercent,
+			MissingRequiredFields: out.ReadinessMissing,
+			Recommendations:       out.ReadinessRecommendations,
+		},
 		Steps: toProtoOnboardingSteps(out.Steps),
 	}, nil
 }
