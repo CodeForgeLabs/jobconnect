@@ -26,6 +26,12 @@ var protoJSON = protojson.MarshalOptions{
 	EmitUnpopulated: false,
 }
 
+var protoJSONWithDefaults = protojson.MarshalOptions{
+	UseProtoNames:   true,
+	UseEnumNumbers:  false,
+	EmitUnpopulated: true,
+}
+
 type UserHandler struct {
 	client             userv1.UserServiceClient
 	verificationClient verificationStatusClient
@@ -365,7 +371,7 @@ func (h *UserHandler) GetMeAccountSettings(c *gin.Context) {
 		return
 	}
 
-	settingsPayload, err := protoToAny(resp.GetSettings())
+	settingsPayload, err := protoToAnyWithDefaults(resp.GetSettings())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
@@ -403,7 +409,7 @@ func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
 		return
 	}
 
-	settingsPayload, err := protoToAny(resp.GetSettings())
+	settingsPayload, err := protoToAnyWithDefaults(resp.GetSettings())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
 		return
@@ -968,10 +974,18 @@ func writeProtoEnvelope(c *gin.Context, statusCode int, key string, msg proto.Me
 }
 
 func protoToAny(msg proto.Message) (any, error) {
+	return protoToAnyWithOptions(msg, protoJSON)
+}
+
+func protoToAnyWithDefaults(msg proto.Message) (any, error) {
+	return protoToAnyWithOptions(msg, protoJSONWithDefaults)
+}
+
+func protoToAnyWithOptions(msg proto.Message, marshaler protojson.MarshalOptions) (any, error) {
 	if msg == nil {
 		return nil, nil
 	}
-	raw, err := protoJSON.Marshal(msg)
+	raw, err := marshaler.Marshal(msg)
 	if err != nil {
 		return nil, err
 	}
