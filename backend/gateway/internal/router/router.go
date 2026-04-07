@@ -144,24 +144,6 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.PATCH("/me/portfolio/:itemId", userHandler.UpdateMePortfolioItem)
 	userRoutes.DELETE("/me/portfolio/:itemId", userHandler.DeleteMePortfolioItem)
 
-	// Employment: work history timeline entries.
-	userRoutes.POST("/me/employment", userHandler.CreateMeEmployment)
-	userRoutes.PATCH("/me/employment/:employmentId", userHandler.UpdateMeEmployment)
-	userRoutes.DELETE("/me/employment/:employmentId", userHandler.DeleteMeEmployment)
-
-	// Education: academic history entries.
-	userRoutes.POST("/me/education", userHandler.CreateMeEducation)
-	userRoutes.PATCH("/me/education/:educationId", userHandler.UpdateMeEducation)
-	userRoutes.DELETE("/me/education/:educationId", userHandler.DeleteMeEducation)
-
-	// Certifications: credential records management.
-	userRoutes.POST("/me/certifications", userHandler.CreateMeCertification)
-	userRoutes.PATCH("/me/certifications/:certificationId", userHandler.UpdateMeCertification)
-	userRoutes.DELETE("/me/certifications/:certificationId", userHandler.DeleteMeCertification)
-
-	// Languages: proficiency list upsert.
-	userRoutes.PUT("/me/languages", userHandler.UpsertMeLanguages)
-
 	// Freelancer preferences: work style and client matching.
 	userRoutes.PUT("/me/work-preferences", userHandler.SetMeWorkPreferences)
 	userRoutes.GET("/me/work-preferences", userHandler.GetMeWorkPreferences)
