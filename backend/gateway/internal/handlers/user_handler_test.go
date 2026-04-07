@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	userv1 "jobconnect/user/gen/user"
 	"jobconnect/gateway/internal/middleware"
 	verificationv1 "jobconnect/verification/gen/verification/v1"
 
@@ -192,5 +193,36 @@ func TestUpdateMeAccountSettings_RequiresPayload(t *testing.T) {
 
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
+	}
+}
+
+func TestProtoToAny_ProfileReadiness(t *testing.T) {
+	msg := &userv1.ProfileReadiness{
+		Percent:               80,
+		MissingRequiredFields: []string{"hiring_preferences"},
+		Recommendations:       []string{"Add hiring preferences to improve client matching"},
+	}
+
+	payload, err := protoToAny(msg)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	obj, ok := payload.(map[string]any)
+	if !ok {
+		t.Fatalf("expected map payload, got %T", payload)
+	}
+	if got, ok := obj["percent"].(float64); !ok || got != 80 {
+		t.Fatalf("expected percent=80, got %v", obj["percent"])
+	}
+
+	missing, ok := obj["missing_required_fields"].([]any)
+	if !ok || len(missing) != 1 || missing[0] != "hiring_preferences" {
+		t.Fatalf("expected missing_required_fields with hiring_preferences, got %#v", obj["missing_required_fields"])
+	}
+
+	recs, ok := obj["recommendations"].([]any)
+	if !ok || len(recs) != 1 {
+		t.Fatalf("expected recommendations array, got %#v", obj["recommendations"])
 	}
 }
