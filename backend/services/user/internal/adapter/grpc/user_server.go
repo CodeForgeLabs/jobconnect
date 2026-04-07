@@ -440,11 +440,11 @@ func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.C
 			HourlyRate:   freelancer.HourlyRate,
 			Availability: toProtoAvailability(freelancer.Availability),
 			Metrics: &userv1.FreelancerMetrics{
-				Rating:             freelancer.Rating,
-				JobSuccessScore:    freelancer.Reputation.JobSuccessScore,
-				TotalReviews:       freelancer.Reputation.TotalReviews,
-				TotalJobs:          freelancer.Reputation.TotalJobs,
-				TotalEarnings:      freelancer.Reputation.TotalEarningsUSD,
+				Rating:          freelancer.Rating,
+				JobSuccessScore: freelancer.Reputation.JobSuccessScore,
+				TotalReviews:    freelancer.Reputation.TotalReviews,
+				TotalJobs:       freelancer.Reputation.TotalJobs,
+				TotalEarnings:   freelancer.Reputation.TotalEarningsUSD,
 			},
 		}
 		if profile.LastActiveAt != nil {

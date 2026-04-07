@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	onboardingStepCoreProfile  = "core_profile_completed"
-	onboardingStepAvatar       = "avatar_uploaded"
-	onboardingStepRoleProfile  = "role_profile_completed"
-	onboardingStepKYC          = "kyc_completed"
+	onboardingStepCoreProfile = "core_profile_completed"
+	onboardingStepAvatar      = "avatar_uploaded"
+	onboardingStepRoleProfile = "role_profile_completed"
+	onboardingStepKYC         = "kyc_completed"
 
 	readinessMissingCoreProfile       = "core_profile"
 	readinessMissingAvatar            = "avatar"
@@ -23,9 +23,9 @@ const (
 )
 
 type readinessSignals struct {
-	HasPortfolio          bool
-	HasWorkPreferences    bool
-	HasHiringPreferences  bool
+	HasPortfolio         bool
+	HasWorkPreferences   bool
+	HasHiringPreferences bool
 }
 
 func verificationCountsComplete(status string) bool {

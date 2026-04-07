@@ -14,11 +14,11 @@ type GetOnboardingStatusInput struct {
 }
 
 type GetOnboardingStatusOutput struct {
-	Percent                 uint32
-	Missing                 []string
-	Steps                   []OnboardingStep
-	ReadinessPercent        uint32
-	ReadinessMissing        []string
+	Percent                  uint32
+	Missing                  []string
+	Steps                    []OnboardingStep
+	ReadinessPercent         uint32
+	ReadinessMissing         []string
 	ReadinessRecommendations []string
 }
 

@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	userv1 "jobconnect/user/gen/user"
 	"jobconnect/gateway/internal/middleware"
+	userv1 "jobconnect/user/gen/user"
 	verificationv1 "jobconnect/verification/gen/verification/v1"
 
 	"github.com/gin-gonic/gin"
