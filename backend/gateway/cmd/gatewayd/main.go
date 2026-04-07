@@ -62,7 +62,7 @@ func main() {
 	verificationClient := clients.NewVerificationClient(verificationConn)
 	jobClient := clients.NewJobClient(jobConn)
 	authHandler := handlers.NewAuthHandler(cfg, authClient)
-	userHandler := handlers.NewUserHandler(userClient)
+	userHandler := handlers.NewUserHandler(userClient, verificationClient)
 	verificationHandler := handlers.NewVerificationHandler(verificationClient)
 	jobHandler := handlers.NewJobHandler(jobClient)
 	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler)

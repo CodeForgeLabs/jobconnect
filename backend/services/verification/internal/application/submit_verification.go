@@ -37,8 +37,8 @@ func (uc *SubmitVerification) Execute(ctx context.Context, in SubmitVerification
 	version := int32(1)
 	latest, err := uc.Repo.GetLatestByUserID(ctx, in.UserID)
 	if err == nil {
-		if latest.Status == domain.StatusPendingReview {
-			return domain.VerificationRequest{}, fmt.Errorf("verification request already pending")
+		if latest.Status == domain.StatusSubmitted || latest.Status == domain.StatusPendingReview {
+			return domain.VerificationRequest{}, fmt.Errorf("verification request already submitted")
 		}
 		version = latest.RequestVersion + 1
 	}
@@ -47,7 +47,7 @@ func (uc *SubmitVerification) Execute(ctx context.Context, in SubmitVerification
 	created, err := uc.Repo.CreateSubmission(ctx, domain.VerificationRequest{
 		UserID:               in.UserID,
 		RequestVersion:       version,
-		Status:               domain.StatusPendingReview,
+		Status:               domain.StatusSubmitted,
 		LegalName:            strings.TrimSpace(in.LegalName),
 		CountryCode:          strings.ToUpper(strings.TrimSpace(in.CountryCode)),
 		DocumentType:         strings.TrimSpace(in.DocumentType),

@@ -133,6 +133,7 @@ enum AccountStatus {
 enum VerificationStatus {
   VERIFICATION_STATUS_UNSPECIFIED = 0;
   VERIFICATION_STATUS_PENDING = 1;
+  VERIFICATION_STATUS_SUBMITTED = 5;
   VERIFICATION_STATUS_VERIFIED = 2;
   VERIFICATION_STATUS_REJECTED = 3;
   VERIFICATION_STATUS_EXPIRED = 4;
@@ -200,6 +201,7 @@ message UserCore {
   int64 created_at_unix = 17;
   int64 updated_at_unix = 18;
   optional int64 deleted_at_unix = 19;
+  string location = 20;
 }
 
 message ClientProfile {
@@ -213,7 +215,6 @@ message FreelancerMetrics {
   uint32 total_jobs = 4;
   double total_earnings = 5;
   optional int64 last_active_at_unix = 6;
-  VerificationStatus verification_status = 7;
 }
 
 message FreelancerProfile {
@@ -221,8 +222,7 @@ message FreelancerProfile {
   repeated string skills = 2;
   double hourly_rate = 3;
   Availability availability = 4;
-  string location = 5;
-  FreelancerMetrics metrics = 6;
+  FreelancerMetrics metrics = 5;
 }
 
 message ProfileAvatar {
@@ -282,6 +282,7 @@ message CreateMyProfileRequest {
   string first_name = 3;
   string last_name = 4;
   string display_name = 5;
+  string location = 6;
   string contact_email = 7;
 
   oneof role_profile {
@@ -299,7 +300,6 @@ message FreelancerProfileCreateInput {
   repeated string skills = 2;
   double hourly_rate = 3;
   Availability availability = 4;
-  string location = 5;
 }
 
 message CreateMyProfileResponse {
@@ -323,6 +323,7 @@ message PatchMyProfileCoreInput {
   optional string contact_phone = 4;
   optional string bio = 5;
   optional string tax_id = 6;
+  optional string location = 7;
 }
 
 message PatchMyClientProfileInput {
@@ -334,7 +335,6 @@ message PatchMyFreelancerProfileInput {
   StringList skills = 2;
   optional double hourly_rate = 3;
   optional Availability availability = 4;
-  optional string location = 5;
 }
 
 message PatchMyProfileRequest {

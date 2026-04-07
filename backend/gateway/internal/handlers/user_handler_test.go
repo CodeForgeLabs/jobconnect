@@ -2,13 +2,16 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"jobconnect/gateway/internal/middleware"
+	verificationv1 "jobconnect/verification/gen/verification/v1"
 
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
 )
 
 func newJSONTestContext(method, target string) (*gin.Context, *httptest.ResponseRecorder) {
@@ -137,6 +140,34 @@ func TestUpdateMeProfile_LanguageRejectedInFavorOfSettings(t *testing.T) {
 
 	if rec.Code != http.StatusBadRequest {
 		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
+	}
+}
+
+type submittedVerificationClientStub struct {
+	called bool
+}
+
+func (s *submittedVerificationClientStub) GetMyVerificationStatus(ctx context.Context, in *verificationv1.GetMyVerificationStatusRequest, opts ...grpc.CallOption) (*verificationv1.GetMyVerificationStatusResponse, error) {
+	s.called = true
+	return &verificationv1.GetMyVerificationStatusResponse{
+		Request: &verificationv1.VerificationRequest{Status: "submitted"},
+	}, nil
+}
+
+func TestUpdateMeProfile_TaxIDRejectedWhenVerificationSubmitted(t *testing.T) {
+	verificationClient := &submittedVerificationClientStub{}
+	h := &UserHandler{verificationClient: verificationClient}
+	body := `{"tax_id":"TIN-123"}`
+	ctx, rec := newJSONBodyTestContext(http.MethodPatch, "/api/v1/users/me/profile", body)
+	ctx.Set(middleware.ContextUserID, "11111111-1111-1111-1111-111111111111")
+
+	h.UpdateMeProfile(ctx)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
+	}
+	if !verificationClient.called {
+		t.Fatalf("expected verification status check to be called")
 	}
 }
 

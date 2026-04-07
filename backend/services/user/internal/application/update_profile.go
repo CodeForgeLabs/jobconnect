@@ -74,11 +74,10 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 	if in.Bio != nil {
 		profile.Bio = strings.TrimSpace(*in.Bio)
 	}
+	if in.Location != nil {
+		profile.Location = strings.TrimSpace(*in.Location)
+	}
 	if in.TaxID != nil {
-		status := normalizeVerificationStatus(profile.VerificationStatus)
-		if status == domain.VerificationStatusPending || status == domain.VerificationStatusVerified {
-			return UpdateProfileOutput{}, fmt.Errorf("tax_id update is not allowed while verification is pending or verified")
-		}
 		profile.TaxID = strings.TrimSpace(*in.TaxID)
 	}
 	if in.FirstName != nil {
@@ -108,7 +107,7 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		if in.BillingAddress != nil {
 			client.BillingAddress = strings.TrimSpace(*in.BillingAddress)
 		}
-		if in.Headline != nil || in.ExperienceLevel != nil || in.Skills != nil || in.HourlyRate != nil || in.Availability != nil || in.Location != nil || in.LastActiveAtUnix != nil {
+		if in.Headline != nil || in.ExperienceLevel != nil || in.Skills != nil || in.HourlyRate != nil || in.Availability != nil || in.LastActiveAtUnix != nil {
 			return UpdateProfileOutput{}, fmt.Errorf("freelancer fields are not allowed for client")
 		}
 	case domain.RoleFreelancer:
@@ -140,9 +139,6 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		if in.Availability != nil {
 			freelancer.Availability = strings.TrimSpace(*in.Availability)
 		}
-		if in.Location != nil {
-			freelancer.Location = strings.TrimSpace(*in.Location)
-		}
 		if in.LastActiveAtUnix != nil {
 			if *in.LastActiveAtUnix <= 0 {
 				profile.LastActiveAt = nil
@@ -155,7 +151,7 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 			return UpdateProfileOutput{}, fmt.Errorf("client fields are not allowed for freelancer")
 		}
 	case domain.RoleAdmin:
-		if in.CompanyName != nil || in.BillingAddress != nil || in.TaxID != nil || in.Headline != nil || in.ExperienceLevel != nil || in.Skills != nil || in.HourlyRate != nil || in.Availability != nil || in.Location != nil || in.LastActiveAtUnix != nil {
+		if in.CompanyName != nil || in.BillingAddress != nil || in.TaxID != nil || in.Headline != nil || in.ExperienceLevel != nil || in.Skills != nil || in.HourlyRate != nil || in.Availability != nil || in.LastActiveAtUnix != nil {
 			return UpdateProfileOutput{}, fmt.Errorf("role-specific fields are not allowed for admin")
 		}
 	}
@@ -172,10 +168,4 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		Completeness: completeness,
 		Missing:      missing,
 	}, nil
-}
-
-func normalizeVerificationStatus(value string) string {
-	normalized := strings.TrimSpace(strings.ToUpper(value))
-	normalized = strings.TrimPrefix(normalized, "VERIFICATION_STATUS_")
-	return normalized
 }

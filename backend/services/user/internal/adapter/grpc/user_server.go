@@ -110,7 +110,6 @@ func (s *UserServer) CreateMyProfile(ctx context.Context, req *userv1.CreateMyPr
 			Skills:       req.GetFreelancer().Skills,
 			HourlyRate:   req.GetFreelancer().HourlyRate,
 			Availability: mapAvailabilityFromProto(req.GetFreelancer().Availability),
-			Location:     req.GetFreelancer().Location,
 		}
 	}
 
@@ -120,6 +119,7 @@ func (s *UserServer) CreateMyProfile(ctx context.Context, req *userv1.CreateMyPr
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		DisplayName:  req.DisplayName,
+		Location:     req.Location,
 		ContactEmail: req.ContactEmail,
 		AvatarURL:    "",
 		Client:       client,
@@ -182,6 +182,7 @@ func (s *UserServer) PatchMyProfile(ctx context.Context, req *userv1.PatchMyProf
 		in.ContactPhone = req.Core.ContactPhone
 		in.Bio = req.Core.Bio
 		in.TaxID = req.Core.TaxId
+		in.Location = req.Core.Location
 	}
 
 	if req.GetClient() != nil {
@@ -195,7 +196,6 @@ func (s *UserServer) PatchMyProfile(ctx context.Context, req *userv1.PatchMyProf
 		}
 		in.HourlyRate = req.GetFreelancer().HourlyRate
 		in.Availability = stringPtrFromAvailability(req.GetFreelancer().Availability)
-		in.Location = req.GetFreelancer().Location
 	}
 
 	if hasClearField(req.ClearFields, "contact_phone") {
@@ -414,6 +414,7 @@ func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.C
 			ContactEmail:       profile.ContactEmail,
 			ContactPhone:       profile.ContactPhone,
 			Bio:                profile.Bio,
+			Location:           profile.Location,
 			AccountStatus:      toProtoAccountStatus(profile.AccountStatus),
 			SuspensionReason:   profile.SuspensionReason,
 			TaxId:              profile.TaxID,
@@ -433,14 +434,12 @@ func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.C
 			Skills:       freelancer.Skills,
 			HourlyRate:   freelancer.HourlyRate,
 			Availability: toProtoAvailability(freelancer.Availability),
-			Location:     freelancer.Location,
 			Metrics: &userv1.FreelancerMetrics{
 				Rating:             freelancer.Rating,
 				JobSuccessScore:    freelancer.Reputation.JobSuccessScore,
 				TotalReviews:       freelancer.Reputation.TotalReviews,
 				TotalJobs:          freelancer.Reputation.TotalJobs,
 				TotalEarnings:      freelancer.Reputation.TotalEarningsUSD,
-				VerificationStatus: toProtoVerificationStatus(freelancer.VerificationStatus),
 			},
 		}
 		if profile.LastActiveAt != nil {
@@ -552,6 +551,8 @@ func toProtoVerificationStatus(value string) userv1.VerificationStatus {
 	switch s {
 	case domain.VerificationStatusPending:
 		return userv1.VerificationStatus_VERIFICATION_STATUS_PENDING
+	case domain.VerificationStatusSubmitted:
+		return userv1.VerificationStatus_VERIFICATION_STATUS_SUBMITTED
 	case domain.VerificationStatusVerified:
 		return userv1.VerificationStatus_VERIFICATION_STATUS_VERIFIED
 	case domain.VerificationStatusRejected:

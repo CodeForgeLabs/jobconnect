@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,8 +10,12 @@ import (
 	"strings"
 
 	userv1 "jobconnect/user/gen/user"
+	verificationv1 "jobconnect/verification/gen/verification/v1"
 
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -22,7 +27,12 @@ var protoJSON = protojson.MarshalOptions{
 }
 
 type UserHandler struct {
-	client userv1.UserServiceClient
+	client             userv1.UserServiceClient
+	verificationClient verificationStatusClient
+}
+
+type verificationStatusClient interface {
+	GetMyVerificationStatus(ctx context.Context, in *verificationv1.GetMyVerificationStatusRequest, opts ...grpc.CallOption) (*verificationv1.GetMyVerificationStatusResponse, error)
 }
 
 type updateProfileRequest struct {
@@ -54,8 +64,8 @@ type updateAccountSettingsRequest struct {
 	UILocale *string `json:"ui_locale"`
 }
 
-func NewUserHandler(client userv1.UserServiceClient) *UserHandler {
-	return &UserHandler{client: client}
+func NewUserHandler(client userv1.UserServiceClient, verificationClient verificationStatusClient) *UserHandler {
+	return &UserHandler{client: client, verificationClient: verificationClient}
 }
 
 func (h *UserHandler) GetMe(c *gin.Context) {
@@ -179,6 +189,17 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported profile fields in this endpoint"})
 		return
 	}
+	if body.TaxID != nil {
+		locked, err := h.taxIDLocked(c.Request.Context(), userID)
+		if err != nil {
+			writeGRPCError(c, err)
+			return
+		}
+		if locked {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "tax_id update is not allowed after verification submission"})
+			return
+		}
+	}
 
 	var availability *userv1.Availability
 	if body.Availability != nil {
@@ -190,9 +211,9 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		availability = &parsed
 	}
 
-	hasCore := body.DisplayName != nil || body.ContactEmail != nil || body.ContactPhone != nil || body.Bio != nil || body.TaxID != nil
+	hasCore := body.DisplayName != nil || body.ContactEmail != nil || body.ContactPhone != nil || body.Bio != nil || body.TaxID != nil || body.Location != nil
 	hasClient := body.CompanyName != nil
-	hasFreelancer := body.Headline != nil || body.HourlyRate != nil || availability != nil || body.Location != nil || body.Skills != nil
+	hasFreelancer := body.Headline != nil || body.HourlyRate != nil || availability != nil || body.Skills != nil
 
 	if !(hasCore || hasClient || hasFreelancer) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "at least one updatable field is required"})
@@ -211,6 +232,7 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 			ContactPhone: body.ContactPhone,
 			Bio:          body.Bio,
 			TaxId:        body.TaxID,
+			Location:     body.Location,
 		}
 	}
 	if hasClient {
@@ -223,7 +245,6 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 			Headline:     body.Headline,
 			HourlyRate:   body.HourlyRate,
 			Availability: availability,
-			Location:     body.Location,
 		}
 		if body.Skills != nil {
 			freelancer.Skills = &userv1.StringList{Values: body.Skills}
@@ -248,6 +269,29 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"profile": profilePayload, "completeness": completenessPayload})
+}
+
+func (h *UserHandler) taxIDLocked(ctx context.Context, userID string) (bool, error) {
+	if h.verificationClient == nil {
+		return false, fmt.Errorf("verification client unavailable")
+	}
+	resp, err := h.verificationClient.GetMyVerificationStatus(ctx, &verificationv1.GetMyVerificationStatusRequest{UserId: userID})
+	if err != nil {
+		if st, ok := status.FromError(err); ok && st.Code() == codes.NotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	request := resp.GetRequest()
+	if request == nil {
+		return false, nil
+	}
+	switch strings.TrimSpace(strings.ToLower(request.GetStatus())) {
+	case "submitted", "pending_review", "verified":
+		return true, nil
+	default:
+		return false, nil
+	}
 }
 
 func (h *UserHandler) DeleteMeProfile(c *gin.Context) {

@@ -79,7 +79,7 @@ message VerificationRequest {
   int64 id = 1;
   string user_id = 2;
   int32 request_version = 3;
-  string status = 4; // unverified|pending_review|verified|rejected|reverification_required
+  string status = 4; // unverified|submitted|pending_review|verified|rejected|reverification_required
   string legal_name = 5;
   string country_code = 6;
   string document_type = 7;

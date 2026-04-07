@@ -15,10 +15,11 @@ const (
 	AccountStatusSuspended = "SUSPENDED"
 	AccountStatusDeleted   = "DELETED"
 
-	VerificationStatusPending  = "PENDING"
-	VerificationStatusVerified = "VERIFIED"
-	VerificationStatusRejected = "REJECTED"
-	VerificationStatusExpired  = "EXPIRED"
+	VerificationStatusPending   = "PENDING"
+	VerificationStatusSubmitted = "SUBMITTED"
+	VerificationStatusVerified  = "VERIFIED"
+	VerificationStatusRejected  = "REJECTED"
+	VerificationStatusExpired   = "EXPIRED"
 
 	AvailabilityFullTime    = "FULL_TIME"
 	AvailabilityPartTime    = "PART_TIME"
@@ -27,25 +28,26 @@ const (
 )
 
 type Profile struct {
-	ID               int64
-	UserID           uuid.UUID
-	Role             string
-	FirstName        string
-	LastName         string
-	DisplayName      string
-	AvatarURL        string
-	Language         string
-	ContactEmail     string
-	ContactPhone     string
-	Bio              string
-	TaxID            string
+	ID                 int64
+	UserID             uuid.UUID
+	Role               string
+	FirstName          string
+	LastName           string
+	DisplayName        string
+	AvatarURL          string
+	Language           string
+	ContactEmail       string
+	ContactPhone       string
+	Bio                string
+	Location           string
+	TaxID              string
 	VerificationStatus string
-	AccountStatus    string
-	SuspensionReason string
-	LastActiveAt     *time.Time
-	DeletedAt        *time.Time
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	AccountStatus      string
+	SuspensionReason   string
+	LastActiveAt       *time.Time
+	DeletedAt          *time.Time
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 type ClientProfile struct {
@@ -65,7 +67,6 @@ type FreelancerProfile struct {
 	Reputation         Reputation
 	HourlyRate         float64
 	Availability       string
-	Location           string
 }
 
 type Reputation struct {

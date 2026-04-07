@@ -8,7 +8,7 @@ import (
 
 func verificationCountsComplete(status string) bool {
 	normalized := strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(status), "VERIFICATION_STATUS_"))
-	return normalized == domain.VerificationStatusVerified || normalized == domain.VerificationStatusPending
+	return normalized == domain.VerificationStatusVerified || normalized == domain.VerificationStatusSubmitted || normalized == "PENDING_REVIEW"
 }
 
 func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) (uint32, []string) {

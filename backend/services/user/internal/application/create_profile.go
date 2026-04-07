@@ -18,6 +18,7 @@ type CreateProfileInput struct {
 	FirstName    string
 	LastName     string
 	DisplayName  string
+	Location     string
 	ContactEmail string
 	AvatarURL    string
 	Client       *domain.ClientProfile
@@ -90,19 +91,20 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 	}
 
 	profile := domain.Profile{
-		UserID:        in.UserID,
-		Role:          in.Role,
-		FirstName:     in.FirstName,
-		LastName:      in.LastName,
-		DisplayName:   displayName,
-		AvatarURL:     in.AvatarURL,
-		Language:      "en",
-		ContactEmail:  in.ContactEmail,
-		TaxID:         "",
+		UserID:             in.UserID,
+		Role:               in.Role,
+		FirstName:          in.FirstName,
+		LastName:           in.LastName,
+		DisplayName:        displayName,
+		AvatarURL:          in.AvatarURL,
+		Language:           "en",
+		ContactEmail:       in.ContactEmail,
+		Location:           strings.TrimSpace(in.Location),
+		TaxID:              "",
 		VerificationStatus: "",
-		AccountStatus: domain.AccountStatusActive,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		AccountStatus:      domain.AccountStatusActive,
+		CreatedAt:          now,
+		UpdatedAt:          now,
 	}
 
 	if in.Client != nil {

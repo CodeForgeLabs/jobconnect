@@ -45,10 +45,10 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 	}
 
 	err = tx.QueryRow(ctx, `
-		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, language, contact_email, contact_phone, bio, account_status, suspension_reason, tax_id, verification_status, last_active_at, created_at, updated_at)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, language, contact_email, contact_phone, bio, location, account_status, suspension_reason, tax_id, verification_status, last_active_at, created_at, updated_at)
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
 		returning id
-	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.AccountStatus, profile.SuspensionReason, taxID, verificationStatus, profile.LastActiveAt, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
+	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.Location, profile.AccountStatus, profile.SuspensionReason, taxID, verificationStatus, profile.LastActiveAt, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
 	if err != nil {
 		return 0, err
 	}
@@ -78,11 +78,10 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 				total_jobs,
 				total_earnings,
 				hourly_rate,
-				availability,
-				location
+				availability
 			)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-		`, profileID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		`, profileID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability)
 		if err != nil {
 			return 0, err
 		}
@@ -111,6 +110,7 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			coalesce(contact_email, ''),
 			coalesce(contact_phone, ''),
 			coalesce(bio, ''),
+			coalesce(location, ''),
 			coalesce(account_status, 'ACTIVE'),
 			coalesce(suspension_reason, ''),
 			coalesce(tax_id, ''),
@@ -133,6 +133,7 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 		&profile.ContactEmail,
 		&profile.ContactPhone,
 		&profile.Bio,
+		&profile.Location,
 		&profile.AccountStatus,
 		&profile.SuspensionReason,
 		&profileTaxID,
@@ -184,11 +185,10 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 				coalesce(total_jobs, 0),
 				coalesce(total_earnings, 0),
 				coalesce(hourly_rate, 0),
-				coalesce(availability, 'AS_NEEDED'),
-				coalesce(location, '')
+				coalesce(availability, 'AS_NEEDED')
 			from freelancer_profiles
 			where profile_id = $1
-		`, profile.ID).Scan(&fp.Headline, &skillsRaw, &fp.Rating, &fp.Reputation.JobSuccessScore, &fp.Reputation.TotalReviews, &fp.Reputation.TotalJobs, &fp.Reputation.TotalEarningsUSD, &fp.HourlyRate, &fp.Availability, &fp.Location)
+		`, profile.ID).Scan(&fp.Headline, &skillsRaw, &fp.Rating, &fp.Reputation.JobSuccessScore, &fp.Reputation.TotalReviews, &fp.Reputation.TotalJobs, &fp.Reputation.TotalEarningsUSD, &fp.HourlyRate, &fp.Availability)
 		if err != nil {
 			if !isNoRows(err) {
 				return domain.Profile{}, nil, nil, err
@@ -228,14 +228,15 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 			contact_email = $7,
 			contact_phone = $8,
 			bio = $9,
-			account_status = $10,
-			suspension_reason = $11,
-			last_active_at = $12,
-			tax_id = coalesce($13, tax_id),
-			verification_status = coalesce($14, verification_status),
-			updated_at = $15
+			location = $10,
+			account_status = $11,
+			suspension_reason = $12,
+			last_active_at = $13,
+			tax_id = coalesce($14, tax_id),
+			verification_status = coalesce($15, verification_status),
+			updated_at = $16
 		where user_id = $1
-	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.AccountStatus, profile.SuspensionReason, profile.LastActiveAt, taxID, verificationStatus, profile.UpdatedAt)
+	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.Location, profile.AccountStatus, profile.SuspensionReason, profile.LastActiveAt, taxID, verificationStatus, profile.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -268,10 +269,9 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 				total_jobs,
 				total_earnings,
 				hourly_rate,
-				availability,
-				location
+				availability
 			)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			on conflict (profile_id) do update set
 				headline = excluded.headline,
 				skills = excluded.skills,
@@ -281,9 +281,8 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 				total_jobs = excluded.total_jobs,
 				total_earnings = excluded.total_earnings,
 				hourly_rate = excluded.hourly_rate,
-				availability = excluded.availability,
-				location = excluded.location
-		`, profile.ID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location)
+				availability = excluded.availability
+		`, profile.ID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability)
 		if err != nil {
 			return err
 		}
