@@ -7,7 +7,7 @@ This document tracks portfolio, employment, education, certifications, and langu
 ### Profile + Onboarding
 - GET `/api/v1/users/me/profile` -> `GetMyProfile` + verification status composition (returns profile + completeness + verification)
 - PATCH `/api/v1/users/me/profile` -> `PatchMyProfile` (single unified patch path for core + role fields)
-- GET `/api/v1/users/me/onboarding-status` -> `GetMyOnboardingStatus`
+- GET `/api/v1/users/me/onboarding-status` -> `GetMyOnboardingStatus` (returns `completeness`, `readiness`, and `steps`)
 
 Profile patch ownership notes:
 - `availability` and `hourly_rate` are updated through `PATCH /api/v1/users/me/profile` (the dedicated availability/rates endpoints were removed).
