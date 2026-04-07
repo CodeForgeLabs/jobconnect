@@ -236,6 +236,12 @@ message ProfileCompleteness {
   repeated string missing_required_fields = 2;
 }
 
+message ProfileReadiness {
+  uint32 percent = 1;
+  repeated string missing_required_fields = 2;
+  repeated string recommendations = 3;
+}
+
 message OnboardingStep {
   string key = 1;
   OnboardingStepStatus status = 2;
@@ -360,6 +366,7 @@ message GetMyOnboardingStatusRequest {
 message GetMyOnboardingStatusResponse {
   ProfileCompleteness completeness = 1;
   repeated OnboardingStep steps = 2;
+  ProfileReadiness readiness = 3;
 }
 
 message UploadMyAvatarRequest {
