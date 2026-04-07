@@ -4,11 +4,54 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"jobconnect/user/internal/domain"
 
 	"github.com/google/uuid"
 )
+
+type onboardingProfileRepoStub struct {
+	profile    domain.Profile
+	client     *domain.ClientProfile
+	freelancer *domain.FreelancerProfile
+	err        error
+}
+
+func (s onboardingProfileRepoStub) Create(ctx context.Context, profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) (int64, error) {
+	return 0, nil
+}
+
+func (s onboardingProfileRepoStub) GetByUserID(ctx context.Context, userID uuid.UUID) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
+	if s.err != nil {
+		return domain.Profile{}, nil, nil, s.err
+	}
+	return s.profile, s.client, s.freelancer, nil
+}
+
+func (s onboardingProfileRepoStub) Update(ctx context.Context, profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) error {
+	return nil
+}
+
+func (s onboardingProfileRepoStub) UpdateAccountState(ctx context.Context, userID uuid.UUID, status, suspensionReason string, updatedAt time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
+	return domain.Profile{}, nil, nil, nil
+}
+
+func (s onboardingProfileRepoStub) Delete(ctx context.Context, userID uuid.UUID, hardDelete bool, deletedAt time.Time) error {
+	return nil
+}
+
+func (s onboardingProfileRepoStub) SaveAvatar(ctx context.Context, avatar domain.Avatar) error {
+	return nil
+}
+
+func (s onboardingProfileRepoStub) GetAvatar(ctx context.Context, userID uuid.UUID) (domain.Avatar, error) {
+	return domain.Avatar{}, nil
+}
+
+func (s onboardingProfileRepoStub) RemoveAvatar(ctx context.Context, userID uuid.UUID) error {
+	return nil
+}
 
 type onboardingDetailsStub struct {
 	portfolioResult ListResult[PortfolioItem]
@@ -78,5 +121,56 @@ func TestComputeReadinessSignals_ErrorsDoNotSetSignals(t *testing.T) {
 	clientSignals := uc.computeReadinessSignals(context.Background(), uuid.New(), domain.RoleClient)
 	if clientSignals.HasPortfolio || clientSignals.HasWorkPreferences || clientSignals.HasHiringPreferences {
 		t.Fatalf("expected no readiness signals when detail lookups fail, got %+v", clientSignals)
+	}
+}
+
+func TestGetOnboardingStatusExecute_FreelancerReadinessUsesDetails(t *testing.T) {
+	profile := baseProfile(domain.RoleFreelancer)
+	freelancer := completeFreelancer(domain.VerificationStatusSubmitted)
+
+	uc := GetOnboardingStatus{
+		Profiles: onboardingProfileRepoStub{
+			profile:    profile,
+			freelancer: freelancer,
+		},
+		Details: onboardingDetailsStub{
+			portfolioResult: ListResult[PortfolioItem]{Items: []PortfolioItem{{ID: 1}}},
+			workPrefsResult: WorkPreferences{PreferredProjectLength: "short", ContractTypes: []string{"fixed"}},
+		},
+	}
+
+	out, err := uc.Execute(context.Background(), GetOnboardingStatusInput{UserID: uuid.New()})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if out.ReadinessPercent != 100 {
+		t.Fatalf("expected readiness percent 100, got %d", out.ReadinessPercent)
+	}
+	if len(out.ReadinessMissing) != 0 {
+		t.Fatalf("expected no readiness missing fields, got %v", out.ReadinessMissing)
+	}
+}
+
+func TestGetOnboardingStatusExecute_ClientMissingHiringPreferences(t *testing.T) {
+	profile := baseProfile(domain.RoleClient)
+	client := completeClient(domain.VerificationStatusSubmitted)
+
+	uc := GetOnboardingStatus{
+		Profiles: onboardingProfileRepoStub{
+			profile: profile,
+			client:  client,
+		},
+		Details: onboardingDetailsStub{},
+	}
+
+	out, err := uc.Execute(context.Background(), GetOnboardingStatusInput{UserID: uuid.New()})
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if out.ReadinessPercent != 80 {
+		t.Fatalf("expected readiness percent 80, got %d", out.ReadinessPercent)
+	}
+	if !hasMissing(out.ReadinessMissing, readinessMissingHiringPreferences) {
+		t.Fatalf("expected missing hiring preferences, got %v", out.ReadinessMissing)
 	}
 }
