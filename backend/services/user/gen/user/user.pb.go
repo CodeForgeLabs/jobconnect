@@ -546,7 +546,6 @@ type UserCore struct {
 	LastName           string                 `protobuf:"bytes,5,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
 	DisplayName        string                 `protobuf:"bytes,6,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	AvatarUrl          string                 `protobuf:"bytes,7,opt,name=avatar_url,json=avatarUrl,proto3" json:"avatar_url,omitempty"`
-	Language           string                 `protobuf:"bytes,8,opt,name=language,proto3" json:"language,omitempty"`
 	ContactEmail       string                 `protobuf:"bytes,9,opt,name=contact_email,json=contactEmail,proto3" json:"contact_email,omitempty"`
 	ContactPhone       string                 `protobuf:"bytes,10,opt,name=contact_phone,json=contactPhone,proto3" json:"contact_phone,omitempty"`
 	Bio                string                 `protobuf:"bytes,11,opt,name=bio,proto3" json:"bio,omitempty"`
@@ -637,13 +636,6 @@ func (x *UserCore) GetDisplayName() string {
 func (x *UserCore) GetAvatarUrl() string {
 	if x != nil {
 		return x.AvatarUrl
-	}
-	return ""
-}
-
-func (x *UserCore) GetLanguage() string {
-	if x != nil {
-		return x.Language
 	}
 	return ""
 }
@@ -1870,7 +1862,6 @@ func (x *GetMyProfileResponse) GetCompleteness() *ProfileCompleteness {
 type PatchMyProfileCoreInput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DisplayName   *string                `protobuf:"bytes,1,opt,name=display_name,json=displayName,proto3,oneof" json:"display_name,omitempty"`
-	Language      *string                `protobuf:"bytes,2,opt,name=language,proto3,oneof" json:"language,omitempty"`
 	ContactEmail  *string                `protobuf:"bytes,3,opt,name=contact_email,json=contactEmail,proto3,oneof" json:"contact_email,omitempty"`
 	ContactPhone  *string                `protobuf:"bytes,4,opt,name=contact_phone,json=contactPhone,proto3,oneof" json:"contact_phone,omitempty"`
 	Bio           *string                `protobuf:"bytes,5,opt,name=bio,proto3,oneof" json:"bio,omitempty"`
@@ -1913,13 +1904,6 @@ func (*PatchMyProfileCoreInput) Descriptor() ([]byte, []int) {
 func (x *PatchMyProfileCoreInput) GetDisplayName() string {
 	if x != nil && x.DisplayName != nil {
 		return *x.DisplayName
-	}
-	return ""
-}
-
-func (x *PatchMyProfileCoreInput) GetLanguage() string {
-	if x != nil && x.Language != nil {
-		return *x.Language
 	}
 	return ""
 }
@@ -9082,7 +9066,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tR\tpageToken\"8\n" +
 	"\x0ePagingResponse\x12&\n" +
-	"\x0fnext_page_token\x18\x01 \x01(\tR\rnextPageToken\"\xdd\x05\n" +
+	"\x0fnext_page_token\x18\x01 \x01(\tR\rnextPageToken\"\xc1\x05\n" +
 	"\bUserCore\x12\x1d\n" +
 	"\n" +
 	"profile_id\x18\x01 \x01(\x03R\tprofileId\x12\x17\n" +
@@ -9093,8 +9077,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\tlast_name\x18\x05 \x01(\tR\blastName\x12!\n" +
 	"\fdisplay_name\x18\x06 \x01(\tR\vdisplayName\x12\x1d\n" +
 	"\n" +
-	"avatar_url\x18\a \x01(\tR\tavatarUrl\x12\x1a\n" +
-	"\blanguage\x18\b \x01(\tR\blanguage\x12#\n" +
+	"avatar_url\x18\a \x01(\tR\tavatarUrl\x12#\n" +
 	"\rcontact_email\x18\t \x01(\tR\fcontactEmail\x12#\n" +
 	"\rcontact_phone\x18\n" +
 	" \x01(\tR\fcontactPhone\x12\x10\n" +
@@ -9207,17 +9190,15 @@ const file_user_user_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x88\x01\n" +
 	"\x14GetMyProfileResponse\x12.\n" +
 	"\aprofile\x18\x01 \x01(\v2\x14.user.v1.UserProfileR\aprofile\x12@\n" +
-	"\fcompleteness\x18\x02 \x01(\v2\x1c.user.v1.ProfileCompletenessR\fcompleteness\"\xec\x02\n" +
+	"\fcompleteness\x18\x02 \x01(\v2\x1c.user.v1.ProfileCompletenessR\fcompleteness\"\xbe\x02\n" +
 	"\x17PatchMyProfileCoreInput\x12&\n" +
-	"\fdisplay_name\x18\x01 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12\x1f\n" +
-	"\blanguage\x18\x02 \x01(\tH\x01R\blanguage\x88\x01\x01\x12(\n" +
-	"\rcontact_email\x18\x03 \x01(\tH\x02R\fcontactEmail\x88\x01\x01\x12(\n" +
-	"\rcontact_phone\x18\x04 \x01(\tH\x03R\fcontactPhone\x88\x01\x01\x12\x15\n" +
-	"\x03bio\x18\x05 \x01(\tH\x04R\x03bio\x88\x01\x01\x12\x1a\n" +
-	"\x06tax_id\x18\x06 \x01(\tH\x05R\x05taxId\x88\x01\x01\x12\x1f\n" +
-	"\blocation\x18\a \x01(\tH\x06R\blocation\x88\x01\x01B\x0f\n" +
-	"\r_display_nameB\v\n" +
-	"\t_languageB\x10\n" +
+	"\fdisplay_name\x18\x01 \x01(\tH\x00R\vdisplayName\x88\x01\x01\x12(\n" +
+	"\rcontact_email\x18\x03 \x01(\tH\x01R\fcontactEmail\x88\x01\x01\x12(\n" +
+	"\rcontact_phone\x18\x04 \x01(\tH\x02R\fcontactPhone\x88\x01\x01\x12\x15\n" +
+	"\x03bio\x18\x05 \x01(\tH\x03R\x03bio\x88\x01\x01\x12\x1a\n" +
+	"\x06tax_id\x18\x06 \x01(\tH\x04R\x05taxId\x88\x01\x01\x12\x1f\n" +
+	"\blocation\x18\a \x01(\tH\x05R\blocation\x88\x01\x01B\x0f\n" +
+	"\r_display_nameB\x10\n" +
 	"\x0e_contact_emailB\x10\n" +
 	"\x0e_contact_phoneB\x06\n" +
 	"\x04_bioB\t\n" +
