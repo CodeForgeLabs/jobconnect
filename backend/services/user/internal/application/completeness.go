@@ -46,6 +46,10 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 			completed++
 			continue
 		}
+		if requirementKey := completenessRequirementKey(step.Key); requirementKey != "" {
+			missing = append(missing, requirementKey)
+			continue
+		}
 		missing = append(missing, step.Key)
 	}
 
@@ -112,6 +116,21 @@ func computeReadiness(profile domain.Profile, client *domain.ClientProfile, free
 	return percent, required, recommendations
 }
 
+func completenessRequirementKey(stepKey string) string {
+	switch stepKey {
+	case onboardingStepCoreProfile:
+		return readinessMissingCoreProfile
+	case onboardingStepAvatar:
+		return readinessMissingAvatar
+	case onboardingStepRoleProfile:
+		return readinessMissingRoleProfile
+	case onboardingStepKYC:
+		return readinessMissingKYC
+	default:
+		return ""
+	}
+}
+
 func hasCoreProfile(profile domain.Profile) bool {
 	return strings.TrimSpace(profile.DisplayName) != "" && strings.TrimSpace(profile.ContactEmail) != ""
 }
@@ -152,15 +171,15 @@ func readinessRecommendation(missingKey string) string {
 	case readinessMissingAvatar:
 		return "Upload a profile avatar."
 	case readinessMissingRoleProfile:
-		return "Complete role-specific profile details."
+		return "Complete profile details."
 	case readinessMissingKYC:
 		return "Complete KYC verification and required tax fields."
 	case readinessMissingPortfolio:
 		return "Add at least one portfolio item."
 	case readinessMissingWorkPreferences:
-		return "Set freelancer work preferences."
+		return "Set work preferences."
 	case readinessMissingHiringPreferences:
-		return "Set client hiring preferences."
+		return "Set hiring preferences."
 	default:
 		return fmt.Sprintf("Complete missing requirement: %s", missingKey)
 	}

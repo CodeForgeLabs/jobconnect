@@ -26,14 +26,6 @@ Profile patch ownership notes:
 - PUT `/api/v1/users/me/portfolio:reorder` -> `ReorderPortfolioItems`
 - GET `/api/v1/public/users/:userId/portfolio` -> `ListPublicPortfolioItems`
 
-### Employment + Education (Public Read)
-- GET `/api/v1/public/users/:userId/employment` -> `ListPublicEmployment`
-- GET `/api/v1/public/users/:userId/education` -> `ListPublicEducation`
-
-### Certifications + Languages (Public Read)
-- GET `/api/v1/public/users/:userId/certifications` -> `ListPublicCertifications`
-- GET `/api/v1/public/users/:userId/languages` -> `GetPublicLanguages`
-
 ## Current Status
 
 - Database schema has been added via migrations `0006` to `0008`.

@@ -84,8 +84,8 @@ func TestCompletenessClientPendingNeedsKYC(t *testing.T) {
 	if percent != 75 {
 		t.Fatalf("expected 75 percent for client with pending verification, got %d", percent)
 	}
-	if !hasMissing(missing, onboardingStepKYC) {
-		t.Fatalf("expected missing %q, got %v", onboardingStepKYC, missing)
+	if !hasMissing(missing, readinessMissingKYC) {
+		t.Fatalf("expected missing %q, got %v", readinessMissingKYC, missing)
 	}
 }
 
@@ -110,14 +110,32 @@ func TestCompletenessAdminDoesNotRequireRoleSpecificOrKYC(t *testing.T) {
 	if percent != 75 {
 		t.Fatalf("expected 75 percent for admin missing only avatar, got %d", percent)
 	}
-	if !hasMissing(missing, onboardingStepAvatar) {
-		t.Fatalf("expected avatar step missing, got %v", missing)
+	if !hasMissing(missing, readinessMissingAvatar) {
+		t.Fatalf("expected avatar requirement missing, got %v", missing)
 	}
-	if hasMissing(missing, onboardingStepRoleProfile) {
+	if hasMissing(missing, readinessMissingRoleProfile) {
 		t.Fatalf("did not expect role step missing for admin, got %v", missing)
 	}
-	if hasMissing(missing, onboardingStepKYC) {
+	if hasMissing(missing, readinessMissingKYC) {
 		t.Fatalf("did not expect kyc step missing for admin, got %v", missing)
+	}
+}
+
+func TestCompletenessUsesRequirementStyleMissingKeys(t *testing.T) {
+	profile := baseProfile(domain.RoleFreelancer)
+	profile.AvatarURL = ""
+	freelancer := &domain.FreelancerProfile{}
+
+	_, missing := computeCompleteness(profile, nil, freelancer)
+	for _, key := range []string{readinessMissingAvatar, readinessMissingRoleProfile, readinessMissingKYC} {
+		if !hasMissing(missing, key) {
+			t.Fatalf("expected missing %q, got %v", key, missing)
+		}
+	}
+	for _, stepKey := range []string{onboardingStepAvatar, onboardingStepRoleProfile, onboardingStepKYC} {
+		if hasMissing(missing, stepKey) {
+			t.Fatalf("did not expect onboarding step key %q in %v", stepKey, missing)
+		}
 	}
 }
 

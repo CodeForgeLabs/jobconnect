@@ -428,10 +428,6 @@ func (r *ProfileRepo) ListMyEmployment(ctx context.Context, userID uuid.UUID, pa
 	return r.listEmployment(ctx, userID, pageSize, pageToken, false)
 }
 
-func (r *ProfileRepo) ListPublicEmployment(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (application.ListResult[application.Employment], error) {
-	return r.listEmployment(ctx, userID, pageSize, pageToken, true)
-}
-
 func (r *ProfileRepo) listEmployment(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string, publicOnly bool) (application.ListResult[application.Employment], error) {
 	profileID, err := r.freelancerProfileID(ctx, userID, publicOnly)
 	if err != nil {
@@ -545,10 +541,6 @@ func (r *ProfileRepo) DeleteEducation(ctx context.Context, userID uuid.UUID, edu
 
 func (r *ProfileRepo) ListMyEducation(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (application.ListResult[application.Education], error) {
 	return r.listEducation(ctx, userID, pageSize, pageToken, false)
-}
-
-func (r *ProfileRepo) ListPublicEducation(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (application.ListResult[application.Education], error) {
-	return r.listEducation(ctx, userID, pageSize, pageToken, true)
 }
 
 func (r *ProfileRepo) listEducation(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string, publicOnly bool) (application.ListResult[application.Education], error) {
@@ -666,10 +658,6 @@ func (r *ProfileRepo) ListMyCertifications(ctx context.Context, userID uuid.UUID
 	return r.listCertifications(ctx, userID, pageSize, pageToken, false)
 }
 
-func (r *ProfileRepo) ListPublicCertifications(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (application.ListResult[application.Certification], error) {
-	return r.listCertifications(ctx, userID, pageSize, pageToken, true)
-}
-
 func (r *ProfileRepo) listCertifications(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string, publicOnly bool) (application.ListResult[application.Certification], error) {
 	profileID, err := r.freelancerProfileID(ctx, userID, publicOnly)
 	if err != nil {
@@ -758,10 +746,6 @@ func (r *ProfileRepo) UpsertLanguages(ctx context.Context, userID uuid.UUID, lan
 
 func (r *ProfileRepo) GetMyLanguages(ctx context.Context, userID uuid.UUID) ([]application.LanguageProficiency, error) {
 	return r.getLanguages(ctx, userID, false)
-}
-
-func (r *ProfileRepo) GetPublicLanguages(ctx context.Context, userID uuid.UUID) ([]application.LanguageProficiency, error) {
-	return r.getLanguages(ctx, userID, true)
 }
 
 func (r *ProfileRepo) getLanguages(ctx context.Context, userID uuid.UUID, publicOnly bool) ([]application.LanguageProficiency, error) {

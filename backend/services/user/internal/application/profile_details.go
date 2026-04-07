@@ -181,25 +181,21 @@ type ProfileDetailsRepository interface {
 	UpdateEmployment(ctx context.Context, userID uuid.UUID, employmentID int64, in Employment) (Employment, error)
 	DeleteEmployment(ctx context.Context, userID uuid.UUID, employmentID int64) (bool, error)
 	ListMyEmployment(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[Employment], error)
-	ListPublicEmployment(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[Employment], error)
 
 	GetEducation(ctx context.Context, userID uuid.UUID, educationID int64) (Education, error)
 	CreateEducation(ctx context.Context, userID uuid.UUID, in Education) (Education, error)
 	UpdateEducation(ctx context.Context, userID uuid.UUID, educationID int64, in Education) (Education, error)
 	DeleteEducation(ctx context.Context, userID uuid.UUID, educationID int64) (bool, error)
 	ListMyEducation(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[Education], error)
-	ListPublicEducation(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[Education], error)
 
 	GetCertification(ctx context.Context, userID uuid.UUID, certificationID int64) (Certification, error)
 	CreateCertification(ctx context.Context, userID uuid.UUID, in Certification) (Certification, error)
 	UpdateCertification(ctx context.Context, userID uuid.UUID, certificationID int64, in Certification) (Certification, error)
 	DeleteCertification(ctx context.Context, userID uuid.UUID, certificationID int64) (bool, error)
 	ListMyCertifications(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[Certification], error)
-	ListPublicCertifications(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[Certification], error)
 
 	UpsertLanguages(ctx context.Context, userID uuid.UUID, languages []LanguageProficiency) ([]LanguageProficiency, error)
 	GetMyLanguages(ctx context.Context, userID uuid.UUID) ([]LanguageProficiency, error)
-	GetPublicLanguages(ctx context.Context, userID uuid.UUID) ([]LanguageProficiency, error)
 
 	SetAvailability(ctx context.Context, userID uuid.UUID, in AvailabilitySettings) (AvailabilitySettings, error)
 	GetAvailability(ctx context.Context, userID uuid.UUID) (AvailabilitySettings, error)

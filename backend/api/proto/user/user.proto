@@ -54,14 +54,6 @@ service UserService {
       returns (GetPublicProfileResponse);
   rpc ListPublicPortfolioItems(ListPublicPortfolioItemsRequest)
       returns (ListPublicPortfolioItemsResponse);
-  rpc ListPublicEmployment(ListPublicEmploymentRequest)
-      returns (ListPublicEmploymentResponse);
-  rpc ListPublicEducation(ListPublicEducationRequest)
-      returns (ListPublicEducationResponse);
-  rpc ListPublicCertifications(ListPublicCertificationsRequest)
-      returns (ListPublicCertificationsResponse);
-  rpc GetPublicLanguages(GetPublicLanguagesRequest)
-      returns (GetPublicLanguagesResponse);
 
   // Admin endpoints.
   rpc GetUserProfile(GetUserProfileRequest) returns (GetUserProfileResponse);
@@ -591,16 +583,6 @@ message ListMyEmploymentResponse {
   PagingResponse page = 2;
 }
 
-message ListPublicEmploymentRequest {
-  string user_id = 1;
-  PagingRequest page = 2;
-}
-
-message ListPublicEmploymentResponse {
-  repeated Employment employment = 1;
-  PagingResponse page = 2;
-}
-
 message Education {
   int64 id = 1;
   string user_id = 2;
@@ -680,16 +662,6 @@ message ListMyEducationResponse {
   PagingResponse page = 2;
 }
 
-message ListPublicEducationRequest {
-  string user_id = 1;
-  PagingRequest page = 2;
-}
-
-message ListPublicEducationResponse {
-  repeated Education education = 1;
-  PagingResponse page = 2;
-}
-
 message Certification {
   int64 id = 1;
   string user_id = 2;
@@ -763,16 +735,6 @@ message ListMyCertificationsResponse {
   PagingResponse page = 2;
 }
 
-message ListPublicCertificationsRequest {
-  string user_id = 1;
-  PagingRequest page = 2;
-}
-
-message ListPublicCertificationsResponse {
-  repeated Certification certifications = 1;
-  PagingResponse page = 2;
-}
-
 message LanguageProficiency {
   string language_code = 1;
   LanguageProficiencyLevel proficiency = 2;
@@ -792,14 +754,6 @@ message GetMyLanguagesRequest {
 }
 
 message GetMyLanguagesResponse {
-  repeated LanguageProficiency languages = 1;
-}
-
-message GetPublicLanguagesRequest {
-  string user_id = 1;
-}
-
-message GetPublicLanguagesResponse {
   repeated LanguageProficiency languages = 1;
 }
 

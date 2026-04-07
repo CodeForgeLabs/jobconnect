@@ -183,10 +183,6 @@ func registerPublicUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHa
 	publicRoutes := api.Group("/public")
 	publicRoutes.GET("/users/:userId/profile", userHandler.GetPublicProfile)
 	publicRoutes.GET("/users/:userId/portfolio", userHandler.ListPublicPortfolioItems)
-	publicRoutes.GET("/users/:userId/employment", userHandler.ListPublicEmployment)
-	publicRoutes.GET("/users/:userId/education", userHandler.ListPublicEducation)
-	publicRoutes.GET("/users/:userId/certifications", userHandler.ListPublicCertifications)
-	publicRoutes.GET("/users/:userId/languages", userHandler.GetPublicLanguages)
 }
 
 func registerAdminVerificationRoutes(api *gin.RouterGroup, verificationHandler *handlers.VerificationHandler, jwtParser *auth.JWTParser, sensitiveLimiter *middleware.InMemoryLimiter) {
