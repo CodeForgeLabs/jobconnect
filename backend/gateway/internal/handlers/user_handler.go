@@ -61,7 +61,9 @@ type updateAccountStatusRequest struct {
 }
 
 type updateAccountSettingsRequest struct {
-	UILocale *string `json:"ui_locale"`
+	UILocale                  *string `json:"ui_locale"`
+	EmailNotificationsEnabled *bool   `json:"email_notifications_enabled"`
+	PushNotificationsEnabled  *bool   `json:"push_notifications_enabled"`
 }
 
 func NewUserHandler(client userv1.UserServiceClient, verificationClient verificationStatusClient) *UserHandler {
@@ -385,14 +387,16 @@ func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
 		return
 	}
 
-	if body.UILocale == nil {
+	if body.UILocale == nil && body.EmailNotificationsEnabled == nil && body.PushNotificationsEnabled == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "at least one updatable setting is required"})
 		return
 	}
 
 	resp, err := h.client.PatchMySettings(c.Request.Context(), &userv1.PatchMySettingsRequest{
-		UserId:   userID,
-		UiLocale: body.UILocale,
+		UserId:                    userID,
+		UiLocale:                  body.UILocale,
+		EmailNotificationsEnabled: body.EmailNotificationsEnabled,
+		PushNotificationsEnabled:  body.PushNotificationsEnabled,
 	})
 	if err != nil {
 		writeGRPCError(c, err)
