@@ -10,7 +10,6 @@ func baseProfile(role string) domain.Profile {
 	return domain.Profile{
 		Role:         role,
 		DisplayName:  "Jane Doe",
-		Language:     "en",
 		ContactEmail: "jane@example.com",
 		AvatarURL:    "/profiles/u/avatar",
 		Bio:          "bio",

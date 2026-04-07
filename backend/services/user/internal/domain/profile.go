@@ -35,7 +35,6 @@ type Profile struct {
 	LastName           string
 	DisplayName        string
 	AvatarURL          string
-	Language           string
 	ContactEmail       string
 	ContactPhone       string
 	Bio                string

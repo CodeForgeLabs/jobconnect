@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"jobconnect/user/internal/application"
 	"jobconnect/user/internal/domain"
 
 	"github.com/google/uuid"
@@ -45,13 +46,23 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 	}
 
 	err = tx.QueryRow(ctx, `
-		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, language, contact_email, contact_phone, bio, location, account_status, suspension_reason, tax_id, verification_status, last_active_at, created_at, updated_at)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, contact_email, contact_phone, bio, location, account_status, suspension_reason, tax_id, verification_status, last_active_at, created_at, updated_at)
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		returning id
-	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.Location, profile.AccountStatus, profile.SuspensionReason, taxID, verificationStatus, profile.LastActiveAt, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
+	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.Location, profile.AccountStatus, profile.SuspensionReason, taxID, verificationStatus, profile.LastActiveAt, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
 	if err != nil {
 		return 0, err
 	}
+
+	_, err = tx.Exec(ctx, `
+		insert into user_settings (profile_id, ui_locale, email_notifications_enabled, push_notifications_enabled)
+		values ($1, 'en', true, true)
+		on conflict (profile_id) do nothing
+	`, profileID)
+	if err != nil {
+		return 0, err
+	}
+
 	if client != nil {
 		_, err = tx.Exec(ctx, `
 			insert into client_profiles (profile_id, company_name)
@@ -106,7 +117,6 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			coalesce(last_name, ''),
 			coalesce(display_name, ''),
 			coalesce(avatar_url, ''),
-			coalesce(language, ''),
 			coalesce(contact_email, ''),
 			coalesce(contact_phone, ''),
 			coalesce(bio, ''),
@@ -129,7 +139,6 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 		&profile.LastName,
 		&profile.DisplayName,
 		&profile.AvatarURL,
-		&profile.Language,
 		&profile.ContactEmail,
 		&profile.ContactPhone,
 		&profile.Bio,
@@ -224,19 +233,18 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 			last_name = $3,
 			display_name = $4,
 			avatar_url = $5,
-			language = $6,
-			contact_email = $7,
-			contact_phone = $8,
-			bio = $9,
-			location = $10,
-			account_status = $11,
-			suspension_reason = $12,
-			last_active_at = $13,
-			tax_id = coalesce($14, tax_id),
-			verification_status = coalesce($15, verification_status),
-			updated_at = $16
+			contact_email = $6,
+			contact_phone = $7,
+			bio = $8,
+			location = $9,
+			account_status = $10,
+			suspension_reason = $11,
+			last_active_at = $12,
+			tax_id = coalesce($13, tax_id),
+			verification_status = coalesce($14, verification_status),
+			updated_at = $15
 		where user_id = $1
-	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.Location, profile.AccountStatus, profile.SuspensionReason, profile.LastActiveAt, taxID, verificationStatus, profile.UpdatedAt)
+	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.Location, profile.AccountStatus, profile.SuspensionReason, profile.LastActiveAt, taxID, verificationStatus, profile.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -379,6 +387,68 @@ func (r *ProfileRepo) UpdateAccountState(ctx context.Context, userID uuid.UUID, 
 		return domain.Profile{}, nil, nil, ErrNotFound
 	}
 	return r.GetByUserID(ctx, userID)
+}
+
+func (r *ProfileRepo) GetSettingsByUserID(ctx context.Context, userID uuid.UUID) (application.UserSettings, error) {
+	var out application.UserSettings
+	err := r.pool.QueryRow(ctx, `
+		select
+			coalesce(us.ui_locale, 'en'),
+			coalesce(us.email_notifications_enabled, true),
+			coalesce(us.push_notifications_enabled, true)
+		from profiles p
+		left join user_settings us on us.profile_id = p.id
+		where p.user_id = $1
+	`, userID).Scan(&out.UILocale, &out.EmailNotificationsEnabled, &out.PushNotificationsEnabled)
+	if err != nil {
+		if isNoRows(err) {
+			return application.UserSettings{}, ErrNotFound
+		}
+		return application.UserSettings{}, err
+	}
+
+	if strings.TrimSpace(out.UILocale) == "" {
+		out.UILocale = "en"
+	}
+	return out, nil
+}
+
+func (r *ProfileRepo) PatchSettingsByUserID(ctx context.Context, userID uuid.UUID, patch application.PatchSettings) (application.UserSettings, error) {
+	current, err := r.GetSettingsByUserID(ctx, userID)
+	if err != nil {
+		return application.UserSettings{}, err
+	}
+
+	if patch.UILocale != nil {
+		current.UILocale = strings.TrimSpace(*patch.UILocale)
+	}
+	if patch.EmailNotificationsEnabled != nil {
+		current.EmailNotificationsEnabled = *patch.EmailNotificationsEnabled
+	}
+	if patch.PushNotificationsEnabled != nil {
+		current.PushNotificationsEnabled = *patch.PushNotificationsEnabled
+	}
+
+	if strings.TrimSpace(current.UILocale) == "" {
+		current.UILocale = "en"
+	}
+
+	_, err = r.pool.Exec(ctx, `
+		insert into user_settings (profile_id, ui_locale, email_notifications_enabled, push_notifications_enabled, created_at, updated_at)
+		select p.id, $2, $3, $4, now(), now()
+		from profiles p
+		where p.user_id = $1
+		on conflict (profile_id) do update set
+			ui_locale = excluded.ui_locale,
+			email_notifications_enabled = excluded.email_notifications_enabled,
+			push_notifications_enabled = excluded.push_notifications_enabled,
+			updated_at = now()
+	`, userID, current.UILocale, current.EmailNotificationsEnabled, current.PushNotificationsEnabled)
+	if err != nil {
+		return application.UserSettings{}, err
+	}
+
+	return current, nil
 }
 
 func isNoRowsOrNotFound(err error) bool {

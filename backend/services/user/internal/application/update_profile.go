@@ -15,7 +15,6 @@ type UpdateProfileInput struct {
 	UserID           uuid.UUID
 	DisplayName      *string
 	AvatarURL        *string
-	Language         *string
 	ContactEmail     *string
 	ContactPhone     *string
 	Bio              *string
@@ -61,9 +60,6 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 			return UpdateProfileOutput{}, err
 		}
 		profile.DisplayName = strings.TrimSpace(*in.DisplayName)
-	}
-	if in.Language != nil {
-		profile.Language = strings.TrimSpace(*in.Language)
 	}
 	if in.ContactEmail != nil {
 		profile.ContactEmail = strings.TrimSpace(*in.ContactEmail)

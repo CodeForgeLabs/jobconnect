@@ -58,6 +58,8 @@ func main() {
 	updateProfileUC := &application.UpdateProfile{Profiles: profileRepo, Clock: clockImpl}
 	deleteProfileUC := &application.DeleteProfile{Profiles: profileRepo, Clock: clockImpl}
 	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo, Details: profileRepo}
+	getSettingsUC := &application.GetSettings{Settings: profileRepo}
+	patchSettingsUC := &application.PatchSettingsUseCase{Settings: profileRepo}
 	updateAccountStatusUC := &application.UpdateAccountStatus{Profiles: profileRepo, Clock: clockImpl}
 	uploadAvatarUC := &application.UploadAvatar{
 		Profiles:  profileRepo,
@@ -77,6 +79,8 @@ func main() {
 		updateProfileUC,
 		deleteProfileUC,
 		getOnboardingStatusUC,
+		getSettingsUC,
+		patchSettingsUC,
 		updateAccountStatusUC,
 		uploadAvatarUC,
 		getAvatarUC,

@@ -21,6 +21,12 @@ type ProfileRepository interface {
 	RemoveAvatar(ctx context.Context, userID uuid.UUID) error
 }
 
+// SettingsRepository persists account settings independent from profile core fields.
+type SettingsRepository interface {
+	GetSettingsByUserID(ctx context.Context, userID uuid.UUID) (UserSettings, error)
+	PatchSettingsByUserID(ctx context.Context, userID uuid.UUID, patch PatchSettings) (UserSettings, error)
+}
+
 // AvatarProcessor validates and normalizes avatar images.
 type AvatarProcessor interface {
 	Process(content []byte, declaredContentType string) (normalized []byte, contentType string, width int, height int, err error)

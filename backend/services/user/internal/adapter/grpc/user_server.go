@@ -23,6 +23,8 @@ type UserServer struct {
 	UpdateProfileUC       *application.UpdateProfile
 	DeleteProfileUC       *application.DeleteProfile
 	GetOnboardingStatusUC *application.GetOnboardingStatus
+	GetSettingsUC         *application.GetSettings
+	PatchSettingsUC       *application.PatchSettingsUseCase
 	UpdateAccountStatusUC *application.UpdateAccountStatus
 	UploadAvatarUC        *application.UploadAvatar
 	GetAvatarUC           *application.GetAvatar
@@ -65,6 +67,8 @@ func NewUserServer(
 	updateProfile *application.UpdateProfile,
 	deleteProfile *application.DeleteProfile,
 	getOnboardingStatus *application.GetOnboardingStatus,
+	getSettings *application.GetSettings,
+	patchSettings *application.PatchSettingsUseCase,
 	updateAccountStatus *application.UpdateAccountStatus,
 	uploadAvatar *application.UploadAvatar,
 	getAvatar *application.GetAvatar,
@@ -80,6 +84,8 @@ func NewUserServer(
 		UpdateProfileUC:       updateProfile,
 		DeleteProfileUC:       deleteProfile,
 		GetOnboardingStatusUC: getOnboardingStatus,
+		GetSettingsUC:         getSettings,
+		PatchSettingsUC:       patchSettings,
 		UpdateAccountStatusUC: updateAccountStatus,
 		UploadAvatarUC:        uploadAvatar,
 		GetAvatarUC:           getAvatar,
@@ -175,9 +181,6 @@ func (s *UserServer) PatchMyProfile(ctx context.Context, req *userv1.PatchMyProf
 
 	if req.Core != nil {
 		in.DisplayName = req.Core.DisplayName
-		if req.Core.Language != nil {
-			return nil, status.Error(codes.InvalidArgument, "language must be updated via PatchMySettings")
-		}
 		in.ContactEmail = req.Core.ContactEmail
 		in.ContactPhone = req.Core.ContactPhone
 		in.Bio = req.Core.Bio
@@ -289,11 +292,11 @@ func (s *UserServer) GetMySettings(ctx context.Context, req *userv1.GetMySetting
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
-	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	out, err := s.GetSettingsUC.Execute(ctx, application.GetSettingsInput{UserID: userID})
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.GetMySettingsResponse{Settings: toDefaultSettings(out.Profile.Language)}, nil
+	return &userv1.GetMySettingsResponse{Settings: toProtoSettings(out.Settings)}, nil
 }
 
 func (s *UserServer) PatchMySettings(ctx context.Context, req *userv1.PatchMySettingsRequest) (*userv1.PatchMySettingsResponse, error) {
@@ -305,30 +308,18 @@ func (s *UserServer) PatchMySettings(ctx context.Context, req *userv1.PatchMySet
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
 
-	updateIn := application.UpdateProfileInput{UserID: userID}
-	if req.UiLocale != nil {
-		locale := strings.TrimSpace(req.GetUiLocale())
-		if locale == "" {
-			return nil, status.Error(codes.InvalidArgument, "ui_locale cannot be empty")
-		}
-		updateIn.Language = &locale
-	}
-
-	if req.EmailNotificationsEnabled != nil || req.PushNotificationsEnabled != nil {
-		return nil, status.Error(codes.Unimplemented, "notification settings are not implemented yet")
-	}
-
-	if updateIn.Language != nil {
-		if _, err := s.UpdateProfileUC.Execute(ctx, updateIn); err != nil {
-			return nil, toStatus(err)
-		}
-	}
-
-	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	out, err := s.PatchSettingsUC.Execute(ctx, application.PatchSettingsInput{
+		UserID: userID,
+		Patch: application.PatchSettings{
+			UILocale:                  req.UiLocale,
+			EmailNotificationsEnabled: req.EmailNotificationsEnabled,
+			PushNotificationsEnabled:  req.PushNotificationsEnabled,
+		},
+	})
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &userv1.PatchMySettingsResponse{Settings: toDefaultSettings(out.Profile.Language)}, nil
+	return &userv1.PatchMySettingsResponse{Settings: toProtoSettings(out.Settings)}, nil
 }
 
 func (s *UserServer) UpsertMyAvatar(ctx context.Context, req *userv1.UploadMyAvatarRequest) (*userv1.UploadMyAvatarResponse, error) {
@@ -415,7 +406,6 @@ func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.C
 			LastName:           profile.LastName,
 			DisplayName:        profile.DisplayName,
 			AvatarUrl:          profile.AvatarURL,
-			Language:           profile.Language,
 			ContactEmail:       profile.ContactEmail,
 			ContactPhone:       profile.ContactPhone,
 			Bio:                profile.Bio,
@@ -606,15 +596,11 @@ func contains(s, sub string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(sub))
 }
 
-func toDefaultSettings(uiLocale string) *userv1.UserSettings {
-	locale := strings.TrimSpace(uiLocale)
-	if locale == "" {
-		locale = "en"
-	}
+func toProtoSettings(in application.UserSettings) *userv1.UserSettings {
 	return &userv1.UserSettings{
-		UiLocale:                  locale,
-		EmailNotificationsEnabled: true,
-		PushNotificationsEnabled:  true,
+		UiLocale:                  in.UILocale,
+		EmailNotificationsEnabled: in.EmailNotificationsEnabled,
+		PushNotificationsEnabled:  in.PushNotificationsEnabled,
 	}
 }
 

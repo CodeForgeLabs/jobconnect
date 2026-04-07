@@ -97,7 +97,6 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 		LastName:           in.LastName,
 		DisplayName:        displayName,
 		AvatarURL:          in.AvatarURL,
-		Language:           "en",
 		ContactEmail:       in.ContactEmail,
 		Location:           strings.TrimSpace(in.Location),
 		TaxID:              "",
