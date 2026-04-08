@@ -102,6 +102,24 @@ USER_AVATAR_STORAGE_CREATE_BUCKET=true
 
 The local compose stack now includes MinIO (`9000` API, `9001` console).
 
+## 4.4) Required: Configure portfolio object storage (user service)
+
+Set these variables in `backend/.env` (used by `user` and `minio` services):
+
+```powershell
+USER_PORTFOLIO_STORAGE_PROVIDER=minio
+USER_PORTFOLIO_STORAGE_BUCKET=jobconnect-portfolio-media
+USER_PORTFOLIO_STORAGE_ENDPOINT=minio:9000
+USER_PORTFOLIO_STORAGE_REGION=us-east-1
+USER_PORTFOLIO_STORAGE_ACCESS_KEY=minioadmin
+USER_PORTFOLIO_STORAGE_SECRET_KEY=minioadmin
+USER_PORTFOLIO_STORAGE_USE_SSL=false
+USER_PORTFOLIO_STORAGE_PATH_STYLE=true
+USER_PORTFOLIO_STORAGE_CREATE_BUCKET=true
+```
+
+Portfolio media uploaded to MinIO is returned to clients as short-lived presigned URLs on read endpoints. LINK media continue to return their external URL directly.
+
 ## 5) Stop stack
 
 ```powershell

@@ -25,6 +25,11 @@ Profile patch ownership notes:
 - DELETE `/api/v1/users/me/portfolio/:itemId` -> `DeleteMyPortfolioItem`
 - GET `/api/v1/public/users/:userId/portfolio` -> `ListPublicPortfolioItems`
 
+Portfolio media behavior:
+- LINK media use `external_url` directly.
+- Uploaded IMAGE/VIDEO/FILE media store the internal MinIO object key in `storage_key` and are returned with short-lived presigned URLs on read.
+- The API should not rely on client-managed sort ordering; portfolio items are ordered deterministically by the service.
+
 ## Current Status
 
 - Database schema has been added via migrations `0006` to `0008`.
