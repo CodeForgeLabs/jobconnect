@@ -627,6 +627,37 @@ func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "item", resp.GetItem())
 }
 
+func (h *UserHandler) ListMePortfolioItems(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	pageSize, pageToken, err := parsePagination(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := h.client.ListMyPortfolioItems(c.Request.Context(), &userv1.ListMyPortfolioItemsRequest{UserId: userID, Page: &userv1.PagingRequest{PageSize: pageSize, PageToken: pageToken}})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	itemsPayload, err := protoSliceToAny(resp.GetItems())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	nextPageToken := ""
+	if resp.GetPage() != nil {
+		nextPageToken = resp.GetPage().GetNextPageToken()
+	}
+	c.JSON(http.StatusOK, gin.H{"items": itemsPayload, "next_page_token": nextPageToken})
+}
+
 func (h *UserHandler) UpdateMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
