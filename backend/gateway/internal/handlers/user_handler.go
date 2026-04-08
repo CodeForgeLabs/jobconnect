@@ -731,9 +731,23 @@ func (h *UserHandler) SetMeWorkPreferences(c *gin.Context) {
 	}
 
 	req := &userv1.PatchMyWorkPreferencesRequest{UserId: userID}
-	if !bindProtoJSON(c, req) {
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to read request body"})
 		return
 	}
+	body, err = normalizeWorkPreferencesJSON(body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if len(strings.TrimSpace(string(body))) > 0 {
+		if err := protojson.Unmarshal(body, req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+	req.UserId = userID
 
 	resp, err := h.client.PatchMyWorkPreferences(c.Request.Context(), req)
 	if err != nil {
@@ -787,6 +801,7 @@ func (h *UserHandler) UpdateMeHiringPreferences(c *gin.Context) {
 	if !bindProtoJSON(c, req) {
 		return
 	}
+	req.UserId = userID
 
 	resp, err := h.client.PatchMyHiringPreferences(c.Request.Context(), req)
 	if err != nil {
@@ -1023,6 +1038,52 @@ func parseAvailability(raw string) (userv1.Availability, error) {
 	default:
 		return userv1.Availability_AVAILABILITY_UNSPECIFIED, fmt.Errorf("invalid availability")
 	}
+}
+
+func parseProjectLength(raw string) (userv1.ProjectLength, error) {
+	normalized := strings.ToUpper(strings.TrimSpace(raw))
+	normalized = strings.TrimPrefix(normalized, "PROJECT_LENGTH_")
+	switch normalized {
+	case "", "UNSPECIFIED", "NO_PREFERENCE", "NONE":
+		return userv1.ProjectLength_PROJECT_LENGTH_UNSPECIFIED, nil
+	case "SHORT", "SHORT_TERM", "SHORT-TERM":
+		return userv1.ProjectLength_PROJECT_LENGTH_SHORT_TERM, nil
+	case "MEDIUM", "MEDIUM_TERM", "MEDIUM-TERM":
+		return userv1.ProjectLength_PROJECT_LENGTH_MEDIUM_TERM, nil
+	case "LONG", "LONG_TERM", "LONG-TERM":
+		return userv1.ProjectLength_PROJECT_LENGTH_LONG_TERM, nil
+	default:
+		return userv1.ProjectLength_PROJECT_LENGTH_UNSPECIFIED, fmt.Errorf("invalid preferred_project_length")
+	}
+}
+
+func normalizeWorkPreferencesJSON(body []byte) ([]byte, error) {
+	if len(strings.TrimSpace(string(body))) == 0 {
+		return body, nil
+	}
+
+	var payload map[string]json.RawMessage
+	if err := json.Unmarshal(body, &payload); err != nil {
+		return nil, err
+	}
+
+	rawValue, ok := payload["preferred_project_length"]
+	if !ok {
+		return body, nil
+	}
+
+	var asString string
+	if err := json.Unmarshal(rawValue, &asString); err == nil {
+		parsed, parseErr := parseProjectLength(asString)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		normalized, _ := json.Marshal(parsed.String())
+		payload["preferred_project_length"] = normalized
+		return json.Marshal(payload)
+	}
+
+	return body, nil
 }
 
 func parseUserRole(raw string) (userv1.UserRole, error) {
