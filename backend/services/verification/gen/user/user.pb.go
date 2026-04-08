@@ -238,6 +238,63 @@ func (Availability) EnumDescriptor() ([]byte, []int) {
 	return file_user_user_proto_rawDescGZIP(), []int{3}
 }
 
+// ProjectLength captures a freelancer's preferred engagement duration.
+type ProjectLength int32
+
+const (
+	// No preference selected by the user.
+	ProjectLength_PROJECT_LENGTH_UNSPECIFIED ProjectLength = 0
+	// Short-term engagements: up to 4 weeks.
+	ProjectLength_PROJECT_LENGTH_SHORT_TERM ProjectLength = 1
+	// Medium-term engagements: 1 to 3 months.
+	ProjectLength_PROJECT_LENGTH_MEDIUM_TERM ProjectLength = 2
+	// Long-term engagements: over 3 months.
+	ProjectLength_PROJECT_LENGTH_LONG_TERM ProjectLength = 3
+)
+
+// Enum value maps for ProjectLength.
+var (
+	ProjectLength_name = map[int32]string{
+		0: "PROJECT_LENGTH_UNSPECIFIED",
+		1: "PROJECT_LENGTH_SHORT_TERM",
+		2: "PROJECT_LENGTH_MEDIUM_TERM",
+		3: "PROJECT_LENGTH_LONG_TERM",
+	}
+	ProjectLength_value = map[string]int32{
+		"PROJECT_LENGTH_UNSPECIFIED": 0,
+		"PROJECT_LENGTH_SHORT_TERM":  1,
+		"PROJECT_LENGTH_MEDIUM_TERM": 2,
+		"PROJECT_LENGTH_LONG_TERM":   3,
+	}
+)
+
+func (x ProjectLength) Enum() *ProjectLength {
+	p := new(ProjectLength)
+	*p = x
+	return p
+}
+
+func (x ProjectLength) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ProjectLength) Descriptor() protoreflect.EnumDescriptor {
+	return file_user_user_proto_enumTypes[4].Descriptor()
+}
+
+func (ProjectLength) Type() protoreflect.EnumType {
+	return &file_user_user_proto_enumTypes[4]
+}
+
+func (x ProjectLength) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ProjectLength.Descriptor instead.
+func (ProjectLength) EnumDescriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{4}
+}
+
 type PortfolioMediaType int32
 
 const (
@@ -277,11 +334,11 @@ func (x PortfolioMediaType) String() string {
 }
 
 func (PortfolioMediaType) Descriptor() protoreflect.EnumDescriptor {
-	return file_user_user_proto_enumTypes[4].Descriptor()
+	return file_user_user_proto_enumTypes[5].Descriptor()
 }
 
 func (PortfolioMediaType) Type() protoreflect.EnumType {
-	return &file_user_user_proto_enumTypes[4]
+	return &file_user_user_proto_enumTypes[5]
 }
 
 func (x PortfolioMediaType) Number() protoreflect.EnumNumber {
@@ -290,7 +347,7 @@ func (x PortfolioMediaType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use PortfolioMediaType.Descriptor instead.
 func (PortfolioMediaType) EnumDescriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{4}
+	return file_user_user_proto_rawDescGZIP(), []int{5}
 }
 
 type OnboardingStepStatus int32
@@ -326,11 +383,11 @@ func (x OnboardingStepStatus) String() string {
 }
 
 func (OnboardingStepStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_user_user_proto_enumTypes[5].Descriptor()
+	return file_user_user_proto_enumTypes[6].Descriptor()
 }
 
 func (OnboardingStepStatus) Type() protoreflect.EnumType {
-	return &file_user_user_proto_enumTypes[5]
+	return &file_user_user_proto_enumTypes[6]
 }
 
 func (x OnboardingStepStatus) Number() protoreflect.EnumNumber {
@@ -339,7 +396,7 @@ func (x OnboardingStepStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use OnboardingStepStatus.Descriptor instead.
 func (OnboardingStepStatus) EnumDescriptor() ([]byte, []int) {
-	return file_user_user_proto_rawDescGZIP(), []int{5}
+	return file_user_user_proto_rawDescGZIP(), []int{6}
 }
 
 type StringList struct {
@@ -4124,7 +4181,7 @@ func (x *RateSettings) GetHourlyRate() float64 {
 
 type WorkPreferences struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
-	PreferredProjectLength string                 `protobuf:"bytes,1,opt,name=preferred_project_length,json=preferredProjectLength,proto3" json:"preferred_project_length,omitempty"`
+	PreferredProjectLength ProjectLength          `protobuf:"varint,1,opt,name=preferred_project_length,json=preferredProjectLength,proto3,enum=user.v1.ProjectLength" json:"preferred_project_length,omitempty"`
 	MinBudget              float64                `protobuf:"fixed64,2,opt,name=min_budget,json=minBudget,proto3" json:"min_budget,omitempty"`
 	MaxBudget              float64                `protobuf:"fixed64,3,opt,name=max_budget,json=maxBudget,proto3" json:"max_budget,omitempty"`
 	ContractTypes          []string               `protobuf:"bytes,4,rep,name=contract_types,json=contractTypes,proto3" json:"contract_types,omitempty"`
@@ -4163,11 +4220,11 @@ func (*WorkPreferences) Descriptor() ([]byte, []int) {
 	return file_user_user_proto_rawDescGZIP(), []int{58}
 }
 
-func (x *WorkPreferences) GetPreferredProjectLength() string {
+func (x *WorkPreferences) GetPreferredProjectLength() ProjectLength {
 	if x != nil {
 		return x.PreferredProjectLength
 	}
-	return ""
+	return ProjectLength_PROJECT_LENGTH_UNSPECIFIED
 }
 
 func (x *WorkPreferences) GetMinBudget() float64 {
@@ -4201,7 +4258,7 @@ func (x *WorkPreferences) GetWeeklyCapacityHours() uint32 {
 type PatchMyWorkPreferencesRequest struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
 	UserId                 string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	PreferredProjectLength *string                `protobuf:"bytes,2,opt,name=preferred_project_length,json=preferredProjectLength,proto3,oneof" json:"preferred_project_length,omitempty"`
+	PreferredProjectLength *ProjectLength         `protobuf:"varint,2,opt,name=preferred_project_length,json=preferredProjectLength,proto3,enum=user.v1.ProjectLength,oneof" json:"preferred_project_length,omitempty"`
 	MinBudget              *float64               `protobuf:"fixed64,3,opt,name=min_budget,json=minBudget,proto3,oneof" json:"min_budget,omitempty"`
 	MaxBudget              *float64               `protobuf:"fixed64,4,opt,name=max_budget,json=maxBudget,proto3,oneof" json:"max_budget,omitempty"`
 	ContractTypes          *StringList            `protobuf:"bytes,5,opt,name=contract_types,json=contractTypes,proto3" json:"contract_types,omitempty"`
@@ -4247,11 +4304,11 @@ func (x *PatchMyWorkPreferencesRequest) GetUserId() string {
 	return ""
 }
 
-func (x *PatchMyWorkPreferencesRequest) GetPreferredProjectLength() string {
+func (x *PatchMyWorkPreferencesRequest) GetPreferredProjectLength() ProjectLength {
 	if x != nil && x.PreferredProjectLength != nil {
 		return *x.PreferredProjectLength
 	}
-	return ""
+	return ProjectLength_PROJECT_LENGTH_UNSPECIFIED
 }
 
 func (x *PatchMyWorkPreferencesRequest) GetMinBudget() float64 {
@@ -6853,18 +6910,18 @@ const file_user_user_proto_rawDesc = "" +
 	"\x15weekly_capacity_hours\x18\x02 \x01(\rR\x13weeklyCapacityHours\"/\n" +
 	"\fRateSettings\x12\x1f\n" +
 	"\vhourly_rate\x18\x01 \x01(\x01R\n" +
-	"hourlyRate\"\xe4\x01\n" +
-	"\x0fWorkPreferences\x128\n" +
-	"\x18preferred_project_length\x18\x01 \x01(\tR\x16preferredProjectLength\x12\x1d\n" +
+	"hourlyRate\"\xfc\x01\n" +
+	"\x0fWorkPreferences\x12P\n" +
+	"\x18preferred_project_length\x18\x01 \x01(\x0e2\x16.user.v1.ProjectLengthR\x16preferredProjectLength\x12\x1d\n" +
 	"\n" +
 	"min_budget\x18\x02 \x01(\x01R\tminBudget\x12\x1d\n" +
 	"\n" +
 	"max_budget\x18\x03 \x01(\x01R\tmaxBudget\x12%\n" +
 	"\x0econtract_types\x18\x04 \x03(\tR\rcontractTypes\x122\n" +
-	"\x15weekly_capacity_hours\x18\x05 \x01(\rR\x13weeklyCapacityHours\"\x89\x03\n" +
+	"\x15weekly_capacity_hours\x18\x05 \x01(\rR\x13weeklyCapacityHours\"\xa1\x03\n" +
 	"\x1dPatchMyWorkPreferencesRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12=\n" +
-	"\x18preferred_project_length\x18\x02 \x01(\tH\x00R\x16preferredProjectLength\x88\x01\x01\x12\"\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12U\n" +
+	"\x18preferred_project_length\x18\x02 \x01(\x0e2\x16.user.v1.ProjectLengthH\x00R\x16preferredProjectLength\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"min_budget\x18\x03 \x01(\x01H\x01R\tminBudget\x88\x01\x01\x12\"\n" +
 	"\n" +
@@ -7056,7 +7113,12 @@ const file_user_user_proto_rawDesc = "" +
 	"\x16AVAILABILITY_FULL_TIME\x10\x01\x12\x1a\n" +
 	"\x16AVAILABILITY_PART_TIME\x10\x02\x12\x1a\n" +
 	"\x16AVAILABILITY_AS_NEEDED\x10\x03\x12\x1c\n" +
-	"\x18AVAILABILITY_UNAVAILABLE\x10\x04*\xb8\x01\n" +
+	"\x18AVAILABILITY_UNAVAILABLE\x10\x04*\x8c\x01\n" +
+	"\rProjectLength\x12\x1e\n" +
+	"\x1aPROJECT_LENGTH_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19PROJECT_LENGTH_SHORT_TERM\x10\x01\x12\x1e\n" +
+	"\x1aPROJECT_LENGTH_MEDIUM_TERM\x10\x02\x12\x1c\n" +
+	"\x18PROJECT_LENGTH_LONG_TERM\x10\x03*\xb8\x01\n" +
 	"\x12PortfolioMediaType\x12$\n" +
 	" PORTFOLIO_MEDIA_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aPORTFOLIO_MEDIA_TYPE_IMAGE\x10\x01\x12\x1e\n" +
@@ -7115,274 +7177,277 @@ func file_user_user_proto_rawDescGZIP() []byte {
 	return file_user_user_proto_rawDescData
 }
 
-var file_user_user_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
+var file_user_user_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
 var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 101)
 var file_user_user_proto_goTypes = []any{
 	(UserRole)(0),                            // 0: user.v1.UserRole
 	(AccountStatus)(0),                       // 1: user.v1.AccountStatus
 	(VerificationStatus)(0),                  // 2: user.v1.VerificationStatus
 	(Availability)(0),                        // 3: user.v1.Availability
-	(PortfolioMediaType)(0),                  // 4: user.v1.PortfolioMediaType
-	(OnboardingStepStatus)(0),                // 5: user.v1.OnboardingStepStatus
-	(*StringList)(nil),                       // 6: user.v1.StringList
-	(*PagingRequest)(nil),                    // 7: user.v1.PagingRequest
-	(*PagingResponse)(nil),                   // 8: user.v1.PagingResponse
-	(*UserCore)(nil),                         // 9: user.v1.UserCore
-	(*ClientProfile)(nil),                    // 10: user.v1.ClientProfile
-	(*FreelancerMetrics)(nil),                // 11: user.v1.FreelancerMetrics
-	(*FreelancerProfile)(nil),                // 12: user.v1.FreelancerProfile
-	(*ProfileAvatar)(nil),                    // 13: user.v1.ProfileAvatar
-	(*UserProfile)(nil),                      // 14: user.v1.UserProfile
-	(*PublicProfile)(nil),                    // 15: user.v1.PublicProfile
-	(*CapabilityFlags)(nil),                  // 16: user.v1.CapabilityFlags
-	(*ProfileCompleteness)(nil),              // 17: user.v1.ProfileCompleteness
-	(*ProfileReadiness)(nil),                 // 18: user.v1.ProfileReadiness
-	(*OnboardingStep)(nil),                   // 19: user.v1.OnboardingStep
-	(*CreateMyProfileRequest)(nil),           // 20: user.v1.CreateMyProfileRequest
-	(*ClientProfileCreateInput)(nil),         // 21: user.v1.ClientProfileCreateInput
-	(*FreelancerProfileCreateInput)(nil),     // 22: user.v1.FreelancerProfileCreateInput
-	(*CreateMyProfileResponse)(nil),          // 23: user.v1.CreateMyProfileResponse
-	(*GetMyProfileRequest)(nil),              // 24: user.v1.GetMyProfileRequest
-	(*GetMyProfileResponse)(nil),             // 25: user.v1.GetMyProfileResponse
-	(*PatchMyProfileCoreInput)(nil),          // 26: user.v1.PatchMyProfileCoreInput
-	(*PatchMyClientProfileInput)(nil),        // 27: user.v1.PatchMyClientProfileInput
-	(*PatchMyFreelancerProfileInput)(nil),    // 28: user.v1.PatchMyFreelancerProfileInput
-	(*PatchMyProfileRequest)(nil),            // 29: user.v1.PatchMyProfileRequest
-	(*PatchMyProfileResponse)(nil),           // 30: user.v1.PatchMyProfileResponse
-	(*UserSettings)(nil),                     // 31: user.v1.UserSettings
-	(*GetMySettingsRequest)(nil),             // 32: user.v1.GetMySettingsRequest
-	(*GetMySettingsResponse)(nil),            // 33: user.v1.GetMySettingsResponse
-	(*PatchMySettingsRequest)(nil),           // 34: user.v1.PatchMySettingsRequest
-	(*PatchMySettingsResponse)(nil),          // 35: user.v1.PatchMySettingsResponse
-	(*DeleteMyProfileRequest)(nil),           // 36: user.v1.DeleteMyProfileRequest
-	(*DeleteMyProfileResponse)(nil),          // 37: user.v1.DeleteMyProfileResponse
-	(*GetMyOnboardingStatusRequest)(nil),     // 38: user.v1.GetMyOnboardingStatusRequest
-	(*GetMyOnboardingStatusResponse)(nil),    // 39: user.v1.GetMyOnboardingStatusResponse
-	(*UploadMyAvatarRequest)(nil),            // 40: user.v1.UploadMyAvatarRequest
-	(*UploadMyAvatarResponse)(nil),           // 41: user.v1.UploadMyAvatarResponse
-	(*GetMyAvatarRequest)(nil),               // 42: user.v1.GetMyAvatarRequest
-	(*GetMyAvatarResponse)(nil),              // 43: user.v1.GetMyAvatarResponse
-	(*RemoveMyAvatarRequest)(nil),            // 44: user.v1.RemoveMyAvatarRequest
-	(*RemoveMyAvatarResponse)(nil),           // 45: user.v1.RemoveMyAvatarResponse
-	(*PortfolioMedia)(nil),                   // 46: user.v1.PortfolioMedia
-	(*PortfolioItem)(nil),                    // 47: user.v1.PortfolioItem
-	(*CreateMyPortfolioItemRequest)(nil),     // 48: user.v1.CreateMyPortfolioItemRequest
-	(*PortfolioMediaInput)(nil),              // 49: user.v1.PortfolioMediaInput
-	(*CreateMyPortfolioItemResponse)(nil),    // 50: user.v1.CreateMyPortfolioItemResponse
-	(*GetMyPortfolioItemRequest)(nil),        // 51: user.v1.GetMyPortfolioItemRequest
-	(*GetMyPortfolioItemResponse)(nil),       // 52: user.v1.GetMyPortfolioItemResponse
-	(*UpdateMyPortfolioItemRequest)(nil),     // 53: user.v1.UpdateMyPortfolioItemRequest
-	(*PortfolioMediaInputList)(nil),          // 54: user.v1.PortfolioMediaInputList
-	(*UpdateMyPortfolioItemResponse)(nil),    // 55: user.v1.UpdateMyPortfolioItemResponse
-	(*DeleteMyPortfolioItemRequest)(nil),     // 56: user.v1.DeleteMyPortfolioItemRequest
-	(*DeleteMyPortfolioItemResponse)(nil),    // 57: user.v1.DeleteMyPortfolioItemResponse
-	(*ListMyPortfolioItemsRequest)(nil),      // 58: user.v1.ListMyPortfolioItemsRequest
-	(*ListMyPortfolioItemsResponse)(nil),     // 59: user.v1.ListMyPortfolioItemsResponse
-	(*ListPublicPortfolioItemsRequest)(nil),  // 60: user.v1.ListPublicPortfolioItemsRequest
-	(*ListPublicPortfolioItemsResponse)(nil), // 61: user.v1.ListPublicPortfolioItemsResponse
-	(*AvailabilitySettings)(nil),             // 62: user.v1.AvailabilitySettings
-	(*RateSettings)(nil),                     // 63: user.v1.RateSettings
-	(*WorkPreferences)(nil),                  // 64: user.v1.WorkPreferences
-	(*PatchMyWorkPreferencesRequest)(nil),    // 65: user.v1.PatchMyWorkPreferencesRequest
-	(*PatchMyWorkPreferencesResponse)(nil),   // 66: user.v1.PatchMyWorkPreferencesResponse
-	(*GetMyWorkPreferencesRequest)(nil),      // 67: user.v1.GetMyWorkPreferencesRequest
-	(*GetMyWorkPreferencesResponse)(nil),     // 68: user.v1.GetMyWorkPreferencesResponse
-	(*HiringPreferences)(nil),                // 69: user.v1.HiringPreferences
-	(*GetMyHiringPreferencesRequest)(nil),    // 70: user.v1.GetMyHiringPreferencesRequest
-	(*GetMyHiringPreferencesResponse)(nil),   // 71: user.v1.GetMyHiringPreferencesResponse
-	(*PatchMyHiringPreferencesRequest)(nil),  // 72: user.v1.PatchMyHiringPreferencesRequest
-	(*PatchMyHiringPreferencesResponse)(nil), // 73: user.v1.PatchMyHiringPreferencesResponse
-	(*SavedFreelancer)(nil),                  // 74: user.v1.SavedFreelancer
-	(*SaveFreelancerRequest)(nil),            // 75: user.v1.SaveFreelancerRequest
-	(*SaveFreelancerResponse)(nil),           // 76: user.v1.SaveFreelancerResponse
-	(*ListSavedFreelancersRequest)(nil),      // 77: user.v1.ListSavedFreelancersRequest
-	(*ListSavedFreelancersResponse)(nil),     // 78: user.v1.ListSavedFreelancersResponse
-	(*RemoveSavedFreelancerRequest)(nil),     // 79: user.v1.RemoveSavedFreelancerRequest
-	(*RemoveSavedFreelancerResponse)(nil),    // 80: user.v1.RemoveSavedFreelancerResponse
-	(*FreelancerNote)(nil),                   // 81: user.v1.FreelancerNote
-	(*UpsertFreelancerNoteRequest)(nil),      // 82: user.v1.UpsertFreelancerNoteRequest
-	(*UpsertFreelancerNoteResponse)(nil),     // 83: user.v1.UpsertFreelancerNoteResponse
-	(*GetFreelancerNoteRequest)(nil),         // 84: user.v1.GetFreelancerNoteRequest
-	(*GetFreelancerNoteResponse)(nil),        // 85: user.v1.GetFreelancerNoteResponse
-	(*GetPublicProfileRequest)(nil),          // 86: user.v1.GetPublicProfileRequest
-	(*GetPublicProfileResponse)(nil),         // 87: user.v1.GetPublicProfileResponse
-	(*GetUserProfileRequest)(nil),            // 88: user.v1.GetUserProfileRequest
-	(*GetUserProfileResponse)(nil),           // 89: user.v1.GetUserProfileResponse
-	(*PatchUserGovernanceRequest)(nil),       // 90: user.v1.PatchUserGovernanceRequest
-	(*PatchUserGovernanceResponse)(nil),      // 91: user.v1.PatchUserGovernanceResponse
-	(*UserSummary)(nil),                      // 92: user.v1.UserSummary
-	(*ListUsersRequest)(nil),                 // 93: user.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),                // 94: user.v1.ListUsersResponse
-	(*UserAuditSummary)(nil),                 // 95: user.v1.UserAuditSummary
-	(*GetUserAuditSummaryRequest)(nil),       // 96: user.v1.GetUserAuditSummaryRequest
-	(*GetUserAuditSummaryResponse)(nil),      // 97: user.v1.GetUserAuditSummaryResponse
-	(*GetInternalUserBasicRequest)(nil),      // 98: user.v1.GetInternalUserBasicRequest
-	(*InternalUserBasic)(nil),                // 99: user.v1.InternalUserBasic
-	(*GetInternalUserBasicResponse)(nil),     // 100: user.v1.GetInternalUserBasicResponse
-	(*GetInternalUserProfileRequest)(nil),    // 101: user.v1.GetInternalUserProfileRequest
-	(*GetInternalUserProfileResponse)(nil),   // 102: user.v1.GetInternalUserProfileResponse
-	(*PatchFreelancerMetricsRequest)(nil),    // 103: user.v1.PatchFreelancerMetricsRequest
-	(*PatchFreelancerMetricsResponse)(nil),   // 104: user.v1.PatchFreelancerMetricsResponse
-	(*TouchLastActiveRequest)(nil),           // 105: user.v1.TouchLastActiveRequest
-	(*TouchLastActiveResponse)(nil),          // 106: user.v1.TouchLastActiveResponse
+	(ProjectLength)(0),                       // 4: user.v1.ProjectLength
+	(PortfolioMediaType)(0),                  // 5: user.v1.PortfolioMediaType
+	(OnboardingStepStatus)(0),                // 6: user.v1.OnboardingStepStatus
+	(*StringList)(nil),                       // 7: user.v1.StringList
+	(*PagingRequest)(nil),                    // 8: user.v1.PagingRequest
+	(*PagingResponse)(nil),                   // 9: user.v1.PagingResponse
+	(*UserCore)(nil),                         // 10: user.v1.UserCore
+	(*ClientProfile)(nil),                    // 11: user.v1.ClientProfile
+	(*FreelancerMetrics)(nil),                // 12: user.v1.FreelancerMetrics
+	(*FreelancerProfile)(nil),                // 13: user.v1.FreelancerProfile
+	(*ProfileAvatar)(nil),                    // 14: user.v1.ProfileAvatar
+	(*UserProfile)(nil),                      // 15: user.v1.UserProfile
+	(*PublicProfile)(nil),                    // 16: user.v1.PublicProfile
+	(*CapabilityFlags)(nil),                  // 17: user.v1.CapabilityFlags
+	(*ProfileCompleteness)(nil),              // 18: user.v1.ProfileCompleteness
+	(*ProfileReadiness)(nil),                 // 19: user.v1.ProfileReadiness
+	(*OnboardingStep)(nil),                   // 20: user.v1.OnboardingStep
+	(*CreateMyProfileRequest)(nil),           // 21: user.v1.CreateMyProfileRequest
+	(*ClientProfileCreateInput)(nil),         // 22: user.v1.ClientProfileCreateInput
+	(*FreelancerProfileCreateInput)(nil),     // 23: user.v1.FreelancerProfileCreateInput
+	(*CreateMyProfileResponse)(nil),          // 24: user.v1.CreateMyProfileResponse
+	(*GetMyProfileRequest)(nil),              // 25: user.v1.GetMyProfileRequest
+	(*GetMyProfileResponse)(nil),             // 26: user.v1.GetMyProfileResponse
+	(*PatchMyProfileCoreInput)(nil),          // 27: user.v1.PatchMyProfileCoreInput
+	(*PatchMyClientProfileInput)(nil),        // 28: user.v1.PatchMyClientProfileInput
+	(*PatchMyFreelancerProfileInput)(nil),    // 29: user.v1.PatchMyFreelancerProfileInput
+	(*PatchMyProfileRequest)(nil),            // 30: user.v1.PatchMyProfileRequest
+	(*PatchMyProfileResponse)(nil),           // 31: user.v1.PatchMyProfileResponse
+	(*UserSettings)(nil),                     // 32: user.v1.UserSettings
+	(*GetMySettingsRequest)(nil),             // 33: user.v1.GetMySettingsRequest
+	(*GetMySettingsResponse)(nil),            // 34: user.v1.GetMySettingsResponse
+	(*PatchMySettingsRequest)(nil),           // 35: user.v1.PatchMySettingsRequest
+	(*PatchMySettingsResponse)(nil),          // 36: user.v1.PatchMySettingsResponse
+	(*DeleteMyProfileRequest)(nil),           // 37: user.v1.DeleteMyProfileRequest
+	(*DeleteMyProfileResponse)(nil),          // 38: user.v1.DeleteMyProfileResponse
+	(*GetMyOnboardingStatusRequest)(nil),     // 39: user.v1.GetMyOnboardingStatusRequest
+	(*GetMyOnboardingStatusResponse)(nil),    // 40: user.v1.GetMyOnboardingStatusResponse
+	(*UploadMyAvatarRequest)(nil),            // 41: user.v1.UploadMyAvatarRequest
+	(*UploadMyAvatarResponse)(nil),           // 42: user.v1.UploadMyAvatarResponse
+	(*GetMyAvatarRequest)(nil),               // 43: user.v1.GetMyAvatarRequest
+	(*GetMyAvatarResponse)(nil),              // 44: user.v1.GetMyAvatarResponse
+	(*RemoveMyAvatarRequest)(nil),            // 45: user.v1.RemoveMyAvatarRequest
+	(*RemoveMyAvatarResponse)(nil),           // 46: user.v1.RemoveMyAvatarResponse
+	(*PortfolioMedia)(nil),                   // 47: user.v1.PortfolioMedia
+	(*PortfolioItem)(nil),                    // 48: user.v1.PortfolioItem
+	(*CreateMyPortfolioItemRequest)(nil),     // 49: user.v1.CreateMyPortfolioItemRequest
+	(*PortfolioMediaInput)(nil),              // 50: user.v1.PortfolioMediaInput
+	(*CreateMyPortfolioItemResponse)(nil),    // 51: user.v1.CreateMyPortfolioItemResponse
+	(*GetMyPortfolioItemRequest)(nil),        // 52: user.v1.GetMyPortfolioItemRequest
+	(*GetMyPortfolioItemResponse)(nil),       // 53: user.v1.GetMyPortfolioItemResponse
+	(*UpdateMyPortfolioItemRequest)(nil),     // 54: user.v1.UpdateMyPortfolioItemRequest
+	(*PortfolioMediaInputList)(nil),          // 55: user.v1.PortfolioMediaInputList
+	(*UpdateMyPortfolioItemResponse)(nil),    // 56: user.v1.UpdateMyPortfolioItemResponse
+	(*DeleteMyPortfolioItemRequest)(nil),     // 57: user.v1.DeleteMyPortfolioItemRequest
+	(*DeleteMyPortfolioItemResponse)(nil),    // 58: user.v1.DeleteMyPortfolioItemResponse
+	(*ListMyPortfolioItemsRequest)(nil),      // 59: user.v1.ListMyPortfolioItemsRequest
+	(*ListMyPortfolioItemsResponse)(nil),     // 60: user.v1.ListMyPortfolioItemsResponse
+	(*ListPublicPortfolioItemsRequest)(nil),  // 61: user.v1.ListPublicPortfolioItemsRequest
+	(*ListPublicPortfolioItemsResponse)(nil), // 62: user.v1.ListPublicPortfolioItemsResponse
+	(*AvailabilitySettings)(nil),             // 63: user.v1.AvailabilitySettings
+	(*RateSettings)(nil),                     // 64: user.v1.RateSettings
+	(*WorkPreferences)(nil),                  // 65: user.v1.WorkPreferences
+	(*PatchMyWorkPreferencesRequest)(nil),    // 66: user.v1.PatchMyWorkPreferencesRequest
+	(*PatchMyWorkPreferencesResponse)(nil),   // 67: user.v1.PatchMyWorkPreferencesResponse
+	(*GetMyWorkPreferencesRequest)(nil),      // 68: user.v1.GetMyWorkPreferencesRequest
+	(*GetMyWorkPreferencesResponse)(nil),     // 69: user.v1.GetMyWorkPreferencesResponse
+	(*HiringPreferences)(nil),                // 70: user.v1.HiringPreferences
+	(*GetMyHiringPreferencesRequest)(nil),    // 71: user.v1.GetMyHiringPreferencesRequest
+	(*GetMyHiringPreferencesResponse)(nil),   // 72: user.v1.GetMyHiringPreferencesResponse
+	(*PatchMyHiringPreferencesRequest)(nil),  // 73: user.v1.PatchMyHiringPreferencesRequest
+	(*PatchMyHiringPreferencesResponse)(nil), // 74: user.v1.PatchMyHiringPreferencesResponse
+	(*SavedFreelancer)(nil),                  // 75: user.v1.SavedFreelancer
+	(*SaveFreelancerRequest)(nil),            // 76: user.v1.SaveFreelancerRequest
+	(*SaveFreelancerResponse)(nil),           // 77: user.v1.SaveFreelancerResponse
+	(*ListSavedFreelancersRequest)(nil),      // 78: user.v1.ListSavedFreelancersRequest
+	(*ListSavedFreelancersResponse)(nil),     // 79: user.v1.ListSavedFreelancersResponse
+	(*RemoveSavedFreelancerRequest)(nil),     // 80: user.v1.RemoveSavedFreelancerRequest
+	(*RemoveSavedFreelancerResponse)(nil),    // 81: user.v1.RemoveSavedFreelancerResponse
+	(*FreelancerNote)(nil),                   // 82: user.v1.FreelancerNote
+	(*UpsertFreelancerNoteRequest)(nil),      // 83: user.v1.UpsertFreelancerNoteRequest
+	(*UpsertFreelancerNoteResponse)(nil),     // 84: user.v1.UpsertFreelancerNoteResponse
+	(*GetFreelancerNoteRequest)(nil),         // 85: user.v1.GetFreelancerNoteRequest
+	(*GetFreelancerNoteResponse)(nil),        // 86: user.v1.GetFreelancerNoteResponse
+	(*GetPublicProfileRequest)(nil),          // 87: user.v1.GetPublicProfileRequest
+	(*GetPublicProfileResponse)(nil),         // 88: user.v1.GetPublicProfileResponse
+	(*GetUserProfileRequest)(nil),            // 89: user.v1.GetUserProfileRequest
+	(*GetUserProfileResponse)(nil),           // 90: user.v1.GetUserProfileResponse
+	(*PatchUserGovernanceRequest)(nil),       // 91: user.v1.PatchUserGovernanceRequest
+	(*PatchUserGovernanceResponse)(nil),      // 92: user.v1.PatchUserGovernanceResponse
+	(*UserSummary)(nil),                      // 93: user.v1.UserSummary
+	(*ListUsersRequest)(nil),                 // 94: user.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),                // 95: user.v1.ListUsersResponse
+	(*UserAuditSummary)(nil),                 // 96: user.v1.UserAuditSummary
+	(*GetUserAuditSummaryRequest)(nil),       // 97: user.v1.GetUserAuditSummaryRequest
+	(*GetUserAuditSummaryResponse)(nil),      // 98: user.v1.GetUserAuditSummaryResponse
+	(*GetInternalUserBasicRequest)(nil),      // 99: user.v1.GetInternalUserBasicRequest
+	(*InternalUserBasic)(nil),                // 100: user.v1.InternalUserBasic
+	(*GetInternalUserBasicResponse)(nil),     // 101: user.v1.GetInternalUserBasicResponse
+	(*GetInternalUserProfileRequest)(nil),    // 102: user.v1.GetInternalUserProfileRequest
+	(*GetInternalUserProfileResponse)(nil),   // 103: user.v1.GetInternalUserProfileResponse
+	(*PatchFreelancerMetricsRequest)(nil),    // 104: user.v1.PatchFreelancerMetricsRequest
+	(*PatchFreelancerMetricsResponse)(nil),   // 105: user.v1.PatchFreelancerMetricsResponse
+	(*TouchLastActiveRequest)(nil),           // 106: user.v1.TouchLastActiveRequest
+	(*TouchLastActiveResponse)(nil),          // 107: user.v1.TouchLastActiveResponse
 }
 var file_user_user_proto_depIdxs = []int32{
 	0,   // 0: user.v1.UserCore.role:type_name -> user.v1.UserRole
 	1,   // 1: user.v1.UserCore.account_status:type_name -> user.v1.AccountStatus
 	2,   // 2: user.v1.UserCore.verification_status:type_name -> user.v1.VerificationStatus
 	3,   // 3: user.v1.FreelancerProfile.availability:type_name -> user.v1.Availability
-	11,  // 4: user.v1.FreelancerProfile.metrics:type_name -> user.v1.FreelancerMetrics
-	9,   // 5: user.v1.UserProfile.core:type_name -> user.v1.UserCore
-	10,  // 6: user.v1.UserProfile.client:type_name -> user.v1.ClientProfile
-	12,  // 7: user.v1.UserProfile.freelancer:type_name -> user.v1.FreelancerProfile
-	16,  // 8: user.v1.UserProfile.capabilities:type_name -> user.v1.CapabilityFlags
+	12,  // 4: user.v1.FreelancerProfile.metrics:type_name -> user.v1.FreelancerMetrics
+	10,  // 5: user.v1.UserProfile.core:type_name -> user.v1.UserCore
+	11,  // 6: user.v1.UserProfile.client:type_name -> user.v1.ClientProfile
+	13,  // 7: user.v1.UserProfile.freelancer:type_name -> user.v1.FreelancerProfile
+	17,  // 8: user.v1.UserProfile.capabilities:type_name -> user.v1.CapabilityFlags
 	3,   // 9: user.v1.PublicProfile.availability:type_name -> user.v1.Availability
 	2,   // 10: user.v1.PublicProfile.verification_status:type_name -> user.v1.VerificationStatus
-	11,  // 11: user.v1.PublicProfile.metrics:type_name -> user.v1.FreelancerMetrics
-	5,   // 12: user.v1.OnboardingStep.status:type_name -> user.v1.OnboardingStepStatus
+	12,  // 11: user.v1.PublicProfile.metrics:type_name -> user.v1.FreelancerMetrics
+	6,   // 12: user.v1.OnboardingStep.status:type_name -> user.v1.OnboardingStepStatus
 	0,   // 13: user.v1.CreateMyProfileRequest.role:type_name -> user.v1.UserRole
-	21,  // 14: user.v1.CreateMyProfileRequest.client:type_name -> user.v1.ClientProfileCreateInput
-	22,  // 15: user.v1.CreateMyProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileCreateInput
+	22,  // 14: user.v1.CreateMyProfileRequest.client:type_name -> user.v1.ClientProfileCreateInput
+	23,  // 15: user.v1.CreateMyProfileRequest.freelancer:type_name -> user.v1.FreelancerProfileCreateInput
 	3,   // 16: user.v1.FreelancerProfileCreateInput.availability:type_name -> user.v1.Availability
-	14,  // 17: user.v1.CreateMyProfileResponse.profile:type_name -> user.v1.UserProfile
-	14,  // 18: user.v1.GetMyProfileResponse.profile:type_name -> user.v1.UserProfile
-	17,  // 19: user.v1.GetMyProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
-	6,   // 20: user.v1.PatchMyFreelancerProfileInput.skills:type_name -> user.v1.StringList
+	15,  // 17: user.v1.CreateMyProfileResponse.profile:type_name -> user.v1.UserProfile
+	15,  // 18: user.v1.GetMyProfileResponse.profile:type_name -> user.v1.UserProfile
+	18,  // 19: user.v1.GetMyProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	7,   // 20: user.v1.PatchMyFreelancerProfileInput.skills:type_name -> user.v1.StringList
 	3,   // 21: user.v1.PatchMyFreelancerProfileInput.availability:type_name -> user.v1.Availability
-	26,  // 22: user.v1.PatchMyProfileRequest.core:type_name -> user.v1.PatchMyProfileCoreInput
-	27,  // 23: user.v1.PatchMyProfileRequest.client:type_name -> user.v1.PatchMyClientProfileInput
-	28,  // 24: user.v1.PatchMyProfileRequest.freelancer:type_name -> user.v1.PatchMyFreelancerProfileInput
-	14,  // 25: user.v1.PatchMyProfileResponse.profile:type_name -> user.v1.UserProfile
-	17,  // 26: user.v1.PatchMyProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
-	31,  // 27: user.v1.GetMySettingsResponse.settings:type_name -> user.v1.UserSettings
-	31,  // 28: user.v1.PatchMySettingsResponse.settings:type_name -> user.v1.UserSettings
-	17,  // 29: user.v1.GetMyOnboardingStatusResponse.completeness:type_name -> user.v1.ProfileCompleteness
-	19,  // 30: user.v1.GetMyOnboardingStatusResponse.steps:type_name -> user.v1.OnboardingStep
-	18,  // 31: user.v1.GetMyOnboardingStatusResponse.readiness:type_name -> user.v1.ProfileReadiness
-	13,  // 32: user.v1.UploadMyAvatarResponse.avatar:type_name -> user.v1.ProfileAvatar
-	13,  // 33: user.v1.GetMyAvatarResponse.avatar:type_name -> user.v1.ProfileAvatar
-	4,   // 34: user.v1.PortfolioMedia.media_type:type_name -> user.v1.PortfolioMediaType
-	46,  // 35: user.v1.PortfolioItem.media:type_name -> user.v1.PortfolioMedia
-	49,  // 36: user.v1.CreateMyPortfolioItemRequest.media:type_name -> user.v1.PortfolioMediaInput
-	4,   // 37: user.v1.PortfolioMediaInput.media_type:type_name -> user.v1.PortfolioMediaType
-	47,  // 38: user.v1.CreateMyPortfolioItemResponse.item:type_name -> user.v1.PortfolioItem
-	47,  // 39: user.v1.GetMyPortfolioItemResponse.item:type_name -> user.v1.PortfolioItem
-	6,   // 40: user.v1.UpdateMyPortfolioItemRequest.tags:type_name -> user.v1.StringList
-	54,  // 41: user.v1.UpdateMyPortfolioItemRequest.media:type_name -> user.v1.PortfolioMediaInputList
-	49,  // 42: user.v1.PortfolioMediaInputList.values:type_name -> user.v1.PortfolioMediaInput
-	47,  // 43: user.v1.UpdateMyPortfolioItemResponse.item:type_name -> user.v1.PortfolioItem
-	7,   // 44: user.v1.ListMyPortfolioItemsRequest.page:type_name -> user.v1.PagingRequest
-	47,  // 45: user.v1.ListMyPortfolioItemsResponse.items:type_name -> user.v1.PortfolioItem
-	8,   // 46: user.v1.ListMyPortfolioItemsResponse.page:type_name -> user.v1.PagingResponse
-	7,   // 47: user.v1.ListPublicPortfolioItemsRequest.page:type_name -> user.v1.PagingRequest
-	47,  // 48: user.v1.ListPublicPortfolioItemsResponse.items:type_name -> user.v1.PortfolioItem
-	8,   // 49: user.v1.ListPublicPortfolioItemsResponse.page:type_name -> user.v1.PagingResponse
+	27,  // 22: user.v1.PatchMyProfileRequest.core:type_name -> user.v1.PatchMyProfileCoreInput
+	28,  // 23: user.v1.PatchMyProfileRequest.client:type_name -> user.v1.PatchMyClientProfileInput
+	29,  // 24: user.v1.PatchMyProfileRequest.freelancer:type_name -> user.v1.PatchMyFreelancerProfileInput
+	15,  // 25: user.v1.PatchMyProfileResponse.profile:type_name -> user.v1.UserProfile
+	18,  // 26: user.v1.PatchMyProfileResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	32,  // 27: user.v1.GetMySettingsResponse.settings:type_name -> user.v1.UserSettings
+	32,  // 28: user.v1.PatchMySettingsResponse.settings:type_name -> user.v1.UserSettings
+	18,  // 29: user.v1.GetMyOnboardingStatusResponse.completeness:type_name -> user.v1.ProfileCompleteness
+	20,  // 30: user.v1.GetMyOnboardingStatusResponse.steps:type_name -> user.v1.OnboardingStep
+	19,  // 31: user.v1.GetMyOnboardingStatusResponse.readiness:type_name -> user.v1.ProfileReadiness
+	14,  // 32: user.v1.UploadMyAvatarResponse.avatar:type_name -> user.v1.ProfileAvatar
+	14,  // 33: user.v1.GetMyAvatarResponse.avatar:type_name -> user.v1.ProfileAvatar
+	5,   // 34: user.v1.PortfolioMedia.media_type:type_name -> user.v1.PortfolioMediaType
+	47,  // 35: user.v1.PortfolioItem.media:type_name -> user.v1.PortfolioMedia
+	50,  // 36: user.v1.CreateMyPortfolioItemRequest.media:type_name -> user.v1.PortfolioMediaInput
+	5,   // 37: user.v1.PortfolioMediaInput.media_type:type_name -> user.v1.PortfolioMediaType
+	48,  // 38: user.v1.CreateMyPortfolioItemResponse.item:type_name -> user.v1.PortfolioItem
+	48,  // 39: user.v1.GetMyPortfolioItemResponse.item:type_name -> user.v1.PortfolioItem
+	7,   // 40: user.v1.UpdateMyPortfolioItemRequest.tags:type_name -> user.v1.StringList
+	55,  // 41: user.v1.UpdateMyPortfolioItemRequest.media:type_name -> user.v1.PortfolioMediaInputList
+	50,  // 42: user.v1.PortfolioMediaInputList.values:type_name -> user.v1.PortfolioMediaInput
+	48,  // 43: user.v1.UpdateMyPortfolioItemResponse.item:type_name -> user.v1.PortfolioItem
+	8,   // 44: user.v1.ListMyPortfolioItemsRequest.page:type_name -> user.v1.PagingRequest
+	48,  // 45: user.v1.ListMyPortfolioItemsResponse.items:type_name -> user.v1.PortfolioItem
+	9,   // 46: user.v1.ListMyPortfolioItemsResponse.page:type_name -> user.v1.PagingResponse
+	8,   // 47: user.v1.ListPublicPortfolioItemsRequest.page:type_name -> user.v1.PagingRequest
+	48,  // 48: user.v1.ListPublicPortfolioItemsResponse.items:type_name -> user.v1.PortfolioItem
+	9,   // 49: user.v1.ListPublicPortfolioItemsResponse.page:type_name -> user.v1.PagingResponse
 	3,   // 50: user.v1.AvailabilitySettings.availability:type_name -> user.v1.Availability
-	6,   // 51: user.v1.PatchMyWorkPreferencesRequest.contract_types:type_name -> user.v1.StringList
-	64,  // 52: user.v1.PatchMyWorkPreferencesResponse.settings:type_name -> user.v1.WorkPreferences
-	64,  // 53: user.v1.GetMyWorkPreferencesResponse.settings:type_name -> user.v1.WorkPreferences
-	69,  // 54: user.v1.GetMyHiringPreferencesResponse.preferences:type_name -> user.v1.HiringPreferences
-	6,   // 55: user.v1.PatchMyHiringPreferencesRequest.preferred_locations:type_name -> user.v1.StringList
-	69,  // 56: user.v1.PatchMyHiringPreferencesResponse.preferences:type_name -> user.v1.HiringPreferences
-	74,  // 57: user.v1.SaveFreelancerResponse.saved:type_name -> user.v1.SavedFreelancer
-	7,   // 58: user.v1.ListSavedFreelancersRequest.page:type_name -> user.v1.PagingRequest
-	74,  // 59: user.v1.ListSavedFreelancersResponse.freelancers:type_name -> user.v1.SavedFreelancer
-	8,   // 60: user.v1.ListSavedFreelancersResponse.page:type_name -> user.v1.PagingResponse
-	81,  // 61: user.v1.UpsertFreelancerNoteResponse.note:type_name -> user.v1.FreelancerNote
-	81,  // 62: user.v1.GetFreelancerNoteResponse.note:type_name -> user.v1.FreelancerNote
-	15,  // 63: user.v1.GetPublicProfileResponse.profile:type_name -> user.v1.PublicProfile
-	14,  // 64: user.v1.GetUserProfileResponse.profile:type_name -> user.v1.UserProfile
-	1,   // 65: user.v1.PatchUserGovernanceRequest.account_status:type_name -> user.v1.AccountStatus
-	2,   // 66: user.v1.PatchUserGovernanceRequest.verification_status:type_name -> user.v1.VerificationStatus
-	14,  // 67: user.v1.PatchUserGovernanceResponse.profile:type_name -> user.v1.UserProfile
-	0,   // 68: user.v1.UserSummary.role:type_name -> user.v1.UserRole
-	1,   // 69: user.v1.UserSummary.account_status:type_name -> user.v1.AccountStatus
-	0,   // 70: user.v1.ListUsersRequest.role:type_name -> user.v1.UserRole
-	1,   // 71: user.v1.ListUsersRequest.account_status:type_name -> user.v1.AccountStatus
-	7,   // 72: user.v1.ListUsersRequest.page:type_name -> user.v1.PagingRequest
-	92,  // 73: user.v1.ListUsersResponse.users:type_name -> user.v1.UserSummary
-	8,   // 74: user.v1.ListUsersResponse.page:type_name -> user.v1.PagingResponse
-	1,   // 75: user.v1.UserAuditSummary.account_status:type_name -> user.v1.AccountStatus
-	95,  // 76: user.v1.GetUserAuditSummaryResponse.summary:type_name -> user.v1.UserAuditSummary
-	0,   // 77: user.v1.InternalUserBasic.role:type_name -> user.v1.UserRole
-	1,   // 78: user.v1.InternalUserBasic.account_status:type_name -> user.v1.AccountStatus
-	99,  // 79: user.v1.GetInternalUserBasicResponse.user:type_name -> user.v1.InternalUserBasic
-	14,  // 80: user.v1.GetInternalUserProfileResponse.profile:type_name -> user.v1.UserProfile
-	2,   // 81: user.v1.PatchFreelancerMetricsRequest.verification_status:type_name -> user.v1.VerificationStatus
-	11,  // 82: user.v1.PatchFreelancerMetricsResponse.metrics:type_name -> user.v1.FreelancerMetrics
-	20,  // 83: user.v1.UserService.CreateMyProfile:input_type -> user.v1.CreateMyProfileRequest
-	24,  // 84: user.v1.UserService.GetMyProfile:input_type -> user.v1.GetMyProfileRequest
-	29,  // 85: user.v1.UserService.PatchMyProfile:input_type -> user.v1.PatchMyProfileRequest
-	36,  // 86: user.v1.UserService.DeleteMyProfile:input_type -> user.v1.DeleteMyProfileRequest
-	38,  // 87: user.v1.UserService.GetMyOnboardingStatus:input_type -> user.v1.GetMyOnboardingStatusRequest
-	32,  // 88: user.v1.UserService.GetMySettings:input_type -> user.v1.GetMySettingsRequest
-	34,  // 89: user.v1.UserService.PatchMySettings:input_type -> user.v1.PatchMySettingsRequest
-	40,  // 90: user.v1.UserService.UpsertMyAvatar:input_type -> user.v1.UploadMyAvatarRequest
-	42,  // 91: user.v1.UserService.GetMyAvatar:input_type -> user.v1.GetMyAvatarRequest
-	44,  // 92: user.v1.UserService.RemoveMyAvatar:input_type -> user.v1.RemoveMyAvatarRequest
-	48,  // 93: user.v1.UserService.CreateMyPortfolioItem:input_type -> user.v1.CreateMyPortfolioItemRequest
-	51,  // 94: user.v1.UserService.GetMyPortfolioItem:input_type -> user.v1.GetMyPortfolioItemRequest
-	53,  // 95: user.v1.UserService.UpdateMyPortfolioItem:input_type -> user.v1.UpdateMyPortfolioItemRequest
-	56,  // 96: user.v1.UserService.DeleteMyPortfolioItem:input_type -> user.v1.DeleteMyPortfolioItemRequest
-	58,  // 97: user.v1.UserService.ListMyPortfolioItems:input_type -> user.v1.ListMyPortfolioItemsRequest
-	65,  // 98: user.v1.UserService.PatchMyWorkPreferences:input_type -> user.v1.PatchMyWorkPreferencesRequest
-	67,  // 99: user.v1.UserService.GetMyWorkPreferences:input_type -> user.v1.GetMyWorkPreferencesRequest
-	70,  // 100: user.v1.UserService.GetMyHiringPreferences:input_type -> user.v1.GetMyHiringPreferencesRequest
-	72,  // 101: user.v1.UserService.PatchMyHiringPreferences:input_type -> user.v1.PatchMyHiringPreferencesRequest
-	75,  // 102: user.v1.UserService.SaveFreelancer:input_type -> user.v1.SaveFreelancerRequest
-	77,  // 103: user.v1.UserService.ListSavedFreelancers:input_type -> user.v1.ListSavedFreelancersRequest
-	79,  // 104: user.v1.UserService.RemoveSavedFreelancer:input_type -> user.v1.RemoveSavedFreelancerRequest
-	82,  // 105: user.v1.UserService.UpsertFreelancerNote:input_type -> user.v1.UpsertFreelancerNoteRequest
-	84,  // 106: user.v1.UserService.GetFreelancerNote:input_type -> user.v1.GetFreelancerNoteRequest
-	86,  // 107: user.v1.UserService.GetPublicProfile:input_type -> user.v1.GetPublicProfileRequest
-	60,  // 108: user.v1.UserService.ListPublicPortfolioItems:input_type -> user.v1.ListPublicPortfolioItemsRequest
-	88,  // 109: user.v1.UserService.GetUserProfile:input_type -> user.v1.GetUserProfileRequest
-	93,  // 110: user.v1.UserService.ListUsers:input_type -> user.v1.ListUsersRequest
-	90,  // 111: user.v1.UserService.PatchUserGovernance:input_type -> user.v1.PatchUserGovernanceRequest
-	96,  // 112: user.v1.UserService.GetUserAuditSummary:input_type -> user.v1.GetUserAuditSummaryRequest
-	98,  // 113: user.v1.UserService.GetInternalUserBasic:input_type -> user.v1.GetInternalUserBasicRequest
-	101, // 114: user.v1.UserService.GetInternalUserProfile:input_type -> user.v1.GetInternalUserProfileRequest
-	103, // 115: user.v1.UserService.PatchFreelancerMetrics:input_type -> user.v1.PatchFreelancerMetricsRequest
-	105, // 116: user.v1.UserService.TouchLastActive:input_type -> user.v1.TouchLastActiveRequest
-	23,  // 117: user.v1.UserService.CreateMyProfile:output_type -> user.v1.CreateMyProfileResponse
-	25,  // 118: user.v1.UserService.GetMyProfile:output_type -> user.v1.GetMyProfileResponse
-	30,  // 119: user.v1.UserService.PatchMyProfile:output_type -> user.v1.PatchMyProfileResponse
-	37,  // 120: user.v1.UserService.DeleteMyProfile:output_type -> user.v1.DeleteMyProfileResponse
-	39,  // 121: user.v1.UserService.GetMyOnboardingStatus:output_type -> user.v1.GetMyOnboardingStatusResponse
-	33,  // 122: user.v1.UserService.GetMySettings:output_type -> user.v1.GetMySettingsResponse
-	35,  // 123: user.v1.UserService.PatchMySettings:output_type -> user.v1.PatchMySettingsResponse
-	41,  // 124: user.v1.UserService.UpsertMyAvatar:output_type -> user.v1.UploadMyAvatarResponse
-	43,  // 125: user.v1.UserService.GetMyAvatar:output_type -> user.v1.GetMyAvatarResponse
-	45,  // 126: user.v1.UserService.RemoveMyAvatar:output_type -> user.v1.RemoveMyAvatarResponse
-	50,  // 127: user.v1.UserService.CreateMyPortfolioItem:output_type -> user.v1.CreateMyPortfolioItemResponse
-	52,  // 128: user.v1.UserService.GetMyPortfolioItem:output_type -> user.v1.GetMyPortfolioItemResponse
-	55,  // 129: user.v1.UserService.UpdateMyPortfolioItem:output_type -> user.v1.UpdateMyPortfolioItemResponse
-	57,  // 130: user.v1.UserService.DeleteMyPortfolioItem:output_type -> user.v1.DeleteMyPortfolioItemResponse
-	59,  // 131: user.v1.UserService.ListMyPortfolioItems:output_type -> user.v1.ListMyPortfolioItemsResponse
-	66,  // 132: user.v1.UserService.PatchMyWorkPreferences:output_type -> user.v1.PatchMyWorkPreferencesResponse
-	68,  // 133: user.v1.UserService.GetMyWorkPreferences:output_type -> user.v1.GetMyWorkPreferencesResponse
-	71,  // 134: user.v1.UserService.GetMyHiringPreferences:output_type -> user.v1.GetMyHiringPreferencesResponse
-	73,  // 135: user.v1.UserService.PatchMyHiringPreferences:output_type -> user.v1.PatchMyHiringPreferencesResponse
-	76,  // 136: user.v1.UserService.SaveFreelancer:output_type -> user.v1.SaveFreelancerResponse
-	78,  // 137: user.v1.UserService.ListSavedFreelancers:output_type -> user.v1.ListSavedFreelancersResponse
-	80,  // 138: user.v1.UserService.RemoveSavedFreelancer:output_type -> user.v1.RemoveSavedFreelancerResponse
-	83,  // 139: user.v1.UserService.UpsertFreelancerNote:output_type -> user.v1.UpsertFreelancerNoteResponse
-	85,  // 140: user.v1.UserService.GetFreelancerNote:output_type -> user.v1.GetFreelancerNoteResponse
-	87,  // 141: user.v1.UserService.GetPublicProfile:output_type -> user.v1.GetPublicProfileResponse
-	61,  // 142: user.v1.UserService.ListPublicPortfolioItems:output_type -> user.v1.ListPublicPortfolioItemsResponse
-	89,  // 143: user.v1.UserService.GetUserProfile:output_type -> user.v1.GetUserProfileResponse
-	94,  // 144: user.v1.UserService.ListUsers:output_type -> user.v1.ListUsersResponse
-	91,  // 145: user.v1.UserService.PatchUserGovernance:output_type -> user.v1.PatchUserGovernanceResponse
-	97,  // 146: user.v1.UserService.GetUserAuditSummary:output_type -> user.v1.GetUserAuditSummaryResponse
-	100, // 147: user.v1.UserService.GetInternalUserBasic:output_type -> user.v1.GetInternalUserBasicResponse
-	102, // 148: user.v1.UserService.GetInternalUserProfile:output_type -> user.v1.GetInternalUserProfileResponse
-	104, // 149: user.v1.UserService.PatchFreelancerMetrics:output_type -> user.v1.PatchFreelancerMetricsResponse
-	106, // 150: user.v1.UserService.TouchLastActive:output_type -> user.v1.TouchLastActiveResponse
-	117, // [117:151] is the sub-list for method output_type
-	83,  // [83:117] is the sub-list for method input_type
-	83,  // [83:83] is the sub-list for extension type_name
-	83,  // [83:83] is the sub-list for extension extendee
-	0,   // [0:83] is the sub-list for field type_name
+	4,   // 51: user.v1.WorkPreferences.preferred_project_length:type_name -> user.v1.ProjectLength
+	4,   // 52: user.v1.PatchMyWorkPreferencesRequest.preferred_project_length:type_name -> user.v1.ProjectLength
+	7,   // 53: user.v1.PatchMyWorkPreferencesRequest.contract_types:type_name -> user.v1.StringList
+	65,  // 54: user.v1.PatchMyWorkPreferencesResponse.settings:type_name -> user.v1.WorkPreferences
+	65,  // 55: user.v1.GetMyWorkPreferencesResponse.settings:type_name -> user.v1.WorkPreferences
+	70,  // 56: user.v1.GetMyHiringPreferencesResponse.preferences:type_name -> user.v1.HiringPreferences
+	7,   // 57: user.v1.PatchMyHiringPreferencesRequest.preferred_locations:type_name -> user.v1.StringList
+	70,  // 58: user.v1.PatchMyHiringPreferencesResponse.preferences:type_name -> user.v1.HiringPreferences
+	75,  // 59: user.v1.SaveFreelancerResponse.saved:type_name -> user.v1.SavedFreelancer
+	8,   // 60: user.v1.ListSavedFreelancersRequest.page:type_name -> user.v1.PagingRequest
+	75,  // 61: user.v1.ListSavedFreelancersResponse.freelancers:type_name -> user.v1.SavedFreelancer
+	9,   // 62: user.v1.ListSavedFreelancersResponse.page:type_name -> user.v1.PagingResponse
+	82,  // 63: user.v1.UpsertFreelancerNoteResponse.note:type_name -> user.v1.FreelancerNote
+	82,  // 64: user.v1.GetFreelancerNoteResponse.note:type_name -> user.v1.FreelancerNote
+	16,  // 65: user.v1.GetPublicProfileResponse.profile:type_name -> user.v1.PublicProfile
+	15,  // 66: user.v1.GetUserProfileResponse.profile:type_name -> user.v1.UserProfile
+	1,   // 67: user.v1.PatchUserGovernanceRequest.account_status:type_name -> user.v1.AccountStatus
+	2,   // 68: user.v1.PatchUserGovernanceRequest.verification_status:type_name -> user.v1.VerificationStatus
+	15,  // 69: user.v1.PatchUserGovernanceResponse.profile:type_name -> user.v1.UserProfile
+	0,   // 70: user.v1.UserSummary.role:type_name -> user.v1.UserRole
+	1,   // 71: user.v1.UserSummary.account_status:type_name -> user.v1.AccountStatus
+	0,   // 72: user.v1.ListUsersRequest.role:type_name -> user.v1.UserRole
+	1,   // 73: user.v1.ListUsersRequest.account_status:type_name -> user.v1.AccountStatus
+	8,   // 74: user.v1.ListUsersRequest.page:type_name -> user.v1.PagingRequest
+	93,  // 75: user.v1.ListUsersResponse.users:type_name -> user.v1.UserSummary
+	9,   // 76: user.v1.ListUsersResponse.page:type_name -> user.v1.PagingResponse
+	1,   // 77: user.v1.UserAuditSummary.account_status:type_name -> user.v1.AccountStatus
+	96,  // 78: user.v1.GetUserAuditSummaryResponse.summary:type_name -> user.v1.UserAuditSummary
+	0,   // 79: user.v1.InternalUserBasic.role:type_name -> user.v1.UserRole
+	1,   // 80: user.v1.InternalUserBasic.account_status:type_name -> user.v1.AccountStatus
+	100, // 81: user.v1.GetInternalUserBasicResponse.user:type_name -> user.v1.InternalUserBasic
+	15,  // 82: user.v1.GetInternalUserProfileResponse.profile:type_name -> user.v1.UserProfile
+	2,   // 83: user.v1.PatchFreelancerMetricsRequest.verification_status:type_name -> user.v1.VerificationStatus
+	12,  // 84: user.v1.PatchFreelancerMetricsResponse.metrics:type_name -> user.v1.FreelancerMetrics
+	21,  // 85: user.v1.UserService.CreateMyProfile:input_type -> user.v1.CreateMyProfileRequest
+	25,  // 86: user.v1.UserService.GetMyProfile:input_type -> user.v1.GetMyProfileRequest
+	30,  // 87: user.v1.UserService.PatchMyProfile:input_type -> user.v1.PatchMyProfileRequest
+	37,  // 88: user.v1.UserService.DeleteMyProfile:input_type -> user.v1.DeleteMyProfileRequest
+	39,  // 89: user.v1.UserService.GetMyOnboardingStatus:input_type -> user.v1.GetMyOnboardingStatusRequest
+	33,  // 90: user.v1.UserService.GetMySettings:input_type -> user.v1.GetMySettingsRequest
+	35,  // 91: user.v1.UserService.PatchMySettings:input_type -> user.v1.PatchMySettingsRequest
+	41,  // 92: user.v1.UserService.UpsertMyAvatar:input_type -> user.v1.UploadMyAvatarRequest
+	43,  // 93: user.v1.UserService.GetMyAvatar:input_type -> user.v1.GetMyAvatarRequest
+	45,  // 94: user.v1.UserService.RemoveMyAvatar:input_type -> user.v1.RemoveMyAvatarRequest
+	49,  // 95: user.v1.UserService.CreateMyPortfolioItem:input_type -> user.v1.CreateMyPortfolioItemRequest
+	52,  // 96: user.v1.UserService.GetMyPortfolioItem:input_type -> user.v1.GetMyPortfolioItemRequest
+	54,  // 97: user.v1.UserService.UpdateMyPortfolioItem:input_type -> user.v1.UpdateMyPortfolioItemRequest
+	57,  // 98: user.v1.UserService.DeleteMyPortfolioItem:input_type -> user.v1.DeleteMyPortfolioItemRequest
+	59,  // 99: user.v1.UserService.ListMyPortfolioItems:input_type -> user.v1.ListMyPortfolioItemsRequest
+	66,  // 100: user.v1.UserService.PatchMyWorkPreferences:input_type -> user.v1.PatchMyWorkPreferencesRequest
+	68,  // 101: user.v1.UserService.GetMyWorkPreferences:input_type -> user.v1.GetMyWorkPreferencesRequest
+	71,  // 102: user.v1.UserService.GetMyHiringPreferences:input_type -> user.v1.GetMyHiringPreferencesRequest
+	73,  // 103: user.v1.UserService.PatchMyHiringPreferences:input_type -> user.v1.PatchMyHiringPreferencesRequest
+	76,  // 104: user.v1.UserService.SaveFreelancer:input_type -> user.v1.SaveFreelancerRequest
+	78,  // 105: user.v1.UserService.ListSavedFreelancers:input_type -> user.v1.ListSavedFreelancersRequest
+	80,  // 106: user.v1.UserService.RemoveSavedFreelancer:input_type -> user.v1.RemoveSavedFreelancerRequest
+	83,  // 107: user.v1.UserService.UpsertFreelancerNote:input_type -> user.v1.UpsertFreelancerNoteRequest
+	85,  // 108: user.v1.UserService.GetFreelancerNote:input_type -> user.v1.GetFreelancerNoteRequest
+	87,  // 109: user.v1.UserService.GetPublicProfile:input_type -> user.v1.GetPublicProfileRequest
+	61,  // 110: user.v1.UserService.ListPublicPortfolioItems:input_type -> user.v1.ListPublicPortfolioItemsRequest
+	89,  // 111: user.v1.UserService.GetUserProfile:input_type -> user.v1.GetUserProfileRequest
+	94,  // 112: user.v1.UserService.ListUsers:input_type -> user.v1.ListUsersRequest
+	91,  // 113: user.v1.UserService.PatchUserGovernance:input_type -> user.v1.PatchUserGovernanceRequest
+	97,  // 114: user.v1.UserService.GetUserAuditSummary:input_type -> user.v1.GetUserAuditSummaryRequest
+	99,  // 115: user.v1.UserService.GetInternalUserBasic:input_type -> user.v1.GetInternalUserBasicRequest
+	102, // 116: user.v1.UserService.GetInternalUserProfile:input_type -> user.v1.GetInternalUserProfileRequest
+	104, // 117: user.v1.UserService.PatchFreelancerMetrics:input_type -> user.v1.PatchFreelancerMetricsRequest
+	106, // 118: user.v1.UserService.TouchLastActive:input_type -> user.v1.TouchLastActiveRequest
+	24,  // 119: user.v1.UserService.CreateMyProfile:output_type -> user.v1.CreateMyProfileResponse
+	26,  // 120: user.v1.UserService.GetMyProfile:output_type -> user.v1.GetMyProfileResponse
+	31,  // 121: user.v1.UserService.PatchMyProfile:output_type -> user.v1.PatchMyProfileResponse
+	38,  // 122: user.v1.UserService.DeleteMyProfile:output_type -> user.v1.DeleteMyProfileResponse
+	40,  // 123: user.v1.UserService.GetMyOnboardingStatus:output_type -> user.v1.GetMyOnboardingStatusResponse
+	34,  // 124: user.v1.UserService.GetMySettings:output_type -> user.v1.GetMySettingsResponse
+	36,  // 125: user.v1.UserService.PatchMySettings:output_type -> user.v1.PatchMySettingsResponse
+	42,  // 126: user.v1.UserService.UpsertMyAvatar:output_type -> user.v1.UploadMyAvatarResponse
+	44,  // 127: user.v1.UserService.GetMyAvatar:output_type -> user.v1.GetMyAvatarResponse
+	46,  // 128: user.v1.UserService.RemoveMyAvatar:output_type -> user.v1.RemoveMyAvatarResponse
+	51,  // 129: user.v1.UserService.CreateMyPortfolioItem:output_type -> user.v1.CreateMyPortfolioItemResponse
+	53,  // 130: user.v1.UserService.GetMyPortfolioItem:output_type -> user.v1.GetMyPortfolioItemResponse
+	56,  // 131: user.v1.UserService.UpdateMyPortfolioItem:output_type -> user.v1.UpdateMyPortfolioItemResponse
+	58,  // 132: user.v1.UserService.DeleteMyPortfolioItem:output_type -> user.v1.DeleteMyPortfolioItemResponse
+	60,  // 133: user.v1.UserService.ListMyPortfolioItems:output_type -> user.v1.ListMyPortfolioItemsResponse
+	67,  // 134: user.v1.UserService.PatchMyWorkPreferences:output_type -> user.v1.PatchMyWorkPreferencesResponse
+	69,  // 135: user.v1.UserService.GetMyWorkPreferences:output_type -> user.v1.GetMyWorkPreferencesResponse
+	72,  // 136: user.v1.UserService.GetMyHiringPreferences:output_type -> user.v1.GetMyHiringPreferencesResponse
+	74,  // 137: user.v1.UserService.PatchMyHiringPreferences:output_type -> user.v1.PatchMyHiringPreferencesResponse
+	77,  // 138: user.v1.UserService.SaveFreelancer:output_type -> user.v1.SaveFreelancerResponse
+	79,  // 139: user.v1.UserService.ListSavedFreelancers:output_type -> user.v1.ListSavedFreelancersResponse
+	81,  // 140: user.v1.UserService.RemoveSavedFreelancer:output_type -> user.v1.RemoveSavedFreelancerResponse
+	84,  // 141: user.v1.UserService.UpsertFreelancerNote:output_type -> user.v1.UpsertFreelancerNoteResponse
+	86,  // 142: user.v1.UserService.GetFreelancerNote:output_type -> user.v1.GetFreelancerNoteResponse
+	88,  // 143: user.v1.UserService.GetPublicProfile:output_type -> user.v1.GetPublicProfileResponse
+	62,  // 144: user.v1.UserService.ListPublicPortfolioItems:output_type -> user.v1.ListPublicPortfolioItemsResponse
+	90,  // 145: user.v1.UserService.GetUserProfile:output_type -> user.v1.GetUserProfileResponse
+	95,  // 146: user.v1.UserService.ListUsers:output_type -> user.v1.ListUsersResponse
+	92,  // 147: user.v1.UserService.PatchUserGovernance:output_type -> user.v1.PatchUserGovernanceResponse
+	98,  // 148: user.v1.UserService.GetUserAuditSummary:output_type -> user.v1.GetUserAuditSummaryResponse
+	101, // 149: user.v1.UserService.GetInternalUserBasic:output_type -> user.v1.GetInternalUserBasicResponse
+	103, // 150: user.v1.UserService.GetInternalUserProfile:output_type -> user.v1.GetInternalUserProfileResponse
+	105, // 151: user.v1.UserService.PatchFreelancerMetrics:output_type -> user.v1.PatchFreelancerMetricsResponse
+	107, // 152: user.v1.UserService.TouchLastActive:output_type -> user.v1.TouchLastActiveResponse
+	119, // [119:153] is the sub-list for method output_type
+	85,  // [85:119] is the sub-list for method input_type
+	85,  // [85:85] is the sub-list for extension type_name
+	85,  // [85:85] is the sub-list for extension extendee
+	0,   // [0:85] is the sub-list for field type_name
 }
 
 func init() { file_user_user_proto_init() }
@@ -7421,7 +7486,7 @@ func file_user_user_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)),
-			NumEnums:      6,
+			NumEnums:      7,
 			NumMessages:   101,
 			NumExtensions: 0,
 			NumServices:   1,

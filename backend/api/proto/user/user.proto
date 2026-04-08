@@ -105,6 +105,18 @@ enum Availability {
   AVAILABILITY_UNAVAILABLE = 4;
 }
 
+// ProjectLength captures a freelancer's preferred engagement duration.
+enum ProjectLength {
+  // No preference selected by the user.
+  PROJECT_LENGTH_UNSPECIFIED = 0;
+  // Short-term engagements: up to 4 weeks.
+  PROJECT_LENGTH_SHORT_TERM = 1;
+  // Medium-term engagements: 1 to 3 months.
+  PROJECT_LENGTH_MEDIUM_TERM = 2;
+  // Long-term engagements: over 3 months.
+  PROJECT_LENGTH_LONG_TERM = 3;
+}
+
 enum PortfolioMediaType {
   PORTFOLIO_MEDIA_TYPE_UNSPECIFIED = 0;
   PORTFOLIO_MEDIA_TYPE_IMAGE = 1;
@@ -507,7 +519,7 @@ message RateSettings {
 }
 
 message WorkPreferences {
-  string preferred_project_length = 1;
+  ProjectLength preferred_project_length = 1;
   double min_budget = 2;
   double max_budget = 3;
   repeated string contract_types = 4;
@@ -516,7 +528,7 @@ message WorkPreferences {
 
 message PatchMyWorkPreferencesRequest {
   string user_id = 1;
-  optional string preferred_project_length = 2;
+  optional ProjectLength preferred_project_length = 2;
   optional double min_budget = 3;
   optional double max_budget = 4;
   StringList contract_types = 5;
