@@ -17,7 +17,6 @@ type PortfolioMedia struct {
 	SizeBytes   int64
 	Width       int32
 	Height      int32
-	SortOrder   int32
 }
 
 type PortfolioItem struct {
@@ -28,7 +27,6 @@ type PortfolioItem struct {
 	ProjectURL    string
 	RoleInProject string
 	CompletedAt   *time.Time
-	SortOrder     int32
 	Tags          []string
 	Media         []PortfolioMedia
 	CreatedAt     time.Time
@@ -123,7 +121,6 @@ type ProfileDetailsRepository interface {
 	DeletePortfolioItem(ctx context.Context, userID uuid.UUID, itemID int64) (bool, error)
 	ListMyPortfolioItems(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[PortfolioItem], error)
 	ListPublicPortfolioItems(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[PortfolioItem], error)
-	ReorderPortfolioItems(ctx context.Context, userID uuid.UUID, itemIDs []int64) ([]PortfolioItem, error)
 
 	SetAvailability(ctx context.Context, userID uuid.UUID, in AvailabilitySettings) (AvailabilitySettings, error)
 	GetAvailability(ctx context.Context, userID uuid.UUID) (AvailabilitySettings, error)
