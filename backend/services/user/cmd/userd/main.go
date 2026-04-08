@@ -47,7 +47,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("avatar storage: %v", err)
 	}
-	if _, err := storage.NewPortfolioStore(ctx, cfg.PortfolioStorage); err != nil {
+	portfolioStore, err := storage.NewPortfolioStore(ctx, cfg.PortfolioStorage)
+	if err != nil {
 		log.Fatalf("portfolio storage: %v", err)
 	}
 
@@ -88,6 +89,7 @@ func main() {
 		uploadAvatarUC,
 		getAvatarUC,
 		removeAvatarUC,
+		portfolioStore,
 		profileRepo,
 		grpcadapter.CapabilityPolicy{
 			MinSkillsForDiscovery:        cfg.CapabilityMinSkillsForDiscovery,

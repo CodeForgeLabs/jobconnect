@@ -15,6 +15,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type portfolioURLPresigner interface {
+	PresignGetObject(ctx context.Context, storageKey string, ttl time.Duration) (string, error)
+}
+
 type UserServer struct {
 	userv1.UnimplementedUserServiceServer
 	CreateProfileUC       *application.CreateProfile
@@ -30,6 +34,7 @@ type UserServer struct {
 	UploadAvatarUC        *application.UploadAvatar
 	GetAvatarUC           *application.GetAvatar
 	RemoveAvatarUC        *application.RemoveAvatar
+	PortfolioStore        portfolioURLPresigner
 	ProfileDetailsRepo    application.ProfileDetailsRepository
 	CapabilityPolicy      CapabilityPolicy
 }
@@ -74,6 +79,7 @@ func NewUserServer(
 	uploadAvatar *application.UploadAvatar,
 	getAvatar *application.GetAvatar,
 	removeAvatar *application.RemoveAvatar,
+	portfolioStore portfolioURLPresigner,
 	profileDetailsRepo application.ProfileDetailsRepository,
 	capabilityPolicy CapabilityPolicy,
 ) *UserServer {
@@ -91,6 +97,7 @@ func NewUserServer(
 		UploadAvatarUC:        uploadAvatar,
 		GetAvatarUC:           getAvatar,
 		RemoveAvatarUC:        removeAvatar,
+		PortfolioStore:        portfolioStore,
 		ProfileDetailsRepo:    profileDetailsRepo,
 		CapabilityPolicy:      capabilityPolicy.withDefaults(),
 	}
@@ -668,7 +675,11 @@ func (s *UserServer) CreateMyPortfolioItem(ctx context.Context, req *userv1.Crea
 		return nil, toStatus(err)
 	}
 
-	return &userv1.CreateMyPortfolioItemResponse{Item: toProtoPortfolioItem(item)}, nil
+	itemProto, err := s.toProtoPortfolioItem(ctx, item)
+	if err != nil {
+		return nil, err
+	}
+	return &userv1.CreateMyPortfolioItemResponse{Item: itemProto}, nil
 }
 
 func (s *UserServer) GetMyPortfolioItem(ctx context.Context, req *userv1.GetMyPortfolioItemRequest) (*userv1.GetMyPortfolioItemResponse, error) {
@@ -684,7 +695,11 @@ func (s *UserServer) GetMyPortfolioItem(ctx context.Context, req *userv1.GetMyPo
 		return nil, toStatus(err)
 	}
 
-	return &userv1.GetMyPortfolioItemResponse{Item: toProtoPortfolioItem(item)}, nil
+	itemProto, err := s.toProtoPortfolioItem(ctx, item)
+	if err != nil {
+		return nil, err
+	}
+	return &userv1.GetMyPortfolioItemResponse{Item: itemProto}, nil
 }
 
 func (s *UserServer) UpdateMyPortfolioItem(ctx context.Context, req *userv1.UpdateMyPortfolioItemRequest) (*userv1.UpdateMyPortfolioItemResponse, error) {
@@ -736,7 +751,11 @@ func (s *UserServer) UpdateMyPortfolioItem(ctx context.Context, req *userv1.Upda
 		return nil, toStatus(err)
 	}
 
-	return &userv1.UpdateMyPortfolioItemResponse{Item: toProtoPortfolioItem(item)}, nil
+	itemProto, err := s.toProtoPortfolioItem(ctx, item)
+	if err != nil {
+		return nil, err
+	}
+	return &userv1.UpdateMyPortfolioItemResponse{Item: itemProto}, nil
 }
 
 func (s *UserServer) DeleteMyPortfolioItem(ctx context.Context, req *userv1.DeleteMyPortfolioItemRequest) (*userv1.DeleteMyPortfolioItemResponse, error) {
@@ -780,7 +799,11 @@ func (s *UserServer) ListMyPortfolioItems(ctx context.Context, req *userv1.ListM
 
 	items := make([]*userv1.PortfolioItem, 0, len(out.Items))
 	for _, item := range out.Items {
-		items = append(items, toProtoPortfolioItem(item))
+		itemProto, mapErr := s.toProtoPortfolioItem(ctx, item)
+		if mapErr != nil {
+			return nil, toStatus(mapErr)
+		}
+		items = append(items, itemProto)
 	}
 
 	return &userv1.ListMyPortfolioItemsResponse{
@@ -814,7 +837,11 @@ func (s *UserServer) ListPublicPortfolioItems(ctx context.Context, req *userv1.L
 
 	items := make([]*userv1.PortfolioItem, 0, len(out.Items))
 	for _, item := range out.Items {
-		items = append(items, toProtoPortfolioItem(item))
+		itemProto, mapErr := s.toProtoPortfolioItem(ctx, item)
+		if mapErr != nil {
+			return nil, toStatus(mapErr)
+		}
+		items = append(items, itemProto)
 	}
 
 	return &userv1.ListPublicPortfolioItemsResponse{
@@ -1156,14 +1183,27 @@ func toAppPortfolioMediaInputs(items []*userv1.PortfolioMediaInput) ([]applicati
 	return out, nil
 }
 
-func toProtoPortfolioItem(item application.PortfolioItem) *userv1.PortfolioItem {
+func (s *UserServer) toProtoPortfolioItem(ctx context.Context, item application.PortfolioItem) (*userv1.PortfolioItem, error) {
 	media := make([]*userv1.PortfolioMedia, 0, len(item.Media))
 	for _, m := range item.Media {
+		externalURL := strings.TrimSpace(m.ExternalURL)
+		storageKey := strings.TrimSpace(m.StorageKey)
+		if storageKey != "" {
+			if s.PortfolioStore == nil {
+				return nil, status.Error(codes.Internal, "portfolio store not configured")
+			}
+			presigned, err := s.PortfolioStore.PresignGetObject(ctx, storageKey, time.Hour)
+			if err != nil {
+				return nil, err
+			}
+			externalURL = presigned
+			storageKey = ""
+		}
 		media = append(media, &userv1.PortfolioMedia{
 			Id:          m.ID,
 			MediaType:   mapPortfolioMediaTypeToProto(m.MediaType),
-			StorageKey:  m.StorageKey,
-			ExternalUrl: m.ExternalURL,
+			StorageKey:  storageKey,
+			ExternalUrl: externalURL,
 			FileName:    m.FileName,
 			ContentType: m.ContentType,
 			SizeBytes:   m.SizeBytes,
@@ -1188,7 +1228,7 @@ func toProtoPortfolioItem(item application.PortfolioItem) *userv1.PortfolioItem 
 		completed := item.CompletedAt.Unix()
 		resp.CompletedAtUnix = &completed
 	}
-	return resp
+	return resp, nil
 }
 
 func mapPortfolioMediaTypeToProto(value string) userv1.PortfolioMediaType {
