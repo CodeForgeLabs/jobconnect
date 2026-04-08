@@ -47,6 +47,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("avatar storage: %v", err)
 	}
+	if _, err := storage.NewPortfolioStore(ctx, cfg.PortfolioStorage); err != nil {
+		log.Fatalf("portfolio storage: %v", err)
+	}
 
 	createProfileUC := &application.CreateProfile{
 		Profiles: profileRepo,
