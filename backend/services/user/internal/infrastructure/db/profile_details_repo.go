@@ -738,21 +738,33 @@ func (r *ProfileRepo) UpsertFreelancerNote(ctx context.Context, userID uuid.UUID
 	if err != nil {
 		return application.FreelancerNote{}, err
 	}
+	normalizedNote := strings.TrimSpace(note)
 
 	var updatedAt time.Time
 	err = r.pool.QueryRow(ctx, `
-		insert into client_freelancer_notes (profile_id, freelancer_user_id, note)
-		values ($1, $2, $3)
-		on conflict (profile_id, freelancer_user_id) do update set
-			note = excluded.note,
-			updated_at = now()
-		returning updated_at
-	`, profileID, freelancerUserID, strings.TrimSpace(note)).Scan(&updatedAt)
+		with saved as (
+			select 1
+			from client_saved_freelancers
+			where profile_id = $1 and freelancer_user_id = $2
+		), upserted as (
+			insert into client_freelancer_notes (profile_id, freelancer_user_id, note)
+			select $1, $2, $3
+			from saved
+			on conflict (profile_id, freelancer_user_id) do update set
+				note = excluded.note,
+				updated_at = now()
+			returning updated_at
+		)
+		select updated_at from upserted
+	`, profileID, freelancerUserID, normalizedNote).Scan(&updatedAt)
 	if err != nil {
+		if isNoRows(err) {
+			return application.FreelancerNote{}, ErrNotFound
+		}
 		return application.FreelancerNote{}, err
 	}
 
-	return application.FreelancerNote{FreelancerUserID: freelancerUserID, Note: strings.TrimSpace(note), UpdatedAt: updatedAt}, nil
+	return application.FreelancerNote{FreelancerUserID: freelancerUserID, Note: normalizedNote, UpdatedAt: updatedAt}, nil
 }
 
 func (r *ProfileRepo) GetFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (application.FreelancerNote, error) {
