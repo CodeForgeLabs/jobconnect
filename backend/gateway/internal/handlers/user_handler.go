@@ -418,22 +418,6 @@ func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"settings": settingsPayload})
 }
 
-func (h *UserHandler) GetMePrivacySettings(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
-}
-
-func (h *UserHandler) UpdateMePrivacySettings(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
-}
-
-func (h *UserHandler) GetMeNotificationSettings(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
-}
-
-func (h *UserHandler) UpdateMeNotificationSettings(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "endpoint not implemented in current gateway phase"})
-}
-
 func (h *UserHandler) UploadMeAvatar(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {

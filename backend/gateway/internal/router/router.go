@@ -129,10 +129,6 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	// Settings: account, privacy, and notification preferences.
 	userRoutes.GET("/me/settings", userHandler.GetMeAccountSettings)
 	userRoutes.PATCH("/me/settings", userHandler.UpdateMeAccountSettings)
-	userRoutes.GET("/me/settings/privacy", userHandler.GetMePrivacySettings)
-	userRoutes.PATCH("/me/settings/privacy", userHandler.UpdateMePrivacySettings)
-	userRoutes.GET("/me/settings/notifications", userHandler.GetMeNotificationSettings)
-	userRoutes.PATCH("/me/settings/notifications", userHandler.UpdateMeNotificationSettings)
 
 	// Avatar: upload, read, and delete profile media.
 	userRoutes.POST("/me/avatar", userHandler.UploadMeAvatar)
@@ -145,7 +141,7 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.DELETE("/me/portfolio/:itemId", userHandler.DeleteMePortfolioItem)
 
 	// Freelancer preferences: work style and client matching.
-	userRoutes.PUT("/me/work-preferences", userHandler.SetMeWorkPreferences)
+	userRoutes.PATCH("/me/work-preferences", userHandler.SetMeWorkPreferences)
 	userRoutes.GET("/me/work-preferences", userHandler.GetMeWorkPreferences)
 
 	// Client hiring: profile and hiring controls.
