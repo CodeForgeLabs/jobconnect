@@ -82,7 +82,10 @@ When Gateway forwards auth gRPC errors, mapping is:
 - PermissionDenied -> 403
 - NotFound -> 404
 - AlreadyExists -> 409
+- Aborted -> 409
+- FailedPrecondition -> 412
 - ResourceExhausted -> 429
+- Unimplemented -> 501
 - Other -> 500
 
 ## 5. Security and Rate Limiting
