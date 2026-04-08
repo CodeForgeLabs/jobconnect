@@ -2980,17 +2980,19 @@ func (x *RemoveMyAvatarResponse) GetRemoved() bool {
 }
 
 type PortfolioMedia struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	MediaType     PortfolioMediaType     `protobuf:"varint,2,opt,name=media_type,json=mediaType,proto3,enum=user.v1.PortfolioMediaType" json:"media_type,omitempty"`
-	StorageKey    string                 `protobuf:"bytes,3,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
-	ExternalUrl   string                 `protobuf:"bytes,4,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
-	FileName      string                 `protobuf:"bytes,5,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
-	ContentType   string                 `protobuf:"bytes,6,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
-	SizeBytes     int64                  `protobuf:"varint,7,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
-	Width         int32                  `protobuf:"varint,8,opt,name=width,proto3" json:"width,omitempty"`
-	Height        int32                  `protobuf:"varint,9,opt,name=height,proto3" json:"height,omitempty"`
-	CreatedAtUnix int64                  `protobuf:"varint,10,opt,name=created_at_unix,json=createdAtUnix,proto3" json:"created_at_unix,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	Id        int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	MediaType PortfolioMediaType     `protobuf:"varint,2,opt,name=media_type,json=mediaType,proto3,enum=user.v1.PortfolioMediaType" json:"media_type,omitempty"`
+	// MinIO object key for IMAGE/VIDEO/FILE media.
+	StorageKey string `protobuf:"bytes,3,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
+	// External URL used for LINK media.
+	ExternalUrl   string `protobuf:"bytes,4,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
+	FileName      string `protobuf:"bytes,5,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	ContentType   string `protobuf:"bytes,6,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	SizeBytes     int64  `protobuf:"varint,7,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	Width         int32  `protobuf:"varint,8,opt,name=width,proto3" json:"width,omitempty"`
+	Height        int32  `protobuf:"varint,9,opt,name=height,proto3" json:"height,omitempty"`
+	CreatedAtUnix int64  `protobuf:"varint,10,opt,name=created_at_unix,json=createdAtUnix,proto3" json:"created_at_unix,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3108,7 +3110,6 @@ type PortfolioItem struct {
 	Media           []*PortfolioMedia      `protobuf:"bytes,9,rep,name=media,proto3" json:"media,omitempty"`
 	CreatedAtUnix   int64                  `protobuf:"varint,10,opt,name=created_at_unix,json=createdAtUnix,proto3" json:"created_at_unix,omitempty"`
 	UpdatedAtUnix   int64                  `protobuf:"varint,11,opt,name=updated_at_unix,json=updatedAtUnix,proto3" json:"updated_at_unix,omitempty"`
-	SortOrder       int32                  `protobuf:"varint,13,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -3220,13 +3221,6 @@ func (x *PortfolioItem) GetUpdatedAtUnix() int64 {
 	return 0
 }
 
-func (x *PortfolioItem) GetSortOrder() int32 {
-	if x != nil {
-		return x.SortOrder
-	}
-	return 0
-}
-
 type CreateMyPortfolioItemRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -3237,7 +3231,6 @@ type CreateMyPortfolioItemRequest struct {
 	CompletedAtUnix *int64                 `protobuf:"varint,6,opt,name=completed_at_unix,json=completedAtUnix,proto3,oneof" json:"completed_at_unix,omitempty"`
 	Tags            []string               `protobuf:"bytes,7,rep,name=tags,proto3" json:"tags,omitempty"`
 	Media           []*PortfolioMediaInput `protobuf:"bytes,8,rep,name=media,proto3" json:"media,omitempty"`
-	SortOrder       *int32                 `protobuf:"varint,10,opt,name=sort_order,json=sortOrder,proto3,oneof" json:"sort_order,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -3328,23 +3321,18 @@ func (x *CreateMyPortfolioItemRequest) GetMedia() []*PortfolioMediaInput {
 	return nil
 }
 
-func (x *CreateMyPortfolioItemRequest) GetSortOrder() int32 {
-	if x != nil && x.SortOrder != nil {
-		return *x.SortOrder
-	}
-	return 0
-}
-
 type PortfolioMediaInput struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	MediaType     PortfolioMediaType     `protobuf:"varint,1,opt,name=media_type,json=mediaType,proto3,enum=user.v1.PortfolioMediaType" json:"media_type,omitempty"`
-	StorageKey    string                 `protobuf:"bytes,2,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
-	ExternalUrl   string                 `protobuf:"bytes,3,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
-	FileName      string                 `protobuf:"bytes,4,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
-	ContentType   string                 `protobuf:"bytes,5,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
-	SizeBytes     int64                  `protobuf:"varint,6,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
-	Width         int32                  `protobuf:"varint,7,opt,name=width,proto3" json:"width,omitempty"`
-	Height        int32                  `protobuf:"varint,8,opt,name=height,proto3" json:"height,omitempty"`
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	MediaType PortfolioMediaType     `protobuf:"varint,1,opt,name=media_type,json=mediaType,proto3,enum=user.v1.PortfolioMediaType" json:"media_type,omitempty"`
+	// Required for IMAGE/VIDEO/FILE uploads.
+	StorageKey string `protobuf:"bytes,2,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
+	// Required for LINK media.
+	ExternalUrl   string `protobuf:"bytes,3,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
+	FileName      string `protobuf:"bytes,4,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	ContentType   string `protobuf:"bytes,5,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	SizeBytes     int64  `protobuf:"varint,6,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	Width         int32  `protobuf:"varint,7,opt,name=width,proto3" json:"width,omitempty"`
+	Height        int32  `protobuf:"varint,8,opt,name=height,proto3" json:"height,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3586,7 +3574,6 @@ type UpdateMyPortfolioItemRequest struct {
 	CompletedAtUnix *int64                   `protobuf:"varint,7,opt,name=completed_at_unix,json=completedAtUnix,proto3,oneof" json:"completed_at_unix,omitempty"`
 	Tags            *StringList              `protobuf:"bytes,8,opt,name=tags,proto3" json:"tags,omitempty"`
 	Media           *PortfolioMediaInputList `protobuf:"bytes,9,opt,name=media,proto3" json:"media,omitempty"`
-	SortOrder       *int32                   `protobuf:"varint,11,opt,name=sort_order,json=sortOrder,proto3,oneof" json:"sort_order,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -3682,13 +3669,6 @@ func (x *UpdateMyPortfolioItemRequest) GetMedia() *PortfolioMediaInputList {
 		return x.Media
 	}
 	return nil
-}
-
-func (x *UpdateMyPortfolioItemRequest) GetSortOrder() int32 {
-	if x != nil && x.SortOrder != nil {
-		return *x.SortOrder
-	}
-	return 0
 }
 
 type PortfolioMediaInputList struct {
@@ -6813,7 +6793,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\x05width\x18\b \x01(\x05R\x05width\x12\x16\n" +
 	"\x06height\x18\t \x01(\x05R\x06height\x12&\n" +
 	"\x0fcreated_at_unix\x18\n" +
-	" \x01(\x03R\rcreatedAtUnix\"\xb2\x03\n" +
+	" \x01(\x03R\rcreatedAtUnix\"\x99\x03\n" +
 	"\rPortfolioItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x14\n" +
@@ -6827,10 +6807,8 @@ const file_user_user_proto_rawDesc = "" +
 	"\x05media\x18\t \x03(\v2\x17.user.v1.PortfolioMediaR\x05media\x12&\n" +
 	"\x0fcreated_at_unix\x18\n" +
 	" \x01(\x03R\rcreatedAtUnix\x12&\n" +
-	"\x0fupdated_at_unix\x18\v \x01(\x03R\rupdatedAtUnix\x12\x1d\n" +
-	"\n" +
-	"sort_order\x18\r \x01(\x05R\tsortOrderB\x14\n" +
-	"\x12_completed_at_unix\"\xfa\x02\n" +
+	"\x0fupdated_at_unix\x18\v \x01(\x03R\rupdatedAtUnixB\x14\n" +
+	"\x12_completed_at_unixJ\x04\b\r\x10\x0e\"\xcd\x02\n" +
 	"\x1cCreateMyPortfolioItemRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
@@ -6840,12 +6818,9 @@ const file_user_user_proto_rawDesc = "" +
 	"\x0frole_in_project\x18\x05 \x01(\tR\rroleInProject\x12/\n" +
 	"\x11completed_at_unix\x18\x06 \x01(\x03H\x00R\x0fcompletedAtUnix\x88\x01\x01\x12\x12\n" +
 	"\x04tags\x18\a \x03(\tR\x04tags\x122\n" +
-	"\x05media\x18\b \x03(\v2\x1c.user.v1.PortfolioMediaInputR\x05media\x12\"\n" +
-	"\n" +
-	"sort_order\x18\n" +
-	" \x01(\x05H\x01R\tsortOrder\x88\x01\x01B\x14\n" +
-	"\x12_completed_at_unixB\r\n" +
-	"\v_sort_order\"\xa2\x02\n" +
+	"\x05media\x18\b \x03(\v2\x1c.user.v1.PortfolioMediaInputR\x05mediaB\x14\n" +
+	"\x12_completed_at_unixJ\x04\b\n" +
+	"\x10\v\"\xa2\x02\n" +
 	"\x13PortfolioMediaInput\x12:\n" +
 	"\n" +
 	"media_type\x18\x01 \x01(\x0e2\x1b.user.v1.PortfolioMediaTypeR\tmediaType\x12\x1f\n" +
@@ -6864,7 +6839,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x17\n" +
 	"\aitem_id\x18\x02 \x01(\x03R\x06itemId\"H\n" +
 	"\x1aGetMyPortfolioItemResponse\x12*\n" +
-	"\x04item\x18\x01 \x01(\v2\x16.user.v1.PortfolioItemR\x04item\"\xfe\x03\n" +
+	"\x04item\x18\x01 \x01(\v2\x16.user.v1.PortfolioItemR\x04item\"\xd1\x03\n" +
 	"\x1cUpdateMyPortfolioItemRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x17\n" +
 	"\aitem_id\x18\x02 \x01(\x03R\x06itemId\x12\x19\n" +
@@ -6875,15 +6850,12 @@ const file_user_user_proto_rawDesc = "" +
 	"\x0frole_in_project\x18\x06 \x01(\tH\x03R\rroleInProject\x88\x01\x01\x12/\n" +
 	"\x11completed_at_unix\x18\a \x01(\x03H\x04R\x0fcompletedAtUnix\x88\x01\x01\x12'\n" +
 	"\x04tags\x18\b \x01(\v2\x13.user.v1.StringListR\x04tags\x126\n" +
-	"\x05media\x18\t \x01(\v2 .user.v1.PortfolioMediaInputListR\x05media\x12\"\n" +
-	"\n" +
-	"sort_order\x18\v \x01(\x05H\x05R\tsortOrder\x88\x01\x01B\b\n" +
+	"\x05media\x18\t \x01(\v2 .user.v1.PortfolioMediaInputListR\x05mediaB\b\n" +
 	"\x06_titleB\x0e\n" +
 	"\f_descriptionB\x0e\n" +
 	"\f_project_urlB\x12\n" +
 	"\x10_role_in_projectB\x14\n" +
-	"\x12_completed_at_unixB\r\n" +
-	"\v_sort_order\"O\n" +
+	"\x12_completed_at_unixJ\x04\b\v\x10\f\"O\n" +
 	"\x17PortfolioMediaInputList\x124\n" +
 	"\x06values\x18\x01 \x03(\v2\x1c.user.v1.PortfolioMediaInputR\x06values\"K\n" +
 	"\x1dUpdateMyPortfolioItemResponse\x12*\n" +
