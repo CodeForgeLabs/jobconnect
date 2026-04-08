@@ -2,6 +2,7 @@ package grpcadapter
 
 import (
 	"context"
+	"net/url"
 	"strings"
 	"time"
 
@@ -638,6 +639,190 @@ func (s *UserServer) RemoveMyAvatar(ctx context.Context, req *userv1.RemoveMyAva
 	return &userv1.RemoveMyAvatarResponse{Removed: out.Removed}, nil
 }
 
+func (s *UserServer) CreateMyPortfolioItem(ctx context.Context, req *userv1.CreateMyPortfolioItemRequest) (*userv1.CreateMyPortfolioItemResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if err := validatePortfolioItemInput(req.GetTitle(), req.GetDescription()); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	media, err := toAppPortfolioMediaInputs(req.GetMedia())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	item, err := s.ProfileDetailsRepo.CreatePortfolioItem(ctx, userID, application.PortfolioItem{
+		Title:         strings.TrimSpace(req.GetTitle()),
+		Description:   strings.TrimSpace(req.GetDescription()),
+		ProjectURL:    strings.TrimSpace(req.GetProjectUrl()),
+		RoleInProject: strings.TrimSpace(req.GetRoleInProject()),
+		CompletedAt:   unixPtr(req.GetCompletedAtUnix()),
+		Tags:          req.GetTags(),
+		Media:         media,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.CreateMyPortfolioItemResponse{Item: toProtoPortfolioItem(item)}, nil
+}
+
+func (s *UserServer) GetMyPortfolioItem(ctx context.Context, req *userv1.GetMyPortfolioItemRequest) (*userv1.GetMyPortfolioItemResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	item, err := s.ProfileDetailsRepo.GetPortfolioItem(ctx, userID, req.GetItemId())
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.GetMyPortfolioItemResponse{Item: toProtoPortfolioItem(item)}, nil
+}
+
+func (s *UserServer) UpdateMyPortfolioItem(ctx context.Context, req *userv1.UpdateMyPortfolioItemRequest) (*userv1.UpdateMyPortfolioItemResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	current, err := s.ProfileDetailsRepo.GetPortfolioItem(ctx, userID, req.GetItemId())
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	if req.Title != nil {
+		current.Title = strings.TrimSpace(req.GetTitle())
+	}
+	if req.Description != nil {
+		current.Description = strings.TrimSpace(req.GetDescription())
+	}
+	if req.ProjectUrl != nil {
+		current.ProjectURL = strings.TrimSpace(req.GetProjectUrl())
+	}
+	if req.RoleInProject != nil {
+		current.RoleInProject = strings.TrimSpace(req.GetRoleInProject())
+	}
+	if req.CompletedAtUnix != nil {
+		current.CompletedAt = unixPtr(req.GetCompletedAtUnix())
+	}
+	if req.Tags != nil {
+		current.Tags = req.GetTags().GetValues()
+	}
+	if req.Media != nil {
+		media, mapErr := toAppPortfolioMediaInputs(req.GetMedia().GetValues())
+		if mapErr != nil {
+			return nil, status.Error(codes.InvalidArgument, mapErr.Error())
+		}
+		current.Media = media
+	}
+
+	if err := validatePortfolioItemInput(current.Title, current.Description); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	item, err := s.ProfileDetailsRepo.UpdatePortfolioItem(ctx, userID, req.GetItemId(), current)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.UpdateMyPortfolioItemResponse{Item: toProtoPortfolioItem(item)}, nil
+}
+
+func (s *UserServer) DeleteMyPortfolioItem(ctx context.Context, req *userv1.DeleteMyPortfolioItemRequest) (*userv1.DeleteMyPortfolioItemResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	deleted, err := s.ProfileDetailsRepo.DeletePortfolioItem(ctx, userID, req.GetItemId())
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.DeleteMyPortfolioItemResponse{Deleted: deleted}, nil
+}
+
+func (s *UserServer) ListMyPortfolioItems(ctx context.Context, req *userv1.ListMyPortfolioItemsRequest) (*userv1.ListMyPortfolioItemsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	pageSize := uint32(20)
+	pageToken := ""
+	if req.GetPage() != nil {
+		if req.GetPage().GetPageSize() > 0 {
+			pageSize = req.GetPage().GetPageSize()
+		}
+		pageToken = strings.TrimSpace(req.GetPage().GetPageToken())
+	}
+
+	out, err := s.ProfileDetailsRepo.ListMyPortfolioItems(ctx, userID, pageSize, pageToken)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	items := make([]*userv1.PortfolioItem, 0, len(out.Items))
+	for _, item := range out.Items {
+		items = append(items, toProtoPortfolioItem(item))
+	}
+
+	return &userv1.ListMyPortfolioItemsResponse{
+		Items: items,
+		Page:  &userv1.PagingResponse{NextPageToken: out.NextPageToken},
+	}, nil
+}
+
+func (s *UserServer) ListPublicPortfolioItems(ctx context.Context, req *userv1.ListPublicPortfolioItemsRequest) (*userv1.ListPublicPortfolioItemsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	pageSize := uint32(20)
+	pageToken := ""
+	if req.GetPage() != nil {
+		if req.GetPage().GetPageSize() > 0 {
+			pageSize = req.GetPage().GetPageSize()
+		}
+		pageToken = strings.TrimSpace(req.GetPage().GetPageToken())
+	}
+
+	out, err := s.ProfileDetailsRepo.ListPublicPortfolioItems(ctx, userID, pageSize, pageToken)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	items := make([]*userv1.PortfolioItem, 0, len(out.Items))
+	for _, item := range out.Items {
+		items = append(items, toProtoPortfolioItem(item))
+	}
+
+	return &userv1.ListPublicPortfolioItemsResponse{
+		Items: items,
+		Page:  &userv1.PagingResponse{NextPageToken: out.NextPageToken},
+	}, nil
+}
+
 func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.UserProfile {
 	out := &userv1.UserProfile{
 		Core: &userv1.UserCore{
@@ -906,6 +1091,125 @@ func toProtoFreelancerNote(in application.FreelancerNote) *userv1.FreelancerNote
 		Note:             in.Note,
 		UpdatedAtUnix:    in.UpdatedAt.Unix(),
 	}
+}
+
+func validatePortfolioItemInput(title, description string) error {
+	title = strings.TrimSpace(title)
+	description = strings.TrimSpace(description)
+	if title == "" {
+		return status.Error(codes.InvalidArgument, "title is required")
+	}
+	if len(title) > 50 {
+		return status.Error(codes.InvalidArgument, "title exceeds max length of 50 characters")
+	}
+	if len(description) > 200 {
+		return status.Error(codes.InvalidArgument, "description exceeds max length of 200 characters")
+	}
+	return nil
+}
+
+func toAppPortfolioMediaInputs(items []*userv1.PortfolioMediaInput) ([]application.PortfolioMedia, error) {
+	out := make([]application.PortfolioMedia, 0, len(items))
+	for _, media := range items {
+		if media == nil {
+			continue
+		}
+		storageKey := strings.TrimSpace(media.GetStorageKey())
+		externalURL := strings.TrimSpace(media.GetExternalUrl())
+		mediaType := media.GetMediaType()
+
+		switch mediaType {
+		case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_LINK:
+			if externalURL == "" {
+				return nil, status.Error(codes.InvalidArgument, "external_url is required for LINK media")
+			}
+			if storageKey != "" {
+				return nil, status.Error(codes.InvalidArgument, "storage_key must be empty for LINK media")
+			}
+			if _, err := url.ParseRequestURI(externalURL); err != nil {
+				return nil, status.Error(codes.InvalidArgument, "external_url must be a valid URL")
+			}
+		case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE,
+			userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_VIDEO,
+			userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_FILE:
+			if storageKey == "" {
+				return nil, status.Error(codes.InvalidArgument, "storage_key is required for upload media")
+			}
+			if externalURL != "" {
+				return nil, status.Error(codes.InvalidArgument, "external_url is not allowed for upload media")
+			}
+		default:
+			return nil, status.Error(codes.InvalidArgument, "unsupported portfolio media_type")
+		}
+
+		out = append(out, application.PortfolioMedia{
+			MediaType:   mediaType.String(),
+			StorageKey:  storageKey,
+			ExternalURL: externalURL,
+			FileName:    strings.TrimSpace(media.GetFileName()),
+			ContentType: strings.TrimSpace(media.GetContentType()),
+			SizeBytes:   media.GetSizeBytes(),
+			Width:       media.GetWidth(),
+			Height:      media.GetHeight(),
+		})
+	}
+	return out, nil
+}
+
+func toProtoPortfolioItem(item application.PortfolioItem) *userv1.PortfolioItem {
+	media := make([]*userv1.PortfolioMedia, 0, len(item.Media))
+	for _, m := range item.Media {
+		media = append(media, &userv1.PortfolioMedia{
+			Id:          m.ID,
+			MediaType:   mapPortfolioMediaTypeToProto(m.MediaType),
+			StorageKey:  m.StorageKey,
+			ExternalUrl: m.ExternalURL,
+			FileName:    m.FileName,
+			ContentType: m.ContentType,
+			SizeBytes:   m.SizeBytes,
+			Width:       m.Width,
+			Height:      m.Height,
+		})
+	}
+
+	resp := &userv1.PortfolioItem{
+		Id:            item.ID,
+		UserId:        item.UserID.String(),
+		Title:         item.Title,
+		Description:   item.Description,
+		ProjectUrl:    item.ProjectURL,
+		RoleInProject: item.RoleInProject,
+		Tags:          item.Tags,
+		Media:         media,
+		CreatedAtUnix: item.CreatedAt.Unix(),
+		UpdatedAtUnix: item.UpdatedAt.Unix(),
+	}
+	if item.CompletedAt != nil {
+		completed := item.CompletedAt.Unix()
+		resp.CompletedAtUnix = &completed
+	}
+	return resp
+}
+
+func mapPortfolioMediaTypeToProto(value string) userv1.PortfolioMediaType {
+	canonical := strings.TrimPrefix(strings.ToUpper(strings.TrimSpace(value)), "PORTFOLIO_MEDIA_TYPE_")
+	switch canonical {
+	case "IMAGE":
+		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE
+	case "VIDEO":
+		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_VIDEO
+	case "FILE":
+		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_FILE
+	case "LINK":
+		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_LINK
+	default:
+		return userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_UNSPECIFIED
+	}
+}
+
+func unixPtr(v int64) *time.Time {
+	t := time.Unix(v, 0).UTC()
+	return &t
 }
 
 func hasClearField(fields []string, target string) bool {
