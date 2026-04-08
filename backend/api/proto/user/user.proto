@@ -398,7 +398,9 @@ message RemoveMyAvatarResponse {
 message PortfolioMedia {
   int64 id = 1;
   PortfolioMediaType media_type = 2;
+  // MinIO object key for IMAGE/VIDEO/FILE media.
   string storage_key = 3;
+  // External URL used for LINK media.
   string external_url = 4;
   string file_name = 5;
   string content_type = 6;
@@ -420,7 +422,7 @@ message PortfolioItem {
   repeated PortfolioMedia media = 9;
   int64 created_at_unix = 10;
   int64 updated_at_unix = 11;
-  int32 sort_order = 13;
+  reserved 13;
 }
 
 message CreateMyPortfolioItemRequest {
@@ -432,12 +434,14 @@ message CreateMyPortfolioItemRequest {
   optional int64 completed_at_unix = 6;
   repeated string tags = 7;
   repeated PortfolioMediaInput media = 8;
-  optional int32 sort_order = 10;
+  reserved 10;
 }
 
 message PortfolioMediaInput {
   PortfolioMediaType media_type = 1;
+  // Required for IMAGE/VIDEO/FILE uploads.
   string storage_key = 2;
+  // Required for LINK media.
   string external_url = 3;
   string file_name = 4;
   string content_type = 5;
@@ -469,7 +473,7 @@ message UpdateMyPortfolioItemRequest {
   optional int64 completed_at_unix = 7;
   StringList tags = 8;
   PortfolioMediaInputList media = 9;
-  optional int32 sort_order = 11;
+  reserved 11;
 }
 
 message PortfolioMediaInputList {
