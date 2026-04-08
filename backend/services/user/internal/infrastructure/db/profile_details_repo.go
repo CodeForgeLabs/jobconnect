@@ -594,25 +594,20 @@ func (r *ProfileRepo) GetHiringPreferences(ctx context.Context, userID uuid.UUID
 	}
 
 	out := application.HiringPreferences{}
-	var rawLevels []byte
 	var rawLocations []byte
 	err = r.pool.QueryRow(ctx, `
 		select
 			coalesce(min_hourly_rate, 0),
 			coalesce(max_hourly_rate, 0),
-			coalesce(preferred_experience_levels, '[]'::jsonb),
 			coalesce(preferred_locations, '[]'::jsonb)
 		from client_hiring_preferences
 		where profile_id = $1
-	`, profileID).Scan(&out.MinHourlyRate, &out.MaxHourlyRate, &rawLevels, &rawLocations)
+	`, profileID).Scan(&out.MinHourlyRate, &out.MaxHourlyRate, &rawLocations)
 	if err != nil {
 		if isNoRows(err) {
 			return out, nil
 		}
 		return application.HiringPreferences{}, err
-	}
-	if len(rawLevels) > 0 {
-		_ = json.Unmarshal(rawLevels, &out.PreferredExperienceLevels)
 	}
 	if len(rawLocations) > 0 {
 		_ = json.Unmarshal(rawLocations, &out.PreferredLocations)
@@ -626,25 +621,20 @@ func (r *ProfileRepo) UpdateHiringPreferences(ctx context.Context, userID uuid.U
 		return application.HiringPreferences{}, err
 	}
 
-	rawLevels, err := json.Marshal(in.PreferredExperienceLevels)
-	if err != nil {
-		return application.HiringPreferences{}, err
-	}
 	rawLocations, err := json.Marshal(in.PreferredLocations)
 	if err != nil {
 		return application.HiringPreferences{}, err
 	}
 
 	if _, err := r.pool.Exec(ctx, `
-		insert into client_hiring_preferences (profile_id, min_hourly_rate, max_hourly_rate, preferred_experience_levels, preferred_locations)
-		values ($1, $2, $3, $4::jsonb, $5::jsonb)
+		insert into client_hiring_preferences (profile_id, min_hourly_rate, max_hourly_rate, preferred_locations)
+		values ($1, $2, $3, $4::jsonb)
 		on conflict (profile_id) do update set
 			min_hourly_rate = excluded.min_hourly_rate,
 			max_hourly_rate = excluded.max_hourly_rate,
-			preferred_experience_levels = excluded.preferred_experience_levels,
 			preferred_locations = excluded.preferred_locations,
 			updated_at = now()
-	`, profileID, in.MinHourlyRate, in.MaxHourlyRate, string(rawLevels), string(rawLocations)); err != nil {
+	`, profileID, in.MinHourlyRate, in.MaxHourlyRate, string(rawLocations)); err != nil {
 		return application.HiringPreferences{}, err
 	}
 

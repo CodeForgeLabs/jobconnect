@@ -351,6 +351,12 @@ func (s *UserServer) PatchMyWorkPreferences(ctx context.Context, req *userv1.Pat
 	if req.WeeklyCapacityHours != nil {
 		current.WeeklyCapacityHours = req.GetWeeklyCapacityHours()
 	}
+	if current.MinBudgetUSD < 0 || current.MaxBudgetUSD < 0 {
+		return nil, status.Error(codes.InvalidArgument, "budget values must be greater than or equal to 0")
+	}
+	if current.MaxBudgetUSD > 0 && current.MinBudgetUSD > current.MaxBudgetUSD {
+		return nil, status.Error(codes.InvalidArgument, "min_budget cannot be greater than max_budget")
+	}
 
 	updated, err := s.ProfileDetailsRepo.SetWorkPreferences(ctx, userID, current)
 	if err != nil {
@@ -375,6 +381,61 @@ func (s *UserServer) GetMyWorkPreferences(ctx context.Context, req *userv1.GetMy
 	}
 
 	return &userv1.GetMyWorkPreferencesResponse{Settings: toProtoWorkPreferences(out)}, nil
+}
+
+func (s *UserServer) GetMyHiringPreferences(ctx context.Context, req *userv1.GetMyHiringPreferencesRequest) (*userv1.GetMyHiringPreferencesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	out, err := s.ProfileDetailsRepo.GetHiringPreferences(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.GetMyHiringPreferencesResponse{Preferences: toProtoHiringPreferences(out)}, nil
+}
+
+func (s *UserServer) PatchMyHiringPreferences(ctx context.Context, req *userv1.PatchMyHiringPreferencesRequest) (*userv1.PatchMyHiringPreferencesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	current, err := s.ProfileDetailsRepo.GetHiringPreferences(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	if req.MinHourlyRate != nil {
+		current.MinHourlyRate = req.GetMinHourlyRate()
+	}
+	if req.MaxHourlyRate != nil {
+		current.MaxHourlyRate = req.GetMaxHourlyRate()
+	}
+	if req.PreferredLocations != nil {
+		current.PreferredLocations = req.PreferredLocations.GetValues()
+	}
+	if current.MinHourlyRate < 0 || current.MaxHourlyRate < 0 {
+		return nil, status.Error(codes.InvalidArgument, "hourly rates must be greater than or equal to 0")
+	}
+	if current.MaxHourlyRate > 0 && current.MinHourlyRate > current.MaxHourlyRate {
+		return nil, status.Error(codes.InvalidArgument, "min_hourly_rate cannot be greater than max_hourly_rate")
+	}
+
+	updated, err := s.ProfileDetailsRepo.UpdateHiringPreferences(ctx, userID, current)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.PatchMyHiringPreferencesResponse{Preferences: toProtoHiringPreferences(updated)}, nil
 }
 
 func (s *UserServer) UpsertMyAvatar(ctx context.Context, req *userv1.UploadMyAvatarRequest) (*userv1.UploadMyAvatarResponse, error) {
@@ -666,6 +727,14 @@ func toProtoWorkPreferences(in application.WorkPreferences) *userv1.WorkPreferen
 		MaxBudget:              in.MaxBudgetUSD,
 		ContractTypes:          in.ContractTypes,
 		WeeklyCapacityHours:    in.WeeklyCapacityHours,
+	}
+}
+
+func toProtoHiringPreferences(in application.HiringPreferences) *userv1.HiringPreferences {
+	return &userv1.HiringPreferences{
+		MinHourlyRate:      in.MinHourlyRate,
+		MaxHourlyRate:      in.MaxHourlyRate,
+		PreferredLocations: in.PreferredLocations,
 	}
 }
 

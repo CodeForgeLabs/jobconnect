@@ -60,10 +60,9 @@ type CompanySettings struct {
 }
 
 type HiringPreferences struct {
-	MinHourlyRate             float64
-	MaxHourlyRate             float64
-	PreferredExperienceLevels []string
-	PreferredLocations        []string
+	MinHourlyRate      float64
+	MaxHourlyRate      float64
+	PreferredLocations []string
 }
 
 type SavedFreelancer struct {

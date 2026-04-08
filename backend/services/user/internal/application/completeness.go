@@ -190,5 +190,19 @@ func hasWorkPreferencesSet(in WorkPreferences) bool {
 }
 
 func hasHiringPreferencesSet(in HiringPreferences) bool {
-	return in.MinHourlyRate > 0 || in.MaxHourlyRate > 0 || len(in.PreferredExperienceLevels) > 0 || len(in.PreferredLocations) > 0
+	if in.MinHourlyRate < 0 || in.MaxHourlyRate < 0 {
+		return false
+	}
+	if in.MaxHourlyRate > 0 && in.MinHourlyRate > in.MaxHourlyRate {
+		return false
+	}
+
+	hasRateFilter := in.MinHourlyRate > 0 || in.MaxHourlyRate > 0
+	for _, location := range in.PreferredLocations {
+		if strings.TrimSpace(location) != "" {
+			return true
+		}
+	}
+
+	return hasRateFilter
 }

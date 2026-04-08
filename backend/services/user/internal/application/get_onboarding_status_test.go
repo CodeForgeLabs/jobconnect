@@ -94,7 +94,7 @@ func TestComputeReadinessSignals_FreelancerReadsPortfolioAndPreferences(t *testi
 
 func TestComputeReadinessSignals_ClientReadsHiringPreferences(t *testing.T) {
 	uc := GetOnboardingStatus{Details: onboardingDetailsStub{
-		hiringPrefs: HiringPreferences{PreferredExperienceLevels: []string{"senior"}},
+		hiringPrefs: HiringPreferences{PreferredLocations: []string{"remote"}},
 	}}
 
 	signals := uc.computeReadinessSignals(context.Background(), uuid.New(), domain.RoleClient)
