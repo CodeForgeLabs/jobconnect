@@ -661,6 +661,9 @@ func (r *ProfileRepo) SaveFreelancer(ctx context.Context, userID uuid.UUID, free
 	if err != nil {
 		return application.SavedFreelancer{}, err
 	}
+	if _, err := r.freelancerProfileID(ctx, freelancerUserID, false); err != nil {
+		return application.SavedFreelancer{}, err
+	}
 
 	var savedAt time.Time
 	err = r.pool.QueryRow(ctx, `
@@ -736,6 +739,9 @@ func (r *ProfileRepo) RemoveSavedFreelancer(ctx context.Context, userID uuid.UUI
 func (r *ProfileRepo) UpsertFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID, note string) (application.FreelancerNote, error) {
 	profileID, err := r.clientProfileID(ctx, userID)
 	if err != nil {
+		return application.FreelancerNote{}, err
+	}
+	if _, err := r.freelancerProfileID(ctx, freelancerUserID, false); err != nil {
 		return application.FreelancerNote{}, err
 	}
 	normalizedNote := strings.TrimSpace(note)
