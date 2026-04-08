@@ -117,11 +117,11 @@ func (r *ProfileRepo) CreatePortfolioItem(ctx context.Context, userID uuid.UUID,
 	var out application.PortfolioItem
 	var completedAt *time.Time
 	err = tx.QueryRow(ctx, `
-		insert into portfolio_items (profile_id, title, description, project_url, role_in_project, completed_at, sort_order)
-		values ($1,$2,$3,$4,$5,$6,$7)
-		returning id, title, description, project_url, role_in_project, completed_at, sort_order, created_at, updated_at
-	`, profileID, in.Title, in.Description, in.ProjectURL, in.RoleInProject, in.CompletedAt, in.SortOrder).Scan(
-		&out.ID, &out.Title, &out.Description, &out.ProjectURL, &out.RoleInProject, &completedAt, &out.SortOrder, &out.CreatedAt, &out.UpdatedAt,
+		insert into portfolio_items (profile_id, title, description, project_url, role_in_project, completed_at)
+		values ($1,$2,$3,$4,$5,$6)
+		returning id, title, description, project_url, role_in_project, completed_at, created_at, updated_at
+	`, profileID, in.Title, in.Description, in.ProjectURL, in.RoleInProject, in.CompletedAt).Scan(
+		&out.ID, &out.Title, &out.Description, &out.ProjectURL, &out.RoleInProject, &completedAt, &out.CreatedAt, &out.UpdatedAt,
 	)
 	if err != nil {
 		return application.PortfolioItem{}, err
@@ -138,11 +138,11 @@ func (r *ProfileRepo) CreatePortfolioItem(ctx context.Context, userID uuid.UUID,
 			return application.PortfolioItem{}, err
 		}
 	}
-	for i, media := range in.Media {
+	for _, media := range in.Media {
 		_, err := tx.Exec(ctx, `
-			insert into portfolio_media (portfolio_item_id, media_type, storage_key, external_url, file_name, content_type, size_bytes, width, height, sort_order)
-			values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-		`, out.ID, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(media.MediaType), "PORTFOLIO_MEDIA_TYPE_")), media.StorageKey, media.ExternalURL, media.FileName, media.ContentType, media.SizeBytes, media.Width, media.Height, i)
+			insert into portfolio_media (portfolio_item_id, media_type, storage_key, external_url, file_name, content_type, size_bytes, width, height)
+			values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		`, out.ID, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(media.MediaType), "PORTFOLIO_MEDIA_TYPE_")), media.StorageKey, media.ExternalURL, media.FileName, media.ContentType, media.SizeBytes, media.Width, media.Height)
 		if err != nil {
 			return application.PortfolioItem{}, err
 		}
@@ -172,9 +172,9 @@ func (r *ProfileRepo) UpdatePortfolioItem(ctx context.Context, userID uuid.UUID,
 
 	res, err := tx.Exec(ctx, `
 		update portfolio_items
-		set title=$3, description=$4, project_url=$5, role_in_project=$6, completed_at=$7, sort_order=$8, updated_at=now()
+		set title=$3, description=$4, project_url=$5, role_in_project=$6, completed_at=$7, updated_at=now()
 		where id=$1 and profile_id=$2 and deleted_at is null
-	`, itemID, profileID, in.Title, in.Description, in.ProjectURL, in.RoleInProject, in.CompletedAt, in.SortOrder)
+	`, itemID, profileID, in.Title, in.Description, in.ProjectURL, in.RoleInProject, in.CompletedAt)
 	if err != nil {
 		return application.PortfolioItem{}, err
 	}
@@ -197,11 +197,11 @@ func (r *ProfileRepo) UpdatePortfolioItem(ctx context.Context, userID uuid.UUID,
 	if _, err := tx.Exec(ctx, `delete from portfolio_media where portfolio_item_id = $1`, itemID); err != nil {
 		return application.PortfolioItem{}, err
 	}
-	for i, media := range in.Media {
+	for _, media := range in.Media {
 		if _, err := tx.Exec(ctx, `
-			insert into portfolio_media (portfolio_item_id, media_type, storage_key, external_url, file_name, content_type, size_bytes, width, height, sort_order)
-			values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-		`, itemID, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(media.MediaType), "PORTFOLIO_MEDIA_TYPE_")), media.StorageKey, media.ExternalURL, media.FileName, media.ContentType, media.SizeBytes, media.Width, media.Height, i); err != nil {
+			insert into portfolio_media (portfolio_item_id, media_type, storage_key, external_url, file_name, content_type, size_bytes, width, height)
+			values ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+		`, itemID, strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(media.MediaType), "PORTFOLIO_MEDIA_TYPE_")), media.StorageKey, media.ExternalURL, media.FileName, media.ContentType, media.SizeBytes, media.Width, media.Height); err != nil {
 			return application.PortfolioItem{}, err
 		}
 	}
@@ -246,12 +246,12 @@ func (r *ProfileRepo) listPortfolioItems(ctx context.Context, userID uuid.UUID, 
 	}
 
 	query := `
-		select id, title, description, project_url, role_in_project, completed_at, sort_order, created_at, updated_at
+		select id, title, description, project_url, role_in_project, completed_at, created_at, updated_at
 		from portfolio_items
 		where profile_id = $1 and deleted_at is null
 	`
 	args := []any{profileID, limit, offset}
-	query += ` order by sort_order asc, id asc limit $2 offset $3`
+	query += ` order by created_at desc, id desc limit $2 offset $3`
 
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
@@ -263,7 +263,7 @@ func (r *ProfileRepo) listPortfolioItems(ctx context.Context, userID uuid.UUID, 
 	for rows.Next() {
 		var it application.PortfolioItem
 		var completedAt *time.Time
-		if err := rows.Scan(&it.ID, &it.Title, &it.Description, &it.ProjectURL, &it.RoleInProject, &completedAt, &it.SortOrder, &it.CreatedAt, &it.UpdatedAt); err != nil {
+		if err := rows.Scan(&it.ID, &it.Title, &it.Description, &it.ProjectURL, &it.RoleInProject, &completedAt, &it.CreatedAt, &it.UpdatedAt); err != nil {
 			return application.ListResult[application.PortfolioItem]{}, err
 		}
 		it.UserID = userID
@@ -302,8 +302,8 @@ func (r *ProfileRepo) loadPortfolioItemDetails(ctx context.Context, itemID int64
 	}
 
 	mediaRows, err := r.pool.Query(ctx, `
-		select id, media_type, coalesce(storage_key, ''), coalesce(external_url, ''), coalesce(file_name, ''), coalesce(content_type, ''), coalesce(size_bytes, 0), coalesce(width, 0), coalesce(height, 0), coalesce(sort_order, 0)
-		from portfolio_media where portfolio_item_id = $1 order by sort_order asc, id asc
+		select id, media_type, coalesce(storage_key, ''), coalesce(external_url, ''), coalesce(file_name, ''), coalesce(content_type, ''), coalesce(size_bytes, 0), coalesce(width, 0), coalesce(height, 0)
+		from portfolio_media where portfolio_item_id = $1 order by id asc
 	`, itemID)
 	if err != nil {
 		return nil, nil, err
@@ -312,7 +312,7 @@ func (r *ProfileRepo) loadPortfolioItemDetails(ctx context.Context, itemID int64
 	media := make([]application.PortfolioMedia, 0)
 	for mediaRows.Next() {
 		var m application.PortfolioMedia
-		if err := mediaRows.Scan(&m.ID, &m.MediaType, &m.StorageKey, &m.ExternalURL, &m.FileName, &m.ContentType, &m.SizeBytes, &m.Width, &m.Height, &m.SortOrder); err != nil {
+		if err := mediaRows.Scan(&m.ID, &m.MediaType, &m.StorageKey, &m.ExternalURL, &m.FileName, &m.ContentType, &m.SizeBytes, &m.Width, &m.Height); err != nil {
 			return nil, nil, err
 		}
 		media = append(media, m)
@@ -326,13 +326,13 @@ func (r *ProfileRepo) getPortfolioItem(ctx context.Context, userID uuid.UUID, it
 		return application.PortfolioItem{}, err
 	}
 	query := `
-		select id, title, description, project_url, role_in_project, completed_at, sort_order, created_at, updated_at
+		select id, title, description, project_url, role_in_project, completed_at, created_at, updated_at
 		from portfolio_items
 		where id = $1 and profile_id = $2 and deleted_at is null
 	`
 	var out application.PortfolioItem
 	var completedAt *time.Time
-	if err := r.pool.QueryRow(ctx, query, itemID, profileID).Scan(&out.ID, &out.Title, &out.Description, &out.ProjectURL, &out.RoleInProject, &completedAt, &out.SortOrder, &out.CreatedAt, &out.UpdatedAt); err != nil {
+	if err := r.pool.QueryRow(ctx, query, itemID, profileID).Scan(&out.ID, &out.Title, &out.Description, &out.ProjectURL, &out.RoleInProject, &completedAt, &out.CreatedAt, &out.UpdatedAt); err != nil {
 		if isNoRows(err) {
 			return application.PortfolioItem{}, ErrNotFound
 		}
@@ -347,50 +347,6 @@ func (r *ProfileRepo) getPortfolioItem(ctx context.Context, userID uuid.UUID, it
 	out.Tags = tags
 	out.Media = media
 	return out, nil
-}
-
-func (r *ProfileRepo) ReorderPortfolioItems(ctx context.Context, userID uuid.UUID, itemIDs []int64) ([]application.PortfolioItem, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
-	if err != nil {
-		return nil, err
-	}
-	if len(itemIDs) == 0 {
-		return []application.PortfolioItem{}, nil
-	}
-
-	tx, err := r.pool.Begin(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = tx.Rollback(ctx) }()
-
-	for i, id := range itemIDs {
-		res, err := tx.Exec(ctx, `
-			update portfolio_items
-			set sort_order = $3, updated_at = now()
-			where id = $1 and profile_id = $2 and deleted_at is null
-		`, id, profileID, i)
-		if err != nil {
-			return nil, err
-		}
-		if res.RowsAffected() == 0 {
-			return nil, ErrNotFound
-		}
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-
-	result := make([]application.PortfolioItem, 0, len(itemIDs))
-	for _, id := range itemIDs {
-		it, err := r.getPortfolioItem(ctx, userID, id, false)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, it)
-	}
-	return result, nil
 }
 
 func (r *ProfileRepo) SetAvailability(ctx context.Context, userID uuid.UUID, in application.AvailabilitySettings) (application.AvailabilitySettings, error) {
