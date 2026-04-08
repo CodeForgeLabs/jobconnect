@@ -39,6 +39,7 @@ service UserService {
       returns (GetMyHiringPreferencesResponse);
   rpc PatchMyHiringPreferences(PatchMyHiringPreferencesRequest)
       returns (PatchMyHiringPreferencesResponse);
+      
   rpc SaveFreelancer(SaveFreelancerRequest) returns (SaveFreelancerResponse);
   rpc ListSavedFreelancers(ListSavedFreelancersRequest)
       returns (ListSavedFreelancersResponse);
@@ -112,13 +113,7 @@ enum PortfolioMediaType {
   PORTFOLIO_MEDIA_TYPE_LINK = 4;
 }
 
-enum LanguageProficiencyLevel {
-  LANGUAGE_PROFICIENCY_LEVEL_UNSPECIFIED = 0;
-  LANGUAGE_PROFICIENCY_LEVEL_BASIC = 1;
-  LANGUAGE_PROFICIENCY_LEVEL_CONVERSATIONAL = 2;
-  LANGUAGE_PROFICIENCY_LEVEL_FLUENT = 3;
-  LANGUAGE_PROFICIENCY_LEVEL_NATIVE = 4;
-}
+
 
 enum OnboardingStepStatus {
   ONBOARDING_STEP_STATUS_UNSPECIFIED = 0;
@@ -543,7 +538,7 @@ message GetMyWorkPreferencesResponse {
 message HiringPreferences {
   double min_hourly_rate = 1;
   double max_hourly_rate = 2;
-  repeated string preferred_experience_levels = 3;
+  reserved 3;
   repeated string preferred_locations = 4;
 }
 
@@ -559,7 +554,7 @@ message PatchMyHiringPreferencesRequest {
   string user_id = 1;
   optional double min_hourly_rate = 2;
   optional double max_hourly_rate = 3;
-  StringList preferred_experience_levels = 4;
+  reserved 4;
   StringList preferred_locations = 5;
 }
 
