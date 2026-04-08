@@ -19,11 +19,10 @@ Profile patch ownership notes:
 - PATCH `/api/v1/users/me/settings` -> `PatchMySettings` (`ui_locale` support)
 
 ### Portfolio
-- POST `/api/v1/users/me/portfolio` -> `CreatePortfolioItem`
+- POST `/api/v1/users/me/portfolio` -> `CreateMyPortfolioItem`
 - GET `/api/v1/users/me/portfolio` -> `ListMyPortfolioItems`
-- PATCH `/api/v1/users/me/portfolio/:itemId` -> `UpdatePortfolioItem`
-- DELETE `/api/v1/users/me/portfolio/:itemId` -> `DeletePortfolioItem`
-- PUT `/api/v1/users/me/portfolio:reorder` -> `ReorderPortfolioItems`
+- PATCH `/api/v1/users/me/portfolio/:itemId` -> `UpdateMyPortfolioItem`
+- DELETE `/api/v1/users/me/portfolio/:itemId` -> `DeleteMyPortfolioItem`
 - GET `/api/v1/public/users/:userId/portfolio` -> `ListPublicPortfolioItems`
 
 ## Current Status
@@ -32,6 +31,7 @@ Profile patch ownership notes:
 - RPC contracts are defined in `api/proto/user/user.proto`.
 - Gateway routes and handlers are wired for portfolio and public profile-resource reads.
 - User service gRPC methods are implemented and use Postgres-backed repositories.
+- Portfolio sort ordering fields were removed from the active contract and schema.
 - Profile patching uses a single unified gateway-to-user-service call path.
 - App locale updates are routed through account settings (`/users/me/settings`) instead of profile patch.
 - Legacy duplicate availability/rates endpoints are removed from the gateway and user contract.
