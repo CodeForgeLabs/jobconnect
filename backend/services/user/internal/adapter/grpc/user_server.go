@@ -442,6 +442,128 @@ func (s *UserServer) PatchMyHiringPreferences(ctx context.Context, req *userv1.P
 	return &userv1.PatchMyHiringPreferencesResponse{Preferences: toProtoHiringPreferences(updated)}, nil
 }
 
+func (s *UserServer) SaveFreelancer(ctx context.Context, req *userv1.SaveFreelancerRequest) (*userv1.SaveFreelancerResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(strings.TrimSpace(req.GetUserId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	freelancerUserID, err := uuid.Parse(strings.TrimSpace(req.GetFreelancerUserId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
+	}
+
+	out, err := s.ProfileDetailsRepo.SaveFreelancer(ctx, userID, freelancerUserID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.SaveFreelancerResponse{Saved: toProtoSavedFreelancer(out)}, nil
+}
+
+func (s *UserServer) ListSavedFreelancers(ctx context.Context, req *userv1.ListSavedFreelancersRequest) (*userv1.ListSavedFreelancersResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(strings.TrimSpace(req.GetUserId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	pageSize := uint32(20)
+	pageToken := ""
+	if req.GetPage() != nil {
+		if req.GetPage().GetPageSize() > 0 {
+			pageSize = req.GetPage().GetPageSize()
+		}
+		pageToken = strings.TrimSpace(req.GetPage().GetPageToken())
+	}
+
+	out, err := s.ProfileDetailsRepo.ListSavedFreelancers(ctx, userID, pageSize, pageToken)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	items := make([]*userv1.SavedFreelancer, 0, len(out.Items))
+	for _, item := range out.Items {
+		items = append(items, toProtoSavedFreelancer(item))
+	}
+
+	return &userv1.ListSavedFreelancersResponse{
+		Freelancers: items,
+		Page:        &userv1.PagingResponse{NextPageToken: out.NextPageToken},
+	}, nil
+}
+
+func (s *UserServer) RemoveSavedFreelancer(ctx context.Context, req *userv1.RemoveSavedFreelancerRequest) (*userv1.RemoveSavedFreelancerResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(strings.TrimSpace(req.GetUserId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	freelancerUserID, err := uuid.Parse(strings.TrimSpace(req.GetFreelancerUserId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
+	}
+
+	removed, err := s.ProfileDetailsRepo.RemoveSavedFreelancer(ctx, userID, freelancerUserID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.RemoveSavedFreelancerResponse{Removed: removed}, nil
+}
+
+func (s *UserServer) UpsertFreelancerNote(ctx context.Context, req *userv1.UpsertFreelancerNoteRequest) (*userv1.UpsertFreelancerNoteResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(strings.TrimSpace(req.GetUserId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	freelancerUserID, err := uuid.Parse(strings.TrimSpace(req.GetFreelancerUserId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
+	}
+	note := strings.TrimSpace(req.GetNote())
+	if len(note) > 100 {
+		return nil, status.Error(codes.InvalidArgument, "note exceeds max length of 100 characters")
+	}
+
+	out, err := s.ProfileDetailsRepo.UpsertFreelancerNote(ctx, userID, freelancerUserID, note)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.UpsertFreelancerNoteResponse{Note: toProtoFreelancerNote(out)}, nil
+}
+
+func (s *UserServer) GetFreelancerNote(ctx context.Context, req *userv1.GetFreelancerNoteRequest) (*userv1.GetFreelancerNoteResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(strings.TrimSpace(req.GetUserId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	freelancerUserID, err := uuid.Parse(strings.TrimSpace(req.GetFreelancerUserId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid freelancer_user_id")
+	}
+
+	out, err := s.ProfileDetailsRepo.GetFreelancerNote(ctx, userID, freelancerUserID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.GetFreelancerNoteResponse{Note: toProtoFreelancerNote(out)}, nil
+}
+
 func (s *UserServer) UpsertMyAvatar(ctx context.Context, req *userv1.UploadMyAvatarRequest) (*userv1.UploadMyAvatarResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -768,6 +890,21 @@ func toProtoHiringPreferences(in application.HiringPreferences) *userv1.HiringPr
 		MinHourlyRate:      in.MinHourlyRate,
 		MaxHourlyRate:      in.MaxHourlyRate,
 		PreferredLocations: in.PreferredLocations,
+	}
+}
+
+func toProtoSavedFreelancer(in application.SavedFreelancer) *userv1.SavedFreelancer {
+	return &userv1.SavedFreelancer{
+		FreelancerUserId: in.FreelancerUserID.String(),
+		SavedAtUnix:      in.SavedAt.Unix(),
+	}
+}
+
+func toProtoFreelancerNote(in application.FreelancerNote) *userv1.FreelancerNote {
+	return &userv1.FreelancerNote{
+		FreelancerUserId: in.FreelancerUserID.String(),
+		Note:             in.Note,
+		UpdatedAtUnix:    in.UpdatedAt.Unix(),
 	}
 }
 
