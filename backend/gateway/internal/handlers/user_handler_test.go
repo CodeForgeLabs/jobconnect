@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/test/bufconn"
 )
 
 func newJSONTestContext(method, target string) (*gin.Context, *httptest.ResponseRecorder) {
@@ -224,5 +226,86 @@ func TestProtoToAny_ProfileReadiness(t *testing.T) {
 	recs, ok := obj["recommendations"].([]any)
 	if !ok || len(recs) != 1 {
 		t.Fatalf("expected recommendations array, got %#v", obj["recommendations"])
+	}
+}
+
+type upsertFreelancerNoteCaptureServer struct {
+	userv1.UnimplementedUserServiceServer
+	lastReq *userv1.UpsertFreelancerNoteRequest
+}
+
+func (s *upsertFreelancerNoteCaptureServer) UpsertFreelancerNote(ctx context.Context, in *userv1.UpsertFreelancerNoteRequest) (*userv1.UpsertFreelancerNoteResponse, error) {
+	s.lastReq = in
+	return &userv1.UpsertFreelancerNoteResponse{
+		Note: &userv1.FreelancerNote{
+			FreelancerUserId: in.GetFreelancerUserId(),
+			Note:             in.GetNote(),
+			UpdatedAtUnix:    1,
+		},
+	}, nil
+}
+
+func newBufConnUserClient(t *testing.T, srv userv1.UserServiceServer) (userv1.UserServiceClient, func()) {
+	t.Helper()
+
+	listener := bufconn.Listen(1024 * 1024)
+	grpcServer := grpc.NewServer()
+	userv1.RegisterUserServiceServer(grpcServer, srv)
+
+	go func() {
+		_ = grpcServer.Serve(listener)
+	}()
+
+	ctx := context.Background()
+	conn, err := grpc.NewClient(
+		"passthrough:///bufnet",
+		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
+			return listener.Dial()
+		}),
+		grpc.WithInsecure(),
+	)
+	if err != nil {
+		listener.Close()
+		grpcServer.Stop()
+		t.Fatalf("failed to dial bufconn grpc server: %v", err)
+	}
+
+	cleanup := func() {
+		_ = conn.Close()
+		grpcServer.Stop()
+		_ = listener.Close()
+		_ = ctx
+	}
+
+	return userv1.NewUserServiceClient(conn), cleanup
+}
+
+func TestUpsertMeFreelancerNote_IdentityFieldsCannotBeOverriddenByBody(t *testing.T) {
+	srv := &upsertFreelancerNoteCaptureServer{}
+	client, cleanup := newBufConnUserClient(t, srv)
+	defer cleanup()
+
+	h := NewUserHandler(client, nil)
+	body := `{"user_id":"22222222-2222-2222-2222-222222222222","freelancer_user_id":"33333333-3333-3333-3333-333333333333","note":"hello"}`
+	ctx, rec := newJSONBodyTestContext(http.MethodPut, "/api/v1/users/me/freelancer-notes/11111111-1111-1111-1111-111111111111", body)
+	ctx.Set(middleware.ContextUserID, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+	ctx.Params = gin.Params{{Key: "freelancerId", Value: "11111111-1111-1111-1111-111111111111"}}
+
+	h.UpsertMeFreelancerNote(ctx)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+	if srv.lastReq == nil {
+		t.Fatalf("expected grpc request to be captured")
+	}
+	if got := srv.lastReq.GetUserId(); got != "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" {
+		t.Fatalf("expected trusted auth user_id, got %q", got)
+	}
+	if got := srv.lastReq.GetFreelancerUserId(); got != "11111111-1111-1111-1111-111111111111" {
+		t.Fatalf("expected trusted path freelancer_user_id, got %q", got)
+	}
+	if got := srv.lastReq.GetNote(); got != "hello" {
+		t.Fatalf("expected note to be preserved, got %q", got)
 	}
 }

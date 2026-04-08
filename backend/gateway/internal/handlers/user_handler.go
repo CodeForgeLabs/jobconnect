@@ -888,6 +888,8 @@ func (h *UserHandler) UpsertMeFreelancerNote(c *gin.Context) {
 	if !bindProtoJSON(c, req) {
 		return
 	}
+	req.UserId = userID
+	req.FreelancerUserId = freelancerID
 
 	resp, err := h.client.UpsertFreelancerNote(c.Request.Context(), req)
 	if err != nil {
