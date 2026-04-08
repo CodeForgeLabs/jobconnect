@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"jobconnect/user/internal/domain"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 func parsePage(pageSize uint32, pageToken string) (limit int, offset int, err error) {
@@ -36,6 +38,31 @@ func nextToken(limit, offset, fetched int) string {
 		return ""
 	}
 	return strconv.Itoa(offset + fetched)
+}
+
+func encodeSavedFreelancersCursor(createdAt time.Time, freelancerUserID uuid.UUID) string {
+	raw := fmt.Sprintf("%d|%s", createdAt.UTC().UnixNano(), freelancerUserID.String())
+	return base64.RawURLEncoding.EncodeToString([]byte(raw))
+}
+
+func decodeSavedFreelancersCursor(token string) (time.Time, uuid.UUID, error) {
+	decoded, err := base64.RawURLEncoding.DecodeString(token)
+	if err != nil {
+		return time.Time{}, uuid.Nil, fmt.Errorf("invalid page_token")
+	}
+	parts := strings.SplitN(string(decoded), "|", 2)
+	if len(parts) != 2 {
+		return time.Time{}, uuid.Nil, fmt.Errorf("invalid page_token")
+	}
+	nanos, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return time.Time{}, uuid.Nil, fmt.Errorf("invalid page_token")
+	}
+	id, err := uuid.Parse(parts[1])
+	if err != nil {
+		return time.Time{}, uuid.Nil, fmt.Errorf("invalid page_token")
+	}
+	return time.Unix(0, nanos).UTC(), id, nil
 }
 
 func (r *ProfileRepo) freelancerProfileID(ctx context.Context, userID uuid.UUID, publicOnly bool) (int64, error) {
@@ -685,24 +712,69 @@ func (r *ProfileRepo) ListSavedFreelancers(ctx context.Context, userID uuid.UUID
 	if err != nil {
 		return application.ListResult[application.SavedFreelancer]{}, err
 	}
-	limit, offset, err := parsePage(pageSize, pageToken)
-	if err != nil {
-		return application.ListResult[application.SavedFreelancer]{}, err
+
+	if pageSize == 0 {
+		pageSize = 20
+	}
+	if pageSize > 100 {
+		pageSize = 100
+	}
+	limit := int(pageSize)
+
+	token := strings.TrimSpace(pageToken)
+	legacyOffsetMode := false
+	offset := 0
+	var cursorCreatedAt time.Time
+	var cursorFreelancerID uuid.UUID
+	if token != "" {
+		if parsed, parseErr := strconv.Atoi(token); parseErr == nil && parsed >= 0 {
+			legacyOffsetMode = true
+			offset = parsed
+		} else {
+			cursorCreatedAt, cursorFreelancerID, err = decodeSavedFreelancersCursor(token)
+			if err != nil {
+				return application.ListResult[application.SavedFreelancer]{}, err
+			}
+		}
 	}
 
-	rows, err := r.pool.Query(ctx, `
-		select freelancer_user_id, created_at
-		from client_saved_freelancers
-		where profile_id = $1
-		order by created_at desc, freelancer_user_id asc
-		limit $2 offset $3
-	`, profileID, limit, offset)
+	queryLimit := limit + 1
+	var rows pgx.Rows
+	if legacyOffsetMode {
+		rows, err = r.pool.Query(ctx, `
+			select freelancer_user_id, created_at
+			from client_saved_freelancers
+			where profile_id = $1
+			order by created_at desc, freelancer_user_id asc
+			limit $2 offset $3
+		`, profileID, queryLimit, offset)
+	} else if token == "" {
+		rows, err = r.pool.Query(ctx, `
+			select freelancer_user_id, created_at
+			from client_saved_freelancers
+			where profile_id = $1
+			order by created_at desc, freelancer_user_id asc
+			limit $2
+		`, profileID, queryLimit)
+	} else {
+		rows, err = r.pool.Query(ctx, `
+			select freelancer_user_id, created_at
+			from client_saved_freelancers
+			where profile_id = $1
+			  and (
+				created_at < $2
+				or (created_at = $2 and freelancer_user_id > $3)
+			  )
+			order by created_at desc, freelancer_user_id asc
+			limit $4
+		`, profileID, cursorCreatedAt, cursorFreelancerID, queryLimit)
+	}
 	if err != nil {
 		return application.ListResult[application.SavedFreelancer]{}, err
 	}
 	defer rows.Close()
 
-	items := make([]application.SavedFreelancer, 0, limit)
+	items := make([]application.SavedFreelancer, 0, queryLimit)
 	for rows.Next() {
 		var item application.SavedFreelancer
 		if err := rows.Scan(&item.FreelancerUserID, &item.SavedAt); err != nil {
@@ -714,7 +786,22 @@ func (r *ProfileRepo) ListSavedFreelancers(ctx context.Context, userID uuid.UUID
 		return application.ListResult[application.SavedFreelancer]{}, err
 	}
 
-	return application.ListResult[application.SavedFreelancer]{Items: items, NextPageToken: nextToken(limit, offset, len(items))}, nil
+	hasMore := len(items) > limit
+	if hasMore {
+		items = items[:limit]
+	}
+
+	nextPageToken := ""
+	if hasMore {
+		if legacyOffsetMode {
+			nextPageToken = strconv.Itoa(offset + limit)
+		} else {
+			last := items[len(items)-1]
+			nextPageToken = encodeSavedFreelancersCursor(last.SavedAt, last.FreelancerUserID)
+		}
+	}
+
+	return application.ListResult[application.SavedFreelancer]{Items: items, NextPageToken: nextPageToken}, nil
 }
 
 func (r *ProfileRepo) RemoveSavedFreelancer(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (bool, error) {
