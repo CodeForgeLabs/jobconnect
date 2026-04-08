@@ -50,6 +50,7 @@ type WorkPreferences struct {
 	MinBudgetUSD           float64
 	MaxBudgetUSD           float64
 	ContractTypes          []string
+	WeeklyCapacityHours    uint32
 }
 
 type CompanySettings struct {
