@@ -322,6 +322,61 @@ func (s *UserServer) PatchMySettings(ctx context.Context, req *userv1.PatchMySet
 	return &userv1.PatchMySettingsResponse{Settings: toProtoSettings(out.Settings)}, nil
 }
 
+func (s *UserServer) PatchMyWorkPreferences(ctx context.Context, req *userv1.PatchMyWorkPreferencesRequest) (*userv1.PatchMyWorkPreferencesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	current, err := s.ProfileDetailsRepo.GetWorkPreferences(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	if req.PreferredProjectLength != nil {
+		current.PreferredProjectLength = req.GetPreferredProjectLength()
+	}
+	if req.MinBudget != nil {
+		current.MinBudgetUSD = req.GetMinBudget()
+	}
+	if req.MaxBudget != nil {
+		current.MaxBudgetUSD = req.GetMaxBudget()
+	}
+	if req.ContractTypes != nil {
+		current.ContractTypes = req.ContractTypes.GetValues()
+	}
+	if req.WeeklyCapacityHours != nil {
+		current.WeeklyCapacityHours = req.GetWeeklyCapacityHours()
+	}
+
+	updated, err := s.ProfileDetailsRepo.SetWorkPreferences(ctx, userID, current)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.PatchMyWorkPreferencesResponse{Settings: toProtoWorkPreferences(updated)}, nil
+}
+
+func (s *UserServer) GetMyWorkPreferences(ctx context.Context, req *userv1.GetMyWorkPreferencesRequest) (*userv1.GetMyWorkPreferencesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	out, err := s.ProfileDetailsRepo.GetWorkPreferences(ctx, userID)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &userv1.GetMyWorkPreferencesResponse{Settings: toProtoWorkPreferences(out)}, nil
+}
+
 func (s *UserServer) UpsertMyAvatar(ctx context.Context, req *userv1.UploadMyAvatarRequest) (*userv1.UploadMyAvatarResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -601,6 +656,16 @@ func toProtoSettings(in application.UserSettings) *userv1.UserSettings {
 		UiLocale:                  in.UILocale,
 		EmailNotificationsEnabled: in.EmailNotificationsEnabled,
 		PushNotificationsEnabled:  in.PushNotificationsEnabled,
+	}
+}
+
+func toProtoWorkPreferences(in application.WorkPreferences) *userv1.WorkPreferences {
+	return &userv1.WorkPreferences{
+		PreferredProjectLength: in.PreferredProjectLength,
+		MinBudget:              in.MinBudgetUSD,
+		MaxBudget:              in.MaxBudgetUSD,
+		ContractTypes:          in.ContractTypes,
+		WeeklyCapacityHours:    in.WeeklyCapacityHours,
 	}
 }
 
