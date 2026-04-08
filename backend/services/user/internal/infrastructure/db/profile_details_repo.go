@@ -484,15 +484,16 @@ func (r *ProfileRepo) SetWorkPreferences(ctx context.Context, userID uuid.UUID, 
 	}
 
 	if _, err := r.pool.Exec(ctx, `
-		insert into freelancer_work_preferences (profile_id, preferred_project_length, min_budget_usd, max_budget_usd, contract_types)
-		values ($1, $2, $3, $4, $5::jsonb)
+		insert into freelancer_work_preferences (profile_id, preferred_project_length, min_budget, max_budget, contract_types, weekly_capacity_hours)
+		values ($1, $2, $3, $4, $5::jsonb, $6)
 		on conflict (profile_id) do update set
 			preferred_project_length = excluded.preferred_project_length,
-			min_budget_usd = excluded.min_budget_usd,
-			max_budget_usd = excluded.max_budget_usd,
+			min_budget = excluded.min_budget,
+			max_budget = excluded.max_budget,
 			contract_types = excluded.contract_types,
+			weekly_capacity_hours = excluded.weekly_capacity_hours,
 			updated_at = now()
-	`, profileID, strings.TrimSpace(in.PreferredProjectLength), in.MinBudgetUSD, in.MaxBudgetUSD, string(rawContractTypes)); err != nil {
+	`, profileID, strings.TrimSpace(in.PreferredProjectLength), in.MinBudgetUSD, in.MaxBudgetUSD, string(rawContractTypes), in.WeeklyCapacityHours); err != nil {
 		return application.WorkPreferences{}, err
 	}
 
@@ -510,12 +511,13 @@ func (r *ProfileRepo) GetWorkPreferences(ctx context.Context, userID uuid.UUID) 
 	err = r.pool.QueryRow(ctx, `
 		select
 			coalesce(preferred_project_length, ''),
-			coalesce(min_budget_usd, 0),
-			coalesce(max_budget_usd, 0),
-			coalesce(contract_types, '[]'::jsonb)
+			coalesce(min_budget, 0),
+			coalesce(max_budget, 0),
+			coalesce(contract_types, '[]'::jsonb),
+			coalesce(weekly_capacity_hours, 0)
 		from freelancer_work_preferences
 		where profile_id = $1
-	`, profileID).Scan(&out.PreferredProjectLength, &out.MinBudgetUSD, &out.MaxBudgetUSD, &rawContractTypes)
+	`, profileID).Scan(&out.PreferredProjectLength, &out.MinBudgetUSD, &out.MaxBudgetUSD, &rawContractTypes, &out.WeeklyCapacityHours)
 	if err != nil {
 		if isNoRows(err) {
 			return out, nil
