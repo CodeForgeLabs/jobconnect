@@ -516,6 +516,7 @@ message WorkPreferences {
   double min_budget = 2;
   double max_budget = 3;
   repeated string contract_types = 4;
+  uint32 weekly_capacity_hours = 5;
 }
 
 message PatchMyWorkPreferencesRequest {
@@ -524,6 +525,7 @@ message PatchMyWorkPreferencesRequest {
   optional double min_budget = 3;
   optional double max_budget = 4;
   StringList contract_types = 5;
+  optional uint32 weekly_capacity_hours = 6;
 }
 
 message PatchMyWorkPreferencesResponse {
