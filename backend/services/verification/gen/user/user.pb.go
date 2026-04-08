@@ -4183,6 +4183,7 @@ type WorkPreferences struct {
 	MinBudget              float64                `protobuf:"fixed64,2,opt,name=min_budget,json=minBudget,proto3" json:"min_budget,omitempty"`
 	MaxBudget              float64                `protobuf:"fixed64,3,opt,name=max_budget,json=maxBudget,proto3" json:"max_budget,omitempty"`
 	ContractTypes          []string               `protobuf:"bytes,4,rep,name=contract_types,json=contractTypes,proto3" json:"contract_types,omitempty"`
+	WeeklyCapacityHours    uint32                 `protobuf:"varint,5,opt,name=weekly_capacity_hours,json=weeklyCapacityHours,proto3" json:"weekly_capacity_hours,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -4245,6 +4246,13 @@ func (x *WorkPreferences) GetContractTypes() []string {
 	return nil
 }
 
+func (x *WorkPreferences) GetWeeklyCapacityHours() uint32 {
+	if x != nil {
+		return x.WeeklyCapacityHours
+	}
+	return 0
+}
+
 type PatchMyWorkPreferencesRequest struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
 	UserId                 string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
@@ -4252,6 +4260,7 @@ type PatchMyWorkPreferencesRequest struct {
 	MinBudget              *float64               `protobuf:"fixed64,3,opt,name=min_budget,json=minBudget,proto3,oneof" json:"min_budget,omitempty"`
 	MaxBudget              *float64               `protobuf:"fixed64,4,opt,name=max_budget,json=maxBudget,proto3,oneof" json:"max_budget,omitempty"`
 	ContractTypes          *StringList            `protobuf:"bytes,5,opt,name=contract_types,json=contractTypes,proto3" json:"contract_types,omitempty"`
+	WeeklyCapacityHours    *uint32                `protobuf:"varint,6,opt,name=weekly_capacity_hours,json=weeklyCapacityHours,proto3,oneof" json:"weekly_capacity_hours,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -4319,6 +4328,13 @@ func (x *PatchMyWorkPreferencesRequest) GetContractTypes() *StringList {
 		return x.ContractTypes
 	}
 	return nil
+}
+
+func (x *PatchMyWorkPreferencesRequest) GetWeeklyCapacityHours() uint32 {
+	if x != nil && x.WeeklyCapacityHours != nil {
+		return *x.WeeklyCapacityHours
+	}
+	return 0
 }
 
 type PatchMyWorkPreferencesResponse struct {
@@ -6908,14 +6924,15 @@ const file_user_user_proto_rawDesc = "" +
 	"\x15weekly_capacity_hours\x18\x02 \x01(\rR\x13weeklyCapacityHours\"/\n" +
 	"\fRateSettings\x12\x1f\n" +
 	"\vhourly_rate\x18\x01 \x01(\x01R\n" +
-	"hourlyRate\"\xb0\x01\n" +
+	"hourlyRate\"\xe4\x01\n" +
 	"\x0fWorkPreferences\x128\n" +
 	"\x18preferred_project_length\x18\x01 \x01(\tR\x16preferredProjectLength\x12\x1d\n" +
 	"\n" +
 	"min_budget\x18\x02 \x01(\x01R\tminBudget\x12\x1d\n" +
 	"\n" +
 	"max_budget\x18\x03 \x01(\x01R\tmaxBudget\x12%\n" +
-	"\x0econtract_types\x18\x04 \x03(\tR\rcontractTypes\"\xb6\x02\n" +
+	"\x0econtract_types\x18\x04 \x03(\tR\rcontractTypes\x122\n" +
+	"\x15weekly_capacity_hours\x18\x05 \x01(\rR\x13weeklyCapacityHours\"\x89\x03\n" +
 	"\x1dPatchMyWorkPreferencesRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12=\n" +
 	"\x18preferred_project_length\x18\x02 \x01(\tH\x00R\x16preferredProjectLength\x88\x01\x01\x12\"\n" +
@@ -6923,10 +6940,12 @@ const file_user_user_proto_rawDesc = "" +
 	"min_budget\x18\x03 \x01(\x01H\x01R\tminBudget\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"max_budget\x18\x04 \x01(\x01H\x02R\tmaxBudget\x88\x01\x01\x12:\n" +
-	"\x0econtract_types\x18\x05 \x01(\v2\x13.user.v1.StringListR\rcontractTypesB\x1b\n" +
+	"\x0econtract_types\x18\x05 \x01(\v2\x13.user.v1.StringListR\rcontractTypes\x127\n" +
+	"\x15weekly_capacity_hours\x18\x06 \x01(\rH\x03R\x13weeklyCapacityHours\x88\x01\x01B\x1b\n" +
 	"\x19_preferred_project_lengthB\r\n" +
 	"\v_min_budgetB\r\n" +
-	"\v_max_budget\"V\n" +
+	"\v_max_budgetB\x18\n" +
+	"\x16_weekly_capacity_hours\"V\n" +
 	"\x1ePatchMyWorkPreferencesResponse\x124\n" +
 	"\bsettings\x18\x01 \x01(\v2\x18.user.v1.WorkPreferencesR\bsettings\"6\n" +
 	"\x1bGetMyWorkPreferencesRequest\x12\x17\n" +
