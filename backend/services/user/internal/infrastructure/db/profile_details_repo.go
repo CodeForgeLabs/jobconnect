@@ -728,7 +728,7 @@ func (r *ProfileRepo) RemoveSavedFreelancer(ctx context.Context, userID uuid.UUI
 		return false, err
 	}
 	if res.RowsAffected() == 0 {
-		return false, ErrNotFound
+		return false, nil
 	}
 	return true, nil
 }
