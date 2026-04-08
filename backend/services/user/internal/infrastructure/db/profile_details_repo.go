@@ -493,7 +493,7 @@ func (r *ProfileRepo) SetWorkPreferences(ctx context.Context, userID uuid.UUID, 
 			contract_types = excluded.contract_types,
 			weekly_capacity_hours = excluded.weekly_capacity_hours,
 			updated_at = now()
-	`, profileID, strings.TrimSpace(in.PreferredProjectLength), in.MinBudgetUSD, in.MaxBudgetUSD, string(rawContractTypes), in.WeeklyCapacityHours); err != nil {
+	`, profileID, application.CanonicalProjectLengthOrUnspecified(in.PreferredProjectLength), in.MinBudgetUSD, in.MaxBudgetUSD, string(rawContractTypes), in.WeeklyCapacityHours); err != nil {
 		return application.WorkPreferences{}, err
 	}
 
@@ -510,7 +510,7 @@ func (r *ProfileRepo) GetWorkPreferences(ctx context.Context, userID uuid.UUID) 
 	var rawContractTypes []byte
 	err = r.pool.QueryRow(ctx, `
 		select
-			coalesce(preferred_project_length, ''),
+			coalesce(preferred_project_length, 'PROJECT_LENGTH_UNSPECIFIED'),
 			coalesce(min_budget, 0),
 			coalesce(max_budget, 0),
 			coalesce(contract_types, '[]'::jsonb),
@@ -528,6 +528,7 @@ func (r *ProfileRepo) GetWorkPreferences(ctx context.Context, userID uuid.UUID) 
 	if len(rawContractTypes) > 0 {
 		_ = json.Unmarshal(rawContractTypes, &out.ContractTypes)
 	}
+	out.PreferredProjectLength = application.CanonicalProjectLengthOrUnspecified(out.PreferredProjectLength)
 
 	return out, nil
 }
@@ -621,7 +622,21 @@ func (r *ProfileRepo) UpdateHiringPreferences(ctx context.Context, userID uuid.U
 		return application.HiringPreferences{}, err
 	}
 
-	rawLocations, err := json.Marshal(in.PreferredLocations)
+	locations := make([]string, 0, len(in.PreferredLocations))
+	seenLocations := make(map[string]struct{}, len(in.PreferredLocations))
+	for _, location := range in.PreferredLocations {
+		trimmed := strings.TrimSpace(location)
+		if trimmed == "" {
+			continue
+		}
+		if _, exists := seenLocations[trimmed]; exists {
+			continue
+		}
+		seenLocations[trimmed] = struct{}{}
+		locations = append(locations, trimmed)
+	}
+
+	rawLocations, err := json.Marshal(locations)
 	if err != nil {
 		return application.HiringPreferences{}, err
 	}
