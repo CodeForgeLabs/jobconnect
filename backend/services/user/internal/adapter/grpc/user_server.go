@@ -337,7 +337,11 @@ func (s *UserServer) PatchMyWorkPreferences(ctx context.Context, req *userv1.Pat
 	}
 
 	if req.PreferredProjectLength != nil {
-		current.PreferredProjectLength = req.GetPreferredProjectLength()
+		projectLength, ok := fromProtoProjectLength(req.GetPreferredProjectLength())
+		if !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid preferred_project_length")
+		}
+		current.PreferredProjectLength = projectLength
 	}
 	if req.MinBudget != nil {
 		current.MinBudgetUSD = req.GetMinBudget()
@@ -722,11 +726,40 @@ func toProtoSettings(in application.UserSettings) *userv1.UserSettings {
 
 func toProtoWorkPreferences(in application.WorkPreferences) *userv1.WorkPreferences {
 	return &userv1.WorkPreferences{
-		PreferredProjectLength: in.PreferredProjectLength,
+		PreferredProjectLength: toProtoProjectLength(in.PreferredProjectLength),
 		MinBudget:              in.MinBudgetUSD,
 		MaxBudget:              in.MaxBudgetUSD,
 		ContractTypes:          in.ContractTypes,
 		WeeklyCapacityHours:    in.WeeklyCapacityHours,
+	}
+}
+
+func fromProtoProjectLength(value userv1.ProjectLength) (string, bool) {
+	switch value {
+	case userv1.ProjectLength_PROJECT_LENGTH_UNSPECIFIED:
+		return application.ProjectLengthUnspecified, true
+	case userv1.ProjectLength_PROJECT_LENGTH_SHORT_TERM:
+		return application.ProjectLengthShortTerm, true
+	case userv1.ProjectLength_PROJECT_LENGTH_MEDIUM_TERM:
+		return application.ProjectLengthMediumTerm, true
+	case userv1.ProjectLength_PROJECT_LENGTH_LONG_TERM:
+		return application.ProjectLengthLongTerm, true
+	default:
+		return "", false
+	}
+}
+
+func toProtoProjectLength(value string) userv1.ProjectLength {
+	canonical := application.CanonicalProjectLengthOrUnspecified(value)
+	switch canonical {
+	case application.ProjectLengthShortTerm:
+		return userv1.ProjectLength_PROJECT_LENGTH_SHORT_TERM
+	case application.ProjectLengthMediumTerm:
+		return userv1.ProjectLength_PROJECT_LENGTH_MEDIUM_TERM
+	case application.ProjectLengthLongTerm:
+		return userv1.ProjectLength_PROJECT_LENGTH_LONG_TERM
+	default:
+		return userv1.ProjectLength_PROJECT_LENGTH_UNSPECIFIED
 	}
 }
 

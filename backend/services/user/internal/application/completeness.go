@@ -186,7 +186,7 @@ func readinessRecommendation(missingKey string) string {
 }
 
 func hasWorkPreferencesSet(in WorkPreferences) bool {
-	return strings.TrimSpace(in.PreferredProjectLength) != "" || in.MinBudgetUSD > 0 || in.MaxBudgetUSD > 0 || len(in.ContractTypes) > 0 || in.WeeklyCapacityHours > 0
+	return IsProjectLengthPreferenceSet(in.PreferredProjectLength) || in.MinBudgetUSD > 0 || in.MaxBudgetUSD > 0 || len(in.ContractTypes) > 0 || in.WeeklyCapacityHours > 0
 }
 
 func hasHiringPreferencesSet(in HiringPreferences) bool {
