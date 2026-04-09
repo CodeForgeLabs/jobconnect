@@ -17,28 +17,30 @@ import (
 
 type portfolioURLPresigner interface {
 	PresignGetObject(ctx context.Context, storageKey string, ttl time.Duration) (string, error)
+	PresignPutObject(ctx context.Context, storageKey string, contentType string, ttl time.Duration) (string, error)
 }
 
 type UserServer struct {
 	userv1.UnimplementedUserServiceServer
-	CreateProfileUC       *application.CreateProfile
-	GetProfileUC          *application.GetProfile
-	UpdateProfileUC       *application.UpdateProfile
-	DeleteProfileUC       *application.DeleteProfile
-	GetOnboardingStatusUC *application.GetOnboardingStatus
-	GetSettingsUC         *application.GetSettings
-	PatchSettingsUC       *application.PatchSettingsUseCase
-	GetAvatarUploadURLUC  *application.GetAvatarUploadURL
-	UploadAvatarUC        *application.UploadAvatar
-	GetAvatarUC           *application.GetAvatar
-	RemoveAvatarUC        *application.RemoveAvatar
-	GetCVUploadURLUC      *application.GetCVUploadURL
-	UpsertCVUC            *application.UpsertCV
-	GetCVUC               *application.GetCV
-	RemoveCVUC            *application.RemoveCV
-	PortfolioStore        portfolioURLPresigner
-	ProfileDetailsRepo    application.ProfileDetailsRepository
-	CapabilityPolicy      CapabilityPolicy
+	CreateProfileUC              *application.CreateProfile
+	GetProfileUC                 *application.GetProfile
+	UpdateProfileUC              *application.UpdateProfile
+	DeleteProfileUC              *application.DeleteProfile
+	GetOnboardingStatusUC        *application.GetOnboardingStatus
+	GetSettingsUC                *application.GetSettings
+	PatchSettingsUC              *application.PatchSettingsUseCase
+	GetAvatarUploadURLUC         *application.GetAvatarUploadURL
+	UploadAvatarUC               *application.UploadAvatar
+	GetAvatarUC                  *application.GetAvatar
+	RemoveAvatarUC               *application.RemoveAvatar
+	GetCVUploadURLUC             *application.GetCVUploadURL
+	UpsertCVUC                   *application.UpsertCV
+	GetCVUC                      *application.GetCV
+	RemoveCVUC                   *application.RemoveCV
+	GetPortfolioMediaUploadURLUC *application.GetPortfolioMediaUploadURL
+	PortfolioStore               portfolioURLPresigner
+	ProfileDetailsRepo           application.ProfileDetailsRepository
+	CapabilityPolicy             CapabilityPolicy
 }
 
 type CapabilityPolicy struct {
@@ -83,29 +85,31 @@ func NewUserServer(
 	upsertCV *application.UpsertCV,
 	getCV *application.GetCV,
 	removeCV *application.RemoveCV,
+	getPortfolioMediaUploadURL *application.GetPortfolioMediaUploadURL,
 	portfolioStore portfolioURLPresigner,
 	profileDetailsRepo application.ProfileDetailsRepository,
 	capabilityPolicy CapabilityPolicy,
 ) *UserServer {
 	return &UserServer{
-		CreateProfileUC:       createProfile,
-		GetProfileUC:          getProfile,
-		UpdateProfileUC:       updateProfile,
-		DeleteProfileUC:       deleteProfile,
-		GetOnboardingStatusUC: getOnboardingStatus,
-		GetSettingsUC:         getSettings,
-		PatchSettingsUC:       patchSettings,
-		GetAvatarUploadURLUC:  getAvatarUploadURL,
-		UploadAvatarUC:        uploadAvatar,
-		GetAvatarUC:           getAvatar,
-		RemoveAvatarUC:        removeAvatar,
-		GetCVUploadURLUC:      getCVUploadURL,
-		UpsertCVUC:            upsertCV,
-		GetCVUC:               getCV,
-		RemoveCVUC:            removeCV,
-		PortfolioStore:        portfolioStore,
-		ProfileDetailsRepo:    profileDetailsRepo,
-		CapabilityPolicy:      capabilityPolicy.withDefaults(),
+		CreateProfileUC:              createProfile,
+		GetProfileUC:                 getProfile,
+		UpdateProfileUC:              updateProfile,
+		DeleteProfileUC:              deleteProfile,
+		GetOnboardingStatusUC:        getOnboardingStatus,
+		GetSettingsUC:                getSettings,
+		PatchSettingsUC:              patchSettings,
+		GetAvatarUploadURLUC:         getAvatarUploadURL,
+		UploadAvatarUC:               uploadAvatar,
+		GetAvatarUC:                  getAvatar,
+		RemoveAvatarUC:               removeAvatar,
+		GetCVUploadURLUC:             getCVUploadURL,
+		UpsertCVUC:                   upsertCV,
+		GetCVUC:                      getCV,
+		RemoveCVUC:                   removeCV,
+		GetPortfolioMediaUploadURLUC: getPortfolioMediaUploadURL,
+		PortfolioStore:               portfolioStore,
+		ProfileDetailsRepo:           profileDetailsRepo,
+		CapabilityPolicy:             capabilityPolicy.withDefaults(),
 	}
 }
 
@@ -756,6 +760,28 @@ func (s *UserServer) RemoveMyCV(ctx context.Context, req *userv1.RemoveMyCVReque
 		return nil, toStatus(err)
 	}
 	return &userv1.RemoveMyCVResponse{Removed: out.Removed}, nil
+}
+
+func (s *UserServer) GetMyPortfolioMediaUploadUrl(ctx context.Context, req *userv1.GetMyPortfolioMediaUploadUrlRequest) (*userv1.GetMyPortfolioMediaUploadUrlResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if s.GetPortfolioMediaUploadURLUC == nil {
+		return nil, status.Error(codes.Internal, "portfolio upload url use-case not configured")
+	}
+	out, err := s.GetPortfolioMediaUploadURLUC.Execute(ctx, application.GetPortfolioMediaUploadURLInput{
+		UserID:      userID,
+		FileName:    req.GetFileName(),
+		ContentType: req.GetContentType(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetMyPortfolioMediaUploadUrlResponse{StorageKey: out.StorageKey, UploadUrl: out.UploadURL}, nil
 }
 
 func (s *UserServer) CreateMyPortfolioItem(ctx context.Context, req *userv1.CreateMyPortfolioItemRequest) (*userv1.CreateMyPortfolioItemResponse, error) {

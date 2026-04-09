@@ -80,6 +80,7 @@ func main() {
 	upsertCVUC := &application.UpsertCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore, Clock: clockImpl}
 	getCVUC := &application.GetCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore}
 	removeCVUC := &application.RemoveCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore}
+	getPortfolioMediaUploadURLUC := &application.GetPortfolioMediaUploadURL{Store: portfolioStore}
 
 	userServer := grpcadapter.NewUserServer(
 		createProfileUC,
@@ -97,6 +98,7 @@ func main() {
 		upsertCVUC,
 		getCVUC,
 		removeCVUC,
+		getPortfolioMediaUploadURLUC,
 		portfolioStore,
 		profileRepo,
 		grpcadapter.CapabilityPolicy{

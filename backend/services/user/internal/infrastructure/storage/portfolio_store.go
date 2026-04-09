@@ -120,3 +120,19 @@ func (s *PortfolioStore) PresignGetObject(ctx context.Context, storageKey string
 	}
 	return u.String(), nil
 }
+
+func (s *PortfolioStore) PresignPutObject(ctx context.Context, storageKey string, contentType string, ttl time.Duration) (string, error) {
+	if storageKey == "" {
+		return "", fmt.Errorf("portfolio storage_key is required")
+	}
+	if ttl <= 0 {
+		return "", fmt.Errorf("portfolio presign ttl must be greater than 0")
+	}
+	_ = contentType
+
+	u, err := s.client.PresignedPutObject(ctx, s.bucket, storageKey, ttl)
+	if err != nil {
+		return "", fmt.Errorf("presign portfolio upload object: %w", err)
+	}
+	return u.String(), nil
+}
