@@ -25,6 +25,16 @@ Profile patch ownership notes:
 - DELETE `/api/v1/users/me/portfolio/:itemId` -> `DeleteMyPortfolioItem`
 - GET `/api/v1/public/users/:userId/portfolio` -> `ListPublicPortfolioItems`
 
+### CV
+- POST `/api/v1/users/me/cv` -> `UpsertMyCV`
+- GET `/api/v1/users/me/cv` -> `GetMyCV`
+- DELETE `/api/v1/users/me/cv` -> `RemoveMyCV`
+
+CV behavior:
+- The service stores CV bytes in MinIO and metadata in Postgres (`profile_cvs`).
+- Reads return a short-lived `download_url` (presigned object URL).
+- `storage_key` remains internal and is not exposed in the API response.
+
 Portfolio media behavior:
 - LINK media use `external_url` directly.
 - Uploaded IMAGE/VIDEO/FILE media store the internal MinIO object key in `storage_key` and are returned with short-lived presigned URLs on read.
@@ -40,6 +50,7 @@ Portfolio media behavior:
 - Profile patching uses a single unified gateway-to-user-service call path.
 - App locale updates are routed through account settings (`/users/me/settings`) instead of profile patch.
 - Legacy duplicate availability/rates endpoints are removed from the gateway and user contract.
+- CV upload/get/delete endpoints are wired through gateway + user service with MinIO-backed object storage.
 
 ## Next Implementation Work
 

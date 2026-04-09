@@ -120,6 +120,24 @@ USER_PORTFOLIO_STORAGE_CREATE_BUCKET=true
 
 Portfolio media uploaded to MinIO is returned to clients as short-lived presigned URLs on read endpoints. LINK media continue to return their external URL directly.
 
+## 4.5) Required: Configure CV object storage (user service)
+
+Set these variables in `backend/.env` (used by `user` and `minio` services):
+
+```powershell
+USER_CV_STORAGE_PROVIDER=minio
+USER_CV_STORAGE_BUCKET=jobconnect-cvs
+USER_CV_STORAGE_ENDPOINT=minio:9000
+USER_CV_STORAGE_REGION=us-east-1
+USER_CV_STORAGE_ACCESS_KEY=minioadmin
+USER_CV_STORAGE_SECRET_KEY=minioadmin
+USER_CV_STORAGE_USE_SSL=false
+USER_CV_STORAGE_PATH_STYLE=true
+USER_CV_STORAGE_CREATE_BUCKET=true
+```
+
+CV uploads are persisted to MinIO, while metadata is stored in `profile_cvs`. CV read endpoints return a short-lived presigned URL.
+
 ## 5) Stop stack
 
 ```powershell
