@@ -336,6 +336,9 @@ func TestUserHandler_PostmanStyleEndpointCoverage(t *testing.T) {
 		if stub.getMyAvatarUploadUrlReq == nil || stub.getMyAvatarUploadUrlReq.GetUserId() != userID {
 			t.Fatalf("expected GetMyAvatarUploadUrl request with trusted user_id")
 		}
+		if stub.getMyAvatarUploadUrlReq.GetFileName() != "avatar.png" || stub.getMyAvatarUploadUrlReq.GetContentType() != "image/png" {
+			t.Fatalf("expected avatar upload-url metadata to be forwarded")
+		}
 	})
 
 	t.Run("PatchMySettings", func(t *testing.T) {
@@ -398,6 +401,9 @@ func TestUserHandler_PostmanStyleEndpointCoverage(t *testing.T) {
 		}
 		if stub.getMyCVUploadUrlReq == nil || stub.getMyCVUploadUrlReq.GetUserId() != userID {
 			t.Fatalf("expected GetMyCVUploadUrl request with trusted user_id")
+		}
+		if stub.getMyCVUploadUrlReq.GetFileName() != "resume.pdf" || stub.getMyCVUploadUrlReq.GetContentType() != "application/pdf" {
+			t.Fatalf("expected cv upload-url metadata to be forwarded")
 		}
 	})
 
