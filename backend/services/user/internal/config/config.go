@@ -11,6 +11,7 @@ type Config struct {
 	GRPCListenAddr   string
 	PostgresURL      string
 	AvatarStorage    AvatarStorageConfig
+	CVStorage        CVStorageConfig
 	PortfolioStorage PortfolioStorageConfig
 
 	CapabilityMinSkillsForDiscovery        int
@@ -22,6 +23,18 @@ type Config struct {
 }
 
 type AvatarStorageConfig struct {
+	Provider     string
+	Bucket       string
+	Endpoint     string
+	Region       string
+	AccessKey    string
+	SecretKey    string
+	UseSSL       bool
+	PathStyle    bool
+	CreateBucket bool
+}
+
+type CVStorageConfig struct {
 	Provider     string
 	Bucket       string
 	Endpoint     string
@@ -60,6 +73,17 @@ func LoadFromEnv() (Config, error) {
 			PathStyle:    getEnvBool("USER_AVATAR_STORAGE_PATH_STYLE", true),
 			CreateBucket: getEnvBool("USER_AVATAR_STORAGE_CREATE_BUCKET", true),
 		},
+		CVStorage: CVStorageConfig{
+			Provider:     strings.ToLower(strings.TrimSpace(getEnv("USER_CV_STORAGE_PROVIDER", "minio"))),
+			Bucket:       strings.TrimSpace(getEnv("USER_CV_STORAGE_BUCKET", "jobconnect-cvs")),
+			Endpoint:     strings.TrimSpace(getEnv("USER_CV_STORAGE_ENDPOINT", "localhost:9000")),
+			Region:       strings.TrimSpace(getEnv("USER_CV_STORAGE_REGION", "us-east-1")),
+			AccessKey:    strings.TrimSpace(os.Getenv("USER_CV_STORAGE_ACCESS_KEY")),
+			SecretKey:    strings.TrimSpace(os.Getenv("USER_CV_STORAGE_SECRET_KEY")),
+			UseSSL:       getEnvBool("USER_CV_STORAGE_USE_SSL", false),
+			PathStyle:    getEnvBool("USER_CV_STORAGE_PATH_STYLE", true),
+			CreateBucket: getEnvBool("USER_CV_STORAGE_CREATE_BUCKET", true),
+		},
 		PortfolioStorage: PortfolioStorageConfig{
 			Provider:     strings.ToLower(strings.TrimSpace(getEnv("USER_PORTFOLIO_STORAGE_PROVIDER", "minio"))),
 			Bucket:       strings.TrimSpace(getEnv("USER_PORTFOLIO_STORAGE_BUCKET", "jobconnect-portfolio-media")),
@@ -87,6 +111,9 @@ func LoadFromEnv() (Config, error) {
 	if err := cfg.AvatarStorage.Validate(); err != nil {
 		return Config{}, err
 	}
+	if err := cfg.CVStorage.Validate(); err != nil {
+		return Config{}, err
+	}
 	if err := cfg.PortfolioStorage.Validate(); err != nil {
 		return Config{}, err
 	}
@@ -111,6 +138,28 @@ func (c AvatarStorageConfig) Validate() error {
 	}
 	if c.Region == "" {
 		return fmt.Errorf("USER_AVATAR_STORAGE_REGION is required")
+	}
+	return nil
+}
+
+func (c CVStorageConfig) Validate() error {
+	if c.Provider != "minio" {
+		return fmt.Errorf("USER_CV_STORAGE_PROVIDER must be 'minio'")
+	}
+	if c.Bucket == "" {
+		return fmt.Errorf("USER_CV_STORAGE_BUCKET is required")
+	}
+	if c.Endpoint == "" {
+		return fmt.Errorf("USER_CV_STORAGE_ENDPOINT is required")
+	}
+	if c.AccessKey == "" {
+		return fmt.Errorf("USER_CV_STORAGE_ACCESS_KEY is required")
+	}
+	if c.SecretKey == "" {
+		return fmt.Errorf("USER_CV_STORAGE_SECRET_KEY is required")
+	}
+	if c.Region == "" {
+		return fmt.Errorf("USER_CV_STORAGE_REGION is required")
 	}
 	return nil
 }

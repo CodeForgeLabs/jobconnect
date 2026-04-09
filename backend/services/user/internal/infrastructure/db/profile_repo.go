@@ -372,6 +372,47 @@ func (r *ProfileRepo) RemoveAvatar(ctx context.Context, userID uuid.UUID) error 
 	return nil
 }
 
+func (r *ProfileRepo) SaveCV(ctx context.Context, cv application.CV) error {
+	_, err := r.pool.Exec(ctx, `
+		insert into profile_cvs (user_id, file_name, content_type, storage_key, size_bytes, updated_at)
+		values ($1, $2, $3, $4, $5, $6)
+		on conflict (user_id) do update set
+			file_name = excluded.file_name,
+			content_type = excluded.content_type,
+			storage_key = excluded.storage_key,
+			size_bytes = excluded.size_bytes,
+			updated_at = excluded.updated_at
+	`, cv.UserID, cv.FileName, cv.ContentType, cv.StorageKey, cv.SizeBytes, cv.UpdatedAt)
+	return err
+}
+
+func (r *ProfileRepo) GetCV(ctx context.Context, userID uuid.UUID) (application.CV, error) {
+	var cv application.CV
+	err := r.pool.QueryRow(ctx, `
+		select user_id, file_name, content_type, storage_key, size_bytes, updated_at
+		from profile_cvs
+		where user_id = $1
+	`, userID).Scan(&cv.UserID, &cv.FileName, &cv.ContentType, &cv.StorageKey, &cv.SizeBytes, &cv.UpdatedAt)
+	if err != nil {
+		if isNoRows(err) {
+			return application.CV{}, ErrNotFound
+		}
+		return application.CV{}, err
+	}
+	return cv, nil
+}
+
+func (r *ProfileRepo) RemoveCV(ctx context.Context, userID uuid.UUID) error {
+	res, err := r.pool.Exec(ctx, `delete from profile_cvs where user_id = $1`, userID)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (r *ProfileRepo) UpdateAccountState(ctx context.Context, userID uuid.UUID, status, suspensionReason string, updatedAt time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
 	res, err := r.pool.Exec(ctx, `
 		update profiles

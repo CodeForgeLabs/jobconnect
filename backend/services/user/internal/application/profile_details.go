@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"jobconnect/user/internal/domain"
+
 	"github.com/google/uuid"
 )
 
@@ -31,6 +33,15 @@ type PortfolioItem struct {
 	Media         []PortfolioMedia
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+}
+
+type CV struct {
+	UserID      uuid.UUID
+	FileName    string
+	ContentType string
+	StorageKey  string
+	SizeBytes   int64
+	UpdatedAt   time.Time
 }
 
 type AvailabilitySettings struct {
@@ -142,4 +153,11 @@ type ProfileDetailsRepository interface {
 	ListUsers(ctx context.Context, requesterUserID uuid.UUID, filter ListUsersFilter) (ListResult[UserSummary], error)
 	CreateImpersonationToken(ctx context.Context, requesterUserID uuid.UUID, targetUserID uuid.UUID, reason string, ttlSeconds uint32) (ImpersonationToken, error)
 	GetUserAuditSummary(ctx context.Context, requesterUserID uuid.UUID, targetUserID uuid.UUID) (UserAuditSummary, error)
+}
+
+// CVObjectStore persists CV binary content outside the primary database.
+type CVObjectStore interface {
+	PutCV(ctx context.Context, cv domain.CVObject) error
+	DeleteCV(ctx context.Context, userID uuid.UUID, storageKey string) error
+	PresignGetObject(ctx context.Context, storageKey string, ttl time.Duration) (string, error)
 }

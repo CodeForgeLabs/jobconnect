@@ -7,6 +7,7 @@ import (
 
 const (
 	MaxAvatarSizeBytes = 5 * 1024 * 1024
+	MaxCVSizeBytes     = 25 * 1024 * 1024
 )
 
 func ValidateRole(role string) error {
@@ -55,6 +56,26 @@ func ValidateAvatarSize(size int) error {
 	}
 	if size > MaxAvatarSizeBytes {
 		return fmt.Errorf("avatar exceeds max size of 5MB")
+	}
+	return nil
+}
+
+func ValidateCVContentType(contentType string) error {
+	ct := strings.TrimSpace(strings.ToLower(contentType))
+	switch ct {
+	case "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+		return nil
+	default:
+		return fmt.Errorf("unsupported cv content_type")
+	}
+}
+
+func ValidateCVSize(size int) error {
+	if size <= 0 {
+		return fmt.Errorf("cv content is required")
+	}
+	if size > MaxCVSizeBytes {
+		return fmt.Errorf("cv exceeds max size of 25MB")
 	}
 	return nil
 }
