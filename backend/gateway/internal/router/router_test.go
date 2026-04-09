@@ -1,12 +1,16 @@
 package router
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"jobconnect/gateway/internal/auth"
 	"jobconnect/gateway/internal/config"
 	"jobconnect/gateway/internal/handlers"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func TestUserPortfolioUpdateRouteUsesPut(t *testing.T) {
@@ -126,4 +130,41 @@ func TestUserRoutesExposePortfolioMediaUploadURLRoute(t *testing.T) {
 	}
 
 	t.Fatalf("expected POST /api/v1/users/me/portfolio/media/upload-url to be registered")
+}
+
+func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	secret := []byte("test-secret")
+	cfg := config.Config{JWTSecret: secret}
+
+	engine := New(
+		cfg,
+		&handlers.AuthHandler{},
+		&handlers.VerificationHandler{},
+		&handlers.UserHandler{},
+		&handlers.JobHandler{},
+	)
+
+	clientToken := signTestAccessToken(t, secret, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "client")
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/users/me/portfolio", nil)
+	req.Header.Set("Authorization", "Bearer "+clientToken)
+	rec := httptest.NewRecorder()
+
+	engine.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected %d for non-freelancer role, got %d", http.StatusForbidden, rec.Code)
+	}
+}
+
+func signTestAccessToken(t *testing.T, secret []byte, userID string, role string) string {
+	t.Helper()
+	claims := &auth.AccessClaims{UserID: userID, Role: role}
+	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	signed, err := tok.SignedString(secret)
+	if err != nil {
+		t.Fatalf("failed to sign token: %v", err)
+	}
+	return signed
 }

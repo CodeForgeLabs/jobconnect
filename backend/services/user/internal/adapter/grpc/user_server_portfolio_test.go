@@ -151,6 +151,42 @@ func (f fakeRoleRepo) GetByUserID(context.Context, uuid.UUID) (domain.Profile, *
 	return f.profile, nil, nil, nil
 }
 
+type profileRepoForRoleCheck struct {
+	profile domain.Profile
+	err     error
+}
+
+func (m profileRepoForRoleCheck) Create(context.Context, domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile) (int64, error) {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) GetByUserID(context.Context, uuid.UUID) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
+	if m.err != nil {
+		return domain.Profile{}, nil, nil, m.err
+	}
+	return m.profile, nil, nil, nil
+}
+
+func (m profileRepoForRoleCheck) Update(context.Context, domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile) error {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) Delete(context.Context, uuid.UUID, bool, time.Time) error {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) SaveAvatar(context.Context, domain.Avatar) error {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) GetAvatar(context.Context, uuid.UUID) (domain.Avatar, error) {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) RemoveAvatar(context.Context, uuid.UUID) error {
+	panic("not implemented")
+}
+
 func TestToAppPortfolioMediaInputsRejectsForeignStorageKey(t *testing.T) {
 	userID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
 	_, err := toAppPortfolioMediaInputs(userID, []*userv1.PortfolioMediaInput{{
@@ -172,5 +208,20 @@ func TestToAppPortfolioMediaInputsRejectsMismatchedMediaTypeContentType(t *testi
 	}})
 	if err == nil || status.Code(err) != codes.InvalidArgument || !strings.Contains(err.Error(), "content_type does not match media_type") {
 		t.Fatalf("expected media/content type mismatch error, got %v", err)
+	}
+}
+
+func TestListMyPortfolioItemsRequiresFreelancerRole(t *testing.T) {
+	userID := uuid.New()
+	srv := &UserServer{
+		GetProfileUC: &application.GetProfile{Profiles: profileRepoForRoleCheck{profile: domain.Profile{UserID: userID, Role: domain.RoleClient}}},
+	}
+
+	_, err := srv.ListMyPortfolioItems(context.Background(), &userv1.ListMyPortfolioItemsRequest{UserId: userID.String()})
+	if err == nil {
+		t.Fatalf("expected permission denied error")
+	}
+	if status.Code(err) != codes.PermissionDenied {
+		t.Fatalf("expected PermissionDenied, got %v", status.Code(err))
 	}
 }
