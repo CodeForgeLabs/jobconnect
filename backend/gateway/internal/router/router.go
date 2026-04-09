@@ -140,6 +140,7 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.DELETE("/me/cv", userHandler.RemoveMeCV)
 
 	// Portfolio: CRUD for showcase projects.
+	userRoutes.POST("/me/portfolio/media/upload-url", userHandler.GetMePortfolioMediaUploadUrl)
 	userRoutes.POST("/me/portfolio", userHandler.CreateMePortfolioItem)
 	userRoutes.GET("/me/portfolio", userHandler.ListMePortfolioItems)
 	userRoutes.GET("/me/portfolio/:itemId", userHandler.GetMePortfolioItem)

@@ -562,6 +562,27 @@ func (h *UserHandler) RemoveMeCV(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"removed": resp.GetRemoved()})
 }
 
+func (h *UserHandler) GetMePortfolioMediaUploadUrl(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+	req := &userv1.GetMyPortfolioMediaUploadUrlRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+	req.UserId = userID
+
+	resp, err := h.client.GetMyPortfolioMediaUploadUrl(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"storage_key": resp.GetStorageKey(), "upload_url": resp.GetUploadUrl()})
+}
+
 func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
