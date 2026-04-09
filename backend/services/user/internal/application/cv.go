@@ -31,10 +31,15 @@ type CVRepository interface {
 	RemoveCV(ctx context.Context, userID uuid.UUID) error
 }
 
+type CVRoleRepository interface {
+	GetByUserID(ctx context.Context, userID uuid.UUID) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error)
+}
+
 type UpsertCV struct {
-	Profiles CVRepository
-	Store    CVObjectStore
-	Clock    Clock
+	Profiles     CVRepository
+	RoleProfiles CVRoleRepository
+	Store        CVObjectStore
+	Clock        Clock
 }
 
 func (uc *UpsertCV) Execute(ctx context.Context, in UpsertCVInput) (UpsertCVOutput, error) {
@@ -55,6 +60,9 @@ func (uc *UpsertCV) Execute(ctx context.Context, in UpsertCVInput) (UpsertCVOutp
 	}
 	if uc.Store == nil {
 		return UpsertCVOutput{}, fmt.Errorf("cv object store is not configured")
+	}
+	if err := requireFreelancerProfile(ctx, in.UserID, uc.RoleProfiles); err != nil {
+		return UpsertCVOutput{}, err
 	}
 
 	storageKey := buildCVStorageKey(in.UserID)
@@ -115,8 +123,9 @@ type GetCVOutput struct {
 }
 
 type GetCV struct {
-	Profiles CVRepository
-	Store    CVObjectStore
+	Profiles     CVRepository
+	RoleProfiles CVRoleRepository
+	Store        CVObjectStore
 }
 
 func (uc *GetCV) Execute(ctx context.Context, in GetCVInput) (GetCVOutput, error) {
@@ -125,6 +134,9 @@ func (uc *GetCV) Execute(ctx context.Context, in GetCVInput) (GetCVOutput, error
 	}
 	if uc.Store == nil {
 		return GetCVOutput{}, fmt.Errorf("cv object store is not configured")
+	}
+	if err := requireFreelancerProfile(ctx, in.UserID, uc.RoleProfiles); err != nil {
+		return GetCVOutput{}, err
 	}
 	cv, err := uc.Profiles.GetCV(ctx, in.UserID)
 	if err != nil {
@@ -146,8 +158,9 @@ type RemoveCVOutput struct {
 }
 
 type RemoveCV struct {
-	Profiles CVRepository
-	Store    CVObjectStore
+	Profiles     CVRepository
+	RoleProfiles CVRoleRepository
+	Store        CVObjectStore
 }
 
 func (uc *RemoveCV) Execute(ctx context.Context, in RemoveCVInput) (RemoveCVOutput, error) {
@@ -156,6 +169,9 @@ func (uc *RemoveCV) Execute(ctx context.Context, in RemoveCVInput) (RemoveCVOutp
 	}
 	if uc.Store == nil {
 		return RemoveCVOutput{}, fmt.Errorf("cv object store is not configured")
+	}
+	if err := requireFreelancerProfile(ctx, in.UserID, uc.RoleProfiles); err != nil {
+		return RemoveCVOutput{}, err
 	}
 	cv, err := uc.Profiles.GetCV(ctx, in.UserID)
 	if err != nil {
@@ -199,4 +215,18 @@ func sanitizeCVFileName(name, contentType string) string {
 
 func isNotFoundError(err error) bool {
 	return err != nil && strings.Contains(strings.ToLower(err.Error()), "not found")
+}
+
+func requireFreelancerProfile(ctx context.Context, userID uuid.UUID, repo CVRoleRepository) error {
+	if repo == nil {
+		return fmt.Errorf("profile repository is not configured")
+	}
+	p, _, _, err := repo.GetByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if strings.ToLower(strings.TrimSpace(p.Role)) != domain.RoleFreelancer {
+		return fmt.Errorf("freelancer role required")
+	}
+	return nil
 }

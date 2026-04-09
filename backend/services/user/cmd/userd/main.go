@@ -78,9 +78,9 @@ func main() {
 	}
 	getAvatarUC := &application.GetAvatar{Profiles: profileRepo, Store: avatarStore}
 	removeAvatarUC := &application.RemoveAvatar{Profiles: profileRepo, Store: avatarStore}
-	upsertCVUC := &application.UpsertCV{Profiles: profileRepo, Store: cvStore, Clock: clockImpl}
-	getCVUC := &application.GetCV{Profiles: profileRepo, Store: cvStore}
-	removeCVUC := &application.RemoveCV{Profiles: profileRepo, Store: cvStore}
+	upsertCVUC := &application.UpsertCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore, Clock: clockImpl}
+	getCVUC := &application.GetCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore}
+	removeCVUC := &application.RemoveCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore}
 
 	userServer := grpcadapter.NewUserServer(
 		createProfileUC,

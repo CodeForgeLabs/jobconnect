@@ -1105,6 +1105,8 @@ func toStatus(err error) error {
 		return status.Error(codes.AlreadyExists, "profile already exists for user_id")
 	case contains(msg, "not found"):
 		return status.Error(codes.NotFound, msg)
+	case contains(msg, "role required"):
+		return status.Error(codes.PermissionDenied, msg)
 	case contains(msg, "required"), contains(msg, "invalid"), contains(msg, "not allowed"):
 		return status.Error(codes.InvalidArgument, msg)
 	case contains(msg, "unsupported"), contains(msg, "exceeds"), contains(msg, "too small"):
