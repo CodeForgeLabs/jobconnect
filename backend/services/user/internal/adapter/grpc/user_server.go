@@ -34,6 +34,9 @@ type UserServer struct {
 	UploadAvatarUC        *application.UploadAvatar
 	GetAvatarUC           *application.GetAvatar
 	RemoveAvatarUC        *application.RemoveAvatar
+	UpsertCVUC            *application.UpsertCV
+	GetCVUC               *application.GetCV
+	RemoveCVUC            *application.RemoveCV
 	PortfolioStore        portfolioURLPresigner
 	ProfileDetailsRepo    application.ProfileDetailsRepository
 	CapabilityPolicy      CapabilityPolicy
@@ -79,6 +82,9 @@ func NewUserServer(
 	uploadAvatar *application.UploadAvatar,
 	getAvatar *application.GetAvatar,
 	removeAvatar *application.RemoveAvatar,
+	upsertCV *application.UpsertCV,
+	getCV *application.GetCV,
+	removeCV *application.RemoveCV,
 	portfolioStore portfolioURLPresigner,
 	profileDetailsRepo application.ProfileDetailsRepository,
 	capabilityPolicy CapabilityPolicy,
@@ -97,6 +103,9 @@ func NewUserServer(
 		UploadAvatarUC:        uploadAvatar,
 		GetAvatarUC:           getAvatar,
 		RemoveAvatarUC:        removeAvatar,
+		UpsertCVUC:            upsertCV,
+		GetCVUC:               getCV,
+		RemoveCVUC:            removeCV,
 		PortfolioStore:        portfolioStore,
 		ProfileDetailsRepo:    profileDetailsRepo,
 		CapabilityPolicy:      capabilityPolicy.withDefaults(),
@@ -646,6 +655,65 @@ func (s *UserServer) RemoveMyAvatar(ctx context.Context, req *userv1.RemoveMyAva
 	return &userv1.RemoveMyAvatarResponse{Removed: out.Removed}, nil
 }
 
+func (s *UserServer) UpsertMyCV(ctx context.Context, req *userv1.UploadMyCVRequest) (*userv1.UploadMyCVResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if s.UpsertCVUC == nil {
+		return nil, status.Error(codes.Internal, "cv use-case not configured")
+	}
+	out, err := s.UpsertCVUC.Execute(ctx, application.UpsertCVInput{
+		UserID:      userID,
+		FileName:    req.GetFileName(),
+		ContentType: req.GetContentType(),
+		Content:     req.GetContent(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.UploadMyCVResponse{Cv: s.toProtoCV(out.CV, out.DownloadURL)}, nil
+}
+
+func (s *UserServer) GetMyCV(ctx context.Context, req *userv1.GetMyCVRequest) (*userv1.GetMyCVResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if s.GetCVUC == nil {
+		return nil, status.Error(codes.Internal, "cv use-case not configured")
+	}
+	out, err := s.GetCVUC.Execute(ctx, application.GetCVInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetMyCVResponse{Cv: s.toProtoCV(out.CV, out.DownloadURL)}, nil
+}
+
+func (s *UserServer) RemoveMyCV(ctx context.Context, req *userv1.RemoveMyCVRequest) (*userv1.RemoveMyCVResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if s.RemoveCVUC == nil {
+		return nil, status.Error(codes.Internal, "cv use-case not configured")
+	}
+	out, err := s.RemoveCVUC.Execute(ctx, application.RemoveCVInput{UserID: userID})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.RemoveMyCVResponse{Removed: out.Removed}, nil
+}
+
 func (s *UserServer) CreateMyPortfolioItem(ctx context.Context, req *userv1.CreateMyPortfolioItemRequest) (*userv1.CreateMyPortfolioItemResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1181,6 +1249,17 @@ func toAppPortfolioMediaInputs(items []*userv1.PortfolioMediaInput) ([]applicati
 		})
 	}
 	return out, nil
+}
+
+func (s *UserServer) toProtoCV(cv application.CV, downloadURL string) *userv1.ProfileCV {
+	return &userv1.ProfileCV{
+		UserId:        cv.UserID.String(),
+		FileName:      cv.FileName,
+		ContentType:   cv.ContentType,
+		SizeBytes:     cv.SizeBytes,
+		UpdatedAtUnix: cv.UpdatedAt.Unix(),
+		DownloadUrl:   strings.TrimSpace(downloadURL),
+	}
 }
 
 func (s *UserServer) toProtoPortfolioItem(ctx context.Context, item application.PortfolioItem) (*userv1.PortfolioItem, error) {

@@ -509,6 +509,95 @@ func (h *UserHandler) RemoveMeAvatar(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"removed": resp.GetRemoved()})
 }
 
+func (h *UserHandler) UploadMeCV(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	fileHeader, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})
+		return
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to open uploaded file"})
+		return
+	}
+	defer file.Close()
+
+	content, err := io.ReadAll(file)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to read uploaded file"})
+		return
+	}
+
+	contentType := strings.TrimSpace(fileHeader.Header.Get("Content-Type"))
+	if contentType == "" {
+		contentType = http.DetectContentType(content)
+	}
+
+	resp, err := h.client.UpsertMyCV(c.Request.Context(), &userv1.UploadMyCVRequest{
+		UserId:      userID,
+		FileName:    fileHeader.Filename,
+		ContentType: contentType,
+		Content:     content,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	cvPayload, err := protoToAny(resp.GetCv())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"cv": cvPayload})
+}
+
+func (h *UserHandler) GetMeCV(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.GetMyCV(c.Request.Context(), &userv1.GetMyCVRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	cvPayload, err := protoToAny(resp.GetCv())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"cv": cvPayload})
+}
+
+func (h *UserHandler) RemoveMeCV(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	resp, err := h.client.RemoveMyCV(c.Request.Context(), &userv1.RemoveMyCVRequest{UserId: userID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"removed": resp.GetRemoved()})
+}
+
 func (h *UserHandler) UpdateAccountStatus(c *gin.Context) {
 	requesterID, ok := callerUserID(c)
 	if !ok {

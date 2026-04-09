@@ -135,6 +135,11 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.GET("/me/avatar", userHandler.GetMeAvatar)
 	userRoutes.DELETE("/me/avatar", userHandler.RemoveMeAvatar)
 
+	// CV: upload, read URL, and delete profile document.
+	userRoutes.POST("/me/cv", userHandler.UploadMeCV)
+	userRoutes.GET("/me/cv", userHandler.GetMeCV)
+	userRoutes.DELETE("/me/cv", userHandler.RemoveMeCV)
+
 	// Portfolio: CRUD for showcase projects.
 	userRoutes.POST("/me/portfolio", userHandler.CreateMePortfolioItem)
 	userRoutes.GET("/me/portfolio", userHandler.ListMePortfolioItems)

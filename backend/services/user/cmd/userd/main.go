@@ -47,6 +47,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("avatar storage: %v", err)
 	}
+	cvStore, err := storage.NewCVStore(ctx, cfg.CVStorage)
+	if err != nil {
+		log.Fatalf("cv storage: %v", err)
+	}
 	portfolioStore, err := storage.NewPortfolioStore(ctx, cfg.PortfolioStorage)
 	if err != nil {
 		log.Fatalf("portfolio storage: %v", err)
@@ -74,6 +78,9 @@ func main() {
 	}
 	getAvatarUC := &application.GetAvatar{Profiles: profileRepo, Store: avatarStore}
 	removeAvatarUC := &application.RemoveAvatar{Profiles: profileRepo, Store: avatarStore}
+	upsertCVUC := &application.UpsertCV{Profiles: profileRepo, Store: cvStore, Clock: clockImpl}
+	getCVUC := &application.GetCV{Profiles: profileRepo, Store: cvStore}
+	removeCVUC := &application.RemoveCV{Profiles: profileRepo, Store: cvStore}
 
 	userServer := grpcadapter.NewUserServer(
 		createProfileUC,
@@ -89,6 +96,9 @@ func main() {
 		uploadAvatarUC,
 		getAvatarUC,
 		removeAvatarUC,
+		upsertCVUC,
+		getCVUC,
+		removeCVUC,
 		portfolioStore,
 		profileRepo,
 		grpcadapter.CapabilityPolicy{
