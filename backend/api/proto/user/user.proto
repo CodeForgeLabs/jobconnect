@@ -15,10 +15,14 @@ service UserService {
   rpc PatchMySettings(PatchMySettingsRequest)
     returns (PatchMySettingsResponse);
 
+  rpc GetMyAvatarUploadUrl(GetMyAvatarUploadUrlRequest)
+      returns (GetMyAvatarUploadUrlResponse);
   rpc UpsertMyAvatar(UploadMyAvatarRequest) returns (UploadMyAvatarResponse);
   rpc GetMyAvatar(GetMyAvatarRequest) returns (GetMyAvatarResponse);
   rpc RemoveMyAvatar(RemoveMyAvatarRequest) returns (RemoveMyAvatarResponse);
 
+  rpc GetMyCVUploadUrl(GetMyCVUploadUrlRequest)
+      returns (GetMyCVUploadUrlResponse);
   rpc UpsertMyCV(UploadMyCVRequest) returns (UploadMyCVResponse);
   rpc GetMyCV(GetMyCVRequest) returns (GetMyCVResponse);
   rpc RemoveMyCV(RemoveMyCVRequest) returns (RemoveMyCVResponse);
@@ -178,6 +182,7 @@ message ProfileAvatar {
   int32 width = 6;
   int32 height = 7;
   int64 updated_at_unix = 8;
+  string download_url = 9;
 }
 
 message UserProfile {
@@ -332,11 +337,24 @@ message GetMyOnboardingStatusResponse {
   ProfileReadiness readiness = 3;
 }
 
+message GetMyAvatarUploadUrlRequest {
+  string user_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+}
+
+message GetMyAvatarUploadUrlResponse {
+  string storage_key = 1;
+  string upload_url = 2;
+}
+
 message UploadMyAvatarRequest {
   string user_id = 1;
   string file_name = 2;
   string content_type = 3;
-  bytes content = 4;
+  string storage_key = 4;
+  int32 width = 5;
+  int32 height = 6;
 }
 
 message UploadMyAvatarResponse {
@@ -350,7 +368,6 @@ message GetMyAvatarRequest {
 
 message GetMyAvatarResponse {
   ProfileAvatar avatar = 1;
-  bytes content = 2;
 }
 
 message RemoveMyAvatarRequest {
@@ -374,7 +391,7 @@ message UploadMyCVRequest {
   string user_id = 1;
   string file_name = 2;
   string content_type = 3;
-  bytes content = 4;
+  string storage_key = 4;
 }
 
 message UploadMyCVResponse {
@@ -383,6 +400,17 @@ message UploadMyCVResponse {
 
 message GetMyCVRequest {
   string user_id = 1;
+}
+
+message GetMyCVUploadUrlRequest {
+  string user_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+}
+
+message GetMyCVUploadUrlResponse {
+  string storage_key = 1;
+  string upload_url = 2;
 }
 
 message GetMyCVResponse {
