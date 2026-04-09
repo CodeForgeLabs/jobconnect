@@ -51,11 +51,12 @@ This document provides a detailed reference for authenticated self-service user 
 4. `DELETE /api/v1/users/me/cv`
 
 ### Portfolio
-1. `POST /api/v1/users/me/portfolio`
-2. `GET /api/v1/users/me/portfolio`
-3. `GET /api/v1/users/me/portfolio/:itemId`
-4. `PUT /api/v1/users/me/portfolio/:itemId`
-5. `DELETE /api/v1/users/me/portfolio/:itemId`
+1. `POST /api/v1/users/me/portfolio/media/upload-url`
+2. `POST /api/v1/users/me/portfolio`
+3. `GET /api/v1/users/me/portfolio`
+4. `GET /api/v1/users/me/portfolio/:itemId`
+5. `PUT /api/v1/users/me/portfolio/:itemId`
+6. `DELETE /api/v1/users/me/portfolio/:itemId`
 
 ### Work + Hiring Preferences
 1. `PATCH /api/v1/users/me/work-preferences`
@@ -199,6 +200,17 @@ This document provides a detailed reference for authenticated self-service user 
 
 ### Portfolio
 
+#### POST /api/v1/users/me/portfolio/media/upload-url
+- Request body:
+  - `file_name`: string.
+  - `content_type`: string.
+- Response `200`:
+  - `storage_key`: string.
+  - `upload_url`: string (presigned upload URL).
+- Notes:
+  - Caller uploads binary directly to object storage using `upload_url`.
+  - Use the returned `storage_key` in a portfolio media item (`media[].storage_key`) when calling create/update endpoints.
+
 #### POST /api/v1/users/me/portfolio
 - Request body:
   - `title` (max 50 chars)
@@ -212,6 +224,7 @@ This document provides a detailed reference for authenticated self-service user 
   - `item`: `PortfolioItem`.
 - Notes:
   - Authenticated caller identity is always used for `user_id`.
+  - For IMAGE/VIDEO/FILE media entries, request upload URL first and pass the returned `storage_key` in `media[].storage_key`.
 
 #### GET /api/v1/users/me/portfolio
 - Query params:
