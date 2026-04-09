@@ -27,6 +27,9 @@ service UserService {
   rpc GetMyCV(GetMyCVRequest) returns (GetMyCVResponse);
   rpc RemoveMyCV(RemoveMyCVRequest) returns (RemoveMyCVResponse);
 
+    rpc GetMyPortfolioMediaUploadUrl(GetMyPortfolioMediaUploadUrlRequest)
+      returns (GetMyPortfolioMediaUploadUrlResponse);
+
   rpc CreateMyPortfolioItem(CreateMyPortfolioItemRequest)
       returns (CreateMyPortfolioItemResponse);
   rpc GetMyPortfolioItem(GetMyPortfolioItemRequest)
@@ -415,6 +418,17 @@ message GetMyCVUploadUrlResponse {
 
 message GetMyCVResponse {
   ProfileCV cv = 1;
+}
+
+message GetMyPortfolioMediaUploadUrlRequest {
+  string user_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+}
+
+message GetMyPortfolioMediaUploadUrlResponse {
+  string storage_key = 1;
+  string upload_url = 2;
 }
 
 message RemoveMyCVRequest {
