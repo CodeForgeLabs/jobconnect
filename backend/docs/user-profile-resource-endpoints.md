@@ -200,6 +200,8 @@ This document provides a detailed reference for authenticated self-service user 
 
 ### Portfolio
 
+- Authorization note: portfolio endpoints in this section are freelancer-only (`403 Forbidden` for non-freelancer callers).
+
 #### POST /api/v1/users/me/portfolio/media/upload-url
 - Request body:
   - `file_name`: string.
