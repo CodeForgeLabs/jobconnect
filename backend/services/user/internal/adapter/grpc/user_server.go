@@ -792,6 +792,9 @@ func (s *UserServer) CreateMyPortfolioItem(ctx context.Context, req *userv1.Crea
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
+	if err := s.ensureFreelancerCaller(ctx, userID); err != nil {
+		return nil, err
+	}
 	if err := validatePortfolioItemInput(req.GetTitle(), req.GetDescription()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -828,6 +831,9 @@ func (s *UserServer) GetMyPortfolioItem(ctx context.Context, req *userv1.GetMyPo
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
+	if err := s.ensureFreelancerCaller(ctx, userID); err != nil {
+		return nil, err
+	}
 	item, err := s.ProfileDetailsRepo.GetPortfolioItem(ctx, userID, req.GetItemId())
 	if err != nil {
 		return nil, toStatus(err)
@@ -847,6 +853,9 @@ func (s *UserServer) UpdateMyPortfolioItem(ctx context.Context, req *userv1.Upda
 	userID, err := uuid.Parse(req.GetUserId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if err := s.ensureFreelancerCaller(ctx, userID); err != nil {
+		return nil, err
 	}
 
 	current, err := s.ProfileDetailsRepo.GetPortfolioItem(ctx, userID, req.GetItemId())
@@ -904,6 +913,9 @@ func (s *UserServer) DeleteMyPortfolioItem(ctx context.Context, req *userv1.Dele
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
+	if err := s.ensureFreelancerCaller(ctx, userID); err != nil {
+		return nil, err
+	}
 	deleted, err := s.ProfileDetailsRepo.DeletePortfolioItem(ctx, userID, req.GetItemId())
 	if err != nil {
 		return nil, toStatus(err)
@@ -919,6 +931,9 @@ func (s *UserServer) ListMyPortfolioItems(ctx context.Context, req *userv1.ListM
 	userID, err := uuid.Parse(req.GetUserId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if err := s.ensureFreelancerCaller(ctx, userID); err != nil {
+		return nil, err
 	}
 
 	pageSize := uint32(20)
@@ -948,6 +963,20 @@ func (s *UserServer) ListMyPortfolioItems(ctx context.Context, req *userv1.ListM
 		Items: items,
 		Page:  &userv1.PagingResponse{NextPageToken: out.NextPageToken},
 	}, nil
+}
+
+func (s *UserServer) ensureFreelancerCaller(ctx context.Context, userID uuid.UUID) error {
+	if s.GetProfileUC == nil {
+		return status.Error(codes.Internal, "profile use-case not configured")
+	}
+	out, err := s.GetProfileUC.Execute(ctx, application.GetProfileInput{UserID: userID})
+	if err != nil {
+		return toStatus(err)
+	}
+	if strings.ToLower(strings.TrimSpace(out.Profile.Role)) != domain.RoleFreelancer {
+		return status.Error(codes.PermissionDenied, "freelancer role required")
+	}
+	return nil
 }
 
 func (s *UserServer) toProtoUserProfile(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) *userv1.UserProfile {
