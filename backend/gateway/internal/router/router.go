@@ -139,13 +139,15 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.GET("/me/cv", userHandler.GetMeCV)
 	userRoutes.DELETE("/me/cv", userHandler.RemoveMeCV)
 
-	// Portfolio: media upload reservation + CRUD for showcase projects.
-	userRoutes.POST("/me/portfolio/media/upload-url", middleware.RequireRoles("freelancer"), userHandler.GetMePortfolioMediaUploadUrl)
-	userRoutes.POST("/me/portfolio", userHandler.CreateMePortfolioItem)
-	userRoutes.GET("/me/portfolio", userHandler.ListMePortfolioItems)
-	userRoutes.GET("/me/portfolio/:itemId", userHandler.GetMePortfolioItem)
-	userRoutes.PUT("/me/portfolio/:itemId", userHandler.UpdateMePortfolioItem)
-	userRoutes.DELETE("/me/portfolio/:itemId", userHandler.DeleteMePortfolioItem)
+	// Portfolio: freelancer-only media upload reservation + CRUD for showcase projects.
+	portfolioRoutes := userRoutes.Group("/me/portfolio")
+	portfolioRoutes.Use(middleware.RequireRoles("freelancer"))
+	portfolioRoutes.POST("/media/upload-url", userHandler.GetMePortfolioMediaUploadUrl)
+	portfolioRoutes.POST("", userHandler.CreateMePortfolioItem)
+	portfolioRoutes.GET("", userHandler.ListMePortfolioItems)
+	portfolioRoutes.GET("/:itemId", userHandler.GetMePortfolioItem)
+	portfolioRoutes.PUT("/:itemId", userHandler.UpdateMePortfolioItem)
+	portfolioRoutes.DELETE("/:itemId", userHandler.DeleteMePortfolioItem)
 
 	// Freelancer preferences: work style and client matching.
 	userRoutes.PATCH("/me/work-preferences", userHandler.SetMeWorkPreferences)
