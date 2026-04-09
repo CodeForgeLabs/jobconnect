@@ -208,8 +208,10 @@ This document provides a detailed reference for authenticated self-service user 
   - `storage_key`: string.
   - `upload_url`: string (presigned upload URL).
 - Notes:
+  - Freelancer role is required (`403 Forbidden` for non-freelancer callers).
   - Caller uploads binary directly to object storage using `upload_url`.
   - Use the returned `storage_key` in a portfolio media item (`media[].storage_key`) when calling create/update endpoints.
+  - Allowed `content_type`: `image/jpeg`, `image/png`, `image/webp`, `video/mp4`, `video/webm`, `application/pdf`.
 
 #### POST /api/v1/users/me/portfolio
 - Request body:
@@ -225,6 +227,12 @@ This document provides a detailed reference for authenticated self-service user 
 - Notes:
   - Authenticated caller identity is always used for `user_id`.
   - For IMAGE/VIDEO/FILE media entries, request upload URL first and pass the returned `storage_key` in `media[].storage_key`.
+  - For IMAGE/VIDEO/FILE media entries:
+    - `storage_key` must start with `portfolio/{caller_user_id}/`.
+    - `content_type` is required and must match media type:
+      - IMAGE: `image/jpeg`, `image/png`, `image/webp`
+      - VIDEO: `video/mp4`, `video/webm`
+      - FILE: `application/pdf`
 
 #### GET /api/v1/users/me/portfolio
 - Query params:
@@ -249,6 +257,12 @@ This document provides a detailed reference for authenticated self-service user 
   - `item`: updated `PortfolioItem`.
 - Notes:
   - Authenticated caller `user_id` and path `itemId` override request body values.
+  - For IMAGE/VIDEO/FILE media entries in updates:
+    - `storage_key` must start with `portfolio/{caller_user_id}/`.
+    - `content_type` is required and must match media type:
+      - IMAGE: `image/jpeg`, `image/png`, `image/webp`
+      - VIDEO: `video/mp4`, `video/webm`
+      - FILE: `application/pdf`
 
 #### DELETE /api/v1/users/me/portfolio/:itemId
 - Path params:
