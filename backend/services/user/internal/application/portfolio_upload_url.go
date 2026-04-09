@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"jobconnect/user/internal/domain"
+
 	"github.com/google/uuid"
 )
 
@@ -26,8 +28,9 @@ type PortfolioMediaUploadStore interface {
 }
 
 type GetPortfolioMediaUploadURL struct {
-	Store PortfolioMediaUploadStore
-	TTL   time.Duration
+	Store        PortfolioMediaUploadStore
+	RoleProfiles CVRoleRepository
+	TTL          time.Duration
 }
 
 func (uc *GetPortfolioMediaUploadURL) Execute(ctx context.Context, in GetPortfolioMediaUploadURLInput) (GetPortfolioMediaUploadURLOutput, error) {
@@ -37,6 +40,9 @@ func (uc *GetPortfolioMediaUploadURL) Execute(ctx context.Context, in GetPortfol
 	if uc.Store == nil {
 		return GetPortfolioMediaUploadURLOutput{}, fmt.Errorf("portfolio object store is not configured")
 	}
+	if err := requireFreelancerProfile(ctx, in.UserID, uc.RoleProfiles); err != nil {
+		return GetPortfolioMediaUploadURLOutput{}, err
+	}
 	fileName := strings.TrimSpace(in.FileName)
 	if fileName == "" {
 		return GetPortfolioMediaUploadURLOutput{}, fmt.Errorf("file_name is required")
@@ -44,6 +50,9 @@ func (uc *GetPortfolioMediaUploadURL) Execute(ctx context.Context, in GetPortfol
 	contentType := strings.TrimSpace(strings.ToLower(in.ContentType))
 	if contentType == "" {
 		return GetPortfolioMediaUploadURLOutput{}, fmt.Errorf("content_type is required")
+	}
+	if err := domain.ValidatePortfolioUploadContentType(contentType); err != nil {
+		return GetPortfolioMediaUploadURLOutput{}, err
 	}
 
 	storageKey := buildPortfolioMediaStorageKey(in.UserID, fileName)

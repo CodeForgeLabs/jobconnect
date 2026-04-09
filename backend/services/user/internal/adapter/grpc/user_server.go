@@ -795,7 +795,7 @@ func (s *UserServer) CreateMyPortfolioItem(ctx context.Context, req *userv1.Crea
 	if err := validatePortfolioItemInput(req.GetTitle(), req.GetDescription()); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	media, err := toAppPortfolioMediaInputs(req.GetMedia())
+	media, err := toAppPortfolioMediaInputs(userID, req.GetMedia())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -873,7 +873,7 @@ func (s *UserServer) UpdateMyPortfolioItem(ctx context.Context, req *userv1.Upda
 		current.Tags = req.GetTags().GetValues()
 	}
 	if req.Media != nil {
-		media, mapErr := toAppPortfolioMediaInputs(req.GetMedia().GetValues())
+		media, mapErr := toAppPortfolioMediaInputs(userID, req.GetMedia().GetValues())
 		if mapErr != nil {
 			return nil, status.Error(codes.InvalidArgument, mapErr.Error())
 		}
@@ -1237,8 +1237,9 @@ func validatePortfolioItemInput(title, description string) error {
 	return nil
 }
 
-func toAppPortfolioMediaInputs(items []*userv1.PortfolioMediaInput) ([]application.PortfolioMedia, error) {
+func toAppPortfolioMediaInputs(userID uuid.UUID, items []*userv1.PortfolioMediaInput) ([]application.PortfolioMedia, error) {
 	out := make([]application.PortfolioMedia, 0, len(items))
+	ownedPrefix := "portfolio/" + userID.String() + "/"
 	for _, media := range items {
 		if media == nil {
 			continue
@@ -1246,6 +1247,7 @@ func toAppPortfolioMediaInputs(items []*userv1.PortfolioMediaInput) ([]applicati
 		storageKey := strings.TrimSpace(media.GetStorageKey())
 		externalURL := strings.TrimSpace(media.GetExternalUrl())
 		mediaType := media.GetMediaType()
+		contentType := strings.TrimSpace(strings.ToLower(media.GetContentType()))
 
 		switch mediaType {
 		case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_LINK:
@@ -1267,6 +1269,18 @@ func toAppPortfolioMediaInputs(items []*userv1.PortfolioMediaInput) ([]applicati
 			if externalURL != "" {
 				return nil, status.Error(codes.InvalidArgument, "external_url is not allowed for upload media")
 			}
+			if !strings.HasPrefix(storageKey, ownedPrefix) {
+				return nil, status.Error(codes.InvalidArgument, "storage_key must belong to caller")
+			}
+			if contentType == "" {
+				return nil, status.Error(codes.InvalidArgument, "content_type is required for upload media")
+			}
+			if err := domain.ValidatePortfolioUploadContentType(contentType); err != nil {
+				return nil, status.Error(codes.InvalidArgument, err.Error())
+			}
+			if !isPortfolioMediaTypeContentTypeCompatible(mediaType, contentType) {
+				return nil, status.Error(codes.InvalidArgument, "content_type does not match media_type")
+			}
 		default:
 			return nil, status.Error(codes.InvalidArgument, "unsupported portfolio media_type")
 		}
@@ -1276,13 +1290,27 @@ func toAppPortfolioMediaInputs(items []*userv1.PortfolioMediaInput) ([]applicati
 			StorageKey:  storageKey,
 			ExternalURL: externalURL,
 			FileName:    strings.TrimSpace(media.GetFileName()),
-			ContentType: strings.TrimSpace(media.GetContentType()),
+			ContentType: contentType,
 			SizeBytes:   media.GetSizeBytes(),
 			Width:       media.GetWidth(),
 			Height:      media.GetHeight(),
 		})
 	}
 	return out, nil
+}
+
+func isPortfolioMediaTypeContentTypeCompatible(mediaType userv1.PortfolioMediaType, contentType string) bool {
+	ct := strings.TrimSpace(strings.ToLower(contentType))
+	switch mediaType {
+	case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE:
+		return ct == "image/jpeg" || ct == "image/png" || ct == "image/webp"
+	case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_VIDEO:
+		return ct == "video/mp4" || ct == "video/webm"
+	case userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_FILE:
+		return ct == "application/pdf"
+	default:
+		return false
+	}
 }
 
 func (s *UserServer) toProtoCV(cv application.CV, downloadURL string) *userv1.ProfileCV {

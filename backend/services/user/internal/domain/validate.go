@@ -70,6 +70,16 @@ func ValidateCVContentType(contentType string) error {
 	}
 }
 
+func ValidatePortfolioUploadContentType(contentType string) error {
+	ct := strings.TrimSpace(strings.ToLower(contentType))
+	switch ct {
+	case "image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm", "application/pdf":
+		return nil
+	default:
+		return fmt.Errorf("unsupported portfolio content_type")
+	}
+}
+
 func ValidateCVSize(size int) error {
 	if size <= 0 {
 		return fmt.Errorf("cv content is required")
