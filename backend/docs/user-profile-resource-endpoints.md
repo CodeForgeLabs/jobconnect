@@ -31,6 +31,7 @@ Profile patch ownership notes:
 - DELETE `/api/v1/users/me/cv` -> `RemoveMyCV`
 
 CV behavior:
+- CV endpoints are freelancer-only; client/admin profiles receive permission denied.
 - The service stores CV bytes in MinIO and metadata in Postgres (`profile_cvs`).
 - Reads return a short-lived `download_url` (presigned object URL).
 - `storage_key` remains internal and is not exposed in the API response.
