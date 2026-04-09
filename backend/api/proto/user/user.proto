@@ -19,6 +19,10 @@ service UserService {
   rpc GetMyAvatar(GetMyAvatarRequest) returns (GetMyAvatarResponse);
   rpc RemoveMyAvatar(RemoveMyAvatarRequest) returns (RemoveMyAvatarResponse);
 
+  rpc UpsertMyCV(UploadMyCVRequest) returns (UploadMyCVResponse);
+  rpc GetMyCV(GetMyCVRequest) returns (GetMyCVResponse);
+  rpc RemoveMyCV(RemoveMyCVRequest) returns (RemoveMyCVResponse);
+
   rpc CreateMyPortfolioItem(CreateMyPortfolioItemRequest)
       returns (CreateMyPortfolioItemResponse);
   rpc GetMyPortfolioItem(GetMyPortfolioItemRequest)
@@ -392,6 +396,42 @@ message RemoveMyAvatarRequest {
 }
 
 message RemoveMyAvatarResponse {
+  bool removed = 1;
+}
+
+message ProfileCV {
+  string user_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+  int64 size_bytes = 4;
+  int64 updated_at_unix = 5;
+  string download_url = 6;
+}
+
+message UploadMyCVRequest {
+  string user_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+  bytes content = 4;
+}
+
+message UploadMyCVResponse {
+  ProfileCV cv = 1;
+}
+
+message GetMyCVRequest {
+  string user_id = 1;
+}
+
+message GetMyCVResponse {
+  ProfileCV cv = 1;
+}
+
+message RemoveMyCVRequest {
+  string user_id = 1;
+}
+
+message RemoveMyCVResponse {
   bool removed = 1;
 }
 

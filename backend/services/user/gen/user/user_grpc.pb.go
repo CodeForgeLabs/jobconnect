@@ -29,6 +29,9 @@ const (
 	UserService_UpsertMyAvatar_FullMethodName           = "/user.v1.UserService/UpsertMyAvatar"
 	UserService_GetMyAvatar_FullMethodName              = "/user.v1.UserService/GetMyAvatar"
 	UserService_RemoveMyAvatar_FullMethodName           = "/user.v1.UserService/RemoveMyAvatar"
+	UserService_UpsertMyCV_FullMethodName               = "/user.v1.UserService/UpsertMyCV"
+	UserService_GetMyCV_FullMethodName                  = "/user.v1.UserService/GetMyCV"
+	UserService_RemoveMyCV_FullMethodName               = "/user.v1.UserService/RemoveMyCV"
 	UserService_CreateMyPortfolioItem_FullMethodName    = "/user.v1.UserService/CreateMyPortfolioItem"
 	UserService_GetMyPortfolioItem_FullMethodName       = "/user.v1.UserService/GetMyPortfolioItem"
 	UserService_UpdateMyPortfolioItem_FullMethodName    = "/user.v1.UserService/UpdateMyPortfolioItem"
@@ -70,6 +73,9 @@ type UserServiceClient interface {
 	UpsertMyAvatar(ctx context.Context, in *UploadMyAvatarRequest, opts ...grpc.CallOption) (*UploadMyAvatarResponse, error)
 	GetMyAvatar(ctx context.Context, in *GetMyAvatarRequest, opts ...grpc.CallOption) (*GetMyAvatarResponse, error)
 	RemoveMyAvatar(ctx context.Context, in *RemoveMyAvatarRequest, opts ...grpc.CallOption) (*RemoveMyAvatarResponse, error)
+	UpsertMyCV(ctx context.Context, in *UploadMyCVRequest, opts ...grpc.CallOption) (*UploadMyCVResponse, error)
+	GetMyCV(ctx context.Context, in *GetMyCVRequest, opts ...grpc.CallOption) (*GetMyCVResponse, error)
+	RemoveMyCV(ctx context.Context, in *RemoveMyCVRequest, opts ...grpc.CallOption) (*RemoveMyCVResponse, error)
 	CreateMyPortfolioItem(ctx context.Context, in *CreateMyPortfolioItemRequest, opts ...grpc.CallOption) (*CreateMyPortfolioItemResponse, error)
 	GetMyPortfolioItem(ctx context.Context, in *GetMyPortfolioItemRequest, opts ...grpc.CallOption) (*GetMyPortfolioItemResponse, error)
 	UpdateMyPortfolioItem(ctx context.Context, in *UpdateMyPortfolioItemRequest, opts ...grpc.CallOption) (*UpdateMyPortfolioItemResponse, error)
@@ -201,6 +207,36 @@ func (c *userServiceClient) RemoveMyAvatar(ctx context.Context, in *RemoveMyAvat
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemoveMyAvatarResponse)
 	err := c.cc.Invoke(ctx, UserService_RemoveMyAvatar_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpsertMyCV(ctx context.Context, in *UploadMyCVRequest, opts ...grpc.CallOption) (*UploadMyCVResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadMyCVResponse)
+	err := c.cc.Invoke(ctx, UserService_UpsertMyCV_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetMyCV(ctx context.Context, in *GetMyCVRequest, opts ...grpc.CallOption) (*GetMyCVResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMyCVResponse)
+	err := c.cc.Invoke(ctx, UserService_GetMyCV_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) RemoveMyCV(ctx context.Context, in *RemoveMyCVRequest, opts ...grpc.CallOption) (*RemoveMyCVResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveMyCVResponse)
+	err := c.cc.Invoke(ctx, UserService_RemoveMyCV_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -462,6 +498,9 @@ type UserServiceServer interface {
 	UpsertMyAvatar(context.Context, *UploadMyAvatarRequest) (*UploadMyAvatarResponse, error)
 	GetMyAvatar(context.Context, *GetMyAvatarRequest) (*GetMyAvatarResponse, error)
 	RemoveMyAvatar(context.Context, *RemoveMyAvatarRequest) (*RemoveMyAvatarResponse, error)
+	UpsertMyCV(context.Context, *UploadMyCVRequest) (*UploadMyCVResponse, error)
+	GetMyCV(context.Context, *GetMyCVRequest) (*GetMyCVResponse, error)
+	RemoveMyCV(context.Context, *RemoveMyCVRequest) (*RemoveMyCVResponse, error)
 	CreateMyPortfolioItem(context.Context, *CreateMyPortfolioItemRequest) (*CreateMyPortfolioItemResponse, error)
 	GetMyPortfolioItem(context.Context, *GetMyPortfolioItemRequest) (*GetMyPortfolioItemResponse, error)
 	UpdateMyPortfolioItem(context.Context, *UpdateMyPortfolioItemRequest) (*UpdateMyPortfolioItemResponse, error)
@@ -528,6 +567,15 @@ func (UnimplementedUserServiceServer) GetMyAvatar(context.Context, *GetMyAvatarR
 }
 func (UnimplementedUserServiceServer) RemoveMyAvatar(context.Context, *RemoveMyAvatarRequest) (*RemoveMyAvatarResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveMyAvatar not implemented")
+}
+func (UnimplementedUserServiceServer) UpsertMyCV(context.Context, *UploadMyCVRequest) (*UploadMyCVResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpsertMyCV not implemented")
+}
+func (UnimplementedUserServiceServer) GetMyCV(context.Context, *GetMyCVRequest) (*GetMyCVResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMyCV not implemented")
+}
+func (UnimplementedUserServiceServer) RemoveMyCV(context.Context, *RemoveMyCVRequest) (*RemoveMyCVResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveMyCV not implemented")
 }
 func (UnimplementedUserServiceServer) CreateMyPortfolioItem(context.Context, *CreateMyPortfolioItemRequest) (*CreateMyPortfolioItemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateMyPortfolioItem not implemented")
@@ -798,6 +846,60 @@ func _UserService_RemoveMyAvatar_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).RemoveMyAvatar(ctx, req.(*RemoveMyAvatarRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpsertMyCV_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadMyCVRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpsertMyCV(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpsertMyCV_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpsertMyCV(ctx, req.(*UploadMyCVRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetMyCV_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyCVRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetMyCV(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetMyCV_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetMyCV(ctx, req.(*GetMyCVRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_RemoveMyCV_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveMyCVRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).RemoveMyCV(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_RemoveMyCV_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).RemoveMyCV(ctx, req.(*RemoveMyCVRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1280,6 +1382,18 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveMyAvatar",
 			Handler:    _UserService_RemoveMyAvatar_Handler,
+		},
+		{
+			MethodName: "UpsertMyCV",
+			Handler:    _UserService_UpsertMyCV_Handler,
+		},
+		{
+			MethodName: "GetMyCV",
+			Handler:    _UserService_GetMyCV_Handler,
+		},
+		{
+			MethodName: "RemoveMyCV",
+			Handler:    _UserService_RemoveMyCV_Handler,
 		},
 		{
 			MethodName: "CreateMyPortfolioItem",
