@@ -9,6 +9,8 @@ import (
 	"jobconnect/user/internal/application"
 
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type fakePortfolioPresigner struct {
@@ -18,6 +20,16 @@ type fakePortfolioPresigner struct {
 func (f *fakePortfolioPresigner) PresignGetObject(_ context.Context, storageKey string, _ time.Duration) (string, error) {
 	f.calls = append(f.calls, storageKey)
 	return "https://example.invalid/presigned/" + storageKey, nil
+}
+
+func (f *fakePortfolioPresigner) PresignPutObject(_ context.Context, storageKey string, _ string, _ time.Duration) (string, error) {
+	return "https://example.invalid/upload/" + storageKey, nil
+}
+
+type fakePortfolioUploadStore struct{}
+
+func (f *fakePortfolioUploadStore) PresignPutObject(_ context.Context, storageKey string, _ string, _ time.Duration) (string, error) {
+	return "https://example.invalid/upload/" + storageKey, nil
 }
 
 func TestToProtoPortfolioItemPresignsStoredMedia(t *testing.T) {
@@ -87,5 +99,37 @@ func TestMapPortfolioMediaTypeToProto(t *testing.T) {
 	}
 	if got := mapPortfolioMediaTypeToProto("LINK"); got != userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_LINK {
 		t.Fatalf("expected link type, got %v", got)
+	}
+}
+
+func TestGetMyPortfolioMediaUploadUrl(t *testing.T) {
+	uc := &application.GetPortfolioMediaUploadURL{Store: &fakePortfolioUploadStore{}}
+	srv := &UserServer{GetPortfolioMediaUploadURLUC: uc}
+	userID := uuid.New().String()
+
+	resp, err := srv.GetMyPortfolioMediaUploadUrl(context.Background(), &userv1.GetMyPortfolioMediaUploadUrlRequest{
+		UserId:      userID,
+		FileName:    "sample.png",
+		ContentType: "image/png",
+	})
+	if err != nil {
+		t.Fatalf("GetMyPortfolioMediaUploadUrl() error = %v", err)
+	}
+	if resp.GetStorageKey() == "" {
+		t.Fatalf("expected non-empty storage key")
+	}
+	if resp.GetUploadUrl() == "" {
+		t.Fatalf("expected non-empty upload url")
+	}
+}
+
+func TestGetMyPortfolioMediaUploadUrlRequiresConfiguredUseCase(t *testing.T) {
+	srv := &UserServer{}
+	_, err := srv.GetMyPortfolioMediaUploadUrl(context.Background(), &userv1.GetMyPortfolioMediaUploadUrlRequest{UserId: uuid.New().String()})
+	if err == nil {
+		t.Fatalf("expected error when use-case is not configured")
+	}
+	if status.Code(err) != codes.Internal {
+		t.Fatalf("expected Internal, got %v", status.Code(err))
 	}
 }

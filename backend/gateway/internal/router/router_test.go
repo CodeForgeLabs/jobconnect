@@ -103,3 +103,27 @@ func TestUserRoutes_DoNotExposeCreateProfileButExposeGetSinglePortfolioEndpoint(
 		t.Fatalf("expected GET /api/v1/users/me/portfolio/:itemId to be registered")
 	}
 }
+
+func TestUserRoutesExposePortfolioMediaUploadURLRoute(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	cfg := config.Config{
+		JWTSecret: []byte("test-secret"),
+	}
+
+	engine := New(
+		cfg,
+		&handlers.AuthHandler{},
+		&handlers.VerificationHandler{},
+		&handlers.UserHandler{},
+		&handlers.JobHandler{},
+	)
+
+	for _, route := range engine.Routes() {
+		if route.Path == "/api/v1/users/me/portfolio/media/upload-url" && route.Method == "POST" {
+			return
+		}
+	}
+
+	t.Fatalf("expected POST /api/v1/users/me/portfolio/media/upload-url to be registered")
+}

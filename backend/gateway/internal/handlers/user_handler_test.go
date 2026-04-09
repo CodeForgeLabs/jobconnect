@@ -80,7 +80,8 @@ type fullUserServiceServerStub struct {
 	getMyAvatarReq    *userv1.GetMyAvatarRequest
 	removeMyAvatarReq *userv1.RemoveMyAvatarRequest
 
-	getMyCVUploadUrlReq *userv1.GetMyCVUploadUrlRequest
+	getMyCVUploadUrlReq             *userv1.GetMyCVUploadUrlRequest
+	getMyPortfolioMediaUploadUrlReq *userv1.GetMyPortfolioMediaUploadUrlRequest
 
 	upsertMyCVReq *userv1.UploadMyCVRequest
 	getMyCVReq    *userv1.GetMyCVRequest
@@ -171,6 +172,11 @@ func (s *fullUserServiceServerStub) RemoveMyAvatar(ctx context.Context, in *user
 func (s *fullUserServiceServerStub) GetMyCVUploadUrl(ctx context.Context, in *userv1.GetMyCVUploadUrlRequest) (*userv1.GetMyCVUploadUrlResponse, error) {
 	s.getMyCVUploadUrlReq = in
 	return &userv1.GetMyCVUploadUrlResponse{StorageKey: "cvs/test/current", UploadUrl: "https://upload.test/cv"}, nil
+}
+
+func (s *fullUserServiceServerStub) GetMyPortfolioMediaUploadUrl(ctx context.Context, in *userv1.GetMyPortfolioMediaUploadUrlRequest) (*userv1.GetMyPortfolioMediaUploadUrlResponse, error) {
+	s.getMyPortfolioMediaUploadUrlReq = in
+	return &userv1.GetMyPortfolioMediaUploadUrlResponse{StorageKey: "portfolio/test/item-1/image.png", UploadUrl: "https://upload.test/portfolio"}, nil
 }
 
 func (s *fullUserServiceServerStub) UpsertMyCV(ctx context.Context, in *userv1.UploadMyCVRequest) (*userv1.UploadMyCVResponse, error) {
@@ -404,6 +410,21 @@ func TestUserHandler_PostmanStyleEndpointCoverage(t *testing.T) {
 		}
 		if stub.getMyCVUploadUrlReq.GetFileName() != "resume.pdf" || stub.getMyCVUploadUrlReq.GetContentType() != "application/pdf" {
 			t.Fatalf("expected cv upload-url metadata to be forwarded")
+		}
+	})
+
+	t.Run("GetMyPortfolioMediaUploadUrl", func(t *testing.T) {
+		ctx, rec := newJSONBodyTestContext(http.MethodPost, "/api/v1/users/me/portfolio/media/upload-url", `{"file_name":"sample.png","content_type":"image/png"}`)
+		ctx.Set(middleware.ContextUserID, userID)
+		h.GetMePortfolioMediaUploadUrl(ctx)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+		}
+		if stub.getMyPortfolioMediaUploadUrlReq == nil || stub.getMyPortfolioMediaUploadUrlReq.GetUserId() != userID {
+			t.Fatalf("expected GetMyPortfolioMediaUploadUrl request with trusted user_id")
+		}
+		if stub.getMyPortfolioMediaUploadUrlReq.GetFileName() != "sample.png" || stub.getMyPortfolioMediaUploadUrlReq.GetContentType() != "image/png" {
+			t.Fatalf("expected portfolio upload-url metadata to be forwarded")
 		}
 	})
 
