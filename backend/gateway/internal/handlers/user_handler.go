@@ -60,12 +60,6 @@ type updateProfileRequest struct {
 	LastActiveAtUnix *int64   `json:"last_active_at_unix"`
 }
 
-type updateAccountStatusRequest struct {
-	Status           string  `json:"status" binding:"required"`
-	Visibility       string  `json:"visibility" binding:"required"`
-	SuspensionReason *string `json:"suspension_reason"`
-}
-
 type updateAccountSettingsRequest struct {
 	UILocale                  *string `json:"ui_locale"`
 	EmailNotificationsEnabled *bool   `json:"email_notifications_enabled"`
@@ -101,76 +95,6 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"profile": profilePayload, "completeness": completenessPayload})
-}
-
-func (h *UserHandler) GetProfile(c *gin.Context) {
-	requesterID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	userID := strings.TrimSpace(c.Param("userId"))
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
-		return
-	}
-
-	resp, err := h.client.GetUserProfile(c.Request.Context(), &userv1.GetUserProfileRequest{RequesterUserId: requesterID, TargetUserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
-}
-
-func (h *UserHandler) GetInternalUserBasic(c *gin.Context) {
-	userID := strings.TrimSpace(c.Param("userId"))
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
-		return
-	}
-
-	resp, err := h.client.GetInternalUserBasic(c.Request.Context(), &userv1.GetInternalUserBasicRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "user", resp.GetUser())
-}
-
-func (h *UserHandler) GetInternalUserProfile(c *gin.Context) {
-	userID := strings.TrimSpace(c.Param("userId"))
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
-		return
-	}
-
-	resp, err := h.client.GetInternalUserProfile(c.Request.Context(), &userv1.GetInternalUserProfileRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
-}
-
-func (h *UserHandler) GetPublicProfile(c *gin.Context) {
-	userID := strings.TrimSpace(c.Param("userId"))
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
-		return
-	}
-
-	resp, err := h.client.GetPublicProfile(c.Request.Context(), &userv1.GetPublicProfileRequest{UserId: userID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
 }
 
 func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
@@ -598,103 +522,6 @@ func (h *UserHandler) RemoveMeCV(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"removed": resp.GetRemoved()})
 }
 
-func (h *UserHandler) UpdateAccountStatus(c *gin.Context) {
-	requesterID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	userID := strings.TrimSpace(c.Param("userId"))
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
-		return
-	}
-
-	var body updateAccountStatusRequest
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	status, err := parseAccountStatus(body.Status)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	statusValue := status
-
-	resp, err := h.client.PatchUserGovernance(c.Request.Context(), &userv1.PatchUserGovernanceRequest{
-		RequesterUserId:  requesterID,
-		TargetUserId:     userID,
-		AccountStatus:    &statusValue,
-		SuspensionReason: body.SuspensionReason,
-	})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	writeProtoEnvelope(c, http.StatusOK, "profile", resp.GetProfile())
-}
-
-func (h *UserHandler) ListUsers(c *gin.Context) {
-	requesterID, ok := callerUserID(c)
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
-		return
-	}
-
-	pageSize, pageToken, err := parsePagination(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	var role *userv1.UserRole
-	if rawRole := strings.TrimSpace(c.Query("role")); rawRole != "" {
-		parsedRole, err := parseUserRole(rawRole)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		role = &parsedRole
-	}
-
-	var accountStatus *userv1.AccountStatus
-	if rawStatus := strings.TrimSpace(c.Query("status")); rawStatus != "" {
-		parsedStatus, err := parseAccountStatus(rawStatus)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		accountStatus = &parsedStatus
-	}
-
-	resp, err := h.client.ListUsers(c.Request.Context(), &userv1.ListUsersRequest{
-		RequesterUserId: requesterID,
-		Q:               strings.TrimSpace(c.Query("q")),
-		Role:            role,
-		AccountStatus:   accountStatus,
-		Page:            &userv1.PagingRequest{PageSize: pageSize, PageToken: pageToken},
-	})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	itemsPayload, err := protoSliceToAny(resp.GetUsers())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
-		return
-	}
-	nextPageToken := ""
-	if resp.GetPage() != nil {
-		nextPageToken = resp.GetPage().GetNextPageToken()
-	}
-	c.JSON(http.StatusOK, gin.H{"users": itemsPayload, "next_page_token": nextPageToken})
-}
-
 func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -706,6 +533,8 @@ func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
 	if !bindProtoJSON(c, req) {
 		return
 	}
+	// Ensure authenticated caller's user ID is used (don't allow override from request body).
+	req.UserId = userID
 
 	resp, err := h.client.CreateMyPortfolioItem(c.Request.Context(), req)
 	if err != nil {
@@ -764,6 +593,9 @@ func (h *UserHandler) UpdateMePortfolioItem(c *gin.Context) {
 	if !bindProtoJSON(c, req) {
 		return
 	}
+	// Ensure authenticated caller's user ID and path item ID are preserved.
+	req.UserId = userID
+	req.ItemId = itemID
 
 	resp, err := h.client.UpdateMyPortfolioItem(c.Request.Context(), req)
 	if err != nil {
@@ -794,37 +626,6 @@ func (h *UserHandler) DeleteMePortfolioItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"deleted": resp.GetDeleted()})
-}
-
-func (h *UserHandler) ListPublicPortfolioItems(c *gin.Context) {
-	userID := strings.TrimSpace(c.Param("userId"))
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId is required"})
-		return
-	}
-
-	pageSize, pageToken, err := parsePagination(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	resp, err := h.client.ListPublicPortfolioItems(c.Request.Context(), &userv1.ListPublicPortfolioItemsRequest{UserId: userID, Page: &userv1.PagingRequest{PageSize: pageSize, PageToken: pageToken}})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-
-	itemsPayload, err := protoSliceToAny(resp.GetItems())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
-		return
-	}
-	nextPageToken := ""
-	if resp.GetPage() != nil {
-		nextPageToken = resp.GetPage().GetNextPageToken()
-	}
-	c.JSON(http.StatusOK, gin.H{"items": itemsPayload, "next_page_token": nextPageToken})
 }
 
 func (h *UserHandler) SetMeWorkPreferences(c *gin.Context) {

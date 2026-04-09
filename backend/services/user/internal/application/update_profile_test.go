@@ -36,10 +36,6 @@ func (m *updateProfileRepoMock) Update(_ context.Context, profile domain.Profile
 	return nil
 }
 
-func (m *updateProfileRepoMock) UpdateAccountState(context.Context, uuid.UUID, string, string, time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
-	panic("not implemented")
-}
-
 func (m *updateProfileRepoMock) Delete(context.Context, uuid.UUID, bool, time.Time) error {
 	panic("not implemented")
 }

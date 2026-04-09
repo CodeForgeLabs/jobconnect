@@ -29,6 +29,9 @@ const (
 	UserService_UpsertMyAvatar_FullMethodName           = "/user.v1.UserService/UpsertMyAvatar"
 	UserService_GetMyAvatar_FullMethodName              = "/user.v1.UserService/GetMyAvatar"
 	UserService_RemoveMyAvatar_FullMethodName           = "/user.v1.UserService/RemoveMyAvatar"
+	UserService_UpsertMyCV_FullMethodName               = "/user.v1.UserService/UpsertMyCV"
+	UserService_GetMyCV_FullMethodName                  = "/user.v1.UserService/GetMyCV"
+	UserService_RemoveMyCV_FullMethodName               = "/user.v1.UserService/RemoveMyCV"
 	UserService_CreateMyPortfolioItem_FullMethodName    = "/user.v1.UserService/CreateMyPortfolioItem"
 	UserService_GetMyPortfolioItem_FullMethodName       = "/user.v1.UserService/GetMyPortfolioItem"
 	UserService_UpdateMyPortfolioItem_FullMethodName    = "/user.v1.UserService/UpdateMyPortfolioItem"
@@ -43,16 +46,6 @@ const (
 	UserService_RemoveSavedFreelancer_FullMethodName    = "/user.v1.UserService/RemoveSavedFreelancer"
 	UserService_UpsertFreelancerNote_FullMethodName     = "/user.v1.UserService/UpsertFreelancerNote"
 	UserService_GetFreelancerNote_FullMethodName        = "/user.v1.UserService/GetFreelancerNote"
-	UserService_GetPublicProfile_FullMethodName         = "/user.v1.UserService/GetPublicProfile"
-	UserService_ListPublicPortfolioItems_FullMethodName = "/user.v1.UserService/ListPublicPortfolioItems"
-	UserService_GetUserProfile_FullMethodName           = "/user.v1.UserService/GetUserProfile"
-	UserService_ListUsers_FullMethodName                = "/user.v1.UserService/ListUsers"
-	UserService_PatchUserGovernance_FullMethodName      = "/user.v1.UserService/PatchUserGovernance"
-	UserService_GetUserAuditSummary_FullMethodName      = "/user.v1.UserService/GetUserAuditSummary"
-	UserService_GetInternalUserBasic_FullMethodName     = "/user.v1.UserService/GetInternalUserBasic"
-	UserService_GetInternalUserProfile_FullMethodName   = "/user.v1.UserService/GetInternalUserProfile"
-	UserService_PatchFreelancerMetrics_FullMethodName   = "/user.v1.UserService/PatchFreelancerMetrics"
-	UserService_TouchLastActive_FullMethodName          = "/user.v1.UserService/TouchLastActive"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -70,6 +63,9 @@ type UserServiceClient interface {
 	UpsertMyAvatar(ctx context.Context, in *UploadMyAvatarRequest, opts ...grpc.CallOption) (*UploadMyAvatarResponse, error)
 	GetMyAvatar(ctx context.Context, in *GetMyAvatarRequest, opts ...grpc.CallOption) (*GetMyAvatarResponse, error)
 	RemoveMyAvatar(ctx context.Context, in *RemoveMyAvatarRequest, opts ...grpc.CallOption) (*RemoveMyAvatarResponse, error)
+	UpsertMyCV(ctx context.Context, in *UploadMyCVRequest, opts ...grpc.CallOption) (*UploadMyCVResponse, error)
+	GetMyCV(ctx context.Context, in *GetMyCVRequest, opts ...grpc.CallOption) (*GetMyCVResponse, error)
+	RemoveMyCV(ctx context.Context, in *RemoveMyCVRequest, opts ...grpc.CallOption) (*RemoveMyCVResponse, error)
 	CreateMyPortfolioItem(ctx context.Context, in *CreateMyPortfolioItemRequest, opts ...grpc.CallOption) (*CreateMyPortfolioItemResponse, error)
 	GetMyPortfolioItem(ctx context.Context, in *GetMyPortfolioItemRequest, opts ...grpc.CallOption) (*GetMyPortfolioItemResponse, error)
 	UpdateMyPortfolioItem(ctx context.Context, in *UpdateMyPortfolioItemRequest, opts ...grpc.CallOption) (*UpdateMyPortfolioItemResponse, error)
@@ -84,19 +80,6 @@ type UserServiceClient interface {
 	RemoveSavedFreelancer(ctx context.Context, in *RemoveSavedFreelancerRequest, opts ...grpc.CallOption) (*RemoveSavedFreelancerResponse, error)
 	UpsertFreelancerNote(ctx context.Context, in *UpsertFreelancerNoteRequest, opts ...grpc.CallOption) (*UpsertFreelancerNoteResponse, error)
 	GetFreelancerNote(ctx context.Context, in *GetFreelancerNoteRequest, opts ...grpc.CallOption) (*GetFreelancerNoteResponse, error)
-	// Public endpoints.
-	GetPublicProfile(ctx context.Context, in *GetPublicProfileRequest, opts ...grpc.CallOption) (*GetPublicProfileResponse, error)
-	ListPublicPortfolioItems(ctx context.Context, in *ListPublicPortfolioItemsRequest, opts ...grpc.CallOption) (*ListPublicPortfolioItemsResponse, error)
-	// Admin endpoints.
-	GetUserProfile(ctx context.Context, in *GetUserProfileRequest, opts ...grpc.CallOption) (*GetUserProfileResponse, error)
-	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
-	PatchUserGovernance(ctx context.Context, in *PatchUserGovernanceRequest, opts ...grpc.CallOption) (*PatchUserGovernanceResponse, error)
-	GetUserAuditSummary(ctx context.Context, in *GetUserAuditSummaryRequest, opts ...grpc.CallOption) (*GetUserAuditSummaryResponse, error)
-	// Internal endpoints.
-	GetInternalUserBasic(ctx context.Context, in *GetInternalUserBasicRequest, opts ...grpc.CallOption) (*GetInternalUserBasicResponse, error)
-	GetInternalUserProfile(ctx context.Context, in *GetInternalUserProfileRequest, opts ...grpc.CallOption) (*GetInternalUserProfileResponse, error)
-	PatchFreelancerMetrics(ctx context.Context, in *PatchFreelancerMetricsRequest, opts ...grpc.CallOption) (*PatchFreelancerMetricsResponse, error)
-	TouchLastActive(ctx context.Context, in *TouchLastActiveRequest, opts ...grpc.CallOption) (*TouchLastActiveResponse, error)
 }
 
 type userServiceClient struct {
@@ -201,6 +184,36 @@ func (c *userServiceClient) RemoveMyAvatar(ctx context.Context, in *RemoveMyAvat
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemoveMyAvatarResponse)
 	err := c.cc.Invoke(ctx, UserService_RemoveMyAvatar_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpsertMyCV(ctx context.Context, in *UploadMyCVRequest, opts ...grpc.CallOption) (*UploadMyCVResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UploadMyCVResponse)
+	err := c.cc.Invoke(ctx, UserService_UpsertMyCV_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetMyCV(ctx context.Context, in *GetMyCVRequest, opts ...grpc.CallOption) (*GetMyCVResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMyCVResponse)
+	err := c.cc.Invoke(ctx, UserService_GetMyCV_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) RemoveMyCV(ctx context.Context, in *RemoveMyCVRequest, opts ...grpc.CallOption) (*RemoveMyCVResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveMyCVResponse)
+	err := c.cc.Invoke(ctx, UserService_RemoveMyCV_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -347,106 +360,6 @@ func (c *userServiceClient) GetFreelancerNote(ctx context.Context, in *GetFreela
 	return out, nil
 }
 
-func (c *userServiceClient) GetPublicProfile(ctx context.Context, in *GetPublicProfileRequest, opts ...grpc.CallOption) (*GetPublicProfileResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetPublicProfileResponse)
-	err := c.cc.Invoke(ctx, UserService_GetPublicProfile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) ListPublicPortfolioItems(ctx context.Context, in *ListPublicPortfolioItemsRequest, opts ...grpc.CallOption) (*ListPublicPortfolioItemsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListPublicPortfolioItemsResponse)
-	err := c.cc.Invoke(ctx, UserService_ListPublicPortfolioItems_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) GetUserProfile(ctx context.Context, in *GetUserProfileRequest, opts ...grpc.CallOption) (*GetUserProfileResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetUserProfileResponse)
-	err := c.cc.Invoke(ctx, UserService_GetUserProfile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListUsersResponse)
-	err := c.cc.Invoke(ctx, UserService_ListUsers_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) PatchUserGovernance(ctx context.Context, in *PatchUserGovernanceRequest, opts ...grpc.CallOption) (*PatchUserGovernanceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PatchUserGovernanceResponse)
-	err := c.cc.Invoke(ctx, UserService_PatchUserGovernance_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) GetUserAuditSummary(ctx context.Context, in *GetUserAuditSummaryRequest, opts ...grpc.CallOption) (*GetUserAuditSummaryResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetUserAuditSummaryResponse)
-	err := c.cc.Invoke(ctx, UserService_GetUserAuditSummary_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) GetInternalUserBasic(ctx context.Context, in *GetInternalUserBasicRequest, opts ...grpc.CallOption) (*GetInternalUserBasicResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetInternalUserBasicResponse)
-	err := c.cc.Invoke(ctx, UserService_GetInternalUserBasic_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) GetInternalUserProfile(ctx context.Context, in *GetInternalUserProfileRequest, opts ...grpc.CallOption) (*GetInternalUserProfileResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetInternalUserProfileResponse)
-	err := c.cc.Invoke(ctx, UserService_GetInternalUserProfile_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) PatchFreelancerMetrics(ctx context.Context, in *PatchFreelancerMetricsRequest, opts ...grpc.CallOption) (*PatchFreelancerMetricsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PatchFreelancerMetricsResponse)
-	err := c.cc.Invoke(ctx, UserService_PatchFreelancerMetrics_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *userServiceClient) TouchLastActive(ctx context.Context, in *TouchLastActiveRequest, opts ...grpc.CallOption) (*TouchLastActiveResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(TouchLastActiveResponse)
-	err := c.cc.Invoke(ctx, UserService_TouchLastActive_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -462,6 +375,9 @@ type UserServiceServer interface {
 	UpsertMyAvatar(context.Context, *UploadMyAvatarRequest) (*UploadMyAvatarResponse, error)
 	GetMyAvatar(context.Context, *GetMyAvatarRequest) (*GetMyAvatarResponse, error)
 	RemoveMyAvatar(context.Context, *RemoveMyAvatarRequest) (*RemoveMyAvatarResponse, error)
+	UpsertMyCV(context.Context, *UploadMyCVRequest) (*UploadMyCVResponse, error)
+	GetMyCV(context.Context, *GetMyCVRequest) (*GetMyCVResponse, error)
+	RemoveMyCV(context.Context, *RemoveMyCVRequest) (*RemoveMyCVResponse, error)
 	CreateMyPortfolioItem(context.Context, *CreateMyPortfolioItemRequest) (*CreateMyPortfolioItemResponse, error)
 	GetMyPortfolioItem(context.Context, *GetMyPortfolioItemRequest) (*GetMyPortfolioItemResponse, error)
 	UpdateMyPortfolioItem(context.Context, *UpdateMyPortfolioItemRequest) (*UpdateMyPortfolioItemResponse, error)
@@ -476,19 +392,6 @@ type UserServiceServer interface {
 	RemoveSavedFreelancer(context.Context, *RemoveSavedFreelancerRequest) (*RemoveSavedFreelancerResponse, error)
 	UpsertFreelancerNote(context.Context, *UpsertFreelancerNoteRequest) (*UpsertFreelancerNoteResponse, error)
 	GetFreelancerNote(context.Context, *GetFreelancerNoteRequest) (*GetFreelancerNoteResponse, error)
-	// Public endpoints.
-	GetPublicProfile(context.Context, *GetPublicProfileRequest) (*GetPublicProfileResponse, error)
-	ListPublicPortfolioItems(context.Context, *ListPublicPortfolioItemsRequest) (*ListPublicPortfolioItemsResponse, error)
-	// Admin endpoints.
-	GetUserProfile(context.Context, *GetUserProfileRequest) (*GetUserProfileResponse, error)
-	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
-	PatchUserGovernance(context.Context, *PatchUserGovernanceRequest) (*PatchUserGovernanceResponse, error)
-	GetUserAuditSummary(context.Context, *GetUserAuditSummaryRequest) (*GetUserAuditSummaryResponse, error)
-	// Internal endpoints.
-	GetInternalUserBasic(context.Context, *GetInternalUserBasicRequest) (*GetInternalUserBasicResponse, error)
-	GetInternalUserProfile(context.Context, *GetInternalUserProfileRequest) (*GetInternalUserProfileResponse, error)
-	PatchFreelancerMetrics(context.Context, *PatchFreelancerMetricsRequest) (*PatchFreelancerMetricsResponse, error)
-	TouchLastActive(context.Context, *TouchLastActiveRequest) (*TouchLastActiveResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -528,6 +431,15 @@ func (UnimplementedUserServiceServer) GetMyAvatar(context.Context, *GetMyAvatarR
 }
 func (UnimplementedUserServiceServer) RemoveMyAvatar(context.Context, *RemoveMyAvatarRequest) (*RemoveMyAvatarResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveMyAvatar not implemented")
+}
+func (UnimplementedUserServiceServer) UpsertMyCV(context.Context, *UploadMyCVRequest) (*UploadMyCVResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpsertMyCV not implemented")
+}
+func (UnimplementedUserServiceServer) GetMyCV(context.Context, *GetMyCVRequest) (*GetMyCVResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMyCV not implemented")
+}
+func (UnimplementedUserServiceServer) RemoveMyCV(context.Context, *RemoveMyCVRequest) (*RemoveMyCVResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveMyCV not implemented")
 }
 func (UnimplementedUserServiceServer) CreateMyPortfolioItem(context.Context, *CreateMyPortfolioItemRequest) (*CreateMyPortfolioItemResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateMyPortfolioItem not implemented")
@@ -570,36 +482,6 @@ func (UnimplementedUserServiceServer) UpsertFreelancerNote(context.Context, *Ups
 }
 func (UnimplementedUserServiceServer) GetFreelancerNote(context.Context, *GetFreelancerNoteRequest) (*GetFreelancerNoteResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFreelancerNote not implemented")
-}
-func (UnimplementedUserServiceServer) GetPublicProfile(context.Context, *GetPublicProfileRequest) (*GetPublicProfileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetPublicProfile not implemented")
-}
-func (UnimplementedUserServiceServer) ListPublicPortfolioItems(context.Context, *ListPublicPortfolioItemsRequest) (*ListPublicPortfolioItemsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListPublicPortfolioItems not implemented")
-}
-func (UnimplementedUserServiceServer) GetUserProfile(context.Context, *GetUserProfileRequest) (*GetUserProfileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetUserProfile not implemented")
-}
-func (UnimplementedUserServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
-}
-func (UnimplementedUserServiceServer) PatchUserGovernance(context.Context, *PatchUserGovernanceRequest) (*PatchUserGovernanceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PatchUserGovernance not implemented")
-}
-func (UnimplementedUserServiceServer) GetUserAuditSummary(context.Context, *GetUserAuditSummaryRequest) (*GetUserAuditSummaryResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetUserAuditSummary not implemented")
-}
-func (UnimplementedUserServiceServer) GetInternalUserBasic(context.Context, *GetInternalUserBasicRequest) (*GetInternalUserBasicResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetInternalUserBasic not implemented")
-}
-func (UnimplementedUserServiceServer) GetInternalUserProfile(context.Context, *GetInternalUserProfileRequest) (*GetInternalUserProfileResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetInternalUserProfile not implemented")
-}
-func (UnimplementedUserServiceServer) PatchFreelancerMetrics(context.Context, *PatchFreelancerMetricsRequest) (*PatchFreelancerMetricsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PatchFreelancerMetrics not implemented")
-}
-func (UnimplementedUserServiceServer) TouchLastActive(context.Context, *TouchLastActiveRequest) (*TouchLastActiveResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method TouchLastActive not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -798,6 +680,60 @@ func _UserService_RemoveMyAvatar_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).RemoveMyAvatar(ctx, req.(*RemoveMyAvatarRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpsertMyCV_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UploadMyCVRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpsertMyCV(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpsertMyCV_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpsertMyCV(ctx, req.(*UploadMyCVRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetMyCV_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyCVRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetMyCV(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetMyCV_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetMyCV(ctx, req.(*GetMyCVRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_RemoveMyCV_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveMyCVRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).RemoveMyCV(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_RemoveMyCV_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).RemoveMyCV(ctx, req.(*RemoveMyCVRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1054,186 +990,6 @@ func _UserService_GetFreelancerNote_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_GetPublicProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPublicProfileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).GetPublicProfile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_GetPublicProfile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetPublicProfile(ctx, req.(*GetPublicProfileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_ListPublicPortfolioItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListPublicPortfolioItemsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).ListPublicPortfolioItems(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_ListPublicPortfolioItems_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).ListPublicPortfolioItems(ctx, req.(*ListPublicPortfolioItemsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_GetUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUserProfileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).GetUserProfile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_GetUserProfile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetUserProfile(ctx, req.(*GetUserProfileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListUsersRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).ListUsers(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_ListUsers_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).ListUsers(ctx, req.(*ListUsersRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_PatchUserGovernance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PatchUserGovernanceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).PatchUserGovernance(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_PatchUserGovernance_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).PatchUserGovernance(ctx, req.(*PatchUserGovernanceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_GetUserAuditSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetUserAuditSummaryRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).GetUserAuditSummary(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_GetUserAuditSummary_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetUserAuditSummary(ctx, req.(*GetUserAuditSummaryRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_GetInternalUserBasic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetInternalUserBasicRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).GetInternalUserBasic(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_GetInternalUserBasic_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetInternalUserBasic(ctx, req.(*GetInternalUserBasicRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_GetInternalUserProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetInternalUserProfileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).GetInternalUserProfile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_GetInternalUserProfile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetInternalUserProfile(ctx, req.(*GetInternalUserProfileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_PatchFreelancerMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PatchFreelancerMetricsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).PatchFreelancerMetrics(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_PatchFreelancerMetrics_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).PatchFreelancerMetrics(ctx, req.(*PatchFreelancerMetricsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _UserService_TouchLastActive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TouchLastActiveRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).TouchLastActive(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: UserService_TouchLastActive_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).TouchLastActive(ctx, req.(*TouchLastActiveRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1280,6 +1036,18 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveMyAvatar",
 			Handler:    _UserService_RemoveMyAvatar_Handler,
+		},
+		{
+			MethodName: "UpsertMyCV",
+			Handler:    _UserService_UpsertMyCV_Handler,
+		},
+		{
+			MethodName: "GetMyCV",
+			Handler:    _UserService_GetMyCV_Handler,
+		},
+		{
+			MethodName: "RemoveMyCV",
+			Handler:    _UserService_RemoveMyCV_Handler,
 		},
 		{
 			MethodName: "CreateMyPortfolioItem",
@@ -1336,46 +1104,6 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFreelancerNote",
 			Handler:    _UserService_GetFreelancerNote_Handler,
-		},
-		{
-			MethodName: "GetPublicProfile",
-			Handler:    _UserService_GetPublicProfile_Handler,
-		},
-		{
-			MethodName: "ListPublicPortfolioItems",
-			Handler:    _UserService_ListPublicPortfolioItems_Handler,
-		},
-		{
-			MethodName: "GetUserProfile",
-			Handler:    _UserService_GetUserProfile_Handler,
-		},
-		{
-			MethodName: "ListUsers",
-			Handler:    _UserService_ListUsers_Handler,
-		},
-		{
-			MethodName: "PatchUserGovernance",
-			Handler:    _UserService_PatchUserGovernance_Handler,
-		},
-		{
-			MethodName: "GetUserAuditSummary",
-			Handler:    _UserService_GetUserAuditSummary_Handler,
-		},
-		{
-			MethodName: "GetInternalUserBasic",
-			Handler:    _UserService_GetInternalUserBasic_Handler,
-		},
-		{
-			MethodName: "GetInternalUserProfile",
-			Handler:    _UserService_GetInternalUserProfile_Handler,
-		},
-		{
-			MethodName: "PatchFreelancerMetrics",
-			Handler:    _UserService_PatchFreelancerMetrics_Handler,
-		},
-		{
-			MethodName: "TouchLastActive",
-			Handler:    _UserService_TouchLastActive_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

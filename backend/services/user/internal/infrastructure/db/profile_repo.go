@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"strings"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	"jobconnect/user/internal/domain"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -413,23 +411,6 @@ func (r *ProfileRepo) RemoveCV(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
-func (r *ProfileRepo) UpdateAccountState(ctx context.Context, userID uuid.UUID, status, suspensionReason string, updatedAt time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
-	res, err := r.pool.Exec(ctx, `
-		update profiles
-		set account_status = $2,
-			suspension_reason = $3,
-			updated_at = $4
-		where user_id = $1
-	`, userID, status, suspensionReason, updatedAt)
-	if err != nil {
-		return domain.Profile{}, nil, nil, err
-	}
-	if res.RowsAffected() == 0 {
-		return domain.Profile{}, nil, nil, ErrNotFound
-	}
-	return r.GetByUserID(ctx, userID)
-}
-
 func (r *ProfileRepo) GetSettingsByUserID(ctx context.Context, userID uuid.UUID) (application.UserSettings, error) {
 	var out application.UserSettings
 	err := r.pool.QueryRow(ctx, `
@@ -490,8 +471,4 @@ func (r *ProfileRepo) PatchSettingsByUserID(ctx context.Context, userID uuid.UUI
 	}
 
 	return current, nil
-}
-
-func isNoRowsOrNotFound(err error) bool {
-	return isNoRows(err) || errors.Is(err, pgx.ErrNoRows)
 }

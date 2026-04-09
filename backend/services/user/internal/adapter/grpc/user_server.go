@@ -22,15 +22,12 @@ type portfolioURLPresigner interface {
 type UserServer struct {
 	userv1.UnimplementedUserServiceServer
 	CreateProfileUC       *application.CreateProfile
-	GetUserUC             *application.GetUser
 	GetProfileUC          *application.GetProfile
-	GetPublicProfileUC    *application.GetPublicProfile
 	UpdateProfileUC       *application.UpdateProfile
 	DeleteProfileUC       *application.DeleteProfile
 	GetOnboardingStatusUC *application.GetOnboardingStatus
 	GetSettingsUC         *application.GetSettings
 	PatchSettingsUC       *application.PatchSettingsUseCase
-	UpdateAccountStatusUC *application.UpdateAccountStatus
 	UploadAvatarUC        *application.UploadAvatar
 	GetAvatarUC           *application.GetAvatar
 	RemoveAvatarUC        *application.RemoveAvatar
@@ -70,15 +67,12 @@ func (p CapabilityPolicy) withDefaults() CapabilityPolicy {
 
 func NewUserServer(
 	createProfile *application.CreateProfile,
-	getUser *application.GetUser,
 	getProfile *application.GetProfile,
-	getPublicProfile *application.GetPublicProfile,
 	updateProfile *application.UpdateProfile,
 	deleteProfile *application.DeleteProfile,
 	getOnboardingStatus *application.GetOnboardingStatus,
 	getSettings *application.GetSettings,
 	patchSettings *application.PatchSettingsUseCase,
-	updateAccountStatus *application.UpdateAccountStatus,
 	uploadAvatar *application.UploadAvatar,
 	getAvatar *application.GetAvatar,
 	removeAvatar *application.RemoveAvatar,
@@ -91,15 +85,12 @@ func NewUserServer(
 ) *UserServer {
 	return &UserServer{
 		CreateProfileUC:       createProfile,
-		GetUserUC:             getUser,
 		GetProfileUC:          getProfile,
-		GetPublicProfileUC:    getPublicProfile,
 		UpdateProfileUC:       updateProfile,
 		DeleteProfileUC:       deleteProfile,
 		GetOnboardingStatusUC: getOnboardingStatus,
 		GetSettingsUC:         getSettings,
 		PatchSettingsUC:       patchSettings,
-		UpdateAccountStatusUC: updateAccountStatus,
 		UploadAvatarUC:        uploadAvatar,
 		GetAvatarUC:           getAvatar,
 		RemoveAvatarUC:        removeAvatar,
@@ -875,44 +866,6 @@ func (s *UserServer) ListMyPortfolioItems(ctx context.Context, req *userv1.ListM
 	}
 
 	return &userv1.ListMyPortfolioItemsResponse{
-		Items: items,
-		Page:  &userv1.PagingResponse{NextPageToken: out.NextPageToken},
-	}, nil
-}
-
-func (s *UserServer) ListPublicPortfolioItems(ctx context.Context, req *userv1.ListPublicPortfolioItemsRequest) (*userv1.ListPublicPortfolioItemsResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	userID, err := uuid.Parse(req.GetUserId())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
-	}
-
-	pageSize := uint32(20)
-	pageToken := ""
-	if req.GetPage() != nil {
-		if req.GetPage().GetPageSize() > 0 {
-			pageSize = req.GetPage().GetPageSize()
-		}
-		pageToken = strings.TrimSpace(req.GetPage().GetPageToken())
-	}
-
-	out, err := s.ProfileDetailsRepo.ListPublicPortfolioItems(ctx, userID, pageSize, pageToken)
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	items := make([]*userv1.PortfolioItem, 0, len(out.Items))
-	for _, item := range out.Items {
-		itemProto, mapErr := s.toProtoPortfolioItem(ctx, item)
-		if mapErr != nil {
-			return nil, toStatus(mapErr)
-		}
-		items = append(items, itemProto)
-	}
-
-	return &userv1.ListPublicPortfolioItemsResponse{
 		Items: items,
 		Page:  &userv1.PagingResponse{NextPageToken: out.NextPageToken},
 	}, nil

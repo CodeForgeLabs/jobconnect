@@ -32,9 +32,6 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerAuthRoutes(api, authHandler, jwtParser, sensitiveLimiter)
 	registerVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
 	registerUserRoutes(api, userHandler, jwtParser)
-	registerAdminUserRoutes(api, userHandler, jwtParser)
-	registerInternalUserRoutes(api, userHandler, jwtParser)
-	registerPublicUserRoutes(api, userHandler)
 	registerAdminVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
 	registerJobRoutes(api, jobHandler, jwtParser)
 
@@ -143,7 +140,7 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	// Portfolio: CRUD for showcase projects.
 	userRoutes.POST("/me/portfolio", userHandler.CreateMePortfolioItem)
 	userRoutes.GET("/me/portfolio", userHandler.ListMePortfolioItems)
-	userRoutes.PATCH("/me/portfolio/:itemId", userHandler.UpdateMePortfolioItem)
+	userRoutes.PUT("/me/portfolio/:itemId", userHandler.UpdateMePortfolioItem)
 	userRoutes.DELETE("/me/portfolio/:itemId", userHandler.DeleteMePortfolioItem)
 
 	// Freelancer preferences: work style and client matching.
@@ -160,31 +157,6 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.DELETE("/me/saved-freelancers/:freelancerId", userHandler.RemoveMeSavedFreelancer)
 	userRoutes.PUT("/me/freelancer-notes/:freelancerId", userHandler.UpsertMeFreelancerNote)
 	userRoutes.GET("/me/freelancer-notes/:freelancerId", userHandler.GetMeFreelancerNote)
-}
-
-func registerAdminUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler, jwtParser *auth.JWTParser) {
-	// Admin-only user management and audit endpoints.
-	adminUserRoutes := api.Group("/admin/users")
-	adminUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
-	adminUserRoutes.GET("", userHandler.ListUsers)
-	adminUserRoutes.GET("/:userId/profile", userHandler.GetProfile)
-	adminUserRoutes.PATCH("/:userId/account-status", userHandler.UpdateAccountStatus)
-}
-
-// dont see usefulness yet
-func registerInternalUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler, jwtParser *auth.JWTParser) {
-	// Internal admin read models for dependent services.
-	internalUserRoutes := api.Group("/internal/users")
-	internalUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
-	internalUserRoutes.GET("/:userId/basic", userHandler.GetInternalUserBasic)
-	internalUserRoutes.GET("/:userId/profile", userHandler.GetInternalUserProfile)
-}
-
-func registerPublicUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler) {
-	// Public profile projections available without auth.
-	publicRoutes := api.Group("/public")
-	publicRoutes.GET("/users/:userId/profile", userHandler.GetPublicProfile)
-	publicRoutes.GET("/users/:userId/portfolio", userHandler.ListPublicPortfolioItems)
 }
 
 func registerAdminVerificationRoutes(api *gin.RouterGroup, verificationHandler *handlers.VerificationHandler, jwtParser *auth.JWTParser, sensitiveLimiter *middleware.InMemoryLimiter) {

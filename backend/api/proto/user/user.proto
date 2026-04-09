@@ -53,29 +53,6 @@ service UserService {
       returns (UpsertFreelancerNoteResponse);
   rpc GetFreelancerNote(GetFreelancerNoteRequest)
       returns (GetFreelancerNoteResponse);
-
-    // Public endpoints.
-  rpc GetPublicProfile(GetPublicProfileRequest)
-      returns (GetPublicProfileResponse);
-  rpc ListPublicPortfolioItems(ListPublicPortfolioItemsRequest)
-      returns (ListPublicPortfolioItemsResponse);
-
-  // Admin endpoints.
-  rpc GetUserProfile(GetUserProfileRequest) returns (GetUserProfileResponse);
-  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
-  rpc PatchUserGovernance(PatchUserGovernanceRequest)
-      returns (PatchUserGovernanceResponse);
-  rpc GetUserAuditSummary(GetUserAuditSummaryRequest)
-      returns (GetUserAuditSummaryResponse);
-
-    // Internal endpoints.
-  rpc GetInternalUserBasic(GetInternalUserBasicRequest)
-      returns (GetInternalUserBasicResponse);
-  rpc GetInternalUserProfile(GetInternalUserProfileRequest)
-      returns (GetInternalUserProfileResponse);
-  rpc PatchFreelancerMetrics(PatchFreelancerMetricsRequest)
-      returns (PatchFreelancerMetricsResponse);
-  rpc TouchLastActive(TouchLastActiveRequest) returns (TouchLastActiveResponse);
 }
 
 enum UserRole {
@@ -208,21 +185,6 @@ message UserProfile {
   ClientProfile client = 2;
   FreelancerProfile freelancer = 3;
   CapabilityFlags capabilities = 4;
-}
-
-message PublicProfile {
-  string user_id = 1;
-  string display_name = 2;
-  string avatar_url = 3;
-  string headline = 4;
-  string bio = 5;
-  repeated string skills = 6;
-  double hourly_rate = 7;
-  Availability availability = 8;
-  string location = 9;
-  optional int64 last_active_at_unix = 10;
-  VerificationStatus verification_status = 11;
-  FreelancerMetrics metrics = 12;
 }
 
 message CapabilityFlags {
@@ -543,25 +505,6 @@ message ListMyPortfolioItemsResponse {
   PagingResponse page = 2;
 }
 
-message ListPublicPortfolioItemsRequest {
-  string user_id = 1;
-  PagingRequest page = 2;
-}
-
-message ListPublicPortfolioItemsResponse {
-  repeated PortfolioItem items = 1;
-  PagingResponse page = 2;
-}
-
-message AvailabilitySettings {
-  Availability availability = 1;
-  uint32 weekly_capacity_hours = 2;
-}
-
-message RateSettings {
-  double hourly_rate = 1;
-}
-
 message WorkPreferences {
   ProjectLength preferred_project_length = 1;
   double min_budget = 2;
@@ -676,125 +619,3 @@ message GetFreelancerNoteResponse {
   FreelancerNote note = 1;
 }
 
-message GetPublicProfileRequest {
-  string user_id = 1;
-}
-
-message GetPublicProfileResponse {
-  PublicProfile profile = 1;
-}
-
-message GetUserProfileRequest {
-  string requester_user_id = 1;
-  string target_user_id = 2;
-}
-
-message GetUserProfileResponse {
-  UserProfile profile = 1;
-}
-
-message PatchUserGovernanceRequest {
-  string requester_user_id = 1;
-  string target_user_id = 2;
-  optional AccountStatus account_status = 3;
-  optional string suspension_reason = 4;
-  optional string tax_id = 5;
-  optional VerificationStatus verification_status = 6;
-}
-
-message PatchUserGovernanceResponse {
-  UserProfile profile = 1;
-}
-
-message UserSummary {
-  string user_id = 1;
-  UserRole role = 2;
-  AccountStatus account_status = 3;
-  string first_name = 5;
-  string last_name = 6;
-  string display_name = 7;
-  string avatar_url = 8;
-  int64 created_at_unix = 9;
-  int64 updated_at_unix = 10;
-}
-
-message ListUsersRequest {
-  string requester_user_id = 1;
-  string q = 2;
-  optional UserRole role = 3;
-  optional AccountStatus account_status = 4;
-  PagingRequest page = 5;
-}
-
-message ListUsersResponse {
-  repeated UserSummary users = 1;
-  PagingResponse page = 2;
-}
-
-message UserAuditSummary {
-  string user_id = 1;
-  AccountStatus account_status = 2;
-  int64 profile_updated_at_unix = 4;
-  optional int64 avatar_updated_at_unix = 5;
-  uint32 saved_freelancers_count = 6;
-  uint32 portfolio_items_count = 7;
-}
-
-message GetUserAuditSummaryRequest {
-  string requester_user_id = 1;
-  string target_user_id = 2;
-}
-
-message GetUserAuditSummaryResponse {
-  UserAuditSummary summary = 1;
-}
-
-message GetInternalUserBasicRequest {
-  string user_id = 1;
-}
-
-message InternalUserBasic {
-  string user_id = 1;
-  UserRole role = 2;
-  AccountStatus account_status = 3;
-  string display_name = 5;
-  string avatar_url = 6;
-}
-
-message GetInternalUserBasicResponse {
-  InternalUserBasic user = 1;
-}
-
-message GetInternalUserProfileRequest {
-  string user_id = 1;
-}
-
-message GetInternalUserProfileResponse {
-  UserProfile profile = 1;
-}
-
-message PatchFreelancerMetricsRequest {
-  string source_system = 1;
-  string target_user_id = 2;
-  optional double rating = 3;
-  optional double job_success_score = 4;
-  optional uint32 total_reviews = 5;
-  optional uint32 total_jobs = 6;
-  optional double total_earnings = 7;
-  optional VerificationStatus verification_status = 8;
-  optional int64 last_active_at_unix = 9;
-}
-
-message PatchFreelancerMetricsResponse {
-  FreelancerMetrics metrics = 1;
-}
-
-message TouchLastActiveRequest {
-  string source_system = 1;
-  string target_user_id = 2;
-  optional int64 touched_at_unix = 3;
-}
-
-message TouchLastActiveResponse {
-  optional int64 last_active_at_unix = 1;
-}

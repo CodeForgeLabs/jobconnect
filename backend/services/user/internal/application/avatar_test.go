@@ -39,10 +39,6 @@ func (m *avatarRepoMock) Update(_ context.Context, profile domain.Profile, _ *do
 	return nil
 }
 
-func (m *avatarRepoMock) UpdateAccountState(context.Context, uuid.UUID, string, string, time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
-	panic("not implemented")
-}
-
 func (m *avatarRepoMock) Delete(context.Context, uuid.UUID, bool, time.Time) error {
 	panic("not implemented")
 }

@@ -33,10 +33,6 @@ func (s onboardingProfileRepoStub) Update(ctx context.Context, profile domain.Pr
 	return nil
 }
 
-func (s onboardingProfileRepoStub) UpdateAccountState(ctx context.Context, userID uuid.UUID, status, suspensionReason string, updatedAt time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
-	return domain.Profile{}, nil, nil, nil
-}
-
 func (s onboardingProfileRepoStub) Delete(ctx context.Context, userID uuid.UUID, hardDelete bool, deletedAt time.Time) error {
 	return nil
 }

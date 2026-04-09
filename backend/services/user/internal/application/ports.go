@@ -14,7 +14,6 @@ type ProfileRepository interface {
 	Create(ctx context.Context, profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) (int64, error)
 	GetByUserID(ctx context.Context, userID uuid.UUID) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error)
 	Update(ctx context.Context, profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) error
-	UpdateAccountState(ctx context.Context, userID uuid.UUID, status, suspensionReason string, updatedAt time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error)
 	Delete(ctx context.Context, userID uuid.UUID, hardDelete bool, deletedAt time.Time) error
 	SaveAvatar(ctx context.Context, avatar domain.Avatar) error
 	GetAvatar(ctx context.Context, userID uuid.UUID) (domain.Avatar, error)

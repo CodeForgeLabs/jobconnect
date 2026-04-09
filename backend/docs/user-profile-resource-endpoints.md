@@ -1,6 +1,6 @@
 # User Service Profile Resource Endpoints
 
-This document tracks portfolio, employment, education, certifications, and languages endpoints in the User Service.
+This document tracks the self-service user endpoints in the User Service.
 
 ## Gateway Routes
 
@@ -21,9 +21,8 @@ Profile patch ownership notes:
 ### Portfolio
 - POST `/api/v1/users/me/portfolio` -> `CreateMyPortfolioItem`
 - GET `/api/v1/users/me/portfolio` -> `ListMyPortfolioItems`
-- PATCH `/api/v1/users/me/portfolio/:itemId` -> `UpdateMyPortfolioItem`
+- PUT `/api/v1/users/me/portfolio/:itemId` -> `UpdateMyPortfolioItem`
 - DELETE `/api/v1/users/me/portfolio/:itemId` -> `DeleteMyPortfolioItem`
-- GET `/api/v1/public/users/:userId/portfolio` -> `ListPublicPortfolioItems`
 
 ### CV
 - POST `/api/v1/users/me/cv` -> `UpsertMyCV`
@@ -45,7 +44,7 @@ Portfolio media behavior:
 
 - Database schema has been added via migrations `0006` to `0008`.
 - RPC contracts are defined in `api/proto/user/user.proto`.
-- Gateway routes and handlers are wired for portfolio and public profile-resource reads.
+- Gateway routes and handlers are wired for self-service profile, settings, CV, portfolio, preference, and saved-freelancer reads/writes.
 - User service gRPC methods are implemented and use Postgres-backed repositories.
 - Portfolio sort ordering fields were removed from the active contract and schema.
 - Profile patching uses a single unified gateway-to-user-service call path.
@@ -55,6 +54,5 @@ Portfolio media behavior:
 
 ## Next Implementation Work
 
-1. Add tests for public profile resource pagination behavior.
-2. Add role/ownership authorization tests to verify public-only projections.
-3. Add integration tests for gateway-to-gRPC error mapping.
+1. Add integration tests for gateway-to-gRPC error mapping.
+2. Add broader self-service API coverage for profile and portfolio edge cases.

@@ -65,16 +65,13 @@ func decodeSavedFreelancersCursor(token string) (time.Time, uuid.UUID, error) {
 	return time.Unix(0, nanos).UTC(), id, nil
 }
 
-func (r *ProfileRepo) freelancerProfileID(ctx context.Context, userID uuid.UUID, publicOnly bool) (int64, error) {
+func (r *ProfileRepo) freelancerProfileID(ctx context.Context, userID uuid.UUID) (int64, error) {
 	query := `
 		select id
 		from profiles
 		where user_id = $1 and role = $2 and deleted_at is null
 	`
 	args := []any{userID, domain.RoleFreelancer}
-	if publicOnly {
-		query += ` and account_status = 'ACTIVE'`
-	}
 
 	var profileID int64
 	if err := r.pool.QueryRow(ctx, query, args...).Scan(&profileID); err != nil {
@@ -103,7 +100,7 @@ func (r *ProfileRepo) clientProfileID(ctx context.Context, userID uuid.UUID) (in
 }
 
 func (r *ProfileRepo) CreatePortfolioItem(ctx context.Context, userID uuid.UUID, in application.PortfolioItem) (application.PortfolioItem, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	profileID, err := r.freelancerProfileID(ctx, userID)
 	if err != nil {
 		return application.PortfolioItem{}, err
 	}
@@ -151,15 +148,15 @@ func (r *ProfileRepo) CreatePortfolioItem(ctx context.Context, userID uuid.UUID,
 	if err := tx.Commit(ctx); err != nil {
 		return application.PortfolioItem{}, err
 	}
-	return r.getPortfolioItem(ctx, userID, out.ID, false)
+	return r.getPortfolioItem(ctx, userID, out.ID)
 }
 
 func (r *ProfileRepo) GetPortfolioItem(ctx context.Context, userID uuid.UUID, itemID int64) (application.PortfolioItem, error) {
-	return r.getPortfolioItem(ctx, userID, itemID, false)
+	return r.getPortfolioItem(ctx, userID, itemID)
 }
 
 func (r *ProfileRepo) UpdatePortfolioItem(ctx context.Context, userID uuid.UUID, itemID int64, in application.PortfolioItem) (application.PortfolioItem, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	profileID, err := r.freelancerProfileID(ctx, userID)
 	if err != nil {
 		return application.PortfolioItem{}, err
 	}
@@ -209,11 +206,11 @@ func (r *ProfileRepo) UpdatePortfolioItem(ctx context.Context, userID uuid.UUID,
 	if err := tx.Commit(ctx); err != nil {
 		return application.PortfolioItem{}, err
 	}
-	return r.getPortfolioItem(ctx, userID, itemID, false)
+	return r.getPortfolioItem(ctx, userID, itemID)
 }
 
 func (r *ProfileRepo) DeletePortfolioItem(ctx context.Context, userID uuid.UUID, itemID int64) (bool, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	profileID, err := r.freelancerProfileID(ctx, userID)
 	if err != nil {
 		return false, err
 	}
@@ -228,15 +225,11 @@ func (r *ProfileRepo) DeletePortfolioItem(ctx context.Context, userID uuid.UUID,
 }
 
 func (r *ProfileRepo) ListMyPortfolioItems(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (application.ListResult[application.PortfolioItem], error) {
-	return r.listPortfolioItems(ctx, userID, pageSize, pageToken, false)
+	return r.listPortfolioItems(ctx, userID, pageSize, pageToken)
 }
 
-func (r *ProfileRepo) ListPublicPortfolioItems(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (application.ListResult[application.PortfolioItem], error) {
-	return r.listPortfolioItems(ctx, userID, pageSize, pageToken, true)
-}
-
-func (r *ProfileRepo) listPortfolioItems(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string, publicOnly bool) (application.ListResult[application.PortfolioItem], error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, publicOnly)
+func (r *ProfileRepo) listPortfolioItems(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (application.ListResult[application.PortfolioItem], error) {
+	profileID, err := r.freelancerProfileID(ctx, userID)
 	if err != nil {
 		return application.ListResult[application.PortfolioItem]{}, err
 	}
@@ -320,8 +313,8 @@ func (r *ProfileRepo) loadPortfolioItemDetails(ctx context.Context, itemID int64
 	return tags, media, nil
 }
 
-func (r *ProfileRepo) getPortfolioItem(ctx context.Context, userID uuid.UUID, itemID int64, publicOnly bool) (application.PortfolioItem, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, publicOnly)
+func (r *ProfileRepo) getPortfolioItem(ctx context.Context, userID uuid.UUID, itemID int64) (application.PortfolioItem, error) {
+	profileID, err := r.freelancerProfileID(ctx, userID)
 	if err != nil {
 		return application.PortfolioItem{}, err
 	}
@@ -349,107 +342,8 @@ func (r *ProfileRepo) getPortfolioItem(ctx context.Context, userID uuid.UUID, it
 	return out, nil
 }
 
-func (r *ProfileRepo) SetAvailability(ctx context.Context, userID uuid.UUID, in application.AvailabilitySettings) (application.AvailabilitySettings, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
-	if err != nil {
-		return application.AvailabilitySettings{}, err
-	}
-
-	availability := strings.ToUpper(strings.TrimPrefix(strings.TrimSpace(in.Availability), "AVAILABILITY_"))
-	if availability == "" {
-		availability = domain.AvailabilityAsNeeded
-	}
-
-	if _, err := r.pool.Exec(ctx, `
-		update freelancer_profiles
-		set availability = $2
-		where profile_id = $1
-	`, profileID, availability); err != nil {
-		return application.AvailabilitySettings{}, err
-	}
-
-	if _, err := r.pool.Exec(ctx, `
-		insert into freelancer_work_preferences (profile_id, weekly_capacity_hours)
-		values ($1, $2)
-		on conflict (profile_id) do update set
-			weekly_capacity_hours = excluded.weekly_capacity_hours,
-			updated_at = now()
-	`, profileID, in.WeeklyCapacityHours); err != nil {
-		return application.AvailabilitySettings{}, err
-	}
-
-	return r.GetAvailability(ctx, userID)
-}
-
-func (r *ProfileRepo) GetAvailability(ctx context.Context, userID uuid.UUID) (application.AvailabilitySettings, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
-	if err != nil {
-		return application.AvailabilitySettings{}, err
-	}
-
-	out := application.AvailabilitySettings{}
-	if err := r.pool.QueryRow(ctx, `
-		select coalesce(availability, 'AS_NEEDED')
-		from freelancer_profiles
-		where profile_id = $1
-	`, profileID).Scan(&out.Availability); err != nil {
-		if isNoRows(err) {
-			return application.AvailabilitySettings{}, ErrNotFound
-		}
-		return application.AvailabilitySettings{}, err
-	}
-
-	if err := r.pool.QueryRow(ctx, `
-		select weekly_capacity_hours
-		from freelancer_work_preferences
-		where profile_id = $1
-	`, profileID).Scan(&out.WeeklyCapacityHours); err != nil && !isNoRows(err) {
-		return application.AvailabilitySettings{}, err
-	}
-
-	return out, nil
-}
-
-func (r *ProfileRepo) SetRates(ctx context.Context, userID uuid.UUID, in application.RateSettings) (application.RateSettings, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
-	if err != nil {
-		return application.RateSettings{}, err
-	}
-
-	if _, err := r.pool.Exec(ctx, `
-		update freelancer_profiles
-		set hourly_rate = $2
-		where profile_id = $1
-	`, profileID, in.HourlyRate); err != nil {
-		return application.RateSettings{}, err
-	}
-
-	return r.GetRates(ctx, userID)
-}
-
-func (r *ProfileRepo) GetRates(ctx context.Context, userID uuid.UUID) (application.RateSettings, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
-	if err != nil {
-		return application.RateSettings{}, err
-	}
-
-	out := application.RateSettings{Currency: "USD"}
-	if err := r.pool.QueryRow(ctx, `
-		select coalesce(hourly_rate, 0)
-		from freelancer_profiles
-		where profile_id = $1
-	`, profileID).Scan(&out.HourlyRate); err != nil {
-		if isNoRows(err) {
-			return application.RateSettings{}, ErrNotFound
-		}
-		return application.RateSettings{}, err
-	}
-
-	return out, nil
-}
-
 func (r *ProfileRepo) SetWorkPreferences(ctx context.Context, userID uuid.UUID, in application.WorkPreferences) (application.WorkPreferences, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	profileID, err := r.freelancerProfileID(ctx, userID)
 	if err != nil {
 		return application.WorkPreferences{}, err
 	}
@@ -484,7 +378,7 @@ func (r *ProfileRepo) SetWorkPreferences(ctx context.Context, userID uuid.UUID, 
 }
 
 func (r *ProfileRepo) GetWorkPreferences(ctx context.Context, userID uuid.UUID) (application.WorkPreferences, error) {
-	profileID, err := r.freelancerProfileID(ctx, userID, false)
+	profileID, err := r.freelancerProfileID(ctx, userID)
 	if err != nil {
 		return application.WorkPreferences{}, err
 	}
@@ -514,61 +408,6 @@ func (r *ProfileRepo) GetWorkPreferences(ctx context.Context, userID uuid.UUID) 
 	out.PreferredProjectLength = application.CanonicalProjectLengthOrUnspecified(out.PreferredProjectLength)
 
 	return out, nil
-}
-
-func (r *ProfileRepo) GetCompany(ctx context.Context, userID uuid.UUID) (application.CompanySettings, error) {
-	profileID, err := r.clientProfileID(ctx, userID)
-	if err != nil {
-		return application.CompanySettings{}, err
-	}
-
-	out := application.CompanySettings{}
-	err = r.pool.QueryRow(ctx, `
-		select
-			coalesce(company_name, ''),
-			coalesce(p.tax_id, '')
-		from client_profiles cp
-		join profiles p on p.id = cp.profile_id
-		where cp.profile_id = $1
-	`, profileID).Scan(&out.CompanyName, &out.TaxID)
-	if err != nil {
-		if isNoRows(err) {
-			return out, nil
-		}
-		return application.CompanySettings{}, err
-	}
-	return out, nil
-}
-
-func (r *ProfileRepo) UpdateCompany(ctx context.Context, userID uuid.UUID, in application.CompanySettings) (application.CompanySettings, error) {
-	profileID, err := r.clientProfileID(ctx, userID)
-	if err != nil {
-		return application.CompanySettings{}, err
-	}
-
-	if _, err := r.pool.Exec(ctx, `
-		insert into client_profiles (profile_id, company_name)
-		values ($1, $2)
-		on conflict (profile_id) do update set
-			company_name = excluded.company_name
-	`, profileID, strings.TrimSpace(in.CompanyName)); err != nil {
-		return application.CompanySettings{}, err
-	}
-
-	if _, err := r.pool.Exec(ctx, `
-		update profiles
-		set tax_id = $2,
-			updated_at = now()
-		where id = $1
-	`, profileID, strings.TrimSpace(in.TaxID)); err != nil {
-		return application.CompanySettings{}, err
-	}
-
-	updated, err := r.GetCompany(ctx, userID)
-	if err != nil {
-		return application.CompanySettings{}, err
-	}
-	return updated, nil
 }
 
 func (r *ProfileRepo) GetHiringPreferences(ctx context.Context, userID uuid.UUID) (application.HiringPreferences, error) {
@@ -644,7 +483,7 @@ func (r *ProfileRepo) SaveFreelancer(ctx context.Context, userID uuid.UUID, free
 	if err != nil {
 		return application.SavedFreelancer{}, err
 	}
-	if _, err := r.freelancerProfileID(ctx, freelancerUserID, false); err != nil {
+	if _, err := r.freelancerProfileID(ctx, freelancerUserID); err != nil {
 		return application.SavedFreelancer{}, err
 	}
 
@@ -784,7 +623,7 @@ func (r *ProfileRepo) UpsertFreelancerNote(ctx context.Context, userID uuid.UUID
 	if err != nil {
 		return application.FreelancerNote{}, err
 	}
-	if _, err := r.freelancerProfileID(ctx, freelancerUserID, false); err != nil {
+	if _, err := r.freelancerProfileID(ctx, freelancerUserID); err != nil {
 		return application.FreelancerNote{}, err
 	}
 	normalizedNote := strings.TrimSpace(note)
@@ -835,162 +674,5 @@ func (r *ProfileRepo) GetFreelancerNote(ctx context.Context, userID uuid.UUID, f
 		return application.FreelancerNote{}, err
 	}
 	out.FreelancerUserID = freelancerUserID
-	return out, nil
-}
-
-func (r *ProfileRepo) ensureAdminRequester(ctx context.Context, requesterUserID uuid.UUID) error {
-	var role string
-	err := r.pool.QueryRow(ctx, `
-		select role
-		from profiles
-		where user_id = $1 and deleted_at is null
-	`, requesterUserID).Scan(&role)
-	if err != nil {
-		if isNoRows(err) {
-			return ErrNotFound
-		}
-		return err
-	}
-	if strings.TrimSpace(strings.ToLower(role)) != domain.RoleAdmin {
-		return fmt.Errorf("admin role required")
-	}
-	return nil
-}
-
-func (r *ProfileRepo) ListUsers(ctx context.Context, requesterUserID uuid.UUID, filter application.ListUsersFilter) (application.ListResult[application.UserSummary], error) {
-	if err := r.ensureAdminRequester(ctx, requesterUserID); err != nil {
-		return application.ListResult[application.UserSummary]{}, err
-	}
-
-	limit, offset, err := parsePage(filter.PageSize, filter.PageToken)
-	if err != nil {
-		return application.ListResult[application.UserSummary]{}, err
-	}
-
-	query := `
-		select
-			user_id,
-			role,
-			coalesce(account_status, 'ACTIVE'),
-			coalesce(first_name, ''),
-			coalesce(last_name, ''),
-			coalesce(display_name, ''),
-			coalesce(avatar_url, ''),
-			created_at,
-			updated_at
-		from profiles
-		where deleted_at is null
-	`
-	args := []any{}
-	argPos := 1
-
-	if v := strings.TrimSpace(filter.Role); v != "" {
-		query += fmt.Sprintf(" and role = $%d", argPos)
-		args = append(args, strings.ToLower(v))
-		argPos++
-	}
-	if v := strings.TrimSpace(filter.Status); v != "" {
-		query += fmt.Sprintf(" and upper(account_status) = upper($%d)", argPos)
-		args = append(args, strings.TrimPrefix(strings.ToUpper(v), "ACCOUNT_STATUS_"))
-		argPos++
-	}
-	if v := strings.TrimSpace(filter.Q); v != "" {
-		query += fmt.Sprintf(" and (user_id::text ilike $%d or first_name ilike $%d or last_name ilike $%d or display_name ilike $%d)", argPos, argPos, argPos, argPos)
-		args = append(args, "%"+v+"%")
-		argPos++
-	}
-
-	query += fmt.Sprintf(" order by created_at desc, user_id asc limit $%d offset $%d", argPos, argPos+1)
-	args = append(args, limit, offset)
-
-	rows, err := r.pool.Query(ctx, query, args...)
-	if err != nil {
-		return application.ListResult[application.UserSummary]{}, err
-	}
-	defer rows.Close()
-
-	items := make([]application.UserSummary, 0, limit)
-	for rows.Next() {
-		var item application.UserSummary
-		if err := rows.Scan(&item.UserID, &item.Role, &item.Status, &item.FirstName, &item.LastName, &item.DisplayName, &item.AvatarURL, &item.CreatedAt, &item.UpdatedAt); err != nil {
-			return application.ListResult[application.UserSummary]{}, err
-		}
-		items = append(items, item)
-	}
-	if err := rows.Err(); err != nil {
-		return application.ListResult[application.UserSummary]{}, err
-	}
-
-	return application.ListResult[application.UserSummary]{Items: items, NextPageToken: nextToken(limit, offset, len(items))}, nil
-}
-
-func (r *ProfileRepo) CreateImpersonationToken(ctx context.Context, requesterUserID uuid.UUID, targetUserID uuid.UUID, reason string, ttlSeconds uint32) (application.ImpersonationToken, error) {
-	if err := r.ensureAdminRequester(ctx, requesterUserID); err != nil {
-		return application.ImpersonationToken{}, err
-	}
-
-	ttl := time.Duration(ttlSeconds) * time.Second
-	if ttl <= 0 {
-		ttl = 15 * time.Minute
-	}
-	if ttl > 24*time.Hour {
-		ttl = 24 * time.Hour
-	}
-
-	tokenID := uuid.New()
-	expiresAt := time.Now().UTC().Add(ttl)
-
-	if _, err := r.pool.Exec(ctx, `
-		insert into admin_impersonation_tokens (token_id, admin_user_id, target_user_id, reason, expires_at)
-		values ($1, $2, $3, $4, $5)
-	`, tokenID, requesterUserID, targetUserID, strings.TrimSpace(reason), expiresAt); err != nil {
-		return application.ImpersonationToken{}, err
-	}
-
-	return application.ImpersonationToken{Token: tokenID.String(), ExpiresAt: expiresAt}, nil
-}
-
-func (r *ProfileRepo) GetUserAuditSummary(ctx context.Context, requesterUserID uuid.UUID, targetUserID uuid.UUID) (application.UserAuditSummary, error) {
-	if err := r.ensureAdminRequester(ctx, requesterUserID); err != nil {
-		return application.UserAuditSummary{}, err
-	}
-
-	var out application.UserAuditSummary
-	out.UserID = targetUserID
-
-	err := r.pool.QueryRow(ctx, `
-		select
-			coalesce(account_status, 'ACTIVE'),
-			updated_at
-		from profiles
-		where user_id = $1 and deleted_at is null
-	`, targetUserID).Scan(&out.Status, &out.ProfileUpdatedAt)
-	if err != nil {
-		if isNoRows(err) {
-			return application.UserAuditSummary{}, ErrNotFound
-		}
-		return application.UserAuditSummary{}, err
-	}
-
-	_ = r.pool.QueryRow(ctx, `
-		select updated_at
-		from profile_avatars
-		where user_id = $1
-	`, targetUserID).Scan(&out.AvatarUpdatedAt)
-
-	_ = r.pool.QueryRow(ctx, `
-		select count(*)
-		from client_saved_freelancers sf
-		join profiles p on p.id = sf.profile_id
-		where p.user_id = $1 and p.deleted_at is null
-	`, targetUserID).Scan(&out.SavedFreelancersCount)
-
-	_ = r.pool.QueryRow(ctx, `
-		select count(*)
-		from portfolio_items pi
-		join profiles p on p.id = pi.profile_id
-		where p.user_id = $1 and p.deleted_at is null and pi.deleted_at is null
-	`, targetUserID).Scan(&out.PortfolioItemsCount)
-
 	return out, nil
 }
