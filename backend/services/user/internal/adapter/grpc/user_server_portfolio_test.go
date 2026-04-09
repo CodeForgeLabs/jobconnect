@@ -1,0 +1,227 @@
+package grpcadapter
+
+import (
+	"context"
+	"strings"
+	"testing"
+	"time"
+
+	userv1 "jobconnect/user/gen/user"
+	"jobconnect/user/internal/application"
+	"jobconnect/user/internal/domain"
+
+	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+type fakePortfolioPresigner struct {
+	calls []string
+}
+
+func (f *fakePortfolioPresigner) PresignGetObject(_ context.Context, storageKey string, _ time.Duration) (string, error) {
+	f.calls = append(f.calls, storageKey)
+	return "https://example.invalid/presigned/" + storageKey, nil
+}
+
+func (f *fakePortfolioPresigner) PresignPutObject(_ context.Context, storageKey string, _ string, _ time.Duration) (string, error) {
+	return "https://example.invalid/upload/" + storageKey, nil
+}
+
+type fakePortfolioUploadStore struct{}
+
+func (f *fakePortfolioUploadStore) PresignPutObject(_ context.Context, storageKey string, _ string, _ time.Duration) (string, error) {
+	return "https://example.invalid/upload/" + storageKey, nil
+}
+
+func TestToProtoPortfolioItemPresignsStoredMedia(t *testing.T) {
+	presigner := &fakePortfolioPresigner{}
+	srv := &UserServer{PortfolioStore: presigner}
+	item := application.PortfolioItem{
+		ID:     7,
+		UserID: uuid.MustParse("11111111-1111-1111-1111-111111111111"),
+		Title:  "Portfolio",
+		Media: []application.PortfolioMedia{{
+			ID:          11,
+			MediaType:   "IMAGE",
+			StorageKey:  "portfolio/11111111-1111-1111-1111-111111111111/7/11.png",
+			FileName:    "shot.png",
+			ContentType: "image/png",
+		}},
+		CreatedAt: time.Unix(100, 0).UTC(),
+		UpdatedAt: time.Unix(200, 0).UTC(),
+	}
+
+	resp, err := srv.toProtoPortfolioItem(context.Background(), item)
+	if err != nil {
+		t.Fatalf("toProtoPortfolioItem returned error: %v", err)
+	}
+	if len(presigner.calls) != 1 || presigner.calls[0] != item.Media[0].StorageKey {
+		t.Fatalf("expected one presign call for %q, got %#v", item.Media[0].StorageKey, presigner.calls)
+	}
+	if got := resp.GetMedia()[0].GetStorageKey(); got != "" {
+		t.Fatalf("expected storage_key to be hidden on response, got %q", got)
+	}
+	if got := resp.GetMedia()[0].GetExternalUrl(); got != "https://example.invalid/presigned/"+item.Media[0].StorageKey {
+		t.Fatalf("expected presigned external_url, got %q", got)
+	}
+}
+
+func TestToProtoPortfolioItemLeavesLinkMediaUntouched(t *testing.T) {
+	srv := &UserServer{}
+	item := application.PortfolioItem{
+		ID:     8,
+		UserID: uuid.MustParse("22222222-2222-2222-2222-222222222222"),
+		Title:  "Portfolio",
+		Media: []application.PortfolioMedia{{
+			ID:          12,
+			MediaType:   "LINK",
+			ExternalURL: "https://example.com/work",
+			FileName:    "link",
+		}},
+		CreatedAt: time.Unix(100, 0).UTC(),
+		UpdatedAt: time.Unix(200, 0).UTC(),
+	}
+
+	resp, err := srv.toProtoPortfolioItem(context.Background(), item)
+	if err != nil {
+		t.Fatalf("toProtoPortfolioItem returned error: %v", err)
+	}
+	if got := resp.GetMedia()[0].GetStorageKey(); got != "" {
+		t.Fatalf("expected no storage_key for link media, got %q", got)
+	}
+	if got := resp.GetMedia()[0].GetExternalUrl(); got != item.Media[0].ExternalURL {
+		t.Fatalf("expected external_url passthrough, got %q", got)
+	}
+}
+
+func TestMapPortfolioMediaTypeToProto(t *testing.T) {
+	if got := mapPortfolioMediaTypeToProto("IMAGE"); got != userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE {
+		t.Fatalf("expected image type, got %v", got)
+	}
+	if got := mapPortfolioMediaTypeToProto("LINK"); got != userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_LINK {
+		t.Fatalf("expected link type, got %v", got)
+	}
+}
+
+func TestGetMyPortfolioMediaUploadUrl(t *testing.T) {
+	uc := &application.GetPortfolioMediaUploadURL{
+		Store:        &fakePortfolioUploadStore{},
+		RoleProfiles: fakeRoleRepo{profile: domain.Profile{Role: domain.RoleFreelancer}},
+	}
+	srv := &UserServer{GetPortfolioMediaUploadURLUC: uc}
+	userID := uuid.New().String()
+
+	resp, err := srv.GetMyPortfolioMediaUploadUrl(context.Background(), &userv1.GetMyPortfolioMediaUploadUrlRequest{
+		UserId:      userID,
+		FileName:    "sample.png",
+		ContentType: "image/png",
+	})
+	if err != nil {
+		t.Fatalf("GetMyPortfolioMediaUploadUrl() error = %v", err)
+	}
+	if resp.GetStorageKey() == "" {
+		t.Fatalf("expected non-empty storage key")
+	}
+	if resp.GetUploadUrl() == "" {
+		t.Fatalf("expected non-empty upload url")
+	}
+}
+
+func TestGetMyPortfolioMediaUploadUrlRequiresConfiguredUseCase(t *testing.T) {
+	srv := &UserServer{}
+	_, err := srv.GetMyPortfolioMediaUploadUrl(context.Background(), &userv1.GetMyPortfolioMediaUploadUrlRequest{UserId: uuid.New().String()})
+	if err == nil {
+		t.Fatalf("expected error when use-case is not configured")
+	}
+	if status.Code(err) != codes.Internal {
+		t.Fatalf("expected Internal, got %v", status.Code(err))
+	}
+}
+
+type fakeRoleRepo struct {
+	profile domain.Profile
+	err     error
+}
+
+func (f fakeRoleRepo) GetByUserID(context.Context, uuid.UUID) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
+	if f.err != nil {
+		return domain.Profile{}, nil, nil, f.err
+	}
+	return f.profile, nil, nil, nil
+}
+
+type profileRepoForRoleCheck struct {
+	profile domain.Profile
+	err     error
+}
+
+func (m profileRepoForRoleCheck) Create(context.Context, domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile) (int64, error) {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) GetByUserID(context.Context, uuid.UUID) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
+	if m.err != nil {
+		return domain.Profile{}, nil, nil, m.err
+	}
+	return m.profile, nil, nil, nil
+}
+
+func (m profileRepoForRoleCheck) Update(context.Context, domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile) error {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) Delete(context.Context, uuid.UUID, bool, time.Time) error {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) SaveAvatar(context.Context, domain.Avatar) error {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) GetAvatar(context.Context, uuid.UUID) (domain.Avatar, error) {
+	panic("not implemented")
+}
+
+func (m profileRepoForRoleCheck) RemoveAvatar(context.Context, uuid.UUID) error {
+	panic("not implemented")
+}
+
+func TestToAppPortfolioMediaInputsRejectsForeignStorageKey(t *testing.T) {
+	userID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
+	_, err := toAppPortfolioMediaInputs(userID, []*userv1.PortfolioMediaInput{{
+		MediaType:   userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE,
+		StorageKey:  "portfolio/22222222-2222-2222-2222-222222222222/file.png",
+		ContentType: "image/png",
+	}})
+	if err == nil || status.Code(err) != codes.InvalidArgument || !strings.Contains(err.Error(), "storage_key must belong to caller") {
+		t.Fatalf("expected storage_key ownership error, got %v", err)
+	}
+}
+
+func TestToAppPortfolioMediaInputsRejectsMismatchedMediaTypeContentType(t *testing.T) {
+	userID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
+	_, err := toAppPortfolioMediaInputs(userID, []*userv1.PortfolioMediaInput{{
+		MediaType:   userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE,
+		StorageKey:  "portfolio/11111111-1111-1111-1111-111111111111/file.png",
+		ContentType: "video/mp4",
+	}})
+	if err == nil || status.Code(err) != codes.InvalidArgument || !strings.Contains(err.Error(), "content_type does not match media_type") {
+		t.Fatalf("expected media/content type mismatch error, got %v", err)
+	}
+}
+
+func TestListMyPortfolioItemsRequiresFreelancerRole(t *testing.T) {
+	userID := uuid.New()
+	srv := &UserServer{
+		GetProfileUC: &application.GetProfile{Profiles: profileRepoForRoleCheck{profile: domain.Profile{UserID: userID, Role: domain.RoleClient}}},
+	}
+
+	_, err := srv.ListMyPortfolioItems(context.Background(), &userv1.ListMyPortfolioItemsRequest{UserId: userID.String()})
+	if err == nil {
+		t.Fatalf("expected permission denied error")
+	}
+	if status.Code(err) != codes.PermissionDenied {
+		t.Fatalf("expected PermissionDenied, got %v", status.Code(err))
+	}
+}

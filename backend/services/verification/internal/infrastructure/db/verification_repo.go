@@ -69,7 +69,7 @@ func (r *VerificationRepo) ListPending(ctx context.Context, limit, offset int32)
 			document_number_masked, evidence_urls, submission_note, submitted_at, reviewed_at,
 			reviewer_user_id, rejection_reason, internal_note, reverify_due_at, updated_at
 		from verification_requests
-		where status = 'pending_review'
+		where status in ('submitted', 'pending_review')
 		order by submitted_at asc
 		limit $1 offset $2
 	`, limit, offset)
@@ -104,7 +104,7 @@ func (r *VerificationRepo) Review(ctx context.Context, requestID int64, reviewer
 			rejection_reason = $5,
 			internal_note = $6,
 			updated_at = $4
-		where id = $1 and status = 'pending_review'
+		where id = $1 and status in ('submitted', 'pending_review')
 		returning id, user_id, request_version, status, legal_name, country_code, document_type,
 			document_number_masked, evidence_urls, submission_note, submitted_at, reviewed_at,
 			reviewer_user_id, rejection_reason, internal_note, reverify_due_at, updated_at

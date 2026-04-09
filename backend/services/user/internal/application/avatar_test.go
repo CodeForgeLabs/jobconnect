@@ -39,10 +39,6 @@ func (m *avatarRepoMock) Update(_ context.Context, profile domain.Profile, _ *do
 	return nil
 }
 
-func (m *avatarRepoMock) UpdateAccountState(context.Context, uuid.UUID, string, string, string, time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
-	panic("not implemented")
-}
-
 func (m *avatarRepoMock) Delete(context.Context, uuid.UUID, bool, time.Time) error {
 	panic("not implemented")
 }
@@ -72,12 +68,16 @@ func (m *avatarRepoMock) RemoveAvatar(_ context.Context, _ uuid.UUID) error {
 }
 
 type avatarStoreMock struct {
-	putAvatar  domain.AvatarObject
-	getContent []byte
-	putErr     error
-	getErr     error
-	deleteErr  error
-	deletedKey string
+	putAvatar     domain.AvatarObject
+	getContent    []byte
+	putErr        error
+	getErr        error
+	deleteErr     error
+	presignPutErr error
+	presignPutURL string
+	statErr       error
+	statInfo      ObjectInfo
+	deletedKey    string
 }
 
 func (m *avatarStoreMock) PutAvatar(_ context.Context, avatar domain.AvatarObject) error {
@@ -104,6 +104,33 @@ func (m *avatarStoreMock) DeleteAvatar(_ context.Context, _ uuid.UUID, storageKe
 	}
 	m.deletedKey = storageKey
 	return nil
+}
+
+func (m *avatarStoreMock) PresignPutObject(_ context.Context, _ string, _ string, _ time.Duration) (string, error) {
+	if m.presignPutErr != nil {
+		return "", m.presignPutErr
+	}
+	if m.presignPutURL == "" {
+		return "https://example.test/upload", nil
+	}
+	return m.presignPutURL, nil
+}
+
+func (m *avatarStoreMock) PresignGetObject(_ context.Context, _ string, _ time.Duration) (string, error) {
+	if m.getErr != nil {
+		return "", m.getErr
+	}
+	return "https://example.test/avatar", nil
+}
+
+func (m *avatarStoreMock) StatObject(_ context.Context, _ string) (ObjectInfo, error) {
+	if m.statErr != nil {
+		return ObjectInfo{}, m.statErr
+	}
+	if m.statInfo.SizeBytes == 0 {
+		m.statInfo = ObjectInfo{SizeBytes: 123, ContentType: "image/png"}
+	}
+	return m.statInfo, nil
 }
 
 type avatarProcessorMock struct{}
@@ -157,8 +184,11 @@ func TestGetAvatarReadsFromObjectStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Execute() error = %v", err)
 	}
-	if string(out.Content) != "bytes" {
-		t.Fatalf("unexpected content: %q", string(out.Content))
+	if out.DownloadURL == "" {
+		t.Fatalf("expected download url")
+	}
+	if out.SizeBytes == 0 {
+		t.Fatalf("expected object size")
 	}
 }
 

@@ -159,8 +159,8 @@ services:
 
   user:
     build:
-      context: ./services
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/Dockerfile
       args:
         SERVICE: user
         CMD_PATH: ./cmd/userd
@@ -176,8 +176,8 @@ services:
 
   auth:
     build:
-      context: ./services
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/Dockerfile
       args:
         SERVICE: auth
         CMD_PATH: ./cmd/authd
@@ -193,8 +193,8 @@ services:
 
   job:
     build:
-      context: ./services
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/Dockerfile
       args:
         SERVICE: job
         CMD_PATH: ./cmd/jobd
@@ -210,8 +210,8 @@ services:
 
   proposal:
     build:
-      context: ./services
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/Dockerfile
       args:
         SERVICE: proposal
         CMD_PATH: ./cmd/proposald
@@ -227,8 +227,8 @@ services:
 
   contract:
     build:
-      context: ./services
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/Dockerfile
       args:
         SERVICE: contract
         CMD_PATH: ./cmd/contractd
@@ -244,8 +244,8 @@ services:
 
   wallet:
     build:
-      context: ./services
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/Dockerfile
       args:
         SERVICE: wallet
         CMD_PATH: ./cmd/walletd
@@ -258,8 +258,8 @@ services:
         condition: service_healthy
   chat:
     build:
-      context: ./services
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/Dockerfile
       args:
         SERVICE: chat
         CMD_PATH: ./cmd/chatd
@@ -273,8 +273,8 @@ services:
 
   verification:
     build:
-      context: ./services
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/Dockerfile
       args:
         SERVICE: verification
         CMD_PATH: ./cmd/verificationd
@@ -288,8 +288,8 @@ services:
 
   payment:
     build:
-      context: ./services
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/Dockerfile
       args:
         SERVICE: payment
         CMD_PATH: ./cmd/paymentd

@@ -3,13 +3,13 @@ package db
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"strings"
 	"time"
 
+	"jobconnect/user/internal/application"
 	"jobconnect/user/internal/domain"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -32,19 +32,40 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 	}()
 
 	var profileID int64
+	var taxID *string
+	if strings.TrimSpace(profile.TaxID) != "" {
+		v := strings.TrimSpace(profile.TaxID)
+		taxID = &v
+	}
+	var verificationStatus *string
+	if strings.TrimSpace(profile.VerificationStatus) != "" {
+		v := strings.TrimSpace(profile.VerificationStatus)
+		verificationStatus = &v
+	}
+
 	err = tx.QueryRow(ctx, `
-		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, language, contact_email, contact_phone, bio, account_status, suspension_reason, visibility, created_at, updated_at)
-		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		insert into profiles (user_id, role, first_name, last_name, display_name, avatar_url, contact_email, contact_phone, bio, location, account_status, suspension_reason, tax_id, verification_status, last_active_at, created_at, updated_at)
+		values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
 		returning id
-	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.AccountStatus, profile.SuspensionReason, profile.Visibility, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
+	`, profile.UserID, profile.Role, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.Location, profile.AccountStatus, profile.SuspensionReason, taxID, verificationStatus, profile.LastActiveAt, profile.CreatedAt, profile.UpdatedAt).Scan(&profileID)
 	if err != nil {
 		return 0, err
 	}
+
+	_, err = tx.Exec(ctx, `
+		insert into user_settings (profile_id, ui_locale, email_notifications_enabled, push_notifications_enabled)
+		values ($1, 'en', true, true)
+		on conflict (profile_id) do nothing
+	`, profileID)
+	if err != nil {
+		return 0, err
+	}
+
 	if client != nil {
 		_, err = tx.Exec(ctx, `
-			insert into client_profiles (profile_id, company_name, billing_address, tax_id, verification_status)
-			values ($1, $2, $3, $4, $5)
-		`, profileID, client.CompanyName, client.BillingAddress, client.TaxID, client.VerificationStatus)
+			insert into client_profiles (profile_id, company_name)
+			values ($1, $2)
+		`, profileID, client.CompanyName)
 		if err != nil {
 			return 0, err
 		}
@@ -59,22 +80,17 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 			insert into freelancer_profiles (
 				profile_id,
 				headline,
-				bio,
 				skills,
-				experience_level,
 				rating,
-				verification_status,
 				job_success_score,
 				total_reviews,
 				total_jobs,
-				total_earnings_usd,
+				total_earnings,
 				hourly_rate,
-				availability,
-				location,
-				last_active_at
+				availability
 			)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-		`, profileID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location, freelancer.LastActiveAt)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		`, profileID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability)
 		if err != nil {
 			return 0, err
 		}
@@ -89,6 +105,8 @@ func (r *ProfileRepo) Create(ctx context.Context, profile domain.Profile, client
 func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
 	var profile domain.Profile
 	var deletedAt *time.Time
+	var profileTaxID string
+	var profileVerificationStatus string
 	err := r.pool.QueryRow(ctx, `
 		select id,
 			user_id,
@@ -97,13 +115,15 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			coalesce(last_name, ''),
 			coalesce(display_name, ''),
 			coalesce(avatar_url, ''),
-			coalesce(language, ''),
 			coalesce(contact_email, ''),
 			coalesce(contact_phone, ''),
 			coalesce(bio, ''),
+			coalesce(location, ''),
 			coalesce(account_status, 'ACTIVE'),
 			coalesce(suspension_reason, ''),
-			coalesce(visibility, 'PUBLIC'),
+			coalesce(tax_id, ''),
+			coalesce(verification_status, ''),
+			last_active_at,
 			created_at,
 			updated_at,
 			deleted_at
@@ -117,13 +137,15 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 		&profile.LastName,
 		&profile.DisplayName,
 		&profile.AvatarURL,
-		&profile.Language,
 		&profile.ContactEmail,
 		&profile.ContactPhone,
 		&profile.Bio,
+		&profile.Location,
 		&profile.AccountStatus,
 		&profile.SuspensionReason,
-		&profile.Visibility,
+		&profileTaxID,
+		&profileVerificationStatus,
+		&profile.LastActiveAt,
 		&profile.CreatedAt,
 		&profile.UpdatedAt,
 		&deletedAt,
@@ -135,23 +157,24 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 		return domain.Profile{}, nil, nil, err
 	}
 	profile.DeletedAt = deletedAt
+	profile.TaxID = profileTaxID
+	profile.VerificationStatus = profileVerificationStatus
 
 	var client *domain.ClientProfile
 	if profile.Role == domain.RoleClient {
 		cp := &domain.ClientProfile{}
 		err = r.pool.QueryRow(ctx, `
-			select coalesce(company_name, ''),
-				coalesce(billing_address, ''),
-				coalesce(tax_id, ''),
-				coalesce(verification_status, '')
+			select coalesce(company_name, '')
 			from client_profiles
 			where profile_id = $1
-		`, profile.ID).Scan(&cp.CompanyName, &cp.BillingAddress, &cp.TaxID, &cp.VerificationStatus)
+		`, profile.ID).Scan(&cp.CompanyName)
 		if err != nil {
 			if !isNoRows(err) {
 				return domain.Profile{}, nil, nil, err
 			}
 		} else {
+			cp.TaxID = profile.TaxID
+			cp.VerificationStatus = profile.VerificationStatus
 			client = cp
 		}
 	}
@@ -160,25 +183,19 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 	if profile.Role == domain.RoleFreelancer {
 		fp := &domain.FreelancerProfile{}
 		var skillsRaw []byte
-		var lastActiveAt *time.Time
 		err = r.pool.QueryRow(ctx, `
 			select coalesce(headline, ''),
-				coalesce(bio, ''),
 				coalesce(skills, '[]'::jsonb),
-				coalesce(experience_level, ''),
 				coalesce(rating, 0),
-				coalesce(verification_status, ''),
 				coalesce(job_success_score, 0),
 				coalesce(total_reviews, 0),
 				coalesce(total_jobs, 0),
-				coalesce(total_earnings_usd, 0),
+				coalesce(total_earnings, 0),
 				coalesce(hourly_rate, 0),
-				coalesce(availability, 'AS_NEEDED'),
-				coalesce(location, ''),
-				last_active_at
+				coalesce(availability, 'AS_NEEDED')
 			from freelancer_profiles
 			where profile_id = $1
-		`, profile.ID).Scan(&fp.Headline, &fp.Bio, &skillsRaw, &fp.ExperienceLevel, &fp.Rating, &fp.VerificationStatus, &fp.Reputation.JobSuccessScore, &fp.Reputation.TotalReviews, &fp.Reputation.TotalJobs, &fp.Reputation.TotalEarningsUSD, &fp.HourlyRate, &fp.Availability, &fp.Location, &lastActiveAt)
+		`, profile.ID).Scan(&fp.Headline, &skillsRaw, &fp.Rating, &fp.Reputation.JobSuccessScore, &fp.Reputation.TotalReviews, &fp.Reputation.TotalJobs, &fp.Reputation.TotalEarningsUSD, &fp.HourlyRate, &fp.Availability)
 		if err != nil {
 			if !isNoRows(err) {
 				return domain.Profile{}, nil, nil, err
@@ -187,8 +204,8 @@ func (r *ProfileRepo) GetByUserID(ctx context.Context, userID uuid.UUID) (domain
 			if len(skillsRaw) > 0 {
 				_ = json.Unmarshal(skillsRaw, &fp.Skills)
 			}
+			fp.VerificationStatus = profile.VerificationStatus
 			fp.Reputation.AvgRating = fp.Rating
-			fp.LastActiveAt = lastActiveAt
 			freelancer = fp
 		}
 	}
@@ -206,36 +223,37 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 	}()
 
 	profile.UpdatedAt = time.Now().UTC()
+	taxID := &profile.TaxID
+	verificationStatus := &profile.VerificationStatus
 	_, err = tx.Exec(ctx, `
 		update profiles
 		set first_name = $2,
 			last_name = $3,
 			display_name = $4,
 			avatar_url = $5,
-			language = $6,
-			contact_email = $7,
-			contact_phone = $8,
-			bio = $9,
+			contact_email = $6,
+			contact_phone = $7,
+			bio = $8,
+			location = $9,
 			account_status = $10,
 			suspension_reason = $11,
-			visibility = $12,
-			updated_at = $13
+			last_active_at = $12,
+			tax_id = coalesce($13, tax_id),
+			verification_status = coalesce($14, verification_status),
+			updated_at = $15
 		where user_id = $1
-	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.Language, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.AccountStatus, profile.SuspensionReason, profile.Visibility, profile.UpdatedAt)
+	`, profile.UserID, profile.FirstName, profile.LastName, profile.DisplayName, profile.AvatarURL, profile.ContactEmail, profile.ContactPhone, profile.Bio, profile.Location, profile.AccountStatus, profile.SuspensionReason, profile.LastActiveAt, taxID, verificationStatus, profile.UpdatedAt)
 	if err != nil {
 		return err
 	}
 
 	if profile.Role == domain.RoleClient && client != nil {
 		_, err = tx.Exec(ctx, `
-			insert into client_profiles (profile_id, company_name, billing_address, tax_id, verification_status)
-			values ($1, $2, $3, $4, $5)
+			insert into client_profiles (profile_id, company_name)
+			values ($1, $2)
 			on conflict (profile_id) do update set
-				company_name = excluded.company_name,
-				billing_address = excluded.billing_address,
-				tax_id = excluded.tax_id,
-				verification_status = excluded.verification_status
-		`, profile.ID, client.CompanyName, client.BillingAddress, client.TaxID, client.VerificationStatus)
+				company_name = excluded.company_name
+		`, profile.ID, client.CompanyName)
 		if err != nil {
 			return err
 		}
@@ -250,37 +268,27 @@ func (r *ProfileRepo) Update(ctx context.Context, profile domain.Profile, client
 			insert into freelancer_profiles (
 				profile_id,
 				headline,
-				bio,
 				skills,
-				experience_level,
 				rating,
-				verification_status,
 				job_success_score,
 				total_reviews,
 				total_jobs,
-				total_earnings_usd,
+				total_earnings,
 				hourly_rate,
-				availability,
-				location,
-				last_active_at
+				availability
 			)
-			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+			values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			on conflict (profile_id) do update set
 				headline = excluded.headline,
-				bio = excluded.bio,
 				skills = excluded.skills,
-				experience_level = excluded.experience_level,
 				rating = excluded.rating,
-				verification_status = excluded.verification_status,
 				job_success_score = excluded.job_success_score,
 				total_reviews = excluded.total_reviews,
 				total_jobs = excluded.total_jobs,
-				total_earnings_usd = excluded.total_earnings_usd,
+				total_earnings = excluded.total_earnings,
 				hourly_rate = excluded.hourly_rate,
-				availability = excluded.availability,
-				location = excluded.location,
-				last_active_at = excluded.last_active_at
-		`, profile.ID, freelancer.Headline, freelancer.Bio, skillsJSON, freelancer.ExperienceLevel, freelancer.Rating, freelancer.VerificationStatus, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability, freelancer.Location, freelancer.LastActiveAt)
+				availability = excluded.availability
+		`, profile.ID, freelancer.Headline, skillsJSON, freelancer.Rating, freelancer.Reputation.JobSuccessScore, freelancer.Reputation.TotalReviews, freelancer.Reputation.TotalJobs, freelancer.Reputation.TotalEarningsUSD, freelancer.HourlyRate, freelancer.Availability)
 		if err != nil {
 			return err
 		}
@@ -362,24 +370,105 @@ func (r *ProfileRepo) RemoveAvatar(ctx context.Context, userID uuid.UUID) error 
 	return nil
 }
 
-func (r *ProfileRepo) UpdateAccountState(ctx context.Context, userID uuid.UUID, status, suspensionReason, visibility string, updatedAt time.Time) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
-	res, err := r.pool.Exec(ctx, `
-		update profiles
-		set account_status = $2,
-			suspension_reason = $3,
-			visibility = $4,
-			updated_at = $5
-		where user_id = $1
-	`, userID, status, suspensionReason, visibility, updatedAt)
-	if err != nil {
-		return domain.Profile{}, nil, nil, err
-	}
-	if res.RowsAffected() == 0 {
-		return domain.Profile{}, nil, nil, ErrNotFound
-	}
-	return r.GetByUserID(ctx, userID)
+func (r *ProfileRepo) SaveCV(ctx context.Context, cv application.CV) error {
+	_, err := r.pool.Exec(ctx, `
+		insert into profile_cvs (user_id, file_name, content_type, storage_key, size_bytes, updated_at)
+		values ($1, $2, $3, $4, $5, $6)
+		on conflict (user_id) do update set
+			file_name = excluded.file_name,
+			content_type = excluded.content_type,
+			storage_key = excluded.storage_key,
+			size_bytes = excluded.size_bytes,
+			updated_at = excluded.updated_at
+	`, cv.UserID, cv.FileName, cv.ContentType, cv.StorageKey, cv.SizeBytes, cv.UpdatedAt)
+	return err
 }
 
-func isNoRowsOrNotFound(err error) bool {
-	return isNoRows(err) || errors.Is(err, pgx.ErrNoRows)
+func (r *ProfileRepo) GetCV(ctx context.Context, userID uuid.UUID) (application.CV, error) {
+	var cv application.CV
+	err := r.pool.QueryRow(ctx, `
+		select user_id, file_name, content_type, storage_key, size_bytes, updated_at
+		from profile_cvs
+		where user_id = $1
+	`, userID).Scan(&cv.UserID, &cv.FileName, &cv.ContentType, &cv.StorageKey, &cv.SizeBytes, &cv.UpdatedAt)
+	if err != nil {
+		if isNoRows(err) {
+			return application.CV{}, ErrNotFound
+		}
+		return application.CV{}, err
+	}
+	return cv, nil
+}
+
+func (r *ProfileRepo) RemoveCV(ctx context.Context, userID uuid.UUID) error {
+	res, err := r.pool.Exec(ctx, `delete from profile_cvs where user_id = $1`, userID)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *ProfileRepo) GetSettingsByUserID(ctx context.Context, userID uuid.UUID) (application.UserSettings, error) {
+	var out application.UserSettings
+	err := r.pool.QueryRow(ctx, `
+		select
+			coalesce(us.ui_locale, 'en'),
+			coalesce(us.email_notifications_enabled, true),
+			coalesce(us.push_notifications_enabled, true)
+		from profiles p
+		left join user_settings us on us.profile_id = p.id
+		where p.user_id = $1
+	`, userID).Scan(&out.UILocale, &out.EmailNotificationsEnabled, &out.PushNotificationsEnabled)
+	if err != nil {
+		if isNoRows(err) {
+			return application.UserSettings{}, ErrNotFound
+		}
+		return application.UserSettings{}, err
+	}
+
+	if strings.TrimSpace(out.UILocale) == "" {
+		out.UILocale = "en"
+	}
+	return out, nil
+}
+
+func (r *ProfileRepo) PatchSettingsByUserID(ctx context.Context, userID uuid.UUID, patch application.PatchSettings) (application.UserSettings, error) {
+	current, err := r.GetSettingsByUserID(ctx, userID)
+	if err != nil {
+		return application.UserSettings{}, err
+	}
+
+	if patch.UILocale != nil {
+		current.UILocale = strings.TrimSpace(*patch.UILocale)
+	}
+	if patch.EmailNotificationsEnabled != nil {
+		current.EmailNotificationsEnabled = *patch.EmailNotificationsEnabled
+	}
+	if patch.PushNotificationsEnabled != nil {
+		current.PushNotificationsEnabled = *patch.PushNotificationsEnabled
+	}
+
+	if strings.TrimSpace(current.UILocale) == "" {
+		current.UILocale = "en"
+	}
+
+	_, err = r.pool.Exec(ctx, `
+		insert into user_settings (profile_id, ui_locale, email_notifications_enabled, push_notifications_enabled, created_at, updated_at)
+		select p.id, $2, $3, $4, now(), now()
+		from profiles p
+		where p.user_id = $1
+		on conflict (profile_id) do update set
+			ui_locale = excluded.ui_locale,
+			email_notifications_enabled = excluded.email_notifications_enabled,
+			push_notifications_enabled = excluded.push_notifications_enabled,
+			updated_at = now()
+	`, userID, current.UILocale, current.EmailNotificationsEnabled, current.PushNotificationsEnabled)
+	if err != nil {
+		return application.UserSettings{}, err
+	}
+
+	return current, nil
 }
