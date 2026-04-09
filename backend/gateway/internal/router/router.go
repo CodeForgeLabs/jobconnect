@@ -128,11 +128,13 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.PATCH("/me/settings", userHandler.UpdateMeAccountSettings)
 
 	// Avatar: upload, read, and delete profile media.
+	userRoutes.POST("/me/avatar/upload-url", userHandler.GetMeAvatarUploadUrl)
 	userRoutes.POST("/me/avatar", userHandler.UploadMeAvatar)
 	userRoutes.GET("/me/avatar", userHandler.GetMeAvatar)
 	userRoutes.DELETE("/me/avatar", userHandler.RemoveMeAvatar)
 
 	// CV: upload, read URL, and delete profile document.
+	userRoutes.POST("/me/cv/upload-url", userHandler.GetMeCVUploadUrl)
 	userRoutes.POST("/me/cv", userHandler.UploadMeCV)
 	userRoutes.GET("/me/cv", userHandler.GetMeCV)
 	userRoutes.DELETE("/me/cv", userHandler.RemoveMeCV)
@@ -140,6 +142,7 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	// Portfolio: CRUD for showcase projects.
 	userRoutes.POST("/me/portfolio", userHandler.CreateMePortfolioItem)
 	userRoutes.GET("/me/portfolio", userHandler.ListMePortfolioItems)
+	userRoutes.GET("/me/portfolio/:itemId", userHandler.GetMePortfolioItem)
 	userRoutes.PUT("/me/portfolio/:itemId", userHandler.UpdateMePortfolioItem)
 	userRoutes.DELETE("/me/portfolio/:itemId", userHandler.DeleteMePortfolioItem)
 

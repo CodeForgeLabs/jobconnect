@@ -32,6 +32,25 @@ var protoJSONWithDefaults = protojson.MarshalOptions{
 	EmitUnpopulated: true,
 }
 
+const (
+	maxJSONBodyBytes   int64 = 1 << 20
+	maxMultipartSlack  int64 = 1 << 20
+	maxAvatarFileBytes int64 = 5 * 1024 * 1024
+	maxCVFileBytes     int64 = 25 * 1024 * 1024
+)
+
+var avatarContentTypes = map[string]struct{}{
+	"image/jpeg": {},
+	"image/png":  {},
+	"image/webp": {},
+}
+
+var cvContentTypes = map[string]struct{}{
+	"application/pdf":    {},
+	"application/msword": {},
+	"application/vnd.openxmlformats-officedocument.wordprocessingml.document": {},
+}
+
 type UserHandler struct {
 	client             userv1.UserServiceClient
 	verificationClient verificationStatusClient
@@ -104,8 +123,13 @@ func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 		return
 	}
 
+	limitRequestBody(c, maxJSONBodyBytes)
 	var body updateProfileRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
+		if requestBodyTooLarge(err) {
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "request body too large"})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -311,8 +335,13 @@ func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
 		return
 	}
 
+	limitRequestBody(c, maxJSONBodyBytes)
 	var body updateAccountSettingsRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
+		if requestBodyTooLarge(err) {
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "request body too large"})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -342,6 +371,27 @@ func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"settings": settingsPayload})
 }
 
+func (h *UserHandler) GetMeAvatarUploadUrl(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+	req := &userv1.GetMyAvatarUploadUrlRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+	req.UserId = userID
+	resp, err := h.client.GetMyAvatarUploadUrl(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"storage_key": resp.GetStorageKey(), "upload_url": resp.GetUploadUrl()})
+	return
+}
+
 func (h *UserHandler) UploadMeAvatar(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -349,36 +399,22 @@ func (h *UserHandler) UploadMeAvatar(c *gin.Context) {
 		return
 	}
 
-	fileHeader, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})
+	req := &userv1.UploadMyAvatarRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+	req.UserId = userID
+
+	if strings.TrimSpace(req.GetStorageKey()) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "storage_key is required"})
+		return
+	}
+	if !allowedContentType(req.GetContentType(), avatarContentTypes) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported avatar content_type"})
 		return
 	}
 
-	file, err := fileHeader.Open()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to open uploaded file"})
-		return
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to read uploaded file"})
-		return
-	}
-
-	contentType := strings.TrimSpace(fileHeader.Header.Get("Content-Type"))
-	if contentType == "" {
-		contentType = http.DetectContentType(content)
-	}
-
-	resp, err := h.client.UpsertMyAvatar(c.Request.Context(), &userv1.UploadMyAvatarRequest{
-		UserId:      userID,
-		FileName:    fileHeader.Filename,
-		ContentType: contentType,
-		Content:     content,
-	})
+	resp, err := h.client.UpsertMyAvatar(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -406,15 +442,12 @@ func (h *UserHandler) GetMeAvatar(c *gin.Context) {
 		return
 	}
 
-	avatar := resp.GetAvatar()
-	if fileName := strings.TrimSpace(avatar.GetFileName()); fileName != "" {
-		c.Header("Content-Disposition", fmt.Sprintf("inline; filename=%q", fileName))
+	avatarPayload, err := protoToAny(resp.GetAvatar())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
 	}
-	contentType := strings.TrimSpace(avatar.GetContentType())
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-	c.Data(http.StatusOK, contentType, resp.GetContent())
+	c.JSON(http.StatusOK, gin.H{"avatar": avatarPayload})
 }
 
 func (h *UserHandler) RemoveMeAvatar(c *gin.Context) {
@@ -433,6 +466,27 @@ func (h *UserHandler) RemoveMeAvatar(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"removed": resp.GetRemoved()})
 }
 
+func (h *UserHandler) GetMeCVUploadUrl(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+	req := &userv1.GetMyCVUploadUrlRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+	req.UserId = userID
+	resp, err := h.client.GetMyCVUploadUrl(c.Request.Context(), req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"storage_key": resp.GetStorageKey(), "upload_url": resp.GetUploadUrl()})
+	return
+}
+
 func (h *UserHandler) UploadMeCV(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -440,36 +494,22 @@ func (h *UserHandler) UploadMeCV(c *gin.Context) {
 		return
 	}
 
-	fileHeader, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "file is required"})
+	req := &userv1.UploadMyCVRequest{UserId: userID}
+	if !bindProtoJSON(c, req) {
+		return
+	}
+	req.UserId = userID
+
+	if strings.TrimSpace(req.GetStorageKey()) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "storage_key is required"})
+		return
+	}
+	if !allowedContentType(req.GetContentType(), cvContentTypes) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported cv content_type"})
 		return
 	}
 
-	file, err := fileHeader.Open()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to open uploaded file"})
-		return
-	}
-	defer file.Close()
-
-	content, err := io.ReadAll(file)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to read uploaded file"})
-		return
-	}
-
-	contentType := strings.TrimSpace(fileHeader.Header.Get("Content-Type"))
-	if contentType == "" {
-		contentType = http.DetectContentType(content)
-	}
-
-	resp, err := h.client.UpsertMyCV(c.Request.Context(), &userv1.UploadMyCVRequest{
-		UserId:      userID,
-		FileName:    fileHeader.Filename,
-		ContentType: contentType,
-		Content:     content,
-	})
+	resp, err := h.client.UpsertMyCV(c.Request.Context(), req)
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -576,6 +616,28 @@ func (h *UserHandler) ListMePortfolioItems(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"items": itemsPayload, "next_page_token": nextPageToken})
 }
 
+func (h *UserHandler) GetMePortfolioItem(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+
+	itemID, err := parseInt64PathParam(c, "itemId")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	resp, err := h.client.GetMyPortfolioItem(c.Request.Context(), &userv1.GetMyPortfolioItemRequest{UserId: userID, ItemId: itemID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+
+	writeProtoEnvelope(c, http.StatusOK, "item", resp.GetItem())
+}
+
 func (h *UserHandler) UpdateMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -636,8 +698,13 @@ func (h *UserHandler) SetMeWorkPreferences(c *gin.Context) {
 	}
 
 	req := &userv1.PatchMyWorkPreferencesRequest{UserId: userID}
+	limitRequestBody(c, maxJSONBodyBytes)
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
+		if requestBodyTooLarge(err) {
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "request body too large"})
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to read request body"})
 		return
 	}
@@ -871,8 +938,13 @@ func parsePagination(c *gin.Context) (uint32, string, error) {
 }
 
 func bindProtoJSON(c *gin.Context, msg proto.Message) bool {
+	limitRequestBody(c, maxJSONBodyBytes)
 	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
+		if requestBodyTooLarge(err) {
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{"error": "request body too large"})
+			return false
+		}
 		c.JSON(http.StatusBadRequest, gin.H{"error": "unable to read request body"})
 		return false
 	}
@@ -884,6 +956,30 @@ func bindProtoJSON(c *gin.Context, msg proto.Message) bool {
 		return false
 	}
 	return true
+}
+
+func limitRequestBody(c *gin.Context, maxBytes int64) {
+	if c == nil || c.Request == nil || maxBytes <= 0 {
+		return
+	}
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBytes)
+}
+
+func requestBodyTooLarge(err error) bool {
+	return err != nil && strings.Contains(strings.ToLower(err.Error()), "request body too large")
+}
+
+func allowedContentType(contentType string, allowed map[string]struct{}) bool {
+	normalized := strings.ToLower(strings.TrimSpace(contentType))
+	_, ok := allowed[normalized]
+	return ok
+}
+
+func multipartUploadLimit(fileBytes int64) int64 {
+	if fileBytes <= 0 {
+		return maxMultipartSlack
+	}
+	return fileBytes + maxMultipartSlack
 }
 
 func writeProtoEnvelope(c *gin.Context, statusCode int, key string, msg proto.Message) {

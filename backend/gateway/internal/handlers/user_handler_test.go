@@ -3,10 +3,15 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"mime"
 	"mime/multipart"
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"jobconnect/gateway/internal/middleware"
@@ -40,7 +45,14 @@ func newMultipartBodyTestContext(method, target, fieldName, fileName string, con
 	rec := httptest.NewRecorder()
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile(fieldName, fileName)
+	contentType := mime.TypeByExtension(filepath.Ext(fileName))
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+	part, err := writer.CreatePart(textproto.MIMEHeader{
+		"Content-Disposition": {fmt.Sprintf(`form-data; name=%q; filename=%q`, fieldName, fileName)},
+		"Content-Type":        {contentType},
+	})
 	if err == nil {
 		_, _ = part.Write(content)
 	}
@@ -62,10 +74,13 @@ type fullUserServiceServerStub struct {
 
 	getMySettingsReq   *userv1.GetMySettingsRequest
 	patchMySettingsReq *userv1.PatchMySettingsRequest
+	getMyAvatarUploadUrlReq *userv1.GetMyAvatarUploadUrlRequest
 
 	upsertMyAvatarReq *userv1.UploadMyAvatarRequest
 	getMyAvatarReq    *userv1.GetMyAvatarRequest
 	removeMyAvatarReq *userv1.RemoveMyAvatarRequest
+
+	getMyCVUploadUrlReq *userv1.GetMyCVUploadUrlRequest
 
 	upsertMyCVReq *userv1.UploadMyCVRequest
 	getMyCVReq    *userv1.GetMyCVRequest
@@ -73,6 +88,7 @@ type fullUserServiceServerStub struct {
 
 	createMyPortfolioItemReq *userv1.CreateMyPortfolioItemRequest
 	listMyPortfolioItemsReq  *userv1.ListMyPortfolioItemsRequest
+	getMyPortfolioItemReq    *userv1.GetMyPortfolioItemRequest
 	updateMyPortfolioItemReq *userv1.UpdateMyPortfolioItemRequest
 	deleteMyPortfolioItemReq *userv1.DeleteMyPortfolioItemRequest
 
@@ -132,14 +148,19 @@ func (s *fullUserServiceServerStub) PatchMySettings(ctx context.Context, in *use
 	return &userv1.PatchMySettingsResponse{Settings: &userv1.UserSettings{UiLocale: in.GetUiLocale(), EmailNotificationsEnabled: in.GetEmailNotificationsEnabled(), PushNotificationsEnabled: in.GetPushNotificationsEnabled()}}, nil
 }
 
+func (s *fullUserServiceServerStub) GetMyAvatarUploadUrl(ctx context.Context, in *userv1.GetMyAvatarUploadUrlRequest) (*userv1.GetMyAvatarUploadUrlResponse, error) {
+	s.getMyAvatarUploadUrlReq = in
+	return &userv1.GetMyAvatarUploadUrlResponse{StorageKey: "avatars/test/current", UploadUrl: "https://upload.test/avatar"}, nil
+}
+
 func (s *fullUserServiceServerStub) UpsertMyAvatar(ctx context.Context, in *userv1.UploadMyAvatarRequest) (*userv1.UploadMyAvatarResponse, error) {
 	s.upsertMyAvatarReq = in
-	return &userv1.UploadMyAvatarResponse{AvatarUrl: "https://cdn.test/avatar.png", Avatar: &userv1.ProfileAvatar{UserId: in.GetUserId(), FileName: in.GetFileName(), ContentType: in.GetContentType(), SizeBytes: int64(len(in.GetContent()))}}, nil
+	return &userv1.UploadMyAvatarResponse{AvatarUrl: "https://cdn.test/avatar.png", Avatar: &userv1.ProfileAvatar{UserId: in.GetUserId(), FileName: in.GetFileName(), ContentType: in.GetContentType(), StorageKey: in.GetStorageKey(), SizeBytes: 123, DownloadUrl: "https://cdn.test/avatar.png"}}, nil
 }
 
 func (s *fullUserServiceServerStub) GetMyAvatar(ctx context.Context, in *userv1.GetMyAvatarRequest) (*userv1.GetMyAvatarResponse, error) {
 	s.getMyAvatarReq = in
-	return &userv1.GetMyAvatarResponse{Avatar: &userv1.ProfileAvatar{FileName: "avatar.png", ContentType: "image/png"}, Content: []byte("avatar-bytes")}, nil
+	return &userv1.GetMyAvatarResponse{Avatar: &userv1.ProfileAvatar{FileName: "avatar.png", ContentType: "image/png", DownloadUrl: "https://cdn.test/avatar.png"}}, nil
 }
 
 func (s *fullUserServiceServerStub) RemoveMyAvatar(ctx context.Context, in *userv1.RemoveMyAvatarRequest) (*userv1.RemoveMyAvatarResponse, error) {
@@ -147,9 +168,14 @@ func (s *fullUserServiceServerStub) RemoveMyAvatar(ctx context.Context, in *user
 	return &userv1.RemoveMyAvatarResponse{Removed: true}, nil
 }
 
+func (s *fullUserServiceServerStub) GetMyCVUploadUrl(ctx context.Context, in *userv1.GetMyCVUploadUrlRequest) (*userv1.GetMyCVUploadUrlResponse, error) {
+	s.getMyCVUploadUrlReq = in
+	return &userv1.GetMyCVUploadUrlResponse{StorageKey: "cvs/test/current", UploadUrl: "https://upload.test/cv"}, nil
+}
+
 func (s *fullUserServiceServerStub) UpsertMyCV(ctx context.Context, in *userv1.UploadMyCVRequest) (*userv1.UploadMyCVResponse, error) {
 	s.upsertMyCVReq = in
-	return &userv1.UploadMyCVResponse{Cv: &userv1.ProfileCV{UserId: in.GetUserId(), FileName: in.GetFileName(), ContentType: in.GetContentType(), SizeBytes: int64(len(in.GetContent()))}}, nil
+	return &userv1.UploadMyCVResponse{Cv: &userv1.ProfileCV{UserId: in.GetUserId(), FileName: in.GetFileName(), ContentType: in.GetContentType(), SizeBytes: 123, DownloadUrl: "https://cdn.test/resume.pdf"}}, nil
 }
 
 func (s *fullUserServiceServerStub) GetMyCV(ctx context.Context, in *userv1.GetMyCVRequest) (*userv1.GetMyCVResponse, error) {
@@ -170,6 +196,11 @@ func (s *fullUserServiceServerStub) CreateMyPortfolioItem(ctx context.Context, i
 func (s *fullUserServiceServerStub) ListMyPortfolioItems(ctx context.Context, in *userv1.ListMyPortfolioItemsRequest) (*userv1.ListMyPortfolioItemsResponse, error) {
 	s.listMyPortfolioItemsReq = in
 	return &userv1.ListMyPortfolioItemsResponse{Items: []*userv1.PortfolioItem{{Id: 101, UserId: in.GetUserId(), Title: "One"}, {Id: 102, UserId: in.GetUserId(), Title: "Two"}}, Page: &userv1.PagingResponse{NextPageToken: "next-token"}}, nil
+}
+
+func (s *fullUserServiceServerStub) GetMyPortfolioItem(ctx context.Context, in *userv1.GetMyPortfolioItemRequest) (*userv1.GetMyPortfolioItemResponse, error) {
+	s.getMyPortfolioItemReq = in
+	return &userv1.GetMyPortfolioItemResponse{Item: &userv1.PortfolioItem{Id: in.GetItemId(), UserId: in.GetUserId(), Title: "Single Item"}}, nil
 }
 
 func (s *fullUserServiceServerStub) UpdateMyPortfolioItem(ctx context.Context, in *userv1.UpdateMyPortfolioItemRequest) (*userv1.UpdateMyPortfolioItemResponse, error) {
@@ -295,6 +326,18 @@ func TestUserHandler_PostmanStyleEndpointCoverage(t *testing.T) {
 		}
 	})
 
+	t.Run("GetMyAvatarUploadUrl", func(t *testing.T) {
+		ctx, rec := newJSONBodyTestContext(http.MethodPost, "/api/v1/users/me/avatar/upload-url", `{"file_name":"avatar.png","content_type":"image/png"}`)
+		ctx.Set(middleware.ContextUserID, userID)
+		h.GetMeAvatarUploadUrl(ctx)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+		}
+		if stub.getMyAvatarUploadUrlReq == nil || stub.getMyAvatarUploadUrlReq.GetUserId() != userID {
+			t.Fatalf("expected GetMyAvatarUploadUrl request with trusted user_id")
+		}
+	})
+
 	t.Run("PatchMySettings", func(t *testing.T) {
 		ctx, rec := newJSONBodyTestContext(http.MethodPatch, "/api/v1/users/me/settings", `{"ui_locale":"vi-VN","email_notifications_enabled":true}`)
 		ctx.Set(middleware.ContextUserID, userID)
@@ -308,14 +351,14 @@ func TestUserHandler_PostmanStyleEndpointCoverage(t *testing.T) {
 	})
 
 	t.Run("UpsertMyAvatar", func(t *testing.T) {
-		ctx, rec := newMultipartBodyTestContext(http.MethodPost, "/api/v1/users/me/avatar", "file", "avatar.png", []byte("avatar-content"))
+		ctx, rec := newJSONBodyTestContext(http.MethodPost, "/api/v1/users/me/avatar", `{"storage_key":"avatars/test/current","file_name":"avatar.png","content_type":"image/png","width":64,"height":64}`)
 		ctx.Set(middleware.ContextUserID, userID)
 		h.UploadMeAvatar(ctx)
 		if rec.Code != http.StatusOK {
 			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 		}
-		if stub.upsertMyAvatarReq == nil || stub.upsertMyAvatarReq.GetUserId() != userID || len(stub.upsertMyAvatarReq.GetContent()) == 0 {
-			t.Fatalf("expected UpsertMyAvatar request with content and trusted user_id")
+		if stub.upsertMyAvatarReq == nil || stub.upsertMyAvatarReq.GetUserId() != userID || stub.upsertMyAvatarReq.GetStorageKey() == "" {
+			t.Fatalf("expected UpsertMyAvatar request with storage_key and trusted user_id")
 		}
 	})
 
@@ -329,8 +372,8 @@ func TestUserHandler_PostmanStyleEndpointCoverage(t *testing.T) {
 		if stub.getMyAvatarReq == nil || stub.getMyAvatarReq.GetUserId() != userID {
 			t.Fatalf("expected GetMyAvatar request user_id=%q", userID)
 		}
-		if rec.Body.String() != "avatar-bytes" {
-			t.Fatalf("expected avatar bytes body, got %q", rec.Body.String())
+		if !strings.Contains(rec.Body.String(), "download_url") {
+			t.Fatalf("expected avatar json body, got %q", rec.Body.String())
 		}
 	})
 
@@ -346,15 +389,27 @@ func TestUserHandler_PostmanStyleEndpointCoverage(t *testing.T) {
 		}
 	})
 
+	t.Run("GetMyCVUploadUrl", func(t *testing.T) {
+		ctx, rec := newJSONBodyTestContext(http.MethodPost, "/api/v1/users/me/cv/upload-url", `{"file_name":"resume.pdf","content_type":"application/pdf"}`)
+		ctx.Set(middleware.ContextUserID, userID)
+		h.GetMeCVUploadUrl(ctx)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+		}
+		if stub.getMyCVUploadUrlReq == nil || stub.getMyCVUploadUrlReq.GetUserId() != userID {
+			t.Fatalf("expected GetMyCVUploadUrl request with trusted user_id")
+		}
+	})
+
 	t.Run("UpsertMyCV", func(t *testing.T) {
-		ctx, rec := newMultipartBodyTestContext(http.MethodPost, "/api/v1/users/me/cv", "file", "resume.pdf", []byte("cv-content"))
+		ctx, rec := newJSONBodyTestContext(http.MethodPost, "/api/v1/users/me/cv", `{"storage_key":"cvs/test/current","file_name":"resume.pdf","content_type":"application/pdf"}`)
 		ctx.Set(middleware.ContextUserID, userID)
 		h.UploadMeCV(ctx)
 		if rec.Code != http.StatusOK {
 			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
 		}
-		if stub.upsertMyCVReq == nil || stub.upsertMyCVReq.GetUserId() != userID || len(stub.upsertMyCVReq.GetContent()) == 0 {
-			t.Fatalf("expected UpsertMyCV request with content and trusted user_id")
+		if stub.upsertMyCVReq == nil || stub.upsertMyCVReq.GetUserId() != userID || stub.upsertMyCVReq.GetStorageKey() == "" {
+			t.Fatalf("expected UpsertMyCV request with storage_key and trusted user_id")
 		}
 	})
 
@@ -403,6 +458,19 @@ func TestUserHandler_PostmanStyleEndpointCoverage(t *testing.T) {
 		}
 		if stub.listMyPortfolioItemsReq == nil || stub.listMyPortfolioItemsReq.GetUserId() != userID || stub.listMyPortfolioItemsReq.GetPage().GetPageSize() != 10 {
 			t.Fatalf("expected ListMyPortfolioItems request with pagination and trusted user_id")
+		}
+	})
+
+	t.Run("GetMyPortfolioItem", func(t *testing.T) {
+		ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/users/me/portfolio/123")
+		ctx.Set(middleware.ContextUserID, userID)
+		ctx.Params = gin.Params{{Key: "itemId", Value: "123"}}
+		h.GetMePortfolioItem(ctx)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+		}
+		if stub.getMyPortfolioItemReq == nil || stub.getMyPortfolioItemReq.GetUserId() != userID || stub.getMyPortfolioItemReq.GetItemId() != 123 {
+			t.Fatalf("expected GetMyPortfolioItem request with trusted user_id and item_id")
 		}
 	})
 
@@ -634,6 +702,19 @@ func TestUpdateMeProfile_LanguageRejectedInFavorOfSettings(t *testing.T) {
 	}
 }
 
+func TestUpdateMeProfile_TooLargeBodyRejected(t *testing.T) {
+	h := &UserHandler{}
+	largeBody := `{"display_name":"` + strings.Repeat("a", 1<<20) + `"}`
+	ctx, rec := newJSONBodyTestContext(http.MethodPatch, "/api/v1/users/me/profile", largeBody)
+	ctx.Set(middleware.ContextUserID, "11111111-1111-1111-1111-111111111111")
+
+	h.UpdateMeProfile(ctx)
+
+	if rec.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("expected status %d, got %d", http.StatusRequestEntityTooLarge, rec.Code)
+	}
+}
+
 type submittedVerificationClientStub struct {
 	called bool
 }
@@ -659,6 +740,31 @@ func TestUpdateMeProfile_TaxIDRejectedWhenVerificationSubmitted(t *testing.T) {
 	}
 	if !verificationClient.called {
 		t.Fatalf("expected verification status check to be called")
+	}
+}
+
+func TestUploadMeAvatar_InvalidContentTypeRejected(t *testing.T) {
+	h := &UserHandler{}
+	ctx, rec := newJSONBodyTestContext(http.MethodPost, "/api/v1/users/me/avatar", `{"storage_key":"avatars/test/current","file_name":"avatar.txt","content_type":"text/plain"}`)
+	ctx.Set(middleware.ContextUserID, "11111111-1111-1111-1111-111111111111")
+
+	h.UploadMeAvatar(ctx)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
+	}
+}
+
+func TestUploadMeAvatar_TooLargeFileRejected(t *testing.T) {
+	h := &UserHandler{}
+	largeBody := `{"storage_key":"avatars/test/current","file_name":"avatar.png","content_type":"image/png","padding":"` + strings.Repeat("a", 1<<20) + `"}`
+	ctx, rec := newJSONBodyTestContext(http.MethodPost, "/api/v1/users/me/avatar", largeBody)
+	ctx.Set(middleware.ContextUserID, "11111111-1111-1111-1111-111111111111")
+
+	h.UploadMeAvatar(ctx)
+
+	if rec.Code != http.StatusRequestEntityTooLarge {
+		t.Fatalf("expected status %d, got %d", http.StatusRequestEntityTooLarge, rec.Code)
 	}
 }
 
