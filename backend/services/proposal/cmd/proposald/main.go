@@ -12,6 +12,7 @@ import (
 	"time"
 
 	grpcadapter "jobconnect/proposal/internal/adapters/grpc"
+	grpcclients "jobconnect/proposal/internal/adapters/grpc/clients"
 	"jobconnect/proposal/internal/application"
 	"jobconnect/proposal/internal/config"
 	"jobconnect/proposal/internal/infrastructure/clock"
@@ -61,7 +62,7 @@ func main() {
 	if connectsAddr == "" {
 		connectsAddr = "localhost:50058"
 	}
-	connectsCli, err := grpcadapter.NewConnectsClient(connectsAddr)
+	connectsCli, err := grpcclients.NewConnectsClient(connectsAddr)
 	if err != nil {
 		log.Fatalf("connects service dial: %v", err)
 	}

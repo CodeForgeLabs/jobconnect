@@ -229,6 +229,7 @@ type Proposal struct {
 	RejectedAtUnixSeconds    int64                  `protobuf:"varint,15,opt,name=rejected_at_unix_seconds,json=rejectedAtUnixSeconds,proto3" json:"rejected_at_unix_seconds,omitempty"`
 	HiredAtUnixSeconds       int64                  `protobuf:"varint,16,opt,name=hired_at_unix_seconds,json=hiredAtUnixSeconds,proto3" json:"hired_at_unix_seconds,omitempty"`
 	WithdrawnAtUnixSeconds   int64                  `protobuf:"varint,17,opt,name=withdrawn_at_unix_seconds,json=withdrawnAtUnixSeconds,proto3" json:"withdrawn_at_unix_seconds,omitempty"`
+	ConnectsSpent            int32                  `protobuf:"varint,18,opt,name=connects_spent,json=connectsSpent,proto3" json:"connects_spent,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -382,6 +383,13 @@ func (x *Proposal) GetWithdrawnAtUnixSeconds() int64 {
 	return 0
 }
 
+func (x *Proposal) GetConnectsSpent() int32 {
+	if x != nil {
+		return x.ConnectsSpent
+	}
+	return 0
+}
+
 type SubmitProposalRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JobId         int64                  `protobuf:"varint,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
@@ -390,6 +398,7 @@ type SubmitProposalRequest struct {
 	BidAmount     float64                `protobuf:"fixed64,4,opt,name=bid_amount,json=bidAmount,proto3" json:"bid_amount,omitempty"`
 	EstimatedDays int32                  `protobuf:"varint,5,opt,name=estimated_days,json=estimatedDays,proto3" json:"estimated_days,omitempty"`
 	Attachments   []*ProposalAttachment  `protobuf:"bytes,6,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	ConnectsSpent int32                  `protobuf:"varint,7,opt,name=connects_spent,json=connectsSpent,proto3" json:"connects_spent,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -464,6 +473,13 @@ func (x *SubmitProposalRequest) GetAttachments() []*ProposalAttachment {
 		return x.Attachments
 	}
 	return nil
+}
+
+func (x *SubmitProposalRequest) GetConnectsSpent() int32 {
+	if x != nil {
+		return x.ConnectsSpent
+	}
+	return 0
 }
 
 type SubmitProposalResponse struct {
@@ -1193,7 +1209,7 @@ const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\x12\x10\n" +
 	"\x03url\x18\x04 \x01(\tR\x03url\x12\x1d\n" +
 	"\n" +
-	"size_bytes\x18\x05 \x01(\x03R\tsizeBytes\"\xe8\x05\n" +
+	"size_bytes\x18\x05 \x01(\x03R\tsizeBytes\"\x8f\x06\n" +
 	"\bProposal\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x15\n" +
 	"\x06job_id\x18\x02 \x01(\x03R\x05jobId\x12\x1b\n" +
@@ -1213,7 +1229,8 @@ const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\x1bshortlisted_at_unix_seconds\x18\x0e \x01(\x03R\x18shortlistedAtUnixSeconds\x127\n" +
 	"\x18rejected_at_unix_seconds\x18\x0f \x01(\x03R\x15rejectedAtUnixSeconds\x121\n" +
 	"\x15hired_at_unix_seconds\x18\x10 \x01(\x03R\x12hiredAtUnixSeconds\x129\n" +
-	"\x19withdrawn_at_unix_seconds\x18\x11 \x01(\x03R\x16withdrawnAtUnixSeconds\"\xf5\x01\n" +
+	"\x19withdrawn_at_unix_seconds\x18\x11 \x01(\x03R\x16withdrawnAtUnixSeconds\x12%\n" +
+	"\x0econnects_spent\x18\x12 \x01(\x05R\rconnectsSpent\"\x9c\x02\n" +
 	"\x15SubmitProposalRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\x12!\n" +
 	"\fcover_letter\x18\x02 \x01(\tR\vcoverLetter\x12\x19\n" +
@@ -1221,7 +1238,8 @@ const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\n" +
 	"bid_amount\x18\x04 \x01(\x01R\tbidAmount\x12%\n" +
 	"\x0eestimated_days\x18\x05 \x01(\x05R\restimatedDays\x12A\n" +
-	"\vattachments\x18\x06 \x03(\v2\x1f.proposal.v1.ProposalAttachmentR\vattachments\"K\n" +
+	"\vattachments\x18\x06 \x03(\v2\x1f.proposal.v1.ProposalAttachmentR\vattachments\x12%\n" +
+	"\x0econnects_spent\x18\a \x01(\x05R\rconnectsSpent\"K\n" +
 	"\x16SubmitProposalResponse\x121\n" +
 	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal\"\xe4\x01\n" +
 	"\x15ModifyProposalRequest\x12\x1f\n" +
