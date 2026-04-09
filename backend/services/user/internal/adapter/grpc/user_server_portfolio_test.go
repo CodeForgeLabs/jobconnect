@@ -2,11 +2,13 @@ package grpcadapter
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
 	userv1 "jobconnect/user/gen/user"
 	"jobconnect/user/internal/application"
+	"jobconnect/user/internal/domain"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -103,7 +105,10 @@ func TestMapPortfolioMediaTypeToProto(t *testing.T) {
 }
 
 func TestGetMyPortfolioMediaUploadUrl(t *testing.T) {
-	uc := &application.GetPortfolioMediaUploadURL{Store: &fakePortfolioUploadStore{}}
+	uc := &application.GetPortfolioMediaUploadURL{
+		Store:        &fakePortfolioUploadStore{},
+		RoleProfiles: fakeRoleRepo{profile: domain.Profile{Role: domain.RoleFreelancer}},
+	}
 	srv := &UserServer{GetPortfolioMediaUploadURLUC: uc}
 	userID := uuid.New().String()
 
@@ -131,5 +136,41 @@ func TestGetMyPortfolioMediaUploadUrlRequiresConfiguredUseCase(t *testing.T) {
 	}
 	if status.Code(err) != codes.Internal {
 		t.Fatalf("expected Internal, got %v", status.Code(err))
+	}
+}
+
+type fakeRoleRepo struct {
+	profile domain.Profile
+	err     error
+}
+
+func (f fakeRoleRepo) GetByUserID(context.Context, uuid.UUID) (domain.Profile, *domain.ClientProfile, *domain.FreelancerProfile, error) {
+	if f.err != nil {
+		return domain.Profile{}, nil, nil, f.err
+	}
+	return f.profile, nil, nil, nil
+}
+
+func TestToAppPortfolioMediaInputsRejectsForeignStorageKey(t *testing.T) {
+	userID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
+	_, err := toAppPortfolioMediaInputs(userID, []*userv1.PortfolioMediaInput{{
+		MediaType:   userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE,
+		StorageKey:  "portfolio/22222222-2222-2222-2222-222222222222/file.png",
+		ContentType: "image/png",
+	}})
+	if err == nil || status.Code(err) != codes.InvalidArgument || !strings.Contains(err.Error(), "storage_key must belong to caller") {
+		t.Fatalf("expected storage_key ownership error, got %v", err)
+	}
+}
+
+func TestToAppPortfolioMediaInputsRejectsMismatchedMediaTypeContentType(t *testing.T) {
+	userID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
+	_, err := toAppPortfolioMediaInputs(userID, []*userv1.PortfolioMediaInput{{
+		MediaType:   userv1.PortfolioMediaType_PORTFOLIO_MEDIA_TYPE_IMAGE,
+		StorageKey:  "portfolio/11111111-1111-1111-1111-111111111111/file.png",
+		ContentType: "video/mp4",
+	}})
+	if err == nil || status.Code(err) != codes.InvalidArgument || !strings.Contains(err.Error(), "content_type does not match media_type") {
+		t.Fatalf("expected media/content type mismatch error, got %v", err)
 	}
 }
