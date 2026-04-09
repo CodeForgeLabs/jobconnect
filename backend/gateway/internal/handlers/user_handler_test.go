@@ -72,8 +72,8 @@ type fullUserServiceServerStub struct {
 	deleteMyProfileReq       *userv1.DeleteMyProfileRequest
 	getMyOnboardingStatusReq *userv1.GetMyOnboardingStatusRequest
 
-	getMySettingsReq   *userv1.GetMySettingsRequest
-	patchMySettingsReq *userv1.PatchMySettingsRequest
+	getMySettingsReq        *userv1.GetMySettingsRequest
+	patchMySettingsReq      *userv1.PatchMySettingsRequest
 	getMyAvatarUploadUrlReq *userv1.GetMyAvatarUploadUrlRequest
 
 	upsertMyAvatarReq *userv1.UploadMyAvatarRequest

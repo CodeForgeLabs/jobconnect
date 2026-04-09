@@ -68,16 +68,16 @@ func (m *avatarRepoMock) RemoveAvatar(_ context.Context, _ uuid.UUID) error {
 }
 
 type avatarStoreMock struct {
-	putAvatar  domain.AvatarObject
-	getContent []byte
-	putErr     error
-	getErr     error
-	deleteErr  error
+	putAvatar     domain.AvatarObject
+	getContent    []byte
+	putErr        error
+	getErr        error
+	deleteErr     error
 	presignPutErr error
 	presignPutURL string
 	statErr       error
 	statInfo      ObjectInfo
-	deletedKey string
+	deletedKey    string
 }
 
 func (m *avatarStoreMock) PutAvatar(_ context.Context, avatar domain.AvatarObject) error {
