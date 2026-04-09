@@ -21,6 +21,7 @@ Profile patch ownership notes:
 ### Portfolio
 - POST `/api/v1/users/me/portfolio` -> `CreateMyPortfolioItem`
 - GET `/api/v1/users/me/portfolio` -> `ListMyPortfolioItems`
+- GET `/api/v1/users/me/portfolio/:itemId` -> `GetMyPortfolioItem`
 - PUT `/api/v1/users/me/portfolio/:itemId` -> `UpdateMyPortfolioItem`
 - DELETE `/api/v1/users/me/portfolio/:itemId` -> `DeleteMyPortfolioItem`
 

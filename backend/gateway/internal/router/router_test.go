@@ -74,7 +74,7 @@ func TestUserRoutesDoNotExposePublicAdminInternalUserRoutes(t *testing.T) {
 	}
 }
 
-func TestUserRoutes_DoNotExposeCreateOrGetSinglePortfolioEndpoints(t *testing.T) {
+func TestUserRoutes_DoNotExposeCreateProfileButExposeGetSinglePortfolioEndpoint(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	cfg := config.Config{
@@ -89,12 +89,17 @@ func TestUserRoutes_DoNotExposeCreateOrGetSinglePortfolioEndpoints(t *testing.T)
 		&handlers.JobHandler{},
 	)
 
+	var foundGetPortfolioItem bool
 	for _, route := range engine.Routes() {
 		if route.Path == "/api/v1/users/me/profile" && route.Method == "POST" {
 			t.Fatalf("did not expect POST /api/v1/users/me/profile to be registered")
 		}
 		if route.Path == "/api/v1/users/me/portfolio/:itemId" && route.Method == "GET" {
-			t.Fatalf("did not expect GET /api/v1/users/me/portfolio/:itemId to be registered")
+			foundGetPortfolioItem = true
 		}
+	}
+
+	if !foundGetPortfolioItem {
+		t.Fatalf("expected GET /api/v1/users/me/portfolio/:itemId to be registered")
 	}
 }
