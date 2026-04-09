@@ -28,9 +28,11 @@ type UserServer struct {
 	GetOnboardingStatusUC *application.GetOnboardingStatus
 	GetSettingsUC         *application.GetSettings
 	PatchSettingsUC       *application.PatchSettingsUseCase
+	GetAvatarUploadURLUC  *application.GetAvatarUploadURL
 	UploadAvatarUC        *application.UploadAvatar
 	GetAvatarUC           *application.GetAvatar
 	RemoveAvatarUC        *application.RemoveAvatar
+	GetCVUploadURLUC      *application.GetCVUploadURL
 	UpsertCVUC            *application.UpsertCV
 	GetCVUC               *application.GetCV
 	RemoveCVUC            *application.RemoveCV
@@ -73,9 +75,11 @@ func NewUserServer(
 	getOnboardingStatus *application.GetOnboardingStatus,
 	getSettings *application.GetSettings,
 	patchSettings *application.PatchSettingsUseCase,
+	getAvatarUploadURL *application.GetAvatarUploadURL,
 	uploadAvatar *application.UploadAvatar,
 	getAvatar *application.GetAvatar,
 	removeAvatar *application.RemoveAvatar,
+	getCVUploadURL *application.GetCVUploadURL,
 	upsertCV *application.UpsertCV,
 	getCV *application.GetCV,
 	removeCV *application.RemoveCV,
@@ -91,9 +95,11 @@ func NewUserServer(
 		GetOnboardingStatusUC: getOnboardingStatus,
 		GetSettingsUC:         getSettings,
 		PatchSettingsUC:       patchSettings,
+		GetAvatarUploadURLUC:  getAvatarUploadURL,
 		UploadAvatarUC:        uploadAvatar,
 		GetAvatarUC:           getAvatar,
 		RemoveAvatarUC:        removeAvatar,
+		GetCVUploadURLUC:      getCVUploadURL,
 		UpsertCVUC:            upsertCV,
 		GetCVUC:               getCV,
 		RemoveCVUC:            removeCV,
@@ -572,6 +578,28 @@ func (s *UserServer) GetFreelancerNote(ctx context.Context, req *userv1.GetFreel
 	return &userv1.GetFreelancerNoteResponse{Note: toProtoFreelancerNote(out)}, nil
 }
 
+func (s *UserServer) GetMyAvatarUploadUrl(ctx context.Context, req *userv1.GetMyAvatarUploadUrlRequest) (*userv1.GetMyAvatarUploadUrlResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if s.GetAvatarUploadURLUC == nil {
+		return nil, status.Error(codes.Internal, "avatar upload url use-case not configured")
+	}
+	out, err := s.GetAvatarUploadURLUC.Execute(ctx, application.GetAvatarUploadURLInput{
+		UserID:      userID,
+		FileName:    req.GetFileName(),
+		ContentType: req.GetContentType(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetMyAvatarUploadUrlResponse{StorageKey: out.StorageKey, UploadUrl: out.UploadURL}, nil
+}
+
 func (s *UserServer) UpsertMyAvatar(ctx context.Context, req *userv1.UploadMyAvatarRequest) (*userv1.UploadMyAvatarResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -584,22 +612,25 @@ func (s *UserServer) UpsertMyAvatar(ctx context.Context, req *userv1.UploadMyAva
 		UserID:      userID,
 		FileName:    req.FileName,
 		ContentType: req.ContentType,
-		Content:     req.Content,
+		StorageKey:  req.GetStorageKey(),
+		Width:       req.GetWidth(),
+		Height:      req.GetHeight(),
 	})
 	if err != nil {
 		return nil, toStatus(err)
 	}
 	return &userv1.UploadMyAvatarResponse{
-		AvatarUrl: out.AvatarURL,
+		AvatarUrl: out.DownloadURL,
 		Avatar: &userv1.ProfileAvatar{
 			UserId:        req.UserId,
 			FileName:      req.FileName,
 			ContentType:   out.ContentType,
-			StorageKey:    "",
+			StorageKey:    req.GetStorageKey(),
 			SizeBytes:     out.SizeBytes,
 			Width:         out.Width,
 			Height:        out.Height,
 			UpdatedAtUnix: time.Now().UTC().Unix(),
+			DownloadUrl:   out.DownloadURL,
 		},
 	}, nil
 }
@@ -622,12 +653,12 @@ func (s *UserServer) GetMyAvatar(ctx context.Context, req *userv1.GetMyAvatarReq
 			FileName:      out.FileName,
 			ContentType:   out.ContentType,
 			StorageKey:    "",
-			SizeBytes:     int64(len(out.Content)),
+			SizeBytes:     out.SizeBytes,
 			Width:         0,
 			Height:        0,
 			UpdatedAtUnix: 0,
+			DownloadUrl:   out.DownloadURL,
 		},
-		Content: out.Content,
 	}, nil
 }
 
@@ -646,6 +677,28 @@ func (s *UserServer) RemoveMyAvatar(ctx context.Context, req *userv1.RemoveMyAva
 	return &userv1.RemoveMyAvatarResponse{Removed: out.Removed}, nil
 }
 
+func (s *UserServer) GetMyCVUploadUrl(ctx context.Context, req *userv1.GetMyCVUploadUrlRequest) (*userv1.GetMyCVUploadUrlResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	if s.GetCVUploadURLUC == nil {
+		return nil, status.Error(codes.Internal, "cv upload url use-case not configured")
+	}
+	out, err := s.GetCVUploadURLUC.Execute(ctx, application.GetCVUploadURLInput{
+		UserID:      userID,
+		FileName:    req.GetFileName(),
+		ContentType: req.GetContentType(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &userv1.GetMyCVUploadUrlResponse{StorageKey: out.StorageKey, UploadUrl: out.UploadURL}, nil
+}
+
 func (s *UserServer) UpsertMyCV(ctx context.Context, req *userv1.UploadMyCVRequest) (*userv1.UploadMyCVResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -661,7 +714,7 @@ func (s *UserServer) UpsertMyCV(ctx context.Context, req *userv1.UploadMyCVReque
 		UserID:      userID,
 		FileName:    req.GetFileName(),
 		ContentType: req.GetContentType(),
-		Content:     req.GetContent(),
+		StorageKey:  req.GetStorageKey(),
 	})
 	if err != nil {
 		return nil, toStatus(err)

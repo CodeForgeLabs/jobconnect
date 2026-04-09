@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"jobconnect/user/internal/application"
 	"jobconnect/user/internal/config"
 	"jobconnect/user/internal/domain"
 
@@ -99,4 +100,32 @@ func (s *CVStore) PresignGetObject(ctx context.Context, storageKey string, ttl t
 		return "", fmt.Errorf("presign cv object: %w", err)
 	}
 	return u.String(), nil
+}
+
+func (s *CVStore) PresignPutObject(ctx context.Context, storageKey string, contentType string, ttl time.Duration) (string, error) {
+	if storageKey == "" {
+		return "", fmt.Errorf("cv storage_key is required")
+	}
+	if ttl <= 0 {
+		return "", fmt.Errorf("cv presign ttl must be greater than 0")
+	}
+	u, err := s.client.PresignedPutObject(ctx, s.bucket, storageKey, ttl)
+	if err != nil {
+		return "", fmt.Errorf("presign cv object: %w", err)
+	}
+	if contentType == "" {
+		return u.String(), nil
+	}
+	return u.String(), nil
+}
+
+func (s *CVStore) StatObject(ctx context.Context, storageKey string) (application.ObjectInfo, error) {
+	if storageKey == "" {
+		return application.ObjectInfo{}, fmt.Errorf("cv storage_key is required")
+	}
+	obj, err := s.client.StatObject(ctx, s.bucket, storageKey, minio.StatObjectOptions{})
+	if err != nil {
+		return application.ObjectInfo{}, fmt.Errorf("stat cv object: %w", err)
+	}
+	return application.ObjectInfo{SizeBytes: obj.Size, ContentType: obj.ContentType}, nil
 }

@@ -73,6 +73,10 @@ type avatarStoreMock struct {
 	putErr     error
 	getErr     error
 	deleteErr  error
+	presignPutErr error
+	presignPutURL string
+	statErr       error
+	statInfo      ObjectInfo
 	deletedKey string
 }
 
@@ -100,6 +104,33 @@ func (m *avatarStoreMock) DeleteAvatar(_ context.Context, _ uuid.UUID, storageKe
 	}
 	m.deletedKey = storageKey
 	return nil
+}
+
+func (m *avatarStoreMock) PresignPutObject(_ context.Context, _ string, _ string, _ time.Duration) (string, error) {
+	if m.presignPutErr != nil {
+		return "", m.presignPutErr
+	}
+	if m.presignPutURL == "" {
+		return "https://example.test/upload", nil
+	}
+	return m.presignPutURL, nil
+}
+
+func (m *avatarStoreMock) PresignGetObject(_ context.Context, _ string, _ time.Duration) (string, error) {
+	if m.getErr != nil {
+		return "", m.getErr
+	}
+	return "https://example.test/avatar", nil
+}
+
+func (m *avatarStoreMock) StatObject(_ context.Context, _ string) (ObjectInfo, error) {
+	if m.statErr != nil {
+		return ObjectInfo{}, m.statErr
+	}
+	if m.statInfo.SizeBytes == 0 {
+		m.statInfo = ObjectInfo{SizeBytes: 123, ContentType: "image/png"}
+	}
+	return m.statInfo, nil
 }
 
 type avatarProcessorMock struct{}
@@ -153,8 +184,11 @@ func TestGetAvatarReadsFromObjectStore(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Execute() error = %v", err)
 	}
-	if string(out.Content) != "bytes" {
-		t.Fatalf("unexpected content: %q", string(out.Content))
+	if out.DownloadURL == "" {
+		t.Fatalf("expected download url")
+	}
+	if out.SizeBytes == 0 {
+		t.Fatalf("expected object size")
 	}
 }
 

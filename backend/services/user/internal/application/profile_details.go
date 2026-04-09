@@ -98,4 +98,6 @@ type CVObjectStore interface {
 	PutCV(ctx context.Context, cv domain.CVObject) error
 	DeleteCV(ctx context.Context, userID uuid.UUID, storageKey string) error
 	PresignGetObject(ctx context.Context, storageKey string, ttl time.Duration) (string, error)
+	PresignPutObject(ctx context.Context, storageKey string, contentType string, ttl time.Duration) (string, error)
+	StatObject(ctx context.Context, storageKey string) (ObjectInfo, error)
 }

@@ -41,6 +41,15 @@ type AvatarObjectStore interface {
 	PutAvatar(ctx context.Context, avatar domain.AvatarObject) error
 	GetAvatar(ctx context.Context, userID uuid.UUID, storageKey string) ([]byte, error)
 	DeleteAvatar(ctx context.Context, userID uuid.UUID, storageKey string) error
+	PresignPutObject(ctx context.Context, storageKey string, contentType string, ttl time.Duration) (string, error)
+	PresignGetObject(ctx context.Context, storageKey string, ttl time.Duration) (string, error)
+	StatObject(ctx context.Context, storageKey string) (ObjectInfo, error)
+}
+
+// ObjectInfo captures basic object metadata from the storage backend.
+type ObjectInfo struct {
+	SizeBytes   int64
+	ContentType string
 }
 
 // Clock provides current time (testable).

@@ -66,6 +66,7 @@ func main() {
 	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo, Details: profileRepo}
 	getSettingsUC := &application.GetSettings{Settings: profileRepo}
 	patchSettingsUC := &application.PatchSettingsUseCase{Settings: profileRepo}
+	getAvatarUploadURLUC := &application.GetAvatarUploadURL{Store: avatarStore}
 	uploadAvatarUC := &application.UploadAvatar{
 		Profiles:  profileRepo,
 		Store:     avatarStore,
@@ -75,6 +76,7 @@ func main() {
 	}
 	getAvatarUC := &application.GetAvatar{Profiles: profileRepo, Store: avatarStore}
 	removeAvatarUC := &application.RemoveAvatar{Profiles: profileRepo, Store: avatarStore}
+	getCVUploadURLUC := &application.GetCVUploadURL{Store: cvStore}
 	upsertCVUC := &application.UpsertCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore, Clock: clockImpl}
 	getCVUC := &application.GetCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore}
 	removeCVUC := &application.RemoveCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore}
@@ -87,9 +89,11 @@ func main() {
 		getOnboardingStatusUC,
 		getSettingsUC,
 		patchSettingsUC,
+		getAvatarUploadURLUC,
 		uploadAvatarUC,
 		getAvatarUC,
 		removeAvatarUC,
+		getCVUploadURLUC,
 		upsertCVUC,
 		getCVUC,
 		removeCVUC,

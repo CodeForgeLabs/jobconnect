@@ -70,6 +70,8 @@ type cvStoreMock struct {
 	deleteErr    error
 	presignErr   error
 	presignURL   string
+	statErr      error
+	statInfo     ObjectInfo
 }
 
 func (m *cvStoreMock) PutCV(_ context.Context, _ domain.CVObject) error {
@@ -97,6 +99,26 @@ func (m *cvStoreMock) PresignGetObject(_ context.Context, _ string, _ time.Durat
 		return "https://example.test/cv", nil
 	}
 	return m.presignURL, nil
+}
+
+func (m *cvStoreMock) PresignPutObject(_ context.Context, _ string, _ string, _ time.Duration) (string, error) {
+	if m.presignErr != nil {
+		return "", m.presignErr
+	}
+	if m.presignURL == "" {
+		return "https://example.test/cv-upload", nil
+	}
+	return m.presignURL, nil
+}
+
+func (m *cvStoreMock) StatObject(_ context.Context, _ string) (ObjectInfo, error) {
+	if m.statErr != nil {
+		return ObjectInfo{}, m.statErr
+	}
+	if m.statInfo.SizeBytes == 0 {
+		m.statInfo = ObjectInfo{SizeBytes: 456, ContentType: "application/pdf"}
+	}
+	return m.statInfo, nil
 }
 
 func TestUpsertCVRejectsNonFreelancer(t *testing.T) {
