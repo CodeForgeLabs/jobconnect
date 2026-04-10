@@ -50,7 +50,7 @@ type ListInvitedJobsInput struct {
 }
 
 type ListInvitedJobsOutput struct {
-	Jobs          []domain.Job
+	InvitedJobs   []domain.InvitedJob
 	NextPageToken string
 }
 
@@ -63,15 +63,15 @@ func (uc *ListInvitedJobs) Execute(ctx context.Context, in ListInvitedJobsInput)
 	if err != nil {
 		return ListInvitedJobsOutput{}, err
 	}
-	jobs, err := uc.Jobs.ListInvitedJobs(ctx, in.FreelancerID, limit, offset)
+	invitedJobs, err := uc.Jobs.ListInvitedJobs(ctx, in.FreelancerID, limit, offset)
 	if err != nil {
 		return ListInvitedJobsOutput{}, err
 	}
 	next := ""
-	if len(jobs) == limit {
-		next = strconv.Itoa(offset + len(jobs))
+	if len(invitedJobs) == limit {
+		next = strconv.Itoa(offset + len(invitedJobs))
 	}
-	return ListInvitedJobsOutput{Jobs: jobs, NextPageToken: next}, nil
+	return ListInvitedJobsOutput{InvitedJobs: invitedJobs, NextPageToken: next}, nil
 }
 
 type RespondToJobInvite struct {

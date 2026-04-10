@@ -14,18 +14,16 @@ const (
 	JobTypeFixed  = "fixed"
 	JobTypeHourly = "hourly"
 
-	JobStatusOpen   = "open"
-	JobStatusPaused = "paused"
-	JobStatusFilled = "filled"
-	JobStatusClosed = "closed"
+	JobStatusOpen      = "open"
+	JobStatusPaused    = "paused"
+	JobStatusFilled    = "filled"
+	JobStatusClosed    = "closed"
+	JobStatusCompleted = "completed"
+	JobStatusCanceled  = "canceled"
 
 	VisibilityPublic     = "public"
 	VisibilityPrivate    = "private"
 	VisibilityInviteOnly = "invite_only"
-
-	ExperienceEntry        = "entry"
-	ExperienceIntermediate = "intermediate"
-	ExperienceExpert       = "expert"
 
 	CloseReasonCanceled = "canceled"
 )
@@ -52,7 +50,6 @@ type Job struct {
 	BudgetMin          float64
 	BudgetMax          float64
 	Visibility         string
-	ExperienceLevel    string
 	Deadline           *time.Time
 	Attachments        []Attachment
 	Status             string
@@ -66,6 +63,19 @@ type Job struct {
 	FilledAt           *time.Time
 	CompletedAt        *time.Time
 	CanceledAt         *time.Time
+}
+
+type JobInvite struct {
+	JobID          int64
+	ClientID       uuid.UUID
+	FreelancerID   uuid.UUID
+	InvitedAt      time.Time
+	ResponseStatus string
+}
+
+type InvitedJob struct {
+	Job    Job
+	Invite JobInvite
 }
 
 func ValidateJobType(jobType string) (string, error) {
@@ -84,9 +94,7 @@ func ValidateStatus(status string) (string, error) {
 		return "", nil
 	}
 	switch status {
-	case JobStatusOpen, JobStatusClosed:
-		return status, nil
-	case JobStatusPaused, JobStatusFilled:
+	case JobStatusOpen, JobStatusClosed, JobStatusPaused, JobStatusFilled, JobStatusCompleted, JobStatusCanceled:
 		return status, nil
 	default:
 		return "", fmt.Errorf("invalid status")
@@ -103,19 +111,6 @@ func ValidateVisibility(visibility string) (string, error) {
 		return visibility, nil
 	default:
 		return "", fmt.Errorf("invalid visibility")
-	}
-}
-
-func ValidateExperienceLevel(level string) (string, error) {
-	level = strings.ToLower(strings.TrimSpace(level))
-	if level == "" {
-		return "", nil
-	}
-	switch level {
-	case ExperienceEntry, ExperienceIntermediate, ExperienceExpert:
-		return level, nil
-	default:
-		return "", fmt.Errorf("invalid experience_level")
 	}
 }
 

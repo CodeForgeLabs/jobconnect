@@ -84,7 +84,6 @@ func main() {
 	setApplicantUC := &application.SetApplicantStage{Proposals: proposalCli}
 	setVisibilityUC := &application.SetJobVisibility{Jobs: jobRepo, Clock: clockImpl}
 	setBudgetRangeUC := &application.SetJobBudgetRange{Jobs: jobRepo, Clock: clockImpl}
-	setExperienceUC := &application.SetJobExperienceLevel{Jobs: jobRepo, Clock: clockImpl}
 	pauseJobUC := &application.PauseJob{Jobs: jobRepo, Clock: clockImpl}
 	reopenJobUC := &application.ReopenJob{Jobs: jobRepo, Clock: clockImpl}
 	markFilledUC := &application.MarkJobFilled{Jobs: jobRepo, Clock: clockImpl}
@@ -120,7 +119,6 @@ func main() {
 		SetApplicantUC:     setApplicantUC,
 		SetVisibilityUC:    setVisibilityUC,
 		SetBudgetRangeUC:   setBudgetRangeUC,
-		SetExperienceUC:    setExperienceUC,
 		PauseJobUC:         pauseJobUC,
 		ReopenJobUC:        reopenJobUC,
 		MarkFilledUC:       markFilledUC,

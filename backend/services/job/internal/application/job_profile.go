@@ -83,39 +83,3 @@ func (uc *SetJobBudgetRange) Execute(ctx context.Context, in SetJobBudgetRangeIn
 	return SetJobBudgetRangeOutput{Job: job}, nil
 }
 
-type SetJobExperienceLevel struct {
-	Jobs  JobRepository
-	Clock Clock
-}
-
-type SetJobExperienceLevelInput struct {
-	JobID           int64
-	ClientID        uuid.UUID
-	ExperienceLevel string
-}
-
-type SetJobExperienceLevelOutput struct {
-	Job domain.Job
-}
-
-func (uc *SetJobExperienceLevel) Execute(ctx context.Context, in SetJobExperienceLevelInput) (SetJobExperienceLevelOutput, error) {
-	if in.JobID <= 0 {
-		return SetJobExperienceLevelOutput{}, fmt.Errorf("job_id is required")
-	}
-	if in.ClientID == uuid.Nil {
-		return SetJobExperienceLevelOutput{}, fmt.Errorf("client_id is required")
-	}
-	level, err := domain.ValidateExperienceLevel(in.ExperienceLevel)
-	if err != nil {
-		return SetJobExperienceLevelOutput{}, err
-	}
-	if level == "" {
-		return SetJobExperienceLevelOutput{}, fmt.Errorf("experience_level is required")
-	}
-
-	job, err := uc.Jobs.SetExperienceLevel(ctx, in.JobID, in.ClientID, level, uc.Clock.Now())
-	if err != nil {
-		return SetJobExperienceLevelOutput{}, err
-	}
-	return SetJobExperienceLevelOutput{Job: job}, nil
-}
