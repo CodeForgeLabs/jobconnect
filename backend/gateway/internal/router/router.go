@@ -81,7 +81,6 @@ func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jw
 	clientJobs.POST("/:jobId/mark-filled", jobHandler.MarkJobFilled)
 	clientJobs.POST("/:jobId/visibility", jobHandler.SetJobVisibility)
 	clientJobs.POST("/:jobId/budget-range", jobHandler.SetJobBudgetRange)
-	clientJobs.POST("/:jobId/experience-level", jobHandler.SetJobExperienceLevel)
 	clientJobs.POST("/:jobId/invite", jobHandler.InviteFreelancerToJob)
 	clientJobs.GET("/:jobId/applicants", jobHandler.ListJobApplicants)
 	clientJobs.POST("/applicants/:proposalId/stage", jobHandler.SetApplicantStage)

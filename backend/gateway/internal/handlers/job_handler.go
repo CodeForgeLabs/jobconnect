@@ -67,7 +67,7 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 
 func (h *JobHandler) ListMyJobs(c *gin.Context) {
 	resp, err := h.client.ListMyJobs(c.Request.Context(), &jobv1.ListMyJobsRequest{
-		Status:    strings.TrimSpace(c.Query("status")),
+		StatusEnum: mapJobStatus(strings.TrimSpace(c.Query("status"))),
 		PageSize:  int32(parseIntQuery(c, "page_size", 20)),
 		PageToken: strings.TrimSpace(c.Query("page_token")),
 	})
@@ -89,7 +89,7 @@ func (h *JobHandler) ListOpenJobs(c *gin.Context) {
 		PageToken:   strings.TrimSpace(c.Query("page_token")),
 		SearchQuery: strings.TrimSpace(c.Query("query")),
 		Skills:      c.QueryArray("skills"),
-		JobType:     strings.TrimSpace(c.Query("job_type")),
+		JobTypeEnum: mapJobType(strings.TrimSpace(c.Query("job_type"))),
 	})
 	if err != nil {
 		writeGRPCError(c, err)
@@ -164,26 +164,6 @@ func (h *JobHandler) SetJobBudgetRange(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "job", resp.GetJob())
 }
 
-func (h *JobHandler) SetJobExperienceLevel(c *gin.Context) {
-	jobID, ok := parseInt64Param(c, "jobId")
-	if !ok {
-		return
-	}
-	var body struct {
-		ExperienceLevel string `json:"experience_level"`
-	}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	resp, err := h.client.SetJobExperienceLevel(c.Request.Context(), &jobv1.SetJobExperienceLevelRequest{JobId: jobID, ExperienceLevel: mapExperienceLevel(body.ExperienceLevel)})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-	writeProtoEnvelope(c, http.StatusOK, "job", resp.GetJob())
-}
-
 func (h *JobHandler) PauseJob(c *gin.Context) {
 	jobID, ok := parseInt64Param(c, "jobId")
 	if !ok {
@@ -235,7 +215,7 @@ func (h *JobHandler) CloseJob(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	resp, err := h.client.CloseJob(c.Request.Context(), &jobv1.CloseJobRequest{JobId: jobID, Reason: body.Reason})
+	resp, err := h.client.CloseJob(c.Request.Context(), &jobv1.CloseJobRequest{JobId: jobID, ReasonEnum: mapCloseReason(body.Reason)})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -595,14 +575,42 @@ func mapVisibility(in string) jobv1.Visibility {
 	}
 }
 
-func mapExperienceLevel(in string) jobv1.ExperienceLevel {
+func mapJobType(in string) jobv1.JobType {
 	switch strings.ToLower(strings.TrimSpace(in)) {
-	case "entry":
-		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_ENTRY
-	case "expert":
-		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_EXPERT
+	case "hourly":
+		return jobv1.JobType_JOB_TYPE_HOURLY
+	case "fixed":
+		return jobv1.JobType_JOB_TYPE_FIXED
 	default:
-		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_INTERMEDIATE
+		return jobv1.JobType_JOB_TYPE_UNSPECIFIED
+	}
+}
+
+func mapJobStatus(in string) jobv1.JobStatus {
+	switch strings.ToLower(strings.TrimSpace(in)) {
+	case "open":
+		return jobv1.JobStatus_JOB_STATUS_OPEN
+	case "paused":
+		return jobv1.JobStatus_JOB_STATUS_PAUSED
+	case "filled":
+		return jobv1.JobStatus_JOB_STATUS_FILLED
+	case "closed":
+		return jobv1.JobStatus_JOB_STATUS_CLOSED
+	case "completed":
+		return jobv1.JobStatus_JOB_STATUS_COMPLETED
+	case "canceled":
+		return jobv1.JobStatus_JOB_STATUS_CANCELED
+	default:
+		return jobv1.JobStatus_JOB_STATUS_UNSPECIFIED
+	}
+}
+
+func mapCloseReason(in string) jobv1.CloseReason {
+	switch strings.ToLower(strings.TrimSpace(in)) {
+	case "canceled":
+		return jobv1.CloseReason_CLOSE_REASON_CANCELED
+	default:
+		return jobv1.CloseReason_CLOSE_REASON_UNSPECIFIED
 	}
 }
 
