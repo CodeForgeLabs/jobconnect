@@ -13,6 +13,7 @@ import (
 type HireApplicant struct {
 	Jobs      JobRepository
 	Proposals ProposalClient
+	Contracts ContractCreator
 	Clock     Clock
 }
 
@@ -33,6 +34,9 @@ func (uc *HireApplicant) Execute(ctx context.Context, in HireApplicantInput) (Hi
 	if in.ClientID == uuid.Nil {
 		return HireApplicantOutput{}, fmt.Errorf("client_id is required")
 	}
+	if uc.Contracts == nil {
+		return HireApplicantOutput{}, fmt.Errorf("contract creator is not configured")
+	}
 
 	proposal, err := uc.Proposals.GetProposal(ctx, in.ProposalID)
 	if err != nil {
@@ -45,6 +49,15 @@ func (uc *HireApplicant) Execute(ctx context.Context, in HireApplicantInput) (Hi
 
 	requestID := fmt.Sprintf("job-service-hire-%d", in.ProposalID)
 	if err := uc.Proposals.InternalHireProposal(ctx, in.ProposalID, in.ClientID, requestID, ""); err != nil {
+		return HireApplicantOutput{}, err
+	}
+	if err := uc.Contracts.CreateFromProposal(ctx, CreateContractFromProposalInput{
+		FreelancerID: proposal.FreelancerID,
+		JobID:        proposal.JobID,
+		ProposalID:   proposal.ID,
+		BidType:      proposal.BidType,
+		BidAmount:    proposal.BidAmount,
+	}); err != nil {
 		return HireApplicantOutput{}, err
 	}
 	if _, err := uc.Jobs.MarkFilled(ctx, proposal.JobID, in.ClientID, uc.Clock.Now()); err != nil {

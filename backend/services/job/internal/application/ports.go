@@ -83,7 +83,21 @@ type Proposal struct {
 	ClientID      string
 	FreelancerID  string
 	ConnectsSpent int32
+	BidType       string
+	BidAmount     float64
 	Status        string
+}
+
+type ContractCreator interface {
+	CreateFromProposal(ctx context.Context, in CreateContractFromProposalInput) error
+}
+
+type CreateContractFromProposalInput struct {
+	FreelancerID string
+	JobID        int64
+	ProposalID   int64
+	BidType      string
+	BidAmount    float64
 }
 
 type ProposalClient interface {

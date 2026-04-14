@@ -53,6 +53,8 @@ func (c *ProposalClient) ListProposalsByJob(ctx context.Context, jobID int64) ([
 			ClientID:      p.ClientId,
 			FreelancerID:  p.FreelancerId,
 			ConnectsSpent: p.ConnectsSpent,
+			BidType:       p.BidType,
+			BidAmount:     p.BidAmount,
 			Status:        proposalStatusToApplicantStage(p.Status),
 		})
 	}
@@ -74,6 +76,8 @@ func (c *ProposalClient) GetProposal(ctx context.Context, proposalID int64) (app
 		ClientID:      res.Proposal.ClientId,
 		FreelancerID:  res.Proposal.FreelancerId,
 		ConnectsSpent: res.Proposal.ConnectsSpent,
+		BidType:       res.Proposal.BidType,
+		BidAmount:     res.Proposal.BidAmount,
 		Status:        proposalStatusToApplicantStage(res.Proposal.Status),
 	}, nil
 }
