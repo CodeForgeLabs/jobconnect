@@ -73,6 +73,7 @@ func main() {
 
 	createJobUC := &application.CreateJob{Jobs: jobRepo, Clock: clockImpl}
 	getJobUC := &application.GetJob{Jobs: jobRepo}
+	getJobSummaryUC := &application.GetJobSummary{Jobs: jobRepo}
 	updateJobUC := &application.UpdateJob{Jobs: jobRepo, Clock: clockImpl}
 	listMyJobsUC := &application.ListMyJobs{Jobs: jobRepo}
 	listOpenJobsUC := &application.ListOpenJobs{Jobs: jobRepo}
@@ -108,6 +109,7 @@ func main() {
 	jobServer := grpcadapter.NewJobServer(grpcadapter.JobServerConfig{
 		CreateJobUC:        createJobUC,
 		GetJobUC:           getJobUC,
+		GetJobSummaryUC:    getJobSummaryUC,
 		UpdateJobUC:        updateJobUC,
 		ListMyJobsUC:       listMyJobsUC,
 		ListOpenJobsUC:     listOpenJobsUC,
