@@ -16,7 +16,6 @@ service ProposalService {
   rpc ListClientProposals(ListClientProposalsRequest) returns (ListClientProposalsResponse);
   rpc CountProposalsByJob(CountProposalsByJobRequest) returns (CountProposalsByJobResponse);
   rpc CountClientProposalInbox(CountClientProposalInboxRequest) returns (CountClientProposalInboxResponse);
-  rpc HireProposal(HireProposalRequest) returns (HireProposalResponse);
   rpc GetProposalAttachmentUploadUrl(GetProposalAttachmentUploadUrlRequest) returns (GetProposalAttachmentUploadUrlResponse);
   rpc GetProposalAttachmentDownloadUrl(GetProposalAttachmentDownloadUrlRequest) returns (GetProposalAttachmentDownloadUrlResponse);
   rpc SetProposalStatus(SetProposalStatusRequest) returns (SetProposalStatusResponse);
@@ -198,17 +197,6 @@ message CountClientProposalInboxRequest {
 message CountClientProposalInboxResponse {
   int64 total = 1;
   repeated ProposalStatusCount by_status = 2;
-}
-
-message HireProposalRequest {
-  int64 proposal_id = 1;
-  string request_id = 2;
-  string note = 3;
-}
-
-message HireProposalResponse {
-  Proposal proposal = 1;
-  bool reused_idempotent_result = 2;
 }
 
 message GetProposalAttachmentUploadUrlRequest {
