@@ -40,6 +40,9 @@ func (r *ProposalRepo) Create(ctx context.Context, p domain.Proposal) (int64, er
 	`, p.JobID, p.ClientID, p.FreelancerID, p.CoverLetter, p.BidType, p.BidAmount, p.EstimatedDays,
 		p.Status, p.StatusReason, p.CreatedAt, p.UpdatedAt, p.ConnectsSpent).Scan(&id)
 	if err != nil {
+		if isUniqueViolation(err, "uq_proposals_active_per_job_freelancer") {
+			return 0, fmt.Errorf("active proposal already exists for this job: %w", ErrConflict)
+		}
 		return 0, err
 	}
 

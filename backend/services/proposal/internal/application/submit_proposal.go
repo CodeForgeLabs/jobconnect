@@ -47,7 +47,7 @@ func (uc *SubmitProposal) Execute(ctx context.Context, in SubmitProposalInput) (
 	if !summary.Found {
 		return SubmitProposalOutput{}, fmt.Errorf("job not found")
 	}
-	if !summary.IsOpen || !strings.EqualFold(strings.TrimSpace(summary.Status), "open") {
+	if !summary.IsOpen {
 		return SubmitProposalOutput{}, fmt.Errorf("job is not open")
 	}
 
@@ -60,16 +60,6 @@ func (uc *SubmitProposal) Execute(ctx context.Context, in SubmitProposalInput) (
 	}
 
 	now := uc.Clock.Now()
-	
-	// Create a unique reference ID for the connects deduction before creating the proposal, 
-	// or we can use the proposal creation UUID equivalent. Because we need the ID, we'll try to orchestrate:
-	// Deduct connects first using a deterministic composite string. (If creation fails, we would technically need to refund,
-	// but a simpler MVP is: Deduct using "jobID_freelancerID", then Create).
-	refID := fmt.Sprintf("proposal_%d_%s", in.JobID, in.FreelancerID.String())
-	err = uc.Connects.DeductConnects(ctx, in.FreelancerID, in.ConnectsSpent, refID)
-	if err != nil {
-		return SubmitProposalOutput{}, fmt.Errorf("failed to deduct connects: %w", err)
-	}
 
 	p := domain.Proposal{
 		JobID:         in.JobID,
@@ -86,14 +76,20 @@ func (uc *SubmitProposal) Execute(ctx context.Context, in SubmitProposalInput) (
 		UpdatedAt:     now,
 	}
 	if err := domain.ValidateForSubmit(p); err != nil {
-		// MVP: We ideally refund connects here if validation fails, 
-		// but since validation is pure, we can just move it before the deduction in a real refactor.
 		return SubmitProposalOutput{}, err
 	}
 
 	id, err := uc.Proposals.Create(ctx, p)
 	if err != nil {
 		return SubmitProposalOutput{}, err
+	}
+
+	// Deduct connects only after proposal persistence to avoid burn on create failures.
+	refID := fmt.Sprintf("proposal_submit_%d", id)
+	err = uc.Connects.DeductConnects(ctx, in.FreelancerID, in.ConnectsSpent, refID)
+	if err != nil {
+		_ = uc.Proposals.Withdraw(ctx, id, in.FreelancerID, "auto-withdrawn: failed to deduct connects", uc.Clock.Now())
+		return SubmitProposalOutput{}, fmt.Errorf("failed to deduct connects: %w", err)
 	}
 
 	persisted, err := uc.Proposals.GetByID(ctx, id)
