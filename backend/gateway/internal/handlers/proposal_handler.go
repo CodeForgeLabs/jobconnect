@@ -1,12 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
 	proposalv1 "jobconnect/proposal/gen/proposal/v1"
 
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/metadata"
 )
 
 type ProposalHandler struct {
@@ -22,7 +24,7 @@ func (h *ProposalHandler) GetProposal(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.client.GetProposal(c.Request.Context(), &proposalv1.GetProposalRequest{ProposalId: proposalID})
+	resp, err := h.client.GetProposal(withAuthContext(c), &proposalv1.GetProposalRequest{ProposalId: proposalID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -35,7 +37,7 @@ func (h *ProposalHandler) GetMyProposalForJob(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.client.GetMyProposalForJob(c.Request.Context(), &proposalv1.GetMyProposalForJobRequest{JobId: jobID})
+	resp, err := h.client.GetMyProposalForJob(withAuthContext(c), &proposalv1.GetMyProposalForJobRequest{JobId: jobID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -48,7 +50,7 @@ func (h *ProposalHandler) HasAppliedToJob(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.client.HasAppliedToJob(c.Request.Context(), &proposalv1.HasAppliedToJobRequest{JobId: jobID})
+	resp, err := h.client.HasAppliedToJob(withAuthContext(c), &proposalv1.HasAppliedToJobRequest{JobId: jobID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -69,7 +71,7 @@ func (h *ProposalHandler) ListMyProposals(c *gin.Context) {
 		v := int64(jobID)
 		jobFilter = &v
 	}
-	resp, err := h.client.ListMyProposals(c.Request.Context(), &proposalv1.ListMyProposalsRequest{
+	resp, err := h.client.ListMyProposals(withAuthContext(c), &proposalv1.ListMyProposalsRequest{
 		StatusFilter: statuses,
 		JobIdFilter:  jobFilter,
 		SortBy:       mapProposalSort(strings.TrimSpace(c.Query("sort_by"))),
@@ -100,7 +102,7 @@ func (h *ProposalHandler) ListClientProposals(c *gin.Context) {
 	if v := strings.TrimSpace(c.Query("freelancer_id")); v != "" {
 		freelancerFilter = &v
 	}
-	resp, err := h.client.ListClientProposals(c.Request.Context(), &proposalv1.ListClientProposalsRequest{
+	resp, err := h.client.ListClientProposals(withAuthContext(c), &proposalv1.ListClientProposalsRequest{
 		StatusFilter:       statuses,
 		JobIdFilter:        jobFilter,
 		FreelancerIdFilter: freelancerFilter,
@@ -125,7 +127,7 @@ func (h *ProposalHandler) CountProposalsByJob(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.client.CountProposalsByJob(c.Request.Context(), &proposalv1.CountProposalsByJobRequest{JobId: jobID})
+	resp, err := h.client.CountProposalsByJob(withAuthContext(c), &proposalv1.CountProposalsByJobRequest{JobId: jobID})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -140,7 +142,7 @@ func (h *ProposalHandler) CountProposalsByJob(c *gin.Context) {
 
 func (h *ProposalHandler) CountClientProposalInbox(c *gin.Context) {
 	statuses := parseProposalStatusFilters(c.QueryArray("status"))
-	resp, err := h.client.CountClientProposalInbox(c.Request.Context(), &proposalv1.CountClientProposalInboxRequest{StatusFilter: statuses})
+	resp, err := h.client.CountClientProposalInbox(withAuthContext(c), &proposalv1.CountClientProposalInboxRequest{StatusFilter: statuses})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -166,7 +168,7 @@ func (h *ProposalHandler) SetProposalDecision(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	resp, err := h.client.SetProposalStatus(c.Request.Context(), &proposalv1.SetProposalStatusRequest{
+	resp, err := h.client.SetProposalStatus(withAuthContext(c), &proposalv1.SetProposalStatusRequest{
 		ProposalId: proposalID,
 		Decision:   mapClientDecision(body.Decision),
 		Reason:     body.Reason,
@@ -191,7 +193,7 @@ func (h *ProposalHandler) HireProposal(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	resp, err := h.client.HireProposal(c.Request.Context(), &proposalv1.HireProposalRequest{
+	resp, err := h.client.HireProposal(withAuthContext(c), &proposalv1.HireProposalRequest{
 		ProposalId: proposalID,
 		RequestId:  body.RequestID,
 		Note:       body.Note,
@@ -221,7 +223,7 @@ func (h *ProposalHandler) GetProposalAttachmentUploadURL(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	resp, err := h.client.GetProposalAttachmentUploadUrl(c.Request.Context(), &proposalv1.GetProposalAttachmentUploadUrlRequest{
+	resp, err := h.client.GetProposalAttachmentUploadUrl(withAuthContext(c), &proposalv1.GetProposalAttachmentUploadUrlRequest{
 		ProposalId:  proposalID,
 		FileName:    body.FileName,
 		ContentType: body.ContentType,
@@ -247,7 +249,7 @@ func (h *ProposalHandler) GetProposalAttachmentDownloadURL(c *gin.Context) {
 	if !ok {
 		return
 	}
-	resp, err := h.client.GetProposalAttachmentDownloadUrl(c.Request.Context(), &proposalv1.GetProposalAttachmentDownloadUrlRequest{
+	resp, err := h.client.GetProposalAttachmentDownloadUrl(withAuthContext(c), &proposalv1.GetProposalAttachmentDownloadUrlRequest{
 		ProposalId:   proposalID,
 		AttachmentId: attachmentID,
 	})
@@ -316,4 +318,13 @@ func mapClientDecision(v string) proposalv1.ClientDecision {
 	default:
 		return proposalv1.ClientDecision_CLIENT_DECISION_UNSPECIFIED
 	}
+}
+
+func withAuthContext(c *gin.Context) context.Context {
+	ctx := c.Request.Context()
+	authz := strings.TrimSpace(c.GetHeader("Authorization"))
+	if authz == "" {
+		return ctx
+	}
+	return metadata.AppendToOutgoingContext(ctx, "authorization", authz)
 }
