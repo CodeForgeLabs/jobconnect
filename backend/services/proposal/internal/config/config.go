@@ -9,12 +9,12 @@ import (
 )
 
 type Config struct {
-	GRPCListenAddr    string
-	PostgresURL       string
-	JWTSecret         []byte
-	JobServiceAddr    string
+	GRPCListenAddr      string
+	PostgresURL         string
+	JWTSecret           []byte
+	JobServiceAddr      string
 	ContractServiceAddr string
-	AttachmentStorage AttachmentStorageConfig
+	AttachmentStorage   AttachmentStorageConfig
 }
 
 type AttachmentStorageConfig struct {
@@ -33,9 +33,9 @@ type AttachmentStorageConfig struct {
 
 func LoadFromEnv() (Config, error) {
 	cfg := Config{
-		GRPCListenAddr: getEnv("PROPOSAL_GRPC_LISTEN_ADDR", ":50054"),
-		PostgresURL:    os.Getenv("PROPOSAL_POSTGRES_URL"),
-		JobServiceAddr: os.Getenv("JOB_SERVICE_GRPC_ADDR"),
+		GRPCListenAddr:      getEnv("PROPOSAL_GRPC_LISTEN_ADDR", ":50054"),
+		PostgresURL:         os.Getenv("PROPOSAL_POSTGRES_URL"),
+		JobServiceAddr:      os.Getenv("JOB_SERVICE_GRPC_ADDR"),
 		ContractServiceAddr: getEnv("CONTRACT_SERVICE_GRPC_ADDR", "contract:50055"),
 		AttachmentStorage: AttachmentStorageConfig{
 			Provider:      strings.ToLower(strings.TrimSpace(getEnv("PROPOSAL_ATTACHMENT_STORAGE_PROVIDER", "minio"))),

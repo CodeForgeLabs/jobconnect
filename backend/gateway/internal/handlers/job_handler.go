@@ -68,8 +68,8 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 func (h *JobHandler) ListMyJobs(c *gin.Context) {
 	resp, err := h.client.ListMyJobs(c.Request.Context(), &jobv1.ListMyJobsRequest{
 		StatusEnum: mapJobStatus(strings.TrimSpace(c.Query("status"))),
-		PageSize:  int32(parseIntQuery(c, "page_size", 20)),
-		PageToken: strings.TrimSpace(c.Query("page_token")),
+		PageSize:   int32(parseIntQuery(c, "page_size", 20)),
+		PageToken:  strings.TrimSpace(c.Query("page_token")),
 	})
 	if err != nil {
 		writeGRPCError(c, err)

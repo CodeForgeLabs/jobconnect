@@ -11,11 +11,11 @@ import (
 )
 
 type HireProposal struct {
-	Proposals ProposalRepository
-	Jobs      JobReader
+	Proposals    ProposalRepository
+	Jobs         JobReader
 	JobLifecycle JobLifecycleWriter
-	Contracts ContractCreator
-	Clock     Clock
+	Contracts    ContractCreator
+	Clock        Clock
 }
 
 type HireProposalInput struct {

@@ -41,15 +41,15 @@ func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.
 
 	forwardCtx := forwardAuthorization(ctx)
 	_, err := c.client.CreateContract(forwardCtx, &contractv1.CreateContractRequest{
-		FreelancerId:   in.FreelancerID.String(),
-		JobId:          in.JobID,
-		ProposalId:     in.ProposalID,
-		ContractType:   contractType,
-		Title:          fmt.Sprintf("Contract for job %d", in.JobID),
-		Description:    fmt.Sprintf("Auto-created from proposal %d", in.ProposalID),
-		Currency:       "USD",
-		HourlyRate:     hourlyRate,
-		FixedTotal:     fixedTotal,
+		FreelancerId:    in.FreelancerID.String(),
+		JobId:           in.JobID,
+		ProposalId:      in.ProposalID,
+		ContractType:    contractType,
+		Title:           fmt.Sprintf("Contract for job %d", in.JobID),
+		Description:     fmt.Sprintf("Auto-created from proposal %d", in.ProposalID),
+		Currency:        "USD",
+		HourlyRate:      hourlyRate,
+		FixedTotal:      fixedTotal,
 		WeeklyHourLimit: 0,
 	})
 	if err != nil {
