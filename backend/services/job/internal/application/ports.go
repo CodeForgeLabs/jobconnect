@@ -20,7 +20,7 @@ type JobRepository interface {
 	ListAttachments(ctx context.Context, jobID int64, clientID uuid.UUID) ([]domain.Attachment, error)
 	GetAttachment(ctx context.Context, jobID int64, attachmentID int64, clientID uuid.UUID) (domain.Attachment, error)
 	ListByClient(ctx context.Context, clientID uuid.UUID, status string, limit, offset int) ([]domain.Job, error)
-	ListInvitedJobs(ctx context.Context, freelancerID uuid.UUID, limit, offset int) ([]domain.Job, error)
+	ListInvitedJobs(ctx context.Context, freelancerID uuid.UUID, limit, offset int) ([]domain.InvitedJob, error)
 	RespondToInvite(ctx context.Context, jobID int64, freelancerID uuid.UUID, responseStatus string, respondedAt time.Time) (bool, error)
 	SaveJob(ctx context.Context, jobID int64, freelancerID uuid.UUID, createdAt time.Time) (bool, error)
 	UnsaveJob(ctx context.Context, jobID int64, freelancerID uuid.UUID) (bool, error)
@@ -34,7 +34,6 @@ type JobRepository interface {
 	CancelJobWithSettlement(ctx context.Context, jobID int64, clientID uuid.UUID, settlementPolicy string, reason string, canceledAt time.Time) (bool, error)
 	SetVisibility(ctx context.Context, jobID int64, clientID uuid.UUID, visibility string, updatedAt time.Time) (domain.Job, error)
 	SetBudgetRange(ctx context.Context, jobID int64, clientID uuid.UUID, budgetMin, budgetMax float64, updatedAt time.Time) (domain.Job, error)
-	SetExperienceLevel(ctx context.Context, jobID int64, clientID uuid.UUID, experienceLevel string, updatedAt time.Time) (domain.Job, error)
 	InviteFreelancer(ctx context.Context, jobID int64, clientID uuid.UUID, freelancerID string, createdAt time.Time) (bool, error)
 	Pause(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
 	Reopen(ctx context.Context, jobID int64, clientID uuid.UUID, updatedAt time.Time) (domain.Job, error)
@@ -45,12 +44,11 @@ type JobRepository interface {
 }
 
 type FacetCountsResult struct {
-	Skills           []FacetBucket
-	JobTypes         []FacetBucket
-	ExperienceLevels []FacetBucket
-	Visibility       []FacetBucket
-	Status           []FacetBucket
-	Total            int64
+	Skills     []FacetBucket
+	JobTypes   []FacetBucket
+	Visibility []FacetBucket
+	Status     []FacetBucket
+	Total      int64
 }
 
 type AttachmentObjectStore interface {
@@ -61,13 +59,12 @@ type AttachmentObjectStore interface {
 
 // ListOpenFilter contains optional filters for the ListOpenJobs query.
 type ListOpenFilter struct {
-	SearchQuery     string
-	Skills          []string
-	JobType         string
-	Visibility      string
-	ExperienceLevel string
-	Limit           int
-	Offset          int
+	SearchQuery string
+	Skills      []string
+	JobType     string
+	Visibility  string
+	Limit       int
+	Offset      int
 }
 
 type InviteStats struct {

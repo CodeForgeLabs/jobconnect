@@ -13,14 +13,13 @@ type SearchJobsV2 struct {
 }
 
 type SearchJobsV2Input struct {
-	PageSize        int32
-	PageToken       string
-	Query           string
-	Skills          []string
-	JobType         string
-	Visibility      string
-	ExperienceLevel string
-	SortBy          string
+	PageSize   int32
+	PageToken  string
+	Query      string
+	Skills     []string
+	JobType    string
+	Visibility string
+	SortBy     string
 }
 
 type SearchJobsV2Output struct {
@@ -42,18 +41,13 @@ func (uc *SearchJobsV2) Execute(ctx context.Context, in SearchJobsV2Input) (Sear
 	if err != nil {
 		return SearchJobsV2Output{}, err
 	}
-	level, err := domain.ValidateExperienceLevel(in.ExperienceLevel)
-	if err != nil {
-		return SearchJobsV2Output{}, err
-	}
 	jobs, err := uc.Jobs.ListOpenFilteredV2(ctx, ListOpenFilter{
-		SearchQuery:     strings.TrimSpace(in.Query),
-		Skills:          in.Skills,
-		JobType:         jobType,
-		Visibility:      visibility,
-		ExperienceLevel: level,
-		Limit:           limit,
-		Offset:          offset,
+		SearchQuery: strings.TrimSpace(in.Query),
+		Skills:      in.Skills,
+		JobType:     jobType,
+		Visibility:  visibility,
+		Limit:       limit,
+		Offset:      offset,
 	}, strings.ToLower(strings.TrimSpace(in.SortBy)))
 	if err != nil {
 		return SearchJobsV2Output{}, err

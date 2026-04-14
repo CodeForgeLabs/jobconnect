@@ -13,13 +13,12 @@ type SearchJobs struct {
 }
 
 type SearchJobsInput struct {
-	PageSize        int32
-	PageToken       string
-	Query           string
-	Skills          []string
-	JobType         string
-	Visibility      string
-	ExperienceLevel string
+	PageSize   int32
+	PageToken  string
+	Query      string
+	Skills     []string
+	JobType    string
+	Visibility string
 }
 
 type SearchJobsOutput struct {
@@ -41,19 +40,14 @@ func (uc *SearchJobs) Execute(ctx context.Context, in SearchJobsInput) (SearchJo
 	if err != nil {
 		return SearchJobsOutput{}, err
 	}
-	level, err := domain.ValidateExperienceLevel(in.ExperienceLevel)
-	if err != nil {
-		return SearchJobsOutput{}, err
-	}
 
 	jobs, err := uc.Jobs.ListOpenFiltered(ctx, ListOpenFilter{
-		SearchQuery:     strings.TrimSpace(in.Query),
-		Skills:          in.Skills,
-		JobType:         jobType,
-		Visibility:      visibility,
-		ExperienceLevel: level,
-		Limit:           limit,
-		Offset:          offset,
+		SearchQuery: strings.TrimSpace(in.Query),
+		Skills:      in.Skills,
+		JobType:     jobType,
+		Visibility:  visibility,
+		Limit:       limit,
+		Offset:      offset,
 	})
 	if err != nil {
 		return SearchJobsOutput{}, err
@@ -80,12 +74,11 @@ type ListJobFacetsInput struct {
 }
 
 type ListJobFacetsOutput struct {
-	Skills           []FacetBucket
-	JobTypes         []FacetBucket
-	ExperienceLevels []FacetBucket
-	Visibility       []FacetBucket
-	Status           []FacetBucket
-	Total            int64
+	Skills     []FacetBucket
+	JobTypes   []FacetBucket
+	Visibility []FacetBucket
+	Status     []FacetBucket
+	Total      int64
 }
 
 func (uc *ListJobFacets) Execute(ctx context.Context, in ListJobFacetsInput) (ListJobFacetsOutput, error) {
@@ -94,12 +87,11 @@ func (uc *ListJobFacets) Execute(ctx context.Context, in ListJobFacetsInput) (Li
 		return ListJobFacetsOutput{}, err
 	}
 	return ListJobFacetsOutput{
-		Skills:           result.Skills,
-		JobTypes:         result.JobTypes,
-		ExperienceLevels: result.ExperienceLevels,
-		Visibility:       result.Visibility,
-		Status:           result.Status,
-		Total:            result.Total,
+		Skills:     result.Skills,
+		JobTypes:   result.JobTypes,
+		Visibility: result.Visibility,
+		Status:     result.Status,
+		Total:      result.Total,
 	}, nil
 }
 
