@@ -25,6 +25,9 @@ type ProposalRepository interface {
 
 	ListByJob(ctx context.Context, filter ListByJobFilter, limit, offset int) ([]domain.Proposal, error)
 	ListByFreelancer(ctx context.Context, filter ListByFreelancerFilter, limit, offset int) ([]domain.Proposal, error)
+	ListByClient(ctx context.Context, filter ListByClientFilter, limit, offset int) ([]domain.Proposal, error)
+	CountByJobForClient(ctx context.Context, clientID uuid.UUID, jobID int64) (int64, map[string]int64, error)
+	CountClientInbox(ctx context.Context, clientID uuid.UUID, statuses []string) (int64, map[string]int64, error)
 }
 
 type JobReader interface {
@@ -65,5 +68,13 @@ type ListByFreelancerFilter struct {
 	FreelancerID uuid.UUID
 	Statuses     []string
 	JobID        *int64
+	SortBy       string
+}
+
+type ListByClientFilter struct {
+	ClientID     uuid.UUID
+	Statuses     []string
+	JobID        *int64
+	FreelancerID *uuid.UUID
 	SortBy       string
 }

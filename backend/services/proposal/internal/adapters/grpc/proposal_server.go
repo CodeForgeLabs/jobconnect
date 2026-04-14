@@ -27,6 +27,9 @@ type ProposalServer struct {
 	AttachmentDownloadURLUC *application.GetProposalAttachmentDownloadURL
 	ListByJobUC *application.ListProposalsByJob
 	ListMineUC  *application.ListMyProposals
+	ListClientUC *application.ListClientProposals
+	CountByJobUC *application.CountProposalsByJob
+	CountInboxUC *application.CountClientProposalInbox
 	SetStatusUC *application.SetProposalStatus
 
 	TokenParser TokenParser
@@ -44,6 +47,9 @@ func NewProposalServer(
 	attachmentDownloadURL *application.GetProposalAttachmentDownloadURL,
 	listByJob *application.ListProposalsByJob,
 	listMine *application.ListMyProposals,
+	listClient *application.ListClientProposals,
+	countByJob *application.CountProposalsByJob,
+	countInbox *application.CountClientProposalInbox,
 	setStatus *application.SetProposalStatus,
 	tokenParser TokenParser,
 ) *ProposalServer {
@@ -59,6 +65,9 @@ func NewProposalServer(
 		AttachmentDownloadURLUC: attachmentDownloadURL,
 		ListByJobUC: listByJob,
 		ListMineUC:  listMine,
+		ListClientUC: listClient,
+		CountByJobUC: countByJob,
+		CountInboxUC: countInbox,
 		SetStatusUC: setStatus,
 		TokenParser: tokenParser,
 	}
@@ -385,6 +394,117 @@ func (s *ProposalServer) ListMyProposals(ctx context.Context, req *proposalv1.Li
 		items = append(items, toProtoProposal(p))
 	}
 	return &proposalv1.ListMyProposalsResponse{Proposals: items, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *ProposalServer) ListClientProposals(ctx context.Context, req *proposalv1.ListClientProposalsRequest) (*proposalv1.ListClientProposalsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	statuses := make([]string, 0, len(req.StatusFilter))
+	for _, s := range req.StatusFilter {
+		if mapped, ok := fromProtoStatus(s); ok {
+			statuses = append(statuses, mapped)
+		}
+	}
+
+	var jobID *int64
+	if req.JobIdFilter != nil {
+		v := req.GetJobIdFilter()
+		jobID = &v
+	}
+
+	var freelancerID *uuid.UUID
+	if req.FreelancerIdFilter != nil {
+		parsed, err := uuid.Parse(req.GetFreelancerIdFilter())
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "invalid freelancer_id_filter")
+		}
+		freelancerID = &parsed
+	}
+
+	out, err := s.ListClientUC.Execute(ctx, application.ListClientProposalsInput{
+		ClientID:           callerID,
+		StatusFilter:       statuses,
+		JobIDFilter:        jobID,
+		FreelancerIDFilter: freelancerID,
+		SortBy:             fromProtoSort(req.SortBy),
+		PageSize:           req.PageSize,
+		PageToken:          req.PageToken,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	items := make([]*proposalv1.Proposal, 0, len(out.Proposals))
+	for _, p := range out.Proposals {
+		items = append(items, toProtoProposal(p))
+	}
+	return &proposalv1.ListClientProposalsResponse{Proposals: items, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *ProposalServer) CountProposalsByJob(ctx context.Context, req *proposalv1.CountProposalsByJobRequest) (*proposalv1.CountProposalsByJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.CountByJobUC.Execute(ctx, application.CountProposalsByJobInput{ClientID: callerID, JobID: req.JobId})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	counts := make([]*proposalv1.ProposalStatusCount, 0, len(out.ByStatus))
+	for _, c := range out.ByStatus {
+		counts = append(counts, &proposalv1.ProposalStatusCount{Status: toProtoStatus(c.Status), Count: c.Count})
+	}
+
+	return &proposalv1.CountProposalsByJobResponse{Total: out.Total, ByStatus: counts}, nil
+}
+
+func (s *ProposalServer) CountClientProposalInbox(ctx context.Context, req *proposalv1.CountClientProposalInboxRequest) (*proposalv1.CountClientProposalInboxResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	statuses := make([]string, 0, len(req.StatusFilter))
+	for _, s := range req.StatusFilter {
+		if mapped, ok := fromProtoStatus(s); ok {
+			statuses = append(statuses, mapped)
+		}
+	}
+
+	out, err := s.CountInboxUC.Execute(ctx, application.CountClientProposalInboxInput{ClientID: callerID, StatusFilters: statuses})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	counts := make([]*proposalv1.ProposalStatusCount, 0, len(out.ByStatus))
+	for _, c := range out.ByStatus {
+		counts = append(counts, &proposalv1.ProposalStatusCount{Status: toProtoStatus(c.Status), Count: c.Count})
+	}
+
+	return &proposalv1.CountClientProposalInboxResponse{Total: out.Total, ByStatus: counts}, nil
 }
 
 func (s *ProposalServer) SetProposalStatus(ctx context.Context, req *proposalv1.SetProposalStatusRequest) (*proposalv1.SetProposalStatusResponse, error) {

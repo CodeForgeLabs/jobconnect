@@ -338,6 +338,124 @@ func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.
 	return items, nil
 }
 
+func (r *ProposalRepo) ListByClient(ctx context.Context, filter application.ListByClientFilter, limit, offset int) ([]domain.Proposal, error) {
+	order := mapSortBy(filter.SortBy)
+	args := []any{filter.ClientID}
+	idx := 2
+	query := `
+		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
+			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at, connects_spent
+		from proposals
+		where client_id = $1
+	`
+
+	if len(filter.Statuses) > 0 {
+		query += fmt.Sprintf(` and status = any($%d)`, idx)
+		args = append(args, filter.Statuses)
+		idx++
+	}
+	if filter.JobID != nil {
+		query += fmt.Sprintf(` and job_id = $%d`, idx)
+		args = append(args, *filter.JobID)
+		idx++
+	}
+	if filter.FreelancerID != nil {
+		query += fmt.Sprintf(` and freelancer_id = $%d`, idx)
+		args = append(args, *filter.FreelancerID)
+		idx++
+	}
+	query += fmt.Sprintf(` order by %s limit $%d offset $%d`, order, idx, idx+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]domain.Proposal, 0)
+	for rows.Next() {
+		p, err := scanProposal(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, p)
+	}
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	if err := r.loadAttachments(ctx, items); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func (r *ProposalRepo) CountByJobForClient(ctx context.Context, clientID uuid.UUID, jobID int64) (int64, map[string]int64, error) {
+	rows, err := r.pool.Query(ctx, `
+		select status, count(*)
+		from proposals
+		where client_id = $1 and job_id = $2
+		group by status
+	`, clientID, jobID)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	byStatus := make(map[string]int64)
+	var total int64
+	for rows.Next() {
+		var status string
+		var count int64
+		if err := rows.Scan(&status, &count); err != nil {
+			return 0, nil, err
+		}
+		byStatus[status] = count
+		total += count
+	}
+	if rows.Err() != nil {
+		return 0, nil, rows.Err()
+	}
+	return total, byStatus, nil
+}
+
+func (r *ProposalRepo) CountClientInbox(ctx context.Context, clientID uuid.UUID, statuses []string) (int64, map[string]int64, error) {
+	args := []any{clientID}
+	query := `
+		select status, count(*)
+		from proposals
+		where client_id = $1
+	`
+	if len(statuses) > 0 {
+		query += ` and status = any($2)`
+		args = append(args, statuses)
+	}
+	query += ` group by status`
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	byStatus := make(map[string]int64)
+	var total int64
+	for rows.Next() {
+		var status string
+		var count int64
+		if err := rows.Scan(&status, &count); err != nil {
+			return 0, nil, err
+		}
+		byStatus[status] = count
+		total += count
+	}
+	if rows.Err() != nil {
+		return 0, nil, rows.Err()
+	}
+	return total, byStatus, nil
+}
+
 func (r *ProposalRepo) getByWhere(ctx context.Context, where string, args ...any) (domain.Proposal, error) {
 	query := fmt.Sprintf(`
 		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,

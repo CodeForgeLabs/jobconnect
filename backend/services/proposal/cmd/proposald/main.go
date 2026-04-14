@@ -92,6 +92,9 @@ func main() {
 	attachmentDownloadURLUC := &application.GetProposalAttachmentDownloadURL{Proposals: proposalRepo, Store: attachmentStore, GetTTL: getTTL}
 	listByJobUC := &application.ListProposalsByJob{Proposals: proposalRepo}
 	listMineUC := &application.ListMyProposals{Proposals: proposalRepo}
+	listClientUC := &application.ListClientProposals{Proposals: proposalRepo}
+	countByJobUC := &application.CountProposalsByJob{Proposals: proposalRepo}
+	countInboxUC := &application.CountClientProposalInbox{Proposals: proposalRepo}
 	setStatusUC := &application.SetProposalStatus{Proposals: proposalRepo, Clock: clockImpl}
 
 	proposalServer := grpcadapter.NewProposalServer(
@@ -106,6 +109,9 @@ func main() {
 		attachmentDownloadURLUC,
 		listByJobUC,
 		listMineUC,
+		listClientUC,
+		countByJobUC,
+		countInboxUC,
 		setStatusUC,
 		jwtParser,
 	)
