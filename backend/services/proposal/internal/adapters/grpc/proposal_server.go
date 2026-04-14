@@ -318,9 +318,11 @@ func (s *ProposalServer) ListProposalsByJob(ctx context.Context, req *proposalv1
 
 	statuses := make([]string, 0, len(req.StatusFilter))
 	for _, s := range req.StatusFilter {
-		if mapped, ok := fromProtoStatus(s); ok {
-			statuses = append(statuses, mapped)
+		mapped, ok := fromProtoStatus(s)
+		if !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid status_filter")
 		}
+		statuses = append(statuses, mapped)
 	}
 
 	var freelancerID *uuid.UUID
@@ -366,9 +368,11 @@ func (s *ProposalServer) ListMyProposals(ctx context.Context, req *proposalv1.Li
 
 	statuses := make([]string, 0, len(req.StatusFilter))
 	for _, s := range req.StatusFilter {
-		if mapped, ok := fromProtoStatus(s); ok {
-			statuses = append(statuses, mapped)
+		mapped, ok := fromProtoStatus(s)
+		if !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid status_filter")
 		}
+		statuses = append(statuses, mapped)
 	}
 
 	var jobID *int64
@@ -410,9 +414,11 @@ func (s *ProposalServer) ListClientProposals(ctx context.Context, req *proposalv
 
 	statuses := make([]string, 0, len(req.StatusFilter))
 	for _, s := range req.StatusFilter {
-		if mapped, ok := fromProtoStatus(s); ok {
-			statuses = append(statuses, mapped)
+		mapped, ok := fromProtoStatus(s)
+		if !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid status_filter")
 		}
+		statuses = append(statuses, mapped)
 	}
 
 	var jobID *int64
@@ -489,9 +495,11 @@ func (s *ProposalServer) CountClientProposalInbox(ctx context.Context, req *prop
 
 	statuses := make([]string, 0, len(req.StatusFilter))
 	for _, s := range req.StatusFilter {
-		if mapped, ok := fromProtoStatus(s); ok {
-			statuses = append(statuses, mapped)
+		mapped, ok := fromProtoStatus(s)
+		if !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid status_filter")
 		}
+		statuses = append(statuses, mapped)
 	}
 
 	out, err := s.CountInboxUC.Execute(ctx, application.CountClientProposalInboxInput{ClientID: callerID, StatusFilters: statuses})
