@@ -32,9 +32,6 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerAuthRoutes(api, authHandler, jwtParser, sensitiveLimiter)
 	registerVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
 	registerUserRoutes(api, userHandler, jwtParser)
-	registerAdminUserRoutes(api, userHandler, jwtParser)
-	registerInternalUserRoutes(api, userHandler, jwtParser)
-	registerPublicUserRoutes(api, userHandler)
 	registerAdminVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
 	registerJobRoutes(api, jobHandler, jwtParser)
 
@@ -129,50 +126,34 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	// Settings: account, privacy, and notification preferences.
 	userRoutes.GET("/me/settings", userHandler.GetMeAccountSettings)
 	userRoutes.PATCH("/me/settings", userHandler.UpdateMeAccountSettings)
-	userRoutes.GET("/me/settings/privacy", userHandler.GetMePrivacySettings)
-	userRoutes.PATCH("/me/settings/privacy", userHandler.UpdateMePrivacySettings)
-	userRoutes.GET("/me/settings/notifications", userHandler.GetMeNotificationSettings)
-	userRoutes.PATCH("/me/settings/notifications", userHandler.UpdateMeNotificationSettings)
 
 	// Avatar: upload, read, and delete profile media.
+	userRoutes.POST("/me/avatar/upload-url", userHandler.GetMeAvatarUploadUrl)
 	userRoutes.POST("/me/avatar", userHandler.UploadMeAvatar)
 	userRoutes.GET("/me/avatar", userHandler.GetMeAvatar)
 	userRoutes.DELETE("/me/avatar", userHandler.RemoveMeAvatar)
 
-	// Portfolio: CRUD for showcase projects.
-	userRoutes.POST("/me/portfolio", userHandler.CreateMePortfolioItem)
-	userRoutes.PATCH("/me/portfolio/:itemId", userHandler.UpdateMePortfolioItem)
-	userRoutes.DELETE("/me/portfolio/:itemId", userHandler.DeleteMePortfolioItem)
+	// CV: upload, read URL, and delete profile document.
+	userRoutes.POST("/me/cv/upload-url", userHandler.GetMeCVUploadUrl)
+	userRoutes.POST("/me/cv", userHandler.UploadMeCV)
+	userRoutes.GET("/me/cv", userHandler.GetMeCV)
+	userRoutes.DELETE("/me/cv", userHandler.RemoveMeCV)
 
-	// Employment: work history timeline entries.
-	userRoutes.POST("/me/employment", userHandler.CreateMeEmployment)
-	userRoutes.PATCH("/me/employment/:employmentId", userHandler.UpdateMeEmployment)
-	userRoutes.DELETE("/me/employment/:employmentId", userHandler.DeleteMeEmployment)
+	// Portfolio: freelancer-only media upload reservation + CRUD for showcase projects.
+	portfolioRoutes := userRoutes.Group("/me/portfolio")
+	portfolioRoutes.Use(middleware.RequireRoles("freelancer"))
+	portfolioRoutes.POST("/media/upload-url", userHandler.GetMePortfolioMediaUploadUrl)
+	portfolioRoutes.POST("", userHandler.CreateMePortfolioItem)
+	portfolioRoutes.GET("", userHandler.ListMePortfolioItems)
+	portfolioRoutes.GET("/:itemId", userHandler.GetMePortfolioItem)
+	portfolioRoutes.PUT("/:itemId", userHandler.UpdateMePortfolioItem)
+	portfolioRoutes.DELETE("/:itemId", userHandler.DeleteMePortfolioItem)
 
-	// Education: academic history entries.
-	userRoutes.POST("/me/education", userHandler.CreateMeEducation)
-	userRoutes.PATCH("/me/education/:educationId", userHandler.UpdateMeEducation)
-	userRoutes.DELETE("/me/education/:educationId", userHandler.DeleteMeEducation)
-
-	// Certifications: credential records management.
-	userRoutes.POST("/me/certifications", userHandler.CreateMeCertification)
-	userRoutes.PATCH("/me/certifications/:certificationId", userHandler.UpdateMeCertification)
-	userRoutes.DELETE("/me/certifications/:certificationId", userHandler.DeleteMeCertification)
-
-	// Languages: proficiency list upsert.
-	userRoutes.PUT("/me/languages", userHandler.UpsertMeLanguages)
-
-	// Freelancer preferences: availability, rates, and work style.
-	userRoutes.PUT("/me/availability", userHandler.SetMeAvailability)
-	userRoutes.GET("/me/availability", userHandler.GetMeAvailability)
-	userRoutes.PUT("/me/rates", userHandler.SetMeRates)
-	userRoutes.GET("/me/rates", userHandler.GetMeRates)
-	userRoutes.PUT("/me/work-preferences", userHandler.SetMeWorkPreferences)
+	// Freelancer preferences: work style and client matching.
+	userRoutes.PATCH("/me/work-preferences", userHandler.SetMeWorkPreferences)
 	userRoutes.GET("/me/work-preferences", userHandler.GetMeWorkPreferences)
 
 	// Client hiring: profile and hiring controls.
-	userRoutes.GET("/me/client-profile", userHandler.GetMeClientProfile)
-	userRoutes.PATCH("/me/client-profile", userHandler.UpdateMeClientProfile)
 	userRoutes.GET("/me/hiring-preferences", userHandler.GetMeHiringPreferences)
 	userRoutes.PATCH("/me/hiring-preferences", userHandler.UpdateMeHiringPreferences)
 
@@ -182,35 +163,6 @@ func registerUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler,
 	userRoutes.DELETE("/me/saved-freelancers/:freelancerId", userHandler.RemoveMeSavedFreelancer)
 	userRoutes.PUT("/me/freelancer-notes/:freelancerId", userHandler.UpsertMeFreelancerNote)
 	userRoutes.GET("/me/freelancer-notes/:freelancerId", userHandler.GetMeFreelancerNote)
-}
-
-func registerAdminUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler, jwtParser *auth.JWTParser) {
-	// Admin-only user management and audit endpoints.
-	adminUserRoutes := api.Group("/admin/users")
-	adminUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
-	adminUserRoutes.GET("", userHandler.ListUsers)
-	adminUserRoutes.GET("/:userId/profile", userHandler.GetProfile)
-	adminUserRoutes.PATCH("/:userId/account-status", userHandler.UpdateAccountStatus)
-}
-
-// dont see usefulness yet
-func registerInternalUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler, jwtParser *auth.JWTParser) {
-	// Internal admin read models for dependent services.
-	internalUserRoutes := api.Group("/internal/users")
-	internalUserRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("admin"))
-	internalUserRoutes.GET("/:userId/basic", userHandler.GetInternalUserBasic)
-	internalUserRoutes.GET("/:userId/profile", userHandler.GetInternalUserProfile)
-}
-
-func registerPublicUserRoutes(api *gin.RouterGroup, userHandler *handlers.UserHandler) {
-	// Public profile projections available without auth.
-	publicRoutes := api.Group("/public")
-	publicRoutes.GET("/users/:userId/profile", userHandler.GetPublicProfile)
-	publicRoutes.GET("/users/:userId/portfolio", userHandler.ListPublicPortfolioItems)
-	publicRoutes.GET("/users/:userId/employment", userHandler.ListPublicEmployment)
-	publicRoutes.GET("/users/:userId/education", userHandler.ListPublicEducation)
-	publicRoutes.GET("/users/:userId/certifications", userHandler.ListPublicCertifications)
-	publicRoutes.GET("/users/:userId/languages", userHandler.GetPublicLanguages)
 }
 
 func registerAdminVerificationRoutes(api *gin.RouterGroup, verificationHandler *handlers.VerificationHandler, jwtParser *auth.JWTParser, sensitiveLimiter *middleware.InMemoryLimiter) {

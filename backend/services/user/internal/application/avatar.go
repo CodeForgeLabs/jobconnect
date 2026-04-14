@@ -17,16 +17,61 @@ type UploadAvatarInput struct {
 	UserID      uuid.UUID
 	FileName    string
 	ContentType string
+	StorageKey  string
 	Content     []byte
+	Width       int32
+	Height      int32
 }
 
 type UploadAvatarOutput struct {
 	AvatarURL   string
 	PreviewURL  string
+	DownloadURL string
 	ContentType string
 	SizeBytes   int64
 	Width       int32
 	Height      int32
+}
+
+type GetAvatarUploadURLInput struct {
+	UserID      uuid.UUID
+	FileName    string
+	ContentType string
+}
+
+type GetAvatarUploadURLOutput struct {
+	StorageKey string
+	UploadURL  string
+}
+
+type GetAvatarUploadURL struct {
+	Store AvatarObjectStore
+	TTL   time.Duration
+}
+
+func (uc *GetAvatarUploadURL) Execute(ctx context.Context, in GetAvatarUploadURLInput) (GetAvatarUploadURLOutput, error) {
+	if in.UserID == uuid.Nil {
+		return GetAvatarUploadURLOutput{}, fmt.Errorf("user_id is required")
+	}
+	if uc.Store == nil {
+		return GetAvatarUploadURLOutput{}, fmt.Errorf("avatar object store is not configured")
+	}
+	if strings.TrimSpace(in.FileName) == "" {
+		return GetAvatarUploadURLOutput{}, fmt.Errorf("file_name is required")
+	}
+	if err := domain.ValidateAvatarContentType(strings.TrimSpace(in.ContentType)); err != nil {
+		return GetAvatarUploadURLOutput{}, err
+	}
+	storageKey := buildAvatarStorageKey(in.UserID)
+	ttl := uc.TTL
+	if ttl <= 0 {
+		ttl = 15 * time.Minute
+	}
+	uploadURL, err := uc.Store.PresignPutObject(ctx, storageKey, strings.TrimSpace(in.ContentType), ttl)
+	if err != nil {
+		return GetAvatarUploadURLOutput{}, err
+	}
+	return GetAvatarUploadURLOutput{StorageKey: storageKey, UploadURL: uploadURL}, nil
 }
 
 type UploadAvatar struct {
@@ -41,11 +86,69 @@ func (uc *UploadAvatar) Execute(ctx context.Context, in UploadAvatarInput) (Uplo
 	if in.UserID == uuid.Nil {
 		return UploadAvatarOutput{}, fmt.Errorf("user_id is required")
 	}
-	if uc.Processor == nil {
-		return UploadAvatarOutput{}, fmt.Errorf("avatar processor is not configured")
-	}
 	if uc.Store == nil {
 		return UploadAvatarOutput{}, fmt.Errorf("avatar object store is not configured")
+	}
+	if strings.TrimSpace(in.StorageKey) != "" {
+		contentType := strings.TrimSpace(in.ContentType)
+		if contentType == "" {
+			meta, err := uc.Store.StatObject(ctx, in.StorageKey)
+			if err != nil {
+				return UploadAvatarOutput{}, err
+			}
+			contentType = strings.TrimSpace(meta.ContentType)
+		}
+		if err := domain.ValidateAvatarContentType(contentType); err != nil {
+			return UploadAvatarOutput{}, err
+		}
+		info, err := uc.Store.StatObject(ctx, in.StorageKey)
+		if err != nil {
+			return UploadAvatarOutput{}, err
+		}
+		fileName := sanitizeAvatarFileName(in.FileName, contentType)
+		avatarURL := buildAvatarURL(in.UserID)
+		downloadURL, err := uc.Store.PresignGetObject(ctx, in.StorageKey, 15*time.Minute)
+		if err != nil {
+			return UploadAvatarOutput{}, err
+		}
+		updatedAt := time.Now().UTC()
+		if uc.Clock != nil {
+			updatedAt = uc.Clock.Now()
+		}
+		avatar := domain.Avatar{
+			UserID:      in.UserID,
+			FileName:    fileName,
+			ContentType: contentType,
+			StorageKey:  in.StorageKey,
+			Width:       int(in.Width),
+			Height:      int(in.Height),
+			SizeBytes:   info.SizeBytes,
+			UpdatedAt:   updatedAt,
+		}
+		if err := uc.Profiles.SaveAvatar(ctx, avatar); err != nil {
+			return UploadAvatarOutput{}, err
+		}
+		profile, client, freelancer, err := uc.Profiles.GetByUserID(ctx, in.UserID)
+		if err != nil {
+			return UploadAvatarOutput{}, err
+		}
+		profile.AvatarURL = avatarURL
+		if err := uc.Profiles.Update(ctx, profile, client, freelancer); err != nil {
+			return UploadAvatarOutput{}, err
+		}
+		return UploadAvatarOutput{
+			AvatarURL:   avatarURL,
+			PreviewURL:  downloadURL,
+			DownloadURL: downloadURL,
+			ContentType: contentType,
+			SizeBytes:   info.SizeBytes,
+			Width:       int32(in.Width),
+			Height:      int32(in.Height),
+		}, nil
+	}
+
+	if uc.Processor == nil {
+		return UploadAvatarOutput{}, fmt.Errorf("avatar processor is not configured")
 	}
 	if err := domain.ValidateAvatarSize(len(in.Content)); err != nil {
 		return UploadAvatarOutput{}, err
@@ -115,6 +218,7 @@ func (uc *UploadAvatar) Execute(ctx context.Context, in UploadAvatarInput) (Uplo
 	return UploadAvatarOutput{
 		AvatarURL:   avatarURL,
 		PreviewURL:  avatarURL,
+		DownloadURL: avatarURL,
 		ContentType: contentType,
 		SizeBytes:   int64(len(normalized)),
 		Width:       int32(width),
@@ -130,6 +234,8 @@ type GetAvatarOutput struct {
 	FileName    string
 	ContentType string
 	Content     []byte
+	DownloadURL string
+	SizeBytes   int64
 }
 
 type GetAvatar struct {
@@ -148,11 +254,22 @@ func (uc *GetAvatar) Execute(ctx context.Context, in GetAvatarInput) (GetAvatarO
 	if err != nil {
 		return GetAvatarOutput{}, err
 	}
+	if strings.TrimSpace(avatar.StorageKey) != "" {
+		downloadURL, err := uc.Store.PresignGetObject(ctx, avatar.StorageKey, 15*time.Minute)
+		if err != nil {
+			return GetAvatarOutput{}, err
+		}
+		info, err := uc.Store.StatObject(ctx, avatar.StorageKey)
+		if err != nil {
+			return GetAvatarOutput{}, err
+		}
+		return GetAvatarOutput{FileName: avatar.FileName, ContentType: avatar.ContentType, DownloadURL: downloadURL, SizeBytes: info.SizeBytes}, nil
+	}
 	content, err := uc.Store.GetAvatar(ctx, in.UserID, avatar.StorageKey)
 	if err != nil {
 		return GetAvatarOutput{}, err
 	}
-	return GetAvatarOutput{FileName: avatar.FileName, ContentType: avatar.ContentType, Content: content}, nil
+	return GetAvatarOutput{FileName: avatar.FileName, ContentType: avatar.ContentType, Content: content, SizeBytes: int64(len(content))}, nil
 }
 
 type RemoveAvatarInput struct {

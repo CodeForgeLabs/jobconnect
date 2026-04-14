@@ -47,18 +47,26 @@ func main() {
 	if err != nil {
 		log.Fatalf("avatar storage: %v", err)
 	}
+	cvStore, err := storage.NewCVStore(ctx, cfg.CVStorage)
+	if err != nil {
+		log.Fatalf("cv storage: %v", err)
+	}
+	portfolioStore, err := storage.NewPortfolioStore(ctx, cfg.PortfolioStorage)
+	if err != nil {
+		log.Fatalf("portfolio storage: %v", err)
+	}
 
 	createProfileUC := &application.CreateProfile{
 		Profiles: profileRepo,
 		Clock:    clockImpl,
 	}
-	getUserUC := &application.GetUser{Profiles: profileRepo}
 	getProfileUC := &application.GetProfile{Profiles: profileRepo}
-	getPublicProfileUC := &application.GetPublicProfile{Profiles: profileRepo}
 	updateProfileUC := &application.UpdateProfile{Profiles: profileRepo, Clock: clockImpl}
 	deleteProfileUC := &application.DeleteProfile{Profiles: profileRepo, Clock: clockImpl}
-	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo}
-	updateAccountStatusUC := &application.UpdateAccountStatus{Profiles: profileRepo, Clock: clockImpl}
+	getOnboardingStatusUC := &application.GetOnboardingStatus{Profiles: profileRepo, Details: profileRepo}
+	getSettingsUC := &application.GetSettings{Settings: profileRepo}
+	patchSettingsUC := &application.PatchSettingsUseCase{Settings: profileRepo}
+	getAvatarUploadURLUC := &application.GetAvatarUploadURL{Store: avatarStore}
 	uploadAvatarUC := &application.UploadAvatar{
 		Profiles:  profileRepo,
 		Store:     avatarStore,
@@ -68,19 +76,30 @@ func main() {
 	}
 	getAvatarUC := &application.GetAvatar{Profiles: profileRepo, Store: avatarStore}
 	removeAvatarUC := &application.RemoveAvatar{Profiles: profileRepo, Store: avatarStore}
+	getCVUploadURLUC := &application.GetCVUploadURL{Store: cvStore}
+	upsertCVUC := &application.UpsertCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore, Clock: clockImpl}
+	getCVUC := &application.GetCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore}
+	removeCVUC := &application.RemoveCV{Profiles: profileRepo, RoleProfiles: profileRepo, Store: cvStore}
+	getPortfolioMediaUploadURLUC := &application.GetPortfolioMediaUploadURL{Store: portfolioStore, RoleProfiles: profileRepo}
 
 	userServer := grpcadapter.NewUserServer(
 		createProfileUC,
-		getUserUC,
 		getProfileUC,
-		getPublicProfileUC,
 		updateProfileUC,
 		deleteProfileUC,
 		getOnboardingStatusUC,
-		updateAccountStatusUC,
+		getSettingsUC,
+		patchSettingsUC,
+		getAvatarUploadURLUC,
 		uploadAvatarUC,
 		getAvatarUC,
 		removeAvatarUC,
+		getCVUploadURLUC,
+		upsertCVUC,
+		getCVUC,
+		removeCVUC,
+		getPortfolioMediaUploadURLUC,
+		portfolioStore,
 		profileRepo,
 		grpcadapter.CapabilityPolicy{
 			MinSkillsForDiscovery:        cfg.CapabilityMinSkillsForDiscovery,

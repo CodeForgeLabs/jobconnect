@@ -33,6 +33,12 @@ func mapGRPCCode(code codes.Code) int {
 		return http.StatusConflict
 	case codes.ResourceExhausted:
 		return http.StatusTooManyRequests
+	case codes.FailedPrecondition:
+		return http.StatusPreconditionFailed
+	case codes.Aborted:
+		return http.StatusConflict
+	case codes.Unimplemented:
+		return http.StatusNotImplemented
 	default:
 		return http.StatusInternalServerError
 	}

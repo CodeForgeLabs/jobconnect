@@ -10,6 +10,7 @@ import (
 
 const (
 	StatusUnverified             = "unverified"
+	StatusSubmitted              = "submitted"
 	StatusPendingReview          = "pending_review"
 	StatusVerified               = "verified"
 	StatusRejected               = "rejected"

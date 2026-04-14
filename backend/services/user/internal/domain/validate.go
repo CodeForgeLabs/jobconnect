@@ -7,6 +7,7 @@ import (
 
 const (
 	MaxAvatarSizeBytes = 5 * 1024 * 1024
+	MaxCVSizeBytes     = 25 * 1024 * 1024
 )
 
 func ValidateRole(role string) error {
@@ -59,6 +60,36 @@ func ValidateAvatarSize(size int) error {
 	return nil
 }
 
+func ValidateCVContentType(contentType string) error {
+	ct := strings.TrimSpace(strings.ToLower(contentType))
+	switch ct {
+	case "application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+		return nil
+	default:
+		return fmt.Errorf("unsupported cv content_type")
+	}
+}
+
+func ValidatePortfolioUploadContentType(contentType string) error {
+	ct := strings.TrimSpace(strings.ToLower(contentType))
+	switch ct {
+	case "image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm", "application/pdf":
+		return nil
+	default:
+		return fmt.Errorf("unsupported portfolio content_type")
+	}
+}
+
+func ValidateCVSize(size int) error {
+	if size <= 0 {
+		return fmt.Errorf("cv content is required")
+	}
+	if size > MaxCVSizeBytes {
+		return fmt.Errorf("cv exceeds max size of 25MB")
+	}
+	return nil
+}
+
 func BuildDisplayName(firstName, lastName string) string {
 	first := strings.TrimSpace(firstName)
 	last := strings.TrimSpace(lastName)
@@ -73,16 +104,5 @@ func ValidateAccountStatus(status string) error {
 		return nil
 	default:
 		return fmt.Errorf("invalid account status")
-	}
-}
-
-func ValidateProfileVisibility(visibility string) error {
-	normalized := strings.TrimSpace(strings.ToUpper(visibility))
-	normalized = strings.TrimPrefix(normalized, "PROFILE_VISIBILITY_")
-	switch normalized {
-	case ProfileVisibilityPublic, ProfileVisibilityPrivate:
-		return nil
-	default:
-		return fmt.Errorf("invalid profile visibility")
 	}
 }

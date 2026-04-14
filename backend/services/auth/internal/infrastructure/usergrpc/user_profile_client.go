@@ -28,31 +28,32 @@ func (c *ProfileClient) CreateProfile(ctx context.Context, in application.Create
 		return fmt.Errorf("user profile client is nil")
 	}
 
-	req := &userv1.CreateProfileRequest{
-		UserId:      in.UserID.String(),
-		Role:        in.Role,
-		FirstName:   in.FirstName,
-		LastName:    in.LastName,
-		DisplayName: in.DisplayName,
-		AvatarUrl:   in.AvatarURL,
+	role, err := toProtoRole(in.Role)
+	if err != nil {
+		return err
+	}
+
+	req := &userv1.CreateMyProfileRequest{
+		UserId:       in.UserID.String(),
+		Role:         role,
+		FirstName:    in.FirstName,
+		LastName:     in.LastName,
+		DisplayName:  in.DisplayName,
+		ContactEmail: strings.TrimSpace(in.Email),
 	}
 
 	switch in.Role {
 	case roleClient:
-		req.RoleDetails = &userv1.CreateProfileRequest_Client{
-			Client: &userv1.ClientProfileInput{
-				VerificationStatus: userv1.VerificationStatus_VERIFICATION_STATUS_PENDING,
-			},
+		req.RoleProfile = &userv1.CreateMyProfileRequest_Client{
+			Client: &userv1.ClientProfileCreateInput{},
 		}
 	case roleFreelancer:
-		req.RoleDetails = &userv1.CreateProfileRequest_Freelancer{
-			Freelancer: &userv1.FreelancerProfileInput{
-				VerificationStatus: userv1.VerificationStatus_VERIFICATION_STATUS_PENDING,
-			},
+		req.RoleProfile = &userv1.CreateMyProfileRequest_Freelancer{
+			Freelancer: &userv1.FreelancerProfileCreateInput{},
 		}
 	}
 
-	resp, err := c.client.CreateProfile(ctx, req)
+	resp, err := c.client.CreateMyProfile(ctx, req)
 	if err != nil {
 		return fmt.Errorf("create profile: %w", err)
 	}
@@ -60,16 +61,18 @@ func (c *ProfileClient) CreateProfile(ctx context.Context, in application.Create
 		return fmt.Errorf("create profile failed")
 	}
 
-	contactEmail := strings.TrimSpace(in.Email)
-	if contactEmail != "" {
-		_, err = c.client.UpdateProfile(ctx, &userv1.UpdateProfileRequest{
-			UserId:       in.UserID.String(),
-			ContactEmail: &contactEmail,
-		})
-		if err != nil {
-			return fmt.Errorf("autofill contact email: %w", err)
-		}
-	}
-
 	return nil
+}
+
+func toProtoRole(role string) (userv1.UserRole, error) {
+	switch strings.TrimSpace(strings.ToLower(role)) {
+	case roleClient:
+		return userv1.UserRole_USER_ROLE_CLIENT, nil
+	case roleFreelancer:
+		return userv1.UserRole_USER_ROLE_FREELANCER, nil
+	case "admin":
+		return userv1.UserRole_USER_ROLE_ADMIN, nil
+	default:
+		return userv1.UserRole_USER_ROLE_UNSPECIFIED, fmt.Errorf("unsupported role: %s", role)
+	}
 }

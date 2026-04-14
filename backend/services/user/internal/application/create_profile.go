@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"jobconnect/user/internal/domain"
@@ -12,14 +13,16 @@ import (
 
 // CreateProfileInput is the input for CreateProfile use-case.
 type CreateProfileInput struct {
-	UserID      uuid.UUID
-	Role        string
-	FirstName   string
-	LastName    string
-	DisplayName string
-	AvatarURL   string
-	Client      *domain.ClientProfile
-	Freelancer  *domain.FreelancerProfile
+	UserID       uuid.UUID
+	Role         string
+	FirstName    string
+	LastName     string
+	DisplayName  string
+	Location     string
+	ContactEmail string
+	AvatarURL    string
+	Client       *domain.ClientProfile
+	Freelancer   *domain.FreelancerProfile
 }
 
 // CreateProfileOutput is the output of CreateProfile use-case.
@@ -74,7 +77,10 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 		}
 	}
 
-	displayName := domain.BuildDisplayName(in.FirstName, in.LastName)
+	displayName := strings.TrimSpace(in.DisplayName)
+	if displayName == "" {
+		displayName = domain.BuildDisplayName(in.FirstName, in.LastName)
+	}
 	if displayName == "" {
 		return CreateProfileOutput{}, fmt.Errorf("display_name is required")
 	}
@@ -85,17 +91,27 @@ func (uc *CreateProfile) Execute(ctx context.Context, in CreateProfileInput) (Cr
 	}
 
 	profile := domain.Profile{
-		UserID:        in.UserID,
-		Role:          in.Role,
-		FirstName:     in.FirstName,
-		LastName:      in.LastName,
-		DisplayName:   displayName,
-		AvatarURL:     in.AvatarURL,
-		Language:      "en",
-		AccountStatus: domain.AccountStatusActive,
-		Visibility:    domain.ProfileVisibilityPublic,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		UserID:             in.UserID,
+		Role:               in.Role,
+		FirstName:          in.FirstName,
+		LastName:           in.LastName,
+		DisplayName:        displayName,
+		AvatarURL:          in.AvatarURL,
+		ContactEmail:       in.ContactEmail,
+		Location:           strings.TrimSpace(in.Location),
+		TaxID:              "",
+		VerificationStatus: "",
+		AccountStatus:      domain.AccountStatusActive,
+		CreatedAt:          now,
+		UpdatedAt:          now,
+	}
+
+	if in.Client != nil {
+		profile.TaxID = strings.TrimSpace(in.Client.TaxID)
+		profile.VerificationStatus = strings.TrimSpace(in.Client.VerificationStatus)
+	}
+	if in.Freelancer != nil {
+		profile.VerificationStatus = strings.TrimSpace(in.Freelancer.VerificationStatus)
 	}
 
 	profileID, err := uc.Profiles.Create(ctx, profile, in.Client, in.Freelancer)
