@@ -9,10 +9,10 @@ import (
 )
 
 type Config struct {
-	GRPCListenAddr string
-	PostgresURL    string
-	JWTSecret      []byte
-	JobServiceAddr string
+	GRPCListenAddr    string
+	PostgresURL       string
+	JWTSecret         []byte
+	JobServiceAddr    string
 	AttachmentStorage AttachmentStorageConfig
 }
 

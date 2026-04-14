@@ -64,6 +64,10 @@ func (r *ProposalRepo) GetByIDForFreelancer(ctx context.Context, proposalID int6
 	return r.getByWhere(ctx, `where id = $1 and freelancer_id = $2`, proposalID, freelancerID)
 }
 
+func (r *ProposalRepo) GetLatestByJobForFreelancer(ctx context.Context, jobID int64, freelancerID uuid.UUID) (domain.Proposal, error) {
+	return r.getByWhere(ctx, `where job_id = $1 and freelancer_id = $2 order by created_at desc limit 1`, jobID, freelancerID)
+}
+
 func (r *ProposalRepo) GetByIDForClient(ctx context.Context, proposalID int64, clientID uuid.UUID) (domain.Proposal, error) {
 	return r.getByWhere(ctx, `where id = $1 and client_id = $2`, proposalID, clientID)
 }
@@ -148,6 +152,94 @@ func (r *ProposalRepo) SetStatus(ctx context.Context, proposalID int64, clientID
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (r *ProposalRepo) HasHiredProposalForJob(ctx context.Context, jobID int64) (bool, error) {
+	var exists bool
+	err := r.pool.QueryRow(ctx, `
+		select exists(
+			select 1 from proposals
+			where job_id = $1 and status = 'hired'
+		)
+	`, jobID).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func (r *ProposalRepo) HireWithRequestID(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return domain.Proposal{}, false, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var existingProposalID int64
+	err = tx.QueryRow(ctx, `
+		select proposal_id
+		from proposal_hire_requests
+		where client_id = $1 and proposal_id = $2 and request_id = $3
+	`, clientID, proposalID, requestID).Scan(&existingProposalID)
+	if err == nil {
+		if err := tx.Commit(ctx); err != nil {
+			return domain.Proposal{}, false, err
+		}
+		p, getErr := r.GetByIDForClient(ctx, existingProposalID, clientID)
+		if getErr != nil {
+			return domain.Proposal{}, false, getErr
+		}
+		return p, true, nil
+	}
+	if !isNoRows(err) {
+		return domain.Proposal{}, false, err
+	}
+
+	res, err := tx.Exec(ctx, `
+		update proposals
+		set status = 'hired',
+			status_reason = $3,
+			hired_at = $4,
+			updated_at = $4
+		where id = $1 and client_id = $2 and status in ('sent', 'shortlisted')
+	`, proposalID, clientID, reason, at)
+	if err != nil {
+		if isUniqueViolation(err, "uq_proposals_single_hired_per_job") {
+			return domain.Proposal{}, false, fmt.Errorf("job already has a hired proposal: %w", ErrConflict)
+		}
+		return domain.Proposal{}, false, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Proposal{}, false, fmt.Errorf("proposal cannot be hired in current status: %w", ErrConflict)
+	}
+
+	_, err = tx.Exec(ctx, `
+		insert into proposal_hire_requests (client_id, proposal_id, request_id, created_at)
+		values ($1, $2, $3, $4)
+	`, clientID, proposalID, requestID, at)
+	if err != nil {
+		if isUniqueViolation(err, "proposal_hire_requests_client_id_proposal_id_request_id_key") {
+			if err := tx.Commit(ctx); err != nil {
+				return domain.Proposal{}, false, err
+			}
+			p, getErr := r.GetByIDForClient(ctx, proposalID, clientID)
+			if getErr != nil {
+				return domain.Proposal{}, false, getErr
+			}
+			return p, true, nil
+		}
+		return domain.Proposal{}, false, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return domain.Proposal{}, false, err
+	}
+
+	p, err := r.GetByIDForClient(ctx, proposalID, clientID)
+	if err != nil {
+		return domain.Proposal{}, false, err
+	}
+	return p, false, nil
 }
 
 func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJobFilter, limit, offset int) ([]domain.Proposal, error) {

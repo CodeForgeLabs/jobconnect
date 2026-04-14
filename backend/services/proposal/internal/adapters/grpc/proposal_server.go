@@ -20,6 +20,9 @@ type ProposalServer struct {
 	ModifyUC    *application.ModifyProposal
 	WithdrawUC  *application.WithdrawProposal
 	GetUC       *application.GetProposal
+	GetMineByJobUC *application.GetMyProposalForJob
+	HasAppliedUC   *application.HasAppliedToJob
+	HireUC         *application.HireProposal
 	ListByJobUC *application.ListProposalsByJob
 	ListMineUC  *application.ListMyProposals
 	SetStatusUC *application.SetProposalStatus
@@ -32,6 +35,9 @@ func NewProposalServer(
 	modify *application.ModifyProposal,
 	withdraw *application.WithdrawProposal,
 	get *application.GetProposal,
+	getMineByJob *application.GetMyProposalForJob,
+	hasApplied *application.HasAppliedToJob,
+	hire *application.HireProposal,
 	listByJob *application.ListProposalsByJob,
 	listMine *application.ListMyProposals,
 	setStatus *application.SetProposalStatus,
@@ -42,6 +48,9 @@ func NewProposalServer(
 		ModifyUC:    modify,
 		WithdrawUC:  withdraw,
 		GetUC:       get,
+		GetMineByJobUC: getMineByJob,
+		HasAppliedUC:   hasApplied,
+		HireUC:         hire,
 		ListByJobUC: listByJob,
 		ListMineUC:  listMine,
 		SetStatusUC: setStatus,
@@ -149,6 +158,83 @@ func (s *ProposalServer) GetProposal(ctx context.Context, req *proposalv1.GetPro
 		return nil, toStatus(err)
 	}
 	return &proposalv1.GetProposalResponse{Proposal: toProtoProposal(out.Proposal)}, nil
+}
+
+func (s *ProposalServer) GetMyProposalForJob(ctx context.Context, req *proposalv1.GetMyProposalForJobRequest) (*proposalv1.GetMyProposalForJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.GetMineByJobUC.Execute(ctx, application.GetMyProposalForJobInput{
+		FreelancerID: callerID,
+		JobID:        req.JobId,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &proposalv1.GetMyProposalForJobResponse{Proposal: toProtoProposal(out.Proposal)}, nil
+}
+
+func (s *ProposalServer) HasAppliedToJob(ctx context.Context, req *proposalv1.HasAppliedToJobRequest) (*proposalv1.HasAppliedToJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.HasAppliedUC.Execute(ctx, application.HasAppliedToJobInput{
+		FreelancerID: callerID,
+		JobID:        req.JobId,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	resp := &proposalv1.HasAppliedToJobResponse{HasApplied: out.HasApplied, ProposalId: out.ProposalID}
+	if out.HasApplied {
+		resp.ActiveStatus = toProtoStatus(out.Status)
+	}
+	return resp, nil
+}
+
+func (s *ProposalServer) HireProposal(ctx context.Context, req *proposalv1.HireProposalRequest) (*proposalv1.HireProposalResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.HireUC.Execute(ctx, application.HireProposalInput{
+		ProposalID: req.ProposalId,
+		ClientID:   callerID,
+		RequestID:  req.RequestId,
+		Reason:     req.Note,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &proposalv1.HireProposalResponse{
+		Proposal:              toProtoProposal(out.Proposal),
+		ReusedIdempotentResult: out.ReusedIdempotentResult,
+	}, nil
 }
 
 func (s *ProposalServer) ListProposalsByJob(ctx context.Context, req *proposalv1.ListProposalsByJobRequest) (*proposalv1.ListProposalsByJobResponse, error) {

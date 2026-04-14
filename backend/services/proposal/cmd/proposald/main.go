@@ -71,6 +71,9 @@ func main() {
 	modifyUC := &application.ModifyProposal{Proposals: proposalRepo, Clock: clockImpl}
 	withdrawUC := &application.WithdrawProposal{Proposals: proposalRepo, Clock: clockImpl}
 	getUC := &application.GetProposal{Proposals: proposalRepo}
+	getMineByJobUC := &application.GetMyProposalForJob{Proposals: proposalRepo}
+	hasAppliedUC := &application.HasAppliedToJob{Proposals: proposalRepo}
+	hireUC := &application.HireProposal{Proposals: proposalRepo, Jobs: jobs, Clock: clockImpl}
 	listByJobUC := &application.ListProposalsByJob{Proposals: proposalRepo}
 	listMineUC := &application.ListMyProposals{Proposals: proposalRepo}
 	setStatusUC := &application.SetProposalStatus{Proposals: proposalRepo, Clock: clockImpl}
@@ -80,6 +83,9 @@ func main() {
 		modifyUC,
 		withdrawUC,
 		getUC,
+		getMineByJobUC,
+		hasAppliedUC,
+		hireUC,
 		listByJobUC,
 		listMineUC,
 		setStatusUC,
