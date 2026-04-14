@@ -16,21 +16,21 @@ import (
 type ProposalServer struct {
 	proposalv1.UnimplementedProposalServiceServer
 
-	SubmitUC    *application.SubmitProposal
-	ModifyUC    *application.ModifyProposal
-	WithdrawUC  *application.WithdrawProposal
-	GetUC       *application.GetProposal
-	GetMineByJobUC *application.GetMyProposalForJob
-	HasAppliedUC   *application.HasAppliedToJob
-	HireUC         *application.HireProposal
+	SubmitUC                *application.SubmitProposal
+	ModifyUC                *application.ModifyProposal
+	WithdrawUC              *application.WithdrawProposal
+	GetUC                   *application.GetProposal
+	GetMineByJobUC          *application.GetMyProposalForJob
+	HasAppliedUC            *application.HasAppliedToJob
+	HireUC                  *application.HireProposal
 	AttachmentUploadURLUC   *application.GetProposalAttachmentUploadURL
 	AttachmentDownloadURLUC *application.GetProposalAttachmentDownloadURL
-	ListByJobUC *application.ListProposalsByJob
-	ListMineUC  *application.ListMyProposals
-	ListClientUC *application.ListClientProposals
-	CountByJobUC *application.CountProposalsByJob
-	CountInboxUC *application.CountClientProposalInbox
-	SetStatusUC *application.SetProposalStatus
+	ListByJobUC             *application.ListProposalsByJob
+	ListMineUC              *application.ListMyProposals
+	ListClientUC            *application.ListClientProposals
+	CountByJobUC            *application.CountProposalsByJob
+	CountInboxUC            *application.CountClientProposalInbox
+	SetStatusUC             *application.SetProposalStatus
 
 	TokenParser TokenParser
 }
@@ -54,22 +54,22 @@ func NewProposalServer(
 	tokenParser TokenParser,
 ) *ProposalServer {
 	return &ProposalServer{
-		SubmitUC:    submit,
-		ModifyUC:    modify,
-		WithdrawUC:  withdraw,
-		GetUC:       get,
-		GetMineByJobUC: getMineByJob,
-		HasAppliedUC:   hasApplied,
-		HireUC:         hire,
+		SubmitUC:                submit,
+		ModifyUC:                modify,
+		WithdrawUC:              withdraw,
+		GetUC:                   get,
+		GetMineByJobUC:          getMineByJob,
+		HasAppliedUC:            hasApplied,
+		HireUC:                  hire,
 		AttachmentUploadURLUC:   attachmentUploadURL,
 		AttachmentDownloadURLUC: attachmentDownloadURL,
-		ListByJobUC: listByJob,
-		ListMineUC:  listMine,
-		ListClientUC: listClient,
-		CountByJobUC: countByJob,
-		CountInboxUC: countInbox,
-		SetStatusUC: setStatus,
-		TokenParser: tokenParser,
+		ListByJobUC:             listByJob,
+		ListMineUC:              listMine,
+		ListClientUC:            listClient,
+		CountByJobUC:            countByJob,
+		CountInboxUC:            countInbox,
+		SetStatusUC:             setStatus,
+		TokenParser:             tokenParser,
 	}
 }
 
@@ -247,7 +247,7 @@ func (s *ProposalServer) HireProposal(ctx context.Context, req *proposalv1.HireP
 	}
 
 	return &proposalv1.HireProposalResponse{
-		Proposal:              toProtoProposal(out.Proposal),
+		Proposal:               toProtoProposal(out.Proposal),
 		ReusedIdempotentResult: out.ReusedIdempotentResult,
 	}, nil
 }

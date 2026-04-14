@@ -24,7 +24,7 @@ type HireProposalInput struct {
 }
 
 type HireProposalOutput struct {
-	Proposal              domain.Proposal
+	Proposal               domain.Proposal
 	ReusedIdempotentResult bool
 }
 

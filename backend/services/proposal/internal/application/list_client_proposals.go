@@ -14,13 +14,13 @@ type ListClientProposals struct {
 }
 
 type ListClientProposalsInput struct {
-	ClientID         uuid.UUID
-	StatusFilter     []string
-	JobIDFilter      *int64
+	ClientID           uuid.UUID
+	StatusFilter       []string
+	JobIDFilter        *int64
 	FreelancerIDFilter *uuid.UUID
-	SortBy           string
-	PageSize         int32
-	PageToken        string
+	SortBy             string
+	PageSize           int32
+	PageToken          string
 }
 
 type ListClientProposalsOutput struct {
