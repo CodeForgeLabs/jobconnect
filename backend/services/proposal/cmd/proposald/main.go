@@ -16,13 +16,11 @@ import (
 	"jobconnect/proposal/internal/application"
 	"jobconnect/proposal/internal/config"
 	"jobconnect/proposal/internal/infrastructure/clock"
-	"jobconnect/proposal/internal/infrastructure/contractgrpc"
 	"jobconnect/proposal/internal/infrastructure/db"
 	"jobconnect/proposal/internal/infrastructure/jobgrpc"
 	"jobconnect/proposal/internal/infrastructure/storage"
 	"jobconnect/proposal/internal/infrastructure/tokens"
 
-	contractv1 "jobconnect/contract/gen/contract/v1"
 	jobv1 "jobconnect/job/gen/job/v1"
 
 	"google.golang.org/grpc"
@@ -73,13 +71,6 @@ func main() {
 
 	jobs := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn))
 
-	contractConn, err := grpc.NewClient(cfg.ContractServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("contract service dial: %v", err)
-	}
-	defer contractConn.Close()
-	contracts := contractgrpc.NewContractClient(contractv1.NewContractServiceClient(contractConn))
-
 	// Connects Client
 	connectsAddr := os.Getenv("CONNECTS_SERVICE_ADDR")
 	if connectsAddr == "" {
@@ -96,7 +87,6 @@ func main() {
 	getUC := &application.GetProposal{Proposals: proposalRepo}
 	getMineByJobUC := &application.GetMyProposalForJob{Proposals: proposalRepo}
 	hasAppliedUC := &application.HasAppliedToJob{Proposals: proposalRepo}
-	hireUC := &application.HireProposal{Proposals: proposalRepo, Jobs: jobs, JobLifecycle: jobs, Contracts: contracts, Clock: clockImpl}
 	attachmentUploadURLUC := &application.GetProposalAttachmentUploadURL{Proposals: proposalRepo, Store: attachmentStore, PutTTL: putTTL}
 	attachmentDownloadURLUC := &application.GetProposalAttachmentDownloadURL{Proposals: proposalRepo, Store: attachmentStore, GetTTL: getTTL}
 	listByJobUC := &application.ListProposalsByJob{Proposals: proposalRepo}
@@ -114,7 +104,6 @@ func main() {
 		getUC,
 		getMineByJobUC,
 		hasAppliedUC,
-		hireUC,
 		attachmentUploadURLUC,
 		attachmentDownloadURLUC,
 		listByJobUC,

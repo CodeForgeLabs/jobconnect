@@ -22,7 +22,6 @@ type ProposalServer struct {
 	GetUC                   *application.GetProposal
 	GetMineByJobUC          *application.GetMyProposalForJob
 	HasAppliedUC            *application.HasAppliedToJob
-	HireUC                  *application.HireProposal
 	AttachmentUploadURLUC   *application.GetProposalAttachmentUploadURL
 	AttachmentDownloadURLUC *application.GetProposalAttachmentDownloadURL
 	ListByJobUC             *application.ListProposalsByJob
@@ -43,7 +42,6 @@ func NewProposalServer(
 	get *application.GetProposal,
 	getMineByJob *application.GetMyProposalForJob,
 	hasApplied *application.HasAppliedToJob,
-	hire *application.HireProposal,
 	attachmentUploadURL *application.GetProposalAttachmentUploadURL,
 	attachmentDownloadURL *application.GetProposalAttachmentDownloadURL,
 	listByJob *application.ListProposalsByJob,
@@ -62,7 +60,6 @@ func NewProposalServer(
 		GetUC:                   get,
 		GetMineByJobUC:          getMineByJob,
 		HasAppliedUC:            hasApplied,
-		HireUC:                  hire,
 		AttachmentUploadURLUC:   attachmentUploadURL,
 		AttachmentDownloadURLUC: attachmentDownloadURL,
 		ListByJobUC:             listByJob,

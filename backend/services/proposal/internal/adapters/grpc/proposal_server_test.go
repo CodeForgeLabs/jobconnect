@@ -311,7 +311,6 @@ func buildServer(repo *fakeProposalRepo, jobs *fakeJobReader, connects *fakeConn
 		&application.GetProposal{Proposals: repo},
 		&application.GetMyProposalForJob{Proposals: repo},
 		&application.HasAppliedToJob{Proposals: repo},
-		&application.HireProposal{Proposals: repo, Jobs: jobs, JobLifecycle: lifecycle, Contracts: contracts, Clock: clk},
 		&application.GetProposalAttachmentUploadURL{Proposals: repo, Store: store, PutTTL: 15 * time.Minute},
 		&application.GetProposalAttachmentDownloadURL{Proposals: repo, Store: store, GetTTL: 30 * time.Minute},
 		&application.ListProposalsByJob{Proposals: repo},
