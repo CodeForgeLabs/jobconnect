@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -34,8 +34,31 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerUserRoutes(api, userHandler, jwtParser)
 	registerAdminVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
 	registerJobRoutes(api, jobHandler, jwtParser)
+	registerProposalRoutes(api, proposalHandler, jwtParser)
 
 	return engine
+}
+
+func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.ProposalHandler, jwtParser *auth.JWTParser) {
+	proposalRoutes := api.Group("/proposals")
+	proposalRoutes.Use(middleware.RequireAuth(jwtParser))
+	proposalRoutes.GET("/:proposalId", proposalHandler.GetProposal)
+	proposalRoutes.GET("/:proposalId/attachments/:attachmentId/download-url", proposalHandler.GetProposalAttachmentDownloadURL)
+
+	freelancerRoutes := proposalRoutes.Group("")
+	freelancerRoutes.Use(middleware.RequireRoles("freelancer"))
+	freelancerRoutes.GET("/me/jobs/:jobId", proposalHandler.GetMyProposalForJob)
+	freelancerRoutes.GET("/me/jobs/:jobId/has-applied", proposalHandler.HasAppliedToJob)
+	freelancerRoutes.GET("/me", proposalHandler.ListMyProposals)
+	freelancerRoutes.POST("/:proposalId/attachments/upload-url", proposalHandler.GetProposalAttachmentUploadURL)
+
+	clientRoutes := proposalRoutes.Group("")
+	clientRoutes.Use(middleware.RequireRoles("client"))
+	clientRoutes.GET("/client", proposalHandler.ListClientProposals)
+	clientRoutes.GET("/client/counts", proposalHandler.CountClientProposalInbox)
+	clientRoutes.GET("/jobs/:jobId/counts", proposalHandler.CountProposalsByJob)
+	clientRoutes.POST("/:proposalId/decision", proposalHandler.SetProposalDecision)
+	clientRoutes.POST("/:proposalId/hire", proposalHandler.HireProposal)
 }
 
 func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jwtParser *auth.JWTParser) {

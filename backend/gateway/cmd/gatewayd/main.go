@@ -57,15 +57,23 @@ func main() {
 	}
 	defer jobConn.Close()
 
+	proposalConn, err := grpc.NewClient(cfg.ProposalServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("proposal service dial: %v", err)
+	}
+	defer proposalConn.Close()
+
 	authClient := clients.NewAuthClient(authConn)
 	userClient := clients.NewUserClient(userConn)
 	verificationClient := clients.NewVerificationClient(verificationConn)
 	jobClient := clients.NewJobClient(jobConn)
+	proposalClient := clients.NewProposalClient(proposalConn)
 	authHandler := handlers.NewAuthHandler(cfg, authClient)
 	userHandler := handlers.NewUserHandler(userClient, verificationClient)
 	verificationHandler := handlers.NewVerificationHandler(verificationClient)
 	jobHandler := handlers.NewJobHandler(jobClient)
-	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler)
+	proposalHandler := handlers.NewProposalHandler(proposalClient)
+	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler, proposalHandler)
 
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPListenAddr,
