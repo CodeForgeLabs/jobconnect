@@ -224,6 +224,8 @@ services:
         condition: service_healthy
       job:
         condition: service_started
+      minio:
+        condition: service_healthy
 
   contract:
     build:
