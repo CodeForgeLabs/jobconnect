@@ -9,6 +9,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.76
 	google.golang.org/grpc v1.79.1
 	google.golang.org/protobuf v1.36.11
+	jobconnect/contract v0.0.0
 	jobconnect/job v0.0.0
 )
 
@@ -36,5 +37,7 @@ require (
 )
 
 replace jobconnect/job => ../job
+
+replace jobconnect/contract => ../contract
 
 replace jobconnect/api => ../../api

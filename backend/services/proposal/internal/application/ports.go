@@ -34,8 +34,25 @@ type JobReader interface {
 	GetJobSummary(ctx context.Context, jobID int64) (JobSummary, error)
 }
 
+type JobLifecycleWriter interface {
+	MarkJobFilled(ctx context.Context, jobID int64) error
+}
+
 type ConnectsClient interface {
 	DeductConnects(ctx context.Context, userID uuid.UUID, amount int32, referenceID string) error
+}
+
+type ContractCreator interface {
+	CreateFromProposal(ctx context.Context, in CreateContractFromProposalInput) error
+}
+
+type CreateContractFromProposalInput struct {
+	ClientID     uuid.UUID
+	FreelancerID uuid.UUID
+	JobID        int64
+	ProposalID   int64
+	BidType      string
+	BidAmount    float64
 }
 
 type AttachmentObjectStore interface {

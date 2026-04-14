@@ -13,6 +13,8 @@ import (
 type HireProposal struct {
 	Proposals ProposalRepository
 	Jobs      JobReader
+	JobLifecycle JobLifecycleWriter
+	Contracts ContractCreator
 	Clock     Clock
 }
 
@@ -37,6 +39,12 @@ func (uc *HireProposal) Execute(ctx context.Context, in HireProposalInput) (Hire
 	}
 	if strings.TrimSpace(in.RequestID) == "" {
 		return HireProposalOutput{}, fmt.Errorf("request_id is required")
+	}
+	if uc.Contracts == nil {
+		return HireProposalOutput{}, fmt.Errorf("contract creator is not configured")
+	}
+	if uc.JobLifecycle == nil {
+		return HireProposalOutput{}, fmt.Errorf("job lifecycle writer is not configured")
 	}
 	if len(strings.TrimSpace(in.RequestID)) > 128 {
 		return HireProposalOutput{}, fmt.Errorf("request_id too long")
@@ -79,6 +87,24 @@ func (uc *HireProposal) Execute(ctx context.Context, in HireProposalInput) (Hire
 	proposal, reused, err := uc.Proposals.HireWithRequestID(ctx, in.ProposalID, in.ClientID, strings.TrimSpace(in.RequestID), strings.TrimSpace(in.Reason), uc.Clock.Now())
 	if err != nil {
 		return HireProposalOutput{}, err
+	}
+	if reused {
+		return HireProposalOutput{Proposal: proposal, ReusedIdempotentResult: true}, nil
+	}
+
+	if err := uc.Contracts.CreateFromProposal(ctx, CreateContractFromProposalInput{
+		ClientID:     proposal.ClientID,
+		FreelancerID: proposal.FreelancerID,
+		JobID:        proposal.JobID,
+		ProposalID:   proposal.ID,
+		BidType:      proposal.BidType,
+		BidAmount:    proposal.BidAmount,
+	}); err != nil {
+		return HireProposalOutput{}, fmt.Errorf("failed to create contract from hired proposal: %w", err)
+	}
+
+	if err := uc.JobLifecycle.MarkJobFilled(ctx, proposal.JobID); err != nil {
+		return HireProposalOutput{}, fmt.Errorf("failed to mark job as filled: %w", err)
 	}
 	return HireProposalOutput{Proposal: proposal, ReusedIdempotentResult: reused}, nil
 }

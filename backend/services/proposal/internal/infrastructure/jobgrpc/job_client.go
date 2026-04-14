@@ -8,6 +8,7 @@ import (
 	"jobconnect/proposal/internal/application"
 
 	"github.com/google/uuid"
+	"google.golang.org/grpc/metadata"
 )
 
 type JobClient struct {
@@ -62,4 +63,31 @@ func (c *JobClient) GetJobSummary(ctx context.Context, jobID int64) (application
 	}
 
 	return application.JobSummary{JobID: jobID, Found: false}, nil
+}
+
+func (c *JobClient) MarkJobFilled(ctx context.Context, jobID int64) error {
+	if c == nil || c.client == nil {
+		return fmt.Errorf("job client is nil")
+	}
+	if jobID <= 0 {
+		return fmt.Errorf("job_id is required")
+	}
+	forwardCtx := forwardAuthorization(ctx)
+	_, err := c.client.MarkJobFilled(forwardCtx, &jobv1.MarkJobFilledRequest{JobId: jobID})
+	if err != nil {
+		return fmt.Errorf("mark job filled: %w", err)
+	}
+	return nil
+}
+
+func forwardAuthorization(ctx context.Context) context.Context {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ctx
+	}
+	vals := md.Get("authorization")
+	if len(vals) == 0 {
+		return ctx
+	}
+	return metadata.NewOutgoingContext(ctx, metadata.Pairs("authorization", vals[0]))
 }
