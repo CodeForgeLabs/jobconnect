@@ -299,7 +299,7 @@ services:
     env_file:
       - .env
     ports:
-      - "50060:50060"
+      - "50063:50060"
     depends_on:
       chat-db:
         condition: service_healthy
