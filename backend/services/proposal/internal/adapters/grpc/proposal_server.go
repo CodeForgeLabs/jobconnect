@@ -31,6 +31,7 @@ type ProposalServer struct {
 	CountByJobUC            *application.CountProposalsByJob
 	CountInboxUC            *application.CountClientProposalInbox
 	SetStatusUC             *application.SetProposalStatus
+	InternalHireUC          *application.InternalHireProposal
 
 	TokenParser TokenParser
 }
@@ -51,6 +52,7 @@ func NewProposalServer(
 	countByJob *application.CountProposalsByJob,
 	countInbox *application.CountClientProposalInbox,
 	setStatus *application.SetProposalStatus,
+	internalHire *application.InternalHireProposal,
 	tokenParser TokenParser,
 ) *ProposalServer {
 	return &ProposalServer{
@@ -69,6 +71,7 @@ func NewProposalServer(
 		CountByJobUC:            countByJob,
 		CountInboxUC:            countInbox,
 		SetStatusUC:             setStatus,
+		InternalHireUC:          internalHire,
 		TokenParser:             tokenParser,
 	}
 }
@@ -222,34 +225,6 @@ func (s *ProposalServer) HasAppliedToJob(ctx context.Context, req *proposalv1.Ha
 		resp.ActiveStatus = toProtoStatus(out.Status)
 	}
 	return resp, nil
-}
-
-func (s *ProposalServer) HireProposal(ctx context.Context, req *proposalv1.HireProposalRequest) (*proposalv1.HireProposalResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	callerID, role, err := callerFromContext(ctx, s.TokenParser)
-	if err != nil {
-		return nil, err
-	}
-	if err := requireClientRole(role); err != nil {
-		return nil, err
-	}
-
-	out, err := s.HireUC.Execute(ctx, application.HireProposalInput{
-		ProposalID: req.ProposalId,
-		ClientID:   callerID,
-		RequestID:  req.RequestId,
-		Reason:     req.Note,
-	})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-
-	return &proposalv1.HireProposalResponse{
-		Proposal:               toProtoProposal(out.Proposal),
-		ReusedIdempotentResult: out.ReusedIdempotentResult,
-	}, nil
 }
 
 func (s *ProposalServer) GetProposalAttachmentUploadUrl(ctx context.Context, req *proposalv1.GetProposalAttachmentUploadUrlRequest) (*proposalv1.GetProposalAttachmentUploadUrlResponse, error) {
@@ -542,6 +517,38 @@ func (s *ProposalServer) SetProposalStatus(ctx context.Context, req *proposalv1.
 		return nil, toStatus(err)
 	}
 	return &proposalv1.SetProposalStatusResponse{Proposal: toProtoProposal(out.Proposal)}, nil
+}
+
+func (s *ProposalServer) InternalHireProposal(ctx context.Context, req *proposalv1.InternalHireProposalRequest) (*proposalv1.InternalHireProposalResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if err := requireInternalJobServiceCaller(ctx); err != nil {
+		return nil, err
+	}
+	if s.InternalHireUC == nil {
+		return nil, status.Error(codes.Internal, "internal hire use case is not configured")
+	}
+
+	clientID, err := uuid.Parse(strings.TrimSpace(req.ClientId))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid client_id")
+	}
+
+	out, err := s.InternalHireUC.Execute(ctx, application.InternalHireProposalInput{
+		ProposalID: req.ProposalId,
+		ClientID:   clientID,
+		RequestID:  req.RequestId,
+		Reason:     req.Note,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &proposalv1.InternalHireProposalResponse{
+		Proposal:               toProtoProposal(out.Proposal),
+		ReusedIdempotentResult: out.ReusedIdempotentResult,
+	}, nil
 }
 
 func fromProtoClientDecision(v proposalv1.ClientDecision) (string, bool) {

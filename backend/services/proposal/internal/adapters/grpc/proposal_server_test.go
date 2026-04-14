@@ -320,6 +320,7 @@ func buildServer(repo *fakeProposalRepo, jobs *fakeJobReader, connects *fakeConn
 		&application.CountProposalsByJob{Proposals: repo},
 		&application.CountClientProposalInbox{Proposals: repo},
 		&application.SetProposalStatus{Proposals: repo, Clock: clk},
+		&application.InternalHireProposal{Proposals: repo, Clock: clk},
 		fakeTokenParser{},
 	)
 }
@@ -620,36 +621,6 @@ func TestProposalServer_RPCs(t *testing.T) {
 		}
 	})
 
-	t.Run("HireProposal supports idempotent and validates request id", func(t *testing.T) {
-		repo := &fakeProposalRepo{}
-		repo.getByIDForClientFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID) (domain.Proposal, error) {
-			return makeProposal(1100, domain.StatusShortlisted), nil
-		}
-		repo.hireWithRequestIDFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error) {
-			return makeProposal(1100, domain.StatusHired), requestID == "dup", nil
-		}
-
-		srv := buildServer(repo, nil, nil, nil, nil, nil)
-		okResp, err := srv.HireProposal(authCtx("client-token"), &proposalv1.HireProposalRequest{ProposalId: 1100, RequestId: "req-1", Note: "hire now"})
-		if err != nil {
-			t.Fatalf("HireProposal error: %v", err)
-		}
-		if okResp.GetReusedIdempotentResult() {
-			t.Fatalf("expected non-idempotent fresh response")
-		}
-
-		dupResp, err := srv.HireProposal(authCtx("client-token"), &proposalv1.HireProposalRequest{ProposalId: 1100, RequestId: "dup", Note: "retry"})
-		if err != nil {
-			t.Fatalf("HireProposal duplicate error: %v", err)
-		}
-		if !dupResp.GetReusedIdempotentResult() {
-			t.Fatalf("expected reused idempotent result")
-		}
-
-		_, err = srv.HireProposal(authCtx("client-token"), &proposalv1.HireProposalRequest{ProposalId: 1100})
-		assertCode(t, err, codes.InvalidArgument)
-	})
-
 	t.Run("GetProposalAttachmentUploadUrl success and validation", func(t *testing.T) {
 		repo := &fakeProposalRepo{getByIDForFreelancerFn: func(ctx context.Context, proposalID int64, freelancerID uuid.UUID) (domain.Proposal, error) {
 			return makeProposal(1200, domain.StatusSent), nil
@@ -727,6 +698,55 @@ func TestProposalServer_RPCs(t *testing.T) {
 		assertCode(t, err, codes.InvalidArgument)
 	})
 
+	t.Run("InternalHireProposal requires internal marker and supports idempotency", func(t *testing.T) {
+		repo := &fakeProposalRepo{}
+		repo.getByIDForClientFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID) (domain.Proposal, error) {
+			return makeProposal(1450, domain.StatusShortlisted), nil
+		}
+		repo.hireWithRequestIDFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error) {
+			return makeProposal(1450, domain.StatusHired), requestID == "dup", nil
+		}
+
+		srv := buildServer(repo, nil, nil, nil, nil, nil)
+
+		_, err := srv.InternalHireProposal(authCtx("client-token"), &proposalv1.InternalHireProposalRequest{
+			ProposalId: 1450,
+			ClientId:   testClientID.String(),
+			RequestId:  "req-1",
+			Note:       "hire",
+		})
+		assertCode(t, err, codes.PermissionDenied)
+
+		internalMD := metadata.Pairs("authorization", "Bearer client-token", "x-jobconnect-internal", "job-service")
+		internalCtx := metadata.NewIncomingContext(context.Background(), internalMD)
+
+		okResp, err := srv.InternalHireProposal(internalCtx, &proposalv1.InternalHireProposalRequest{
+			ProposalId: 1450,
+			ClientId:   testClientID.String(),
+			RequestId:  "req-1",
+			Note:       "hire",
+		})
+		if err != nil {
+			t.Fatalf("InternalHireProposal error: %v", err)
+		}
+		if okResp.GetReusedIdempotentResult() {
+			t.Fatalf("expected non-idempotent fresh response")
+		}
+
+		dupResp, err := srv.InternalHireProposal(internalCtx, &proposalv1.InternalHireProposalRequest{
+			ProposalId: 1450,
+			ClientId:   testClientID.String(),
+			RequestId:  "dup",
+			Note:       "retry",
+		})
+		if err != nil {
+			t.Fatalf("InternalHireProposal duplicate error: %v", err)
+		}
+		if !dupResp.GetReusedIdempotentResult() {
+			t.Fatalf("expected reused idempotent result")
+		}
+	})
+
 	t.Run("all RPCs reject nil request", func(t *testing.T) {
 		repo := &fakeProposalRepo{}
 		srv := buildServer(repo, nil, nil, nil, nil, nil)
@@ -746,7 +766,7 @@ func TestProposalServer_RPCs(t *testing.T) {
 			{name: "ListClientProposals", fn: func() error { _, err := srv.ListClientProposals(authCtx("client-token"), nil); return err }},
 			{name: "CountProposalsByJob", fn: func() error { _, err := srv.CountProposalsByJob(authCtx("client-token"), nil); return err }},
 			{name: "CountClientProposalInbox", fn: func() error { _, err := srv.CountClientProposalInbox(authCtx("client-token"), nil); return err }},
-			{name: "HireProposal", fn: func() error { _, err := srv.HireProposal(authCtx("client-token"), nil); return err }},
+			{name: "InternalHireProposal", fn: func() error { _, err := srv.InternalHireProposal(authCtx("client-token"), nil); return err }},
 			{name: "GetProposalAttachmentUploadUrl", fn: func() error {
 				_, err := srv.GetProposalAttachmentUploadUrl(authCtx("freelancer-token"), nil)
 				return err

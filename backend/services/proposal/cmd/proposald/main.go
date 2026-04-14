@@ -105,6 +105,7 @@ func main() {
 	countByJobUC := &application.CountProposalsByJob{Proposals: proposalRepo}
 	countInboxUC := &application.CountClientProposalInbox{Proposals: proposalRepo}
 	setStatusUC := &application.SetProposalStatus{Proposals: proposalRepo, Clock: clockImpl}
+	internalHireUC := &application.InternalHireProposal{Proposals: proposalRepo, Clock: clockImpl}
 
 	proposalServer := grpcadapter.NewProposalServer(
 		submitUC,
@@ -122,6 +123,7 @@ func main() {
 		countByJobUC,
 		countInboxUC,
 		setStatusUC,
+		internalHireUC,
 		jwtParser,
 	)
 
