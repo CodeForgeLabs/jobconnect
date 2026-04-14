@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"log"
 
-	proposalv1 "jobconnect/api/proto/proposal/v1"
+	proposalv1 "jobconnect/job/gen/proposal/v1"
 	"jobconnect/job/internal/application"
+
+	"github.com/google/uuid"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 type ProposalClient struct {
@@ -28,15 +31,13 @@ func NewProposalClient(address string) (*ProposalClient, error) {
 }
 
 func (c *ProposalClient) ListProposalsByJob(ctx context.Context, jobID int64) ([]application.Proposal, error) {
-	// Note: Authentication interceptor or systemic auth bypass might be needed for S2S calls
-	// For MVP without strict S2S auth token generation, assuming internal network trust or mock tokens.
-
 	req := &proposalv1.ListProposalsByJobRequest{
 		JobId:    jobID,
 		PageSize: 100, // Handle pagination in real-world scenarios
 	}
 
-	res, err := c.client.ListProposalsByJob(ctx, req)
+	forwardCtx := forwardAuthorization(ctx)
+	res, err := c.client.ListProposalsByJob(forwardCtx, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list proposals: %w", err)
 	}
@@ -52,6 +53,8 @@ func (c *ProposalClient) ListProposalsByJob(ctx context.Context, jobID int64) ([
 			ClientID:      p.ClientId,
 			FreelancerID:  p.FreelancerId,
 			ConnectsSpent: p.ConnectsSpent,
+			BidType:       p.BidType,
+			BidAmount:     p.BidAmount,
 			Status:        proposalStatusToApplicantStage(p.Status),
 		})
 	}
@@ -59,7 +62,8 @@ func (c *ProposalClient) ListProposalsByJob(ctx context.Context, jobID int64) ([
 }
 
 func (c *ProposalClient) GetProposal(ctx context.Context, proposalID int64) (application.Proposal, error) {
-	res, err := c.client.GetProposal(ctx, &proposalv1.GetProposalRequest{ProposalId: proposalID})
+	forwardCtx := forwardAuthorization(ctx)
+	res, err := c.client.GetProposal(forwardCtx, &proposalv1.GetProposalRequest{ProposalId: proposalID})
 	if err != nil {
 		return application.Proposal{}, fmt.Errorf("failed to get proposal: %w", err)
 	}
@@ -72,22 +76,40 @@ func (c *ProposalClient) GetProposal(ctx context.Context, proposalID int64) (app
 		ClientID:      res.Proposal.ClientId,
 		FreelancerID:  res.Proposal.FreelancerId,
 		ConnectsSpent: res.Proposal.ConnectsSpent,
+		BidType:       res.Proposal.BidType,
+		BidAmount:     res.Proposal.BidAmount,
 		Status:        proposalStatusToApplicantStage(res.Proposal.Status),
 	}, nil
 }
 
 func (c *ProposalClient) SetProposalStatus(ctx context.Context, proposalID int64, stage string, reason string) error {
-	status, err := applicantStageToProposalStatus(stage)
+	decision, err := applicantStageToDecision(stage)
 	if err != nil {
 		return err
 	}
-	_, err = c.client.SetProposalStatus(ctx, &proposalv1.SetProposalStatusRequest{
+	forwardCtx := forwardAuthorization(ctx)
+	_, err = c.client.SetProposalStatus(forwardCtx, &proposalv1.SetProposalStatusRequest{
 		ProposalId: proposalID,
-		Status:     status,
+		Decision:   decision,
 		Reason:     reason,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to set proposal status: %w", err)
+	}
+	return nil
+}
+
+func (c *ProposalClient) InternalHireProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string) error {
+	forwardCtx := forwardAuthorization(ctx)
+	forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal", "job-service")
+	_, err := c.client.InternalHireProposal(forwardCtx, &proposalv1.InternalHireProposalRequest{
+		ProposalId: proposalID,
+		ClientId:   clientID.String(),
+		RequestId:  requestID,
+		Note:       reason,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to transition proposal to hired: %w", err)
 	}
 	return nil
 }
@@ -105,15 +127,25 @@ func proposalStatusToApplicantStage(in proposalv1.ProposalStatus) string {
 	}
 }
 
-func applicantStageToProposalStatus(in string) (proposalv1.ProposalStatus, error) {
+func applicantStageToDecision(in string) (proposalv1.ClientDecision, error) {
 	switch in {
 	case application.ApplicantStageShortlisted:
-		return proposalv1.ProposalStatus_PROPOSAL_STATUS_SHORTLISTED, nil
+		return proposalv1.ClientDecision_CLIENT_DECISION_SHORTLISTED, nil
 	case application.ApplicantStageRejected:
-		return proposalv1.ProposalStatus_PROPOSAL_STATUS_REJECTED, nil
-	case application.ApplicantStageHired:
-		return proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED, nil
+		return proposalv1.ClientDecision_CLIENT_DECISION_REJECTED, nil
 	default:
-		return proposalv1.ProposalStatus_PROPOSAL_STATUS_UNSPECIFIED, fmt.Errorf("invalid stage")
+		return proposalv1.ClientDecision_CLIENT_DECISION_UNSPECIFIED, fmt.Errorf("invalid stage")
 	}
+}
+
+func forwardAuthorization(ctx context.Context) context.Context {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ctx
+	}
+	vals := md.Get("authorization")
+	if len(vals) == 0 {
+		return ctx
+	}
+	return metadata.NewOutgoingContext(ctx, metadata.Pairs("authorization", vals[0]))
 }

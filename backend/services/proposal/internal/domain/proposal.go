@@ -30,6 +30,7 @@ type Attachment struct {
 	ContentType string
 	URL         string
 	SizeBytes   int64
+	StorageKey  string
 }
 
 type Proposal struct {
@@ -125,8 +126,8 @@ func ValidateForSubmit(p Proposal) error {
 		if strings.TrimSpace(a.ContentType) == "" {
 			return fmt.Errorf("attachment content_type is required")
 		}
-		if strings.TrimSpace(a.URL) == "" {
-			return fmt.Errorf("attachment url is required")
+		if strings.TrimSpace(a.URL) == "" && strings.TrimSpace(a.StorageKey) == "" {
+			return fmt.Errorf("attachment url or storage_key is required")
 		}
 		if a.SizeBytes < 0 {
 			return fmt.Errorf("attachment size_bytes must be non-negative")

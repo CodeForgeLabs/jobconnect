@@ -16,13 +16,21 @@ import (
 type ProposalServer struct {
 	proposalv1.UnimplementedProposalServiceServer
 
-	SubmitUC    *application.SubmitProposal
-	ModifyUC    *application.ModifyProposal
-	WithdrawUC  *application.WithdrawProposal
-	GetUC       *application.GetProposal
-	ListByJobUC *application.ListProposalsByJob
-	ListMineUC  *application.ListMyProposals
-	SetStatusUC *application.SetProposalStatus
+	SubmitUC                *application.SubmitProposal
+	ModifyUC                *application.ModifyProposal
+	WithdrawUC              *application.WithdrawProposal
+	GetUC                   *application.GetProposal
+	GetMineByJobUC          *application.GetMyProposalForJob
+	HasAppliedUC            *application.HasAppliedToJob
+	AttachmentUploadURLUC   *application.GetProposalAttachmentUploadURL
+	AttachmentDownloadURLUC *application.GetProposalAttachmentDownloadURL
+	ListByJobUC             *application.ListProposalsByJob
+	ListMineUC              *application.ListMyProposals
+	ListClientUC            *application.ListClientProposals
+	CountByJobUC            *application.CountProposalsByJob
+	CountInboxUC            *application.CountClientProposalInbox
+	SetStatusUC             *application.SetProposalStatus
+	InternalHireUC          *application.InternalHireProposal
 
 	TokenParser TokenParser
 }
@@ -32,20 +40,36 @@ func NewProposalServer(
 	modify *application.ModifyProposal,
 	withdraw *application.WithdrawProposal,
 	get *application.GetProposal,
+	getMineByJob *application.GetMyProposalForJob,
+	hasApplied *application.HasAppliedToJob,
+	attachmentUploadURL *application.GetProposalAttachmentUploadURL,
+	attachmentDownloadURL *application.GetProposalAttachmentDownloadURL,
 	listByJob *application.ListProposalsByJob,
 	listMine *application.ListMyProposals,
+	listClient *application.ListClientProposals,
+	countByJob *application.CountProposalsByJob,
+	countInbox *application.CountClientProposalInbox,
 	setStatus *application.SetProposalStatus,
+	internalHire *application.InternalHireProposal,
 	tokenParser TokenParser,
 ) *ProposalServer {
 	return &ProposalServer{
-		SubmitUC:    submit,
-		ModifyUC:    modify,
-		WithdrawUC:  withdraw,
-		GetUC:       get,
-		ListByJobUC: listByJob,
-		ListMineUC:  listMine,
-		SetStatusUC: setStatus,
-		TokenParser: tokenParser,
+		SubmitUC:                submit,
+		ModifyUC:                modify,
+		WithdrawUC:              withdraw,
+		GetUC:                   get,
+		GetMineByJobUC:          getMineByJob,
+		HasAppliedUC:            hasApplied,
+		AttachmentUploadURLUC:   attachmentUploadURL,
+		AttachmentDownloadURLUC: attachmentDownloadURL,
+		ListByJobUC:             listByJob,
+		ListMineUC:              listMine,
+		ListClientUC:            listClient,
+		CountByJobUC:            countByJob,
+		CountInboxUC:            countInbox,
+		SetStatusUC:             setStatus,
+		InternalHireUC:          internalHire,
+		TokenParser:             tokenParser,
 	}
 }
 
@@ -151,6 +175,107 @@ func (s *ProposalServer) GetProposal(ctx context.Context, req *proposalv1.GetPro
 	return &proposalv1.GetProposalResponse{Proposal: toProtoProposal(out.Proposal)}, nil
 }
 
+func (s *ProposalServer) GetMyProposalForJob(ctx context.Context, req *proposalv1.GetMyProposalForJobRequest) (*proposalv1.GetMyProposalForJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.GetMineByJobUC.Execute(ctx, application.GetMyProposalForJobInput{
+		FreelancerID: callerID,
+		JobID:        req.JobId,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &proposalv1.GetMyProposalForJobResponse{Proposal: toProtoProposal(out.Proposal)}, nil
+}
+
+func (s *ProposalServer) HasAppliedToJob(ctx context.Context, req *proposalv1.HasAppliedToJobRequest) (*proposalv1.HasAppliedToJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.HasAppliedUC.Execute(ctx, application.HasAppliedToJobInput{
+		FreelancerID: callerID,
+		JobID:        req.JobId,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	resp := &proposalv1.HasAppliedToJobResponse{HasApplied: out.HasApplied, ProposalId: out.ProposalID}
+	if out.HasApplied {
+		resp.ActiveStatus = toProtoStatus(out.Status)
+	}
+	return resp, nil
+}
+
+func (s *ProposalServer) GetProposalAttachmentUploadUrl(ctx context.Context, req *proposalv1.GetProposalAttachmentUploadUrlRequest) (*proposalv1.GetProposalAttachmentUploadUrlResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.AttachmentUploadURLUC.Execute(ctx, application.GetProposalAttachmentUploadURLInput{
+		FreelancerID: callerID,
+		ProposalID:   req.ProposalId,
+		FileName:     req.FileName,
+		ContentType:  req.ContentType,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &proposalv1.GetProposalAttachmentUploadUrlResponse{StorageKey: out.StorageKey, UploadUrl: out.UploadURL}, nil
+}
+
+func (s *ProposalServer) GetProposalAttachmentDownloadUrl(ctx context.Context, req *proposalv1.GetProposalAttachmentDownloadUrlRequest) (*proposalv1.GetProposalAttachmentDownloadUrlResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+
+	role = strings.ToLower(strings.TrimSpace(role))
+	if role != "client" && role != "freelancer" {
+		return nil, status.Error(codes.PermissionDenied, "client or freelancer role required")
+	}
+
+	out, err := s.AttachmentDownloadURLUC.Execute(ctx, application.GetProposalAttachmentDownloadURLInput{
+		ProposalID:   req.ProposalId,
+		AttachmentID: req.AttachmentId,
+		ActorID:      callerID,
+		ActorRole:    role,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &proposalv1.GetProposalAttachmentDownloadUrlResponse{DownloadUrl: out.DownloadURL}, nil
+}
+
 func (s *ProposalServer) ListProposalsByJob(ctx context.Context, req *proposalv1.ListProposalsByJobRequest) (*proposalv1.ListProposalsByJobResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -165,9 +290,11 @@ func (s *ProposalServer) ListProposalsByJob(ctx context.Context, req *proposalv1
 
 	statuses := make([]string, 0, len(req.StatusFilter))
 	for _, s := range req.StatusFilter {
-		if mapped, ok := fromProtoStatus(s); ok {
-			statuses = append(statuses, mapped)
+		mapped, ok := fromProtoStatus(s)
+		if !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid status_filter")
 		}
+		statuses = append(statuses, mapped)
 	}
 
 	var freelancerID *uuid.UUID
@@ -213,9 +340,11 @@ func (s *ProposalServer) ListMyProposals(ctx context.Context, req *proposalv1.Li
 
 	statuses := make([]string, 0, len(req.StatusFilter))
 	for _, s := range req.StatusFilter {
-		if mapped, ok := fromProtoStatus(s); ok {
-			statuses = append(statuses, mapped)
+		mapped, ok := fromProtoStatus(s)
+		if !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid status_filter")
 		}
+		statuses = append(statuses, mapped)
 	}
 
 	var jobID *int64
@@ -243,6 +372,121 @@ func (s *ProposalServer) ListMyProposals(ctx context.Context, req *proposalv1.Li
 	return &proposalv1.ListMyProposalsResponse{Proposals: items, NextPageToken: out.NextPageToken}, nil
 }
 
+func (s *ProposalServer) ListClientProposals(ctx context.Context, req *proposalv1.ListClientProposalsRequest) (*proposalv1.ListClientProposalsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	statuses := make([]string, 0, len(req.StatusFilter))
+	for _, s := range req.StatusFilter {
+		mapped, ok := fromProtoStatus(s)
+		if !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid status_filter")
+		}
+		statuses = append(statuses, mapped)
+	}
+
+	var jobID *int64
+	if req.JobIdFilter != nil {
+		v := req.GetJobIdFilter()
+		jobID = &v
+	}
+
+	var freelancerID *uuid.UUID
+	if req.FreelancerIdFilter != nil {
+		parsed, err := uuid.Parse(req.GetFreelancerIdFilter())
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "invalid freelancer_id_filter")
+		}
+		freelancerID = &parsed
+	}
+
+	out, err := s.ListClientUC.Execute(ctx, application.ListClientProposalsInput{
+		ClientID:           callerID,
+		StatusFilter:       statuses,
+		JobIDFilter:        jobID,
+		FreelancerIDFilter: freelancerID,
+		SortBy:             fromProtoSort(req.SortBy),
+		PageSize:           req.PageSize,
+		PageToken:          req.PageToken,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	items := make([]*proposalv1.Proposal, 0, len(out.Proposals))
+	for _, p := range out.Proposals {
+		items = append(items, toProtoProposal(p))
+	}
+	return &proposalv1.ListClientProposalsResponse{Proposals: items, NextPageToken: out.NextPageToken}, nil
+}
+
+func (s *ProposalServer) CountProposalsByJob(ctx context.Context, req *proposalv1.CountProposalsByJobRequest) (*proposalv1.CountProposalsByJobResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.CountByJobUC.Execute(ctx, application.CountProposalsByJobInput{ClientID: callerID, JobID: req.JobId})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	counts := make([]*proposalv1.ProposalStatusCount, 0, len(out.ByStatus))
+	for _, c := range out.ByStatus {
+		counts = append(counts, &proposalv1.ProposalStatusCount{Status: toProtoStatus(c.Status), Count: c.Count})
+	}
+
+	return &proposalv1.CountProposalsByJobResponse{Total: out.Total, ByStatus: counts}, nil
+}
+
+func (s *ProposalServer) CountClientProposalInbox(ctx context.Context, req *proposalv1.CountClientProposalInboxRequest) (*proposalv1.CountClientProposalInboxResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+
+	statuses := make([]string, 0, len(req.StatusFilter))
+	for _, s := range req.StatusFilter {
+		mapped, ok := fromProtoStatus(s)
+		if !ok {
+			return nil, status.Error(codes.InvalidArgument, "invalid status_filter")
+		}
+		statuses = append(statuses, mapped)
+	}
+
+	out, err := s.CountInboxUC.Execute(ctx, application.CountClientProposalInboxInput{ClientID: callerID, StatusFilters: statuses})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	counts := make([]*proposalv1.ProposalStatusCount, 0, len(out.ByStatus))
+	for _, c := range out.ByStatus {
+		counts = append(counts, &proposalv1.ProposalStatusCount{Status: toProtoStatus(c.Status), Count: c.Count})
+	}
+
+	return &proposalv1.CountClientProposalInboxResponse{Total: out.Total, ByStatus: counts}, nil
+}
+
 func (s *ProposalServer) SetProposalStatus(ctx context.Context, req *proposalv1.SetProposalStatusRequest) (*proposalv1.SetProposalStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -255,9 +499,9 @@ func (s *ProposalServer) SetProposalStatus(ctx context.Context, req *proposalv1.
 		return nil, err
 	}
 
-	next, ok := fromProtoStatus(req.Status)
+	next, ok := fromProtoClientDecision(req.Decision)
 	if !ok {
-		return nil, status.Error(codes.InvalidArgument, "invalid status")
+		return nil, status.Error(codes.InvalidArgument, "invalid decision")
 	}
 
 	out, err := s.SetStatusUC.Execute(ctx, application.SetProposalStatusInput{
@@ -272,6 +516,49 @@ func (s *ProposalServer) SetProposalStatus(ctx context.Context, req *proposalv1.
 	return &proposalv1.SetProposalStatusResponse{Proposal: toProtoProposal(out.Proposal)}, nil
 }
 
+func (s *ProposalServer) InternalHireProposal(ctx context.Context, req *proposalv1.InternalHireProposalRequest) (*proposalv1.InternalHireProposalResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if err := requireInternalJobServiceCaller(ctx); err != nil {
+		return nil, err
+	}
+	if s.InternalHireUC == nil {
+		return nil, status.Error(codes.Internal, "internal hire use case is not configured")
+	}
+
+	clientID, err := uuid.Parse(strings.TrimSpace(req.ClientId))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid client_id")
+	}
+
+	out, err := s.InternalHireUC.Execute(ctx, application.InternalHireProposalInput{
+		ProposalID: req.ProposalId,
+		ClientID:   clientID,
+		RequestID:  req.RequestId,
+		Reason:     req.Note,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &proposalv1.InternalHireProposalResponse{
+		Proposal:               toProtoProposal(out.Proposal),
+		ReusedIdempotentResult: out.ReusedIdempotentResult,
+	}, nil
+}
+
+func fromProtoClientDecision(v proposalv1.ClientDecision) (string, bool) {
+	switch v {
+	case proposalv1.ClientDecision_CLIENT_DECISION_SHORTLISTED:
+		return domain.StatusShortlisted, true
+	case proposalv1.ClientDecision_CLIENT_DECISION_REJECTED:
+		return domain.StatusRejected, true
+	default:
+		return "", false
+	}
+}
+
 func fromProtoAttachments(in []*proposalv1.ProposalAttachment) []domain.Attachment {
 	if len(in) == 0 {
 		return nil
@@ -281,7 +568,7 @@ func fromProtoAttachments(in []*proposalv1.ProposalAttachment) []domain.Attachme
 		if a == nil {
 			continue
 		}
-		out = append(out, domain.Attachment{FileName: a.FileName, ContentType: a.ContentType, URL: a.Url, SizeBytes: a.SizeBytes})
+		out = append(out, domain.Attachment{FileName: a.FileName, ContentType: a.ContentType, URL: a.Url, SizeBytes: a.SizeBytes, StorageKey: a.StorageKey})
 	}
 	return out
 }
@@ -289,7 +576,7 @@ func fromProtoAttachments(in []*proposalv1.ProposalAttachment) []domain.Attachme
 func toProtoAttachments(in []domain.Attachment) []*proposalv1.ProposalAttachment {
 	out := make([]*proposalv1.ProposalAttachment, 0, len(in))
 	for _, a := range in {
-		out = append(out, &proposalv1.ProposalAttachment{Id: a.ID, FileName: a.FileName, ContentType: a.ContentType, Url: a.URL, SizeBytes: a.SizeBytes})
+		out = append(out, &proposalv1.ProposalAttachment{Id: a.ID, FileName: a.FileName, ContentType: a.ContentType, Url: a.URL, SizeBytes: a.SizeBytes, StorageKey: a.StorageKey})
 	}
 	return out
 }

@@ -50,6 +50,10 @@ func (p *fakeProposalClient) SetProposalStatus(ctx context.Context, proposalID i
 	return nil
 }
 
+func (p *fakeProposalClient) HireProposal(ctx context.Context, proposalID int64, reason string) error {
+	return nil
+}
+
 type fakeJobRepo struct {
 	createID int64
 
@@ -81,8 +85,8 @@ type fakeJobRepo struct {
 	lastRespondJobID       int64
 	lastRespondFreelancer  uuid.UUID
 	lastRespondStatus      string
-	lastInviteJobID       int64
-	lastInviteFreelancer  string
+	lastInviteJobID        int64
+	lastInviteFreelancer   string
 	lastMarkCompletedJobID int64
 	lastCancelJobID        int64
 	lastCancelPolicy       string
@@ -95,61 +99,61 @@ type fakeJobRepo struct {
 	lastReopenHiringJobID  int64
 	lastFacetQuery         string
 
-	getByIDJob          domain.Job
-	getByIDErr          error
-	getByIDForClientJob domain.Job
-	getByIDForClientErr error
-	getPublicJob        domain.Job
-	getPublicErr        error
-	updateJob           domain.Job
-	updateErr           error
-	listByClientJobs    []domain.Job
-	listByClientErr     error
-	listOpenJobs        []domain.Job
-	listOpenErr         error
+	getByIDJob           domain.Job
+	getByIDErr           error
+	getByIDForClientJob  domain.Job
+	getByIDForClientErr  error
+	getPublicJob         domain.Job
+	getPublicErr         error
+	updateJob            domain.Job
+	updateErr            error
+	listByClientJobs     []domain.Job
+	listByClientErr      error
+	listOpenJobs         []domain.Job
+	listOpenErr          error
 	listOpenFilteredJobs []domain.Job
 	listOpenFilteredErr  error
-	listOpenV2Jobs      []domain.Job
-	listOpenV2Err       error
-	listInvitedJobs     []domain.InvitedJob
-	listInvitedErr      error
-	savedJobs           []domain.Job
-	savedJobsErr        error
-	respondUpdated      bool
-	respondErr          error
-	saved               bool
-	saveErr             error
-	removed             bool
-	unsaveErr           error
-	inviteStats         InviteStats
-	inviteStatsErr      error
-	completed           bool
-	completedErr        error
-	canceled            bool
-	cancelErr           error
-	visibilityJob       domain.Job
-	visibilityErr       error
-	budgetJob           domain.Job
-	budgetErr           error
-	pauseJob            domain.Job
-	pauseErr            error
-	reopenJob           domain.Job
-	reopenErr           error
-	markFilledJob       domain.Job
-	markFilledErr       error
-	reopenHiringJob     domain.Job
-	reopenHiringErr     error
-	closeErr            error
-	facetCounts         FacetCountsResult
-	facetCountsErr      error
-	attachment          domain.Attachment
-	attachmentErr       error
-	attachments         []domain.Attachment
-	attachmentsErr      error
-	deletedAttachment   domain.Attachment
-	deleteAttachmentErr error
-	addedAttachment     domain.Attachment
-	addAttachmentErr    error
+	listOpenV2Jobs       []domain.Job
+	listOpenV2Err        error
+	listInvitedJobs      []domain.InvitedJob
+	listInvitedErr       error
+	savedJobs            []domain.Job
+	savedJobsErr         error
+	respondUpdated       bool
+	respondErr           error
+	saved                bool
+	saveErr              error
+	removed              bool
+	unsaveErr            error
+	inviteStats          InviteStats
+	inviteStatsErr       error
+	completed            bool
+	completedErr         error
+	canceled             bool
+	cancelErr            error
+	visibilityJob        domain.Job
+	visibilityErr        error
+	budgetJob            domain.Job
+	budgetErr            error
+	pauseJob             domain.Job
+	pauseErr             error
+	reopenJob            domain.Job
+	reopenErr            error
+	markFilledJob        domain.Job
+	markFilledErr        error
+	reopenHiringJob      domain.Job
+	reopenHiringErr      error
+	closeErr             error
+	facetCounts          FacetCountsResult
+	facetCountsErr       error
+	attachment           domain.Attachment
+	attachmentErr        error
+	attachments          []domain.Attachment
+	attachmentsErr       error
+	deletedAttachment    domain.Attachment
+	deleteAttachmentErr  error
+	addedAttachment      domain.Attachment
+	addAttachmentErr     error
 }
 
 func (r *fakeJobRepo) Create(ctx context.Context, job domain.Job) (int64, error) {

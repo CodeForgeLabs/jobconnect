@@ -1,0 +1,6 @@
+drop index if exists idx_proposals_client_freelancer_status_created_at;
+drop index if exists idx_proposals_client_freelancer_created_at;
+drop index if exists idx_proposals_client_job_status_created_at;
+drop index if exists idx_proposals_client_job_created_at;
+drop index if exists idx_proposals_client_status_created_at;
+drop index if exists idx_proposals_client_created_at;

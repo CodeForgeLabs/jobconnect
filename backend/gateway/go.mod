@@ -11,6 +11,7 @@ require (
 	google.golang.org/protobuf v1.36.11
 	jobconnect/auth v0.0.0
 	jobconnect/job v0.0.0
+	jobconnect/proposal v0.0.0
 	jobconnect/user v0.0.0
 	jobconnect/verification v0.0.0-00010101000000-000000000000
 )
@@ -54,6 +55,8 @@ replace jobconnect/auth => ../services/auth
 replace jobconnect/api => ../api
 
 replace jobconnect/job => ../services/job
+
+replace jobconnect/proposal => ../services/proposal
 
 replace jobconnect/user => ../services/user
 

@@ -7,6 +7,7 @@ option go_package = "jobconnect/job/gen/job/v1;jobv1";
 service JobService {
   rpc CreateJob(CreateJobRequest) returns (CreateJobResponse);
   rpc GetJob(GetJobRequest) returns (GetJobResponse);
+  rpc GetJobSummary(GetJobSummaryRequest) returns (GetJobSummaryResponse);
   rpc UpdateJob(UpdateJobRequest) returns (UpdateJobResponse);
   rpc ListMyJobs(ListMyJobsRequest) returns (ListMyJobsResponse);
   rpc ListOpenJobs(ListOpenJobsRequest) returns (ListOpenJobsResponse);
@@ -152,6 +153,18 @@ message CreateJobResponse { Job job = 1; }
 message GetJobRequest { int64 job_id = 1; }
 
 message GetJobResponse { Job job = 1; }
+
+message GetJobSummaryRequest { int64 job_id = 1; }
+
+message JobSummary {
+  int64 job_id = 1;
+  string client_id = 2;
+  JobStatus status = 3;
+  bool is_open = 4;
+  bool found = 5;
+}
+
+message GetJobSummaryResponse { JobSummary summary = 1; }
 
 message ListMyJobsRequest {
   reserved 1;

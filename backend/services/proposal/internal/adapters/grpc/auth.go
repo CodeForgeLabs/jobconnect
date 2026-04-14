@@ -51,3 +51,15 @@ func requireFreelancerRole(role string) error {
 	}
 	return status.Error(codes.PermissionDenied, "freelancer role required")
 }
+
+func requireInternalJobServiceCaller(ctx context.Context) error {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return status.Error(codes.PermissionDenied, "internal caller required")
+	}
+	vals := md.Get("x-jobconnect-internal")
+	if len(vals) == 0 || !strings.EqualFold(strings.TrimSpace(vals[0]), "job-service") {
+		return status.Error(codes.PermissionDenied, "internal caller required")
+	}
+	return nil
+}
