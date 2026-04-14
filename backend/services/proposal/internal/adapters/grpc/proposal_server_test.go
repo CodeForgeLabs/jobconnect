@@ -117,6 +117,7 @@ type fakeProposalRepo struct {
 	updateEditableFn              func(ctx context.Context, proposalID int64, freelancerID uuid.UUID, coverLetter string, bidAmount float64, estimatedDays int32, attachments []domain.Attachment, updatedAt time.Time) error
 	withdrawFn                    func(ctx context.Context, proposalID int64, freelancerID uuid.UUID, reason string, at time.Time) error
 	setStatusFn                   func(ctx context.Context, proposalID int64, clientID uuid.UUID, status string, reason string, at time.Time) error
+	revertHireFn                  func(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error
 	hireWithRequestIDFn           func(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error)
 	hasHiredProposalForJobFn      func(ctx context.Context, jobID int64) (bool, error)
 	listByJobFn                   func(ctx context.Context, filter application.ListByJobFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error)
@@ -187,6 +188,13 @@ func (f *fakeProposalRepo) SetStatus(ctx context.Context, proposalID int64, clie
 		return nil
 	}
 	return f.setStatusFn(ctx, proposalID, clientID, status, reason, at)
+}
+
+func (f *fakeProposalRepo) RevertHire(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error {
+	if f.revertHireFn == nil {
+		return nil
+	}
+	return f.revertHireFn(ctx, proposalID, clientID, reason, at)
 }
 
 func (f *fakeProposalRepo) HireWithRequestID(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error) {

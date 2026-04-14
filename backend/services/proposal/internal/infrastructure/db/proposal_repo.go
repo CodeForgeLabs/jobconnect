@@ -156,6 +156,24 @@ func (r *ProposalRepo) SetStatus(ctx context.Context, proposalID int64, clientID
 	return nil
 }
 
+func (r *ProposalRepo) RevertHire(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error {
+	res, err := r.pool.Exec(ctx, `
+		update proposals
+		set status = 'shortlisted',
+			status_reason = $3,
+			hired_at = null,
+			updated_at = $4
+		where id = $1 and client_id = $2 and status = 'hired'
+	`, proposalID, clientID, reason, at)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
 func (r *ProposalRepo) HasHiredProposalForJob(ctx context.Context, jobID int64) (bool, error) {
 	var exists bool
 	err := r.pool.QueryRow(ctx, `

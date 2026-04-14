@@ -100,10 +100,12 @@ func (uc *HireProposal) Execute(ctx context.Context, in HireProposalInput) (Hire
 		BidType:      proposal.BidType,
 		BidAmount:    proposal.BidAmount,
 	}); err != nil {
+		_ = uc.Proposals.RevertHire(ctx, proposal.ID, proposal.ClientID, "auto-revert: contract creation failed", uc.Clock.Now())
 		return HireProposalOutput{}, fmt.Errorf("failed to create contract from hired proposal: %w", err)
 	}
 
 	if err := uc.JobLifecycle.MarkJobFilled(ctx, proposal.JobID); err != nil {
+		_ = uc.Proposals.RevertHire(ctx, proposal.ID, proposal.ClientID, "auto-revert: job fill transition failed", uc.Clock.Now())
 		return HireProposalOutput{}, fmt.Errorf("failed to mark job as filled: %w", err)
 	}
 	return HireProposalOutput{Proposal: proposal, ReusedIdempotentResult: reused}, nil
