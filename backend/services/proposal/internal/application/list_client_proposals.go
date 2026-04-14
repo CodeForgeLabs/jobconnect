@@ -42,22 +42,15 @@ func (uc *ListClientProposals) Execute(ctx context.Context, in ListClientProposa
 	}
 
 	limit := normalizePageSize(in.PageSize, 20)
-	offset, err := parsePageToken(in.PageToken)
-	if err != nil {
-		return ListClientProposalsOutput{}, err
-	}
-
-	items, err := uc.Proposals.ListByClient(ctx, ListByClientFilter{
+	items, next, err := uc.Proposals.ListByClient(ctx, ListByClientFilter{
 		ClientID:     in.ClientID,
 		Statuses:     in.StatusFilter,
 		JobID:        in.JobIDFilter,
 		FreelancerID: in.FreelancerIDFilter,
 		SortBy:       in.SortBy,
-	}, limit, offset)
+	}, limit, in.PageToken)
 	if err != nil {
 		return ListClientProposalsOutput{}, err
 	}
-
-	next := nextPageToken(offset, limit, len(items))
 	return ListClientProposalsOutput{Proposals: items, NextPageToken: next}, nil
 }

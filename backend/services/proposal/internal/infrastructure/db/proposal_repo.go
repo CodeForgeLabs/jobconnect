@@ -1,8 +1,10 @@
 package db
 
 import (
+	"encoding/base64"
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -242,7 +244,7 @@ func (r *ProposalRepo) HireWithRequestID(ctx context.Context, proposalID int64, 
 	return p, false, nil
 }
 
-func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJobFilter, limit, offset int) ([]domain.Proposal, error) {
+func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJobFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 	order := mapSortBy(filter.SortBy)
 	args := []any{filter.ClientID, filter.JobID}
 	idx := 3
@@ -263,12 +265,21 @@ func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJ
 		args = append(args, *filter.FreelancerID)
 		idx++
 	}
-	query += fmt.Sprintf(` order by %s limit $%d offset $%d`, order, idx, idx+1)
-	args = append(args, limit, offset)
+
+	if strings.TrimSpace(pageToken) != "" {
+		cursor, err := decodeCursorToken(pageToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("invalid page_token")
+		}
+		query, args, idx = appendCursorPredicate(query, args, idx, filter.SortBy, cursor)
+	}
+
+	query += fmt.Sprintf(` order by %s limit $%d`, order, idx)
+	args = append(args, pageSize+1)
 
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer rows.Close()
 
@@ -276,21 +287,27 @@ func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJ
 	for rows.Next() {
 		p, err := scanProposal(rows)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		items = append(items, p)
 	}
 	if rows.Err() != nil {
-		return nil, rows.Err()
+		return nil, "", rows.Err()
+	}
+
+	nextToken := ""
+	if len(items) > pageSize {
+		nextToken = encodeCursorToken(items[pageSize-1])
+		items = items[:pageSize]
 	}
 
 	if err := r.loadAttachments(ctx, items); err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return items, nil
+	return items, nextToken, nil
 }
 
-func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.ListByFreelancerFilter, limit, offset int) ([]domain.Proposal, error) {
+func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.ListByFreelancerFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 	order := mapSortBy(filter.SortBy)
 	args := []any{filter.FreelancerID}
 	idx := 2
@@ -311,12 +328,21 @@ func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.
 		args = append(args, *filter.JobID)
 		idx++
 	}
-	query += fmt.Sprintf(` order by %s limit $%d offset $%d`, order, idx, idx+1)
-	args = append(args, limit, offset)
+
+	if strings.TrimSpace(pageToken) != "" {
+		cursor, err := decodeCursorToken(pageToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("invalid page_token")
+		}
+		query, args, idx = appendCursorPredicate(query, args, idx, filter.SortBy, cursor)
+	}
+
+	query += fmt.Sprintf(` order by %s limit $%d`, order, idx)
+	args = append(args, pageSize+1)
 
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer rows.Close()
 
@@ -324,21 +350,27 @@ func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.
 	for rows.Next() {
 		p, err := scanProposal(rows)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		items = append(items, p)
 	}
 	if rows.Err() != nil {
-		return nil, rows.Err()
+		return nil, "", rows.Err()
+	}
+
+	nextToken := ""
+	if len(items) > pageSize {
+		nextToken = encodeCursorToken(items[pageSize-1])
+		items = items[:pageSize]
 	}
 
 	if err := r.loadAttachments(ctx, items); err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return items, nil
+	return items, nextToken, nil
 }
 
-func (r *ProposalRepo) ListByClient(ctx context.Context, filter application.ListByClientFilter, limit, offset int) ([]domain.Proposal, error) {
+func (r *ProposalRepo) ListByClient(ctx context.Context, filter application.ListByClientFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 	order := mapSortBy(filter.SortBy)
 	args := []any{filter.ClientID}
 	idx := 2
@@ -364,12 +396,21 @@ func (r *ProposalRepo) ListByClient(ctx context.Context, filter application.List
 		args = append(args, *filter.FreelancerID)
 		idx++
 	}
-	query += fmt.Sprintf(` order by %s limit $%d offset $%d`, order, idx, idx+1)
-	args = append(args, limit, offset)
+
+	if strings.TrimSpace(pageToken) != "" {
+		cursor, err := decodeCursorToken(pageToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("invalid page_token")
+		}
+		query, args, idx = appendCursorPredicate(query, args, idx, filter.SortBy, cursor)
+	}
+
+	query += fmt.Sprintf(` order by %s limit $%d`, order, idx)
+	args = append(args, pageSize+1)
 
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer rows.Close()
 
@@ -377,18 +418,24 @@ func (r *ProposalRepo) ListByClient(ctx context.Context, filter application.List
 	for rows.Next() {
 		p, err := scanProposal(rows)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		items = append(items, p)
 	}
 	if rows.Err() != nil {
-		return nil, rows.Err()
+		return nil, "", rows.Err()
+	}
+
+	nextToken := ""
+	if len(items) > pageSize {
+		nextToken = encodeCursorToken(items[pageSize-1])
+		items = items[:pageSize]
 	}
 
 	if err := r.loadAttachments(ctx, items); err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return items, nil
+	return items, nextToken, nil
 }
 
 func (r *ProposalRepo) CountByJobForClient(ctx context.Context, clientID uuid.UUID, jobID int64) (int64, map[string]int64, error) {
@@ -569,14 +616,79 @@ func scanProposal(scanner rowScanner) (domain.Proposal, error) {
 func mapSortBy(v string) string {
 	switch strings.ToLower(strings.TrimSpace(v)) {
 	case domain.SortOldest:
-		return "created_at asc"
+		return "created_at asc, id asc"
 	case domain.SortBidHigh:
-		return "bid_amount desc, created_at desc"
+		return "bid_amount desc, created_at desc, id desc"
 	case domain.SortBidLow:
-		return "bid_amount asc, created_at desc"
+		return "bid_amount asc, created_at desc, id desc"
 	case domain.SortNewest, "":
 		fallthrough
 	default:
-		return "created_at desc"
+		return "created_at desc, id desc"
 	}
+}
+
+type listCursor struct {
+	BidAmount   float64
+	CreatedAtNS int64
+	ID          int64
+}
+
+func encodeCursorToken(p domain.Proposal) string {
+	raw := strings.Join([]string{
+		strconv.FormatFloat(p.BidAmount, 'g', -1, 64),
+		strconv.FormatInt(p.CreatedAt.UnixNano(), 10),
+		strconv.FormatInt(p.ID, 10),
+	}, "|")
+	return base64.RawURLEncoding.EncodeToString([]byte(raw))
+}
+
+func decodeCursorToken(token string) (listCursor, error) {
+	decoded, err := base64.RawURLEncoding.DecodeString(strings.TrimSpace(token))
+	if err != nil {
+		return listCursor{}, err
+	}
+	parts := strings.Split(string(decoded), "|")
+	if len(parts) != 3 {
+		return listCursor{}, fmt.Errorf("invalid cursor")
+	}
+	bid, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return listCursor{}, err
+	}
+	createdAtNS, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return listCursor{}, err
+	}
+	id, err := strconv.ParseInt(parts[2], 10, 64)
+	if err != nil {
+		return listCursor{}, err
+	}
+	return listCursor{BidAmount: bid, CreatedAtNS: createdAtNS, ID: id}, nil
+}
+
+func appendCursorPredicate(query string, args []any, idx int, sortBy string, cursor listCursor) (string, []any, int) {
+	createdAt := time.Unix(0, cursor.CreatedAtNS).UTC()
+	sort := strings.ToLower(strings.TrimSpace(sortBy))
+	switch sort {
+	case domain.SortOldest:
+		query += fmt.Sprintf(` and (created_at > $%d or (created_at = $%d and id > $%d))`, idx, idx, idx+1)
+		args = append(args, createdAt, cursor.ID)
+		idx += 2
+	case domain.SortBidHigh:
+		query += fmt.Sprintf(` and (bid_amount < $%d or (bid_amount = $%d and created_at < $%d) or (bid_amount = $%d and created_at = $%d and id < $%d))`, idx, idx, idx+1, idx, idx+1, idx+2)
+		args = append(args, cursor.BidAmount, createdAt, cursor.ID)
+		idx += 3
+	case domain.SortBidLow:
+		query += fmt.Sprintf(` and (bid_amount > $%d or (bid_amount = $%d and created_at < $%d) or (bid_amount = $%d and created_at = $%d and id < $%d))`, idx, idx, idx+1, idx, idx+1, idx+2)
+		args = append(args, cursor.BidAmount, createdAt, cursor.ID)
+		idx += 3
+	case domain.SortNewest, "":
+		fallthrough
+	default:
+		query += fmt.Sprintf(` and (created_at < $%d or (created_at = $%d and id < $%d))`, idx, idx, idx+1)
+		args = append(args, createdAt, cursor.ID)
+		idx += 2
+	}
+	return query, args, idx
 }

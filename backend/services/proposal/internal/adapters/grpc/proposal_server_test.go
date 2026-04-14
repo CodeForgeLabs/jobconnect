@@ -119,9 +119,9 @@ type fakeProposalRepo struct {
 	setStatusFn                   func(ctx context.Context, proposalID int64, clientID uuid.UUID, status string, reason string, at time.Time) error
 	hireWithRequestIDFn           func(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error)
 	hasHiredProposalForJobFn      func(ctx context.Context, jobID int64) (bool, error)
-	listByJobFn                   func(ctx context.Context, filter application.ListByJobFilter, limit, offset int) ([]domain.Proposal, error)
-	listByFreelancerFn            func(ctx context.Context, filter application.ListByFreelancerFilter, limit, offset int) ([]domain.Proposal, error)
-	listByClientFn                func(ctx context.Context, filter application.ListByClientFilter, limit, offset int) ([]domain.Proposal, error)
+	listByJobFn                   func(ctx context.Context, filter application.ListByJobFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error)
+	listByFreelancerFn            func(ctx context.Context, filter application.ListByFreelancerFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error)
+	listByClientFn                func(ctx context.Context, filter application.ListByClientFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error)
 	countByJobForClientFn         func(ctx context.Context, clientID uuid.UUID, jobID int64) (int64, map[string]int64, error)
 	countClientInboxFn            func(ctx context.Context, clientID uuid.UUID, statuses []string) (int64, map[string]int64, error)
 }
@@ -203,25 +203,25 @@ func (f *fakeProposalRepo) HasHiredProposalForJob(ctx context.Context, jobID int
 	return f.hasHiredProposalForJobFn(ctx, jobID)
 }
 
-func (f *fakeProposalRepo) ListByJob(ctx context.Context, filter application.ListByJobFilter, limit, offset int) ([]domain.Proposal, error) {
+func (f *fakeProposalRepo) ListByJob(ctx context.Context, filter application.ListByJobFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 	if f.listByJobFn == nil {
-		return nil, nil
+		return nil, "", nil
 	}
-	return f.listByJobFn(ctx, filter, limit, offset)
+	return f.listByJobFn(ctx, filter, pageSize, pageToken)
 }
 
-func (f *fakeProposalRepo) ListByFreelancer(ctx context.Context, filter application.ListByFreelancerFilter, limit, offset int) ([]domain.Proposal, error) {
+func (f *fakeProposalRepo) ListByFreelancer(ctx context.Context, filter application.ListByFreelancerFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 	if f.listByFreelancerFn == nil {
-		return nil, nil
+		return nil, "", nil
 	}
-	return f.listByFreelancerFn(ctx, filter, limit, offset)
+	return f.listByFreelancerFn(ctx, filter, pageSize, pageToken)
 }
 
-func (f *fakeProposalRepo) ListByClient(ctx context.Context, filter application.ListByClientFilter, limit, offset int) ([]domain.Proposal, error) {
+func (f *fakeProposalRepo) ListByClient(ctx context.Context, filter application.ListByClientFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 	if f.listByClientFn == nil {
-		return nil, nil
+		return nil, "", nil
 	}
-	return f.listByClientFn(ctx, filter, limit, offset)
+	return f.listByClientFn(ctx, filter, pageSize, pageToken)
 }
 
 func (f *fakeProposalRepo) CountByJobForClient(ctx context.Context, clientID uuid.UUID, jobID int64) (int64, map[string]int64, error) {
@@ -502,17 +502,17 @@ func TestProposalServer_RPCs(t *testing.T) {
 	})
 
 	t.Run("ListProposalsByJob validates filter and maps payload", func(t *testing.T) {
-		repo := &fakeProposalRepo{listByJobFn: func(ctx context.Context, filter application.ListByJobFilter, limit, offset int) ([]domain.Proposal, error) {
+		repo := &fakeProposalRepo{listByJobFn: func(ctx context.Context, filter application.ListByJobFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 			if filter.JobID != 1001 {
 				t.Fatalf("expected job_id filter 1001")
 			}
 			if filter.FreelancerID == nil || *filter.FreelancerID != testFreelancerID {
 				t.Fatalf("expected freelancer filter to be set")
 			}
-			if limit != 20 || offset != 0 {
-				t.Fatalf("unexpected pagination limit=%d offset=%d", limit, offset)
+			if pageSize != 20 || pageToken != "" {
+				t.Fatalf("unexpected pagination pageSize=%d pageToken=%q", pageSize, pageToken)
 			}
-			return []domain.Proposal{makeProposal(800, domain.StatusSent)}, nil
+			return []domain.Proposal{makeProposal(800, domain.StatusSent)}, "", nil
 		}}
 		srv := buildServer(repo, nil, nil, nil, nil, nil)
 
@@ -534,11 +534,14 @@ func TestProposalServer_RPCs(t *testing.T) {
 	})
 
 	t.Run("ListMyProposals supports pagination validation", func(t *testing.T) {
-		repo := &fakeProposalRepo{listByFreelancerFn: func(ctx context.Context, filter application.ListByFreelancerFilter, limit, offset int) ([]domain.Proposal, error) {
-			if offset != 5 {
-				t.Fatalf("expected offset 5, got %d", offset)
+		repo := &fakeProposalRepo{listByFreelancerFn: func(ctx context.Context, filter application.ListByFreelancerFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
+			if pageToken == "bad" {
+				return nil, "", fmt.Errorf("invalid page_token")
 			}
-			return []domain.Proposal{makeProposal(900, domain.StatusSent)}, nil
+			if pageToken != "5" {
+				t.Fatalf("expected page token 5, got %q", pageToken)
+			}
+			return []domain.Proposal{makeProposal(900, domain.StatusSent)}, "", nil
 		}}
 		srv := buildServer(repo, nil, nil, nil, nil, nil)
 
@@ -555,11 +558,11 @@ func TestProposalServer_RPCs(t *testing.T) {
 	})
 
 	t.Run("ListClientProposals validates freelancer filter", func(t *testing.T) {
-		repo := &fakeProposalRepo{listByClientFn: func(ctx context.Context, filter application.ListByClientFilter, limit, offset int) ([]domain.Proposal, error) {
+		repo := &fakeProposalRepo{listByClientFn: func(ctx context.Context, filter application.ListByClientFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 			if filter.FreelancerID == nil || *filter.FreelancerID != testFreelancerID {
 				t.Fatalf("expected freelancer filter")
 			}
-			return []domain.Proposal{makeProposal(1000, domain.StatusShortlisted)}, nil
+			return []domain.Proposal{makeProposal(1000, domain.StatusShortlisted)}, "", nil
 		}}
 		srv := buildServer(repo, nil, nil, nil, nil, nil)
 

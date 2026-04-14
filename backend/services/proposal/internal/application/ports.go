@@ -23,9 +23,9 @@ type ProposalRepository interface {
 	HireWithRequestID(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error)
 	HasHiredProposalForJob(ctx context.Context, jobID int64) (bool, error)
 
-	ListByJob(ctx context.Context, filter ListByJobFilter, limit, offset int) ([]domain.Proposal, error)
-	ListByFreelancer(ctx context.Context, filter ListByFreelancerFilter, limit, offset int) ([]domain.Proposal, error)
-	ListByClient(ctx context.Context, filter ListByClientFilter, limit, offset int) ([]domain.Proposal, error)
+	ListByJob(ctx context.Context, filter ListByJobFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error)
+	ListByFreelancer(ctx context.Context, filter ListByFreelancerFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error)
+	ListByClient(ctx context.Context, filter ListByClientFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error)
 	CountByJobForClient(ctx context.Context, clientID uuid.UUID, jobID int64) (int64, map[string]int64, error)
 	CountClientInbox(ctx context.Context, clientID uuid.UUID, statuses []string) (int64, map[string]int64, error)
 }
