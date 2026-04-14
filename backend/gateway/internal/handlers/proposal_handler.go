@@ -180,36 +180,6 @@ func (h *ProposalHandler) SetProposalDecision(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "proposal", resp.GetProposal())
 }
 
-func (h *ProposalHandler) HireProposal(c *gin.Context) {
-	proposalID, ok := parseInt64Param(c, "proposalId")
-	if !ok {
-		return
-	}
-	var body struct {
-		RequestID string `json:"request_id"`
-		Note      string `json:"note"`
-	}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	resp, err := h.client.HireProposal(withAuthContext(c), &proposalv1.HireProposalRequest{
-		ProposalId: proposalID,
-		RequestId:  body.RequestID,
-		Note:       body.Note,
-	})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-	payload, convErr := protoToAny(resp)
-	if convErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
-		return
-	}
-	c.JSON(http.StatusOK, payload)
-}
-
 func (h *ProposalHandler) GetProposalAttachmentUploadURL(c *gin.Context) {
 	proposalID, ok := parseInt64Param(c, "proposalId")
 	if !ok {

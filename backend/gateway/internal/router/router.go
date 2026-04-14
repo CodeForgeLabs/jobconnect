@@ -58,7 +58,6 @@ func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.Prop
 	clientRoutes.GET("/client/counts", proposalHandler.CountClientProposalInbox)
 	clientRoutes.GET("/jobs/:jobId/counts", proposalHandler.CountProposalsByJob)
 	clientRoutes.POST("/:proposalId/decision", proposalHandler.SetProposalDecision)
-	clientRoutes.POST("/:proposalId/hire", proposalHandler.HireProposal)
 }
 
 func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jwtParser *auth.JWTParser) {
