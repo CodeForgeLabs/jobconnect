@@ -43,7 +43,8 @@ func (uc *HireApplicant) Execute(ctx context.Context, in HireApplicantInput) (Hi
 		return HireApplicantOutput{}, fmt.Errorf("proposal not found")
 	}
 
-	if err := uc.Proposals.HireProposal(ctx, in.ProposalID, ""); err != nil {
+	requestID := fmt.Sprintf("job-service-hire-%d", in.ProposalID)
+	if err := uc.Proposals.InternalHireProposal(ctx, in.ProposalID, in.ClientID, requestID, ""); err != nil {
 		return HireApplicantOutput{}, err
 	}
 	if _, err := uc.Jobs.MarkFilled(ctx, proposal.JobID, in.ClientID, uc.Clock.Now()); err != nil {

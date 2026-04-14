@@ -8,6 +8,8 @@ import (
 	proposalv1 "jobconnect/job/gen/proposal/v1"
 	"jobconnect/job/internal/application"
 
+	"github.com/google/uuid"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -93,16 +95,17 @@ func (c *ProposalClient) SetProposalStatus(ctx context.Context, proposalID int64
 	return nil
 }
 
-func (c *ProposalClient) HireProposal(ctx context.Context, proposalID int64, reason string) error {
-	requestID := fmt.Sprintf("job-service-hire-%d", proposalID)
+func (c *ProposalClient) InternalHireProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string) error {
 	forwardCtx := forwardAuthorization(ctx)
-	_, err := c.client.HireProposal(forwardCtx, &proposalv1.HireProposalRequest{
+	forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal", "job-service")
+	_, err := c.client.InternalHireProposal(forwardCtx, &proposalv1.InternalHireProposalRequest{
 		ProposalId: proposalID,
+		ClientId:   clientID.String(),
 		RequestId:  requestID,
 		Note:       reason,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to hire proposal: %w", err)
+		return fmt.Errorf("failed to transition proposal to hired: %w", err)
 	}
 	return nil
 }
