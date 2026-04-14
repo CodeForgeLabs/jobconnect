@@ -50,6 +50,10 @@ func (p *fakeProposalClient) SetProposalStatus(ctx context.Context, proposalID i
 	return nil
 }
 
+func (p *fakeProposalClient) HireProposal(ctx context.Context, proposalID int64, reason string) error {
+	return nil
+}
+
 type fakeJobRepo struct {
 	createID int64
 

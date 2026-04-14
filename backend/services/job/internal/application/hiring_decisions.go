@@ -43,7 +43,7 @@ func (uc *HireApplicant) Execute(ctx context.Context, in HireApplicantInput) (Hi
 		return HireApplicantOutput{}, fmt.Errorf("proposal not found")
 	}
 
-	if err := uc.Proposals.SetProposalStatus(ctx, in.ProposalID, ApplicantStageHired, ""); err != nil {
+	if err := uc.Proposals.HireProposal(ctx, in.ProposalID, ""); err != nil {
 		return HireApplicantOutput{}, err
 	}
 	if _, err := uc.Jobs.MarkFilled(ctx, proposal.JobID, in.ClientID, uc.Clock.Now()); err != nil {

@@ -90,6 +90,7 @@ type ProposalClient interface {
 	ListProposalsByJob(ctx context.Context, jobID int64) ([]Proposal, error)
 	GetProposal(ctx context.Context, proposalID int64) (Proposal, error)
 	SetProposalStatus(ctx context.Context, proposalID int64, status string, reason string) error
+	HireProposal(ctx context.Context, proposalID int64, reason string) error
 }
 
 type Clock interface {
