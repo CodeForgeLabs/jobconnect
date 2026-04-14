@@ -140,6 +140,22 @@ services:
       timeout: 5s
       retries: 20
 
+  connects-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: connects
+      POSTGRES_PASSWORD: connects
+      POSTGRES_DB: jobconnect_connects
+    ports:
+      - "5441:5432"
+    volumes:
+      - connects-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U connects -d jobconnect_connects"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   minio:
     image: minio/minio:RELEASE.2025-02-18T16-25-55Z
     command: server /data --console-address ":9001"
@@ -224,7 +240,22 @@ services:
         condition: service_healthy
       job:
         condition: service_started
+      connects:
+        condition: service_started
       minio:
+        condition: service_healthy
+
+  connects:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: connects
+        CMD_PATH: ./cmd/connectsd
+    env_file:
+      - .env
+    depends_on:
+      connects-db:
         condition: service_healthy
 
   contract:
@@ -340,4 +371,5 @@ volumes:
   chat-db-data:
   verification-db-data:
   payment-db-data:
+  connects-db-data:
   minio-data:
