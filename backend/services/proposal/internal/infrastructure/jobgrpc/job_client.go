@@ -44,11 +44,12 @@ func (c *JobClient) GetJobSummary(ctx context.Context, jobID int64) (application
 			if err != nil {
 				return application.JobSummary{}, fmt.Errorf("invalid client_id from job service")
 			}
+			statusEnum := j.GetStatusEnum()
 			return application.JobSummary{
 				JobID:    j.GetId(),
 				ClientID: clientID,
-				Status:   j.GetStatus(),
-				IsOpen:   j.GetStatus() == "open",
+				Status:   statusEnum.String(),
+				IsOpen:   statusEnum == jobv1.JobStatus_JOB_STATUS_OPEN,
 				Found:    true,
 			}, nil
 		}

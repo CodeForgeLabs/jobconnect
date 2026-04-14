@@ -255,9 +255,9 @@ func (s *ProposalServer) SetProposalStatus(ctx context.Context, req *proposalv1.
 		return nil, err
 	}
 
-	next, ok := fromProtoStatus(req.Status)
+	next, ok := fromProtoClientDecision(req.Decision)
 	if !ok {
-		return nil, status.Error(codes.InvalidArgument, "invalid status")
+		return nil, status.Error(codes.InvalidArgument, "invalid decision")
 	}
 
 	out, err := s.SetStatusUC.Execute(ctx, application.SetProposalStatusInput{
@@ -270,6 +270,17 @@ func (s *ProposalServer) SetProposalStatus(ctx context.Context, req *proposalv1.
 		return nil, toStatus(err)
 	}
 	return &proposalv1.SetProposalStatusResponse{Proposal: toProtoProposal(out.Proposal)}, nil
+}
+
+func fromProtoClientDecision(v proposalv1.ClientDecision) (string, bool) {
+	switch v {
+	case proposalv1.ClientDecision_CLIENT_DECISION_SHORTLISTED:
+		return domain.StatusShortlisted, true
+	case proposalv1.ClientDecision_CLIENT_DECISION_REJECTED:
+		return domain.StatusRejected, true
+	default:
+		return "", false
+	}
 }
 
 func fromProtoAttachments(in []*proposalv1.ProposalAttachment) []domain.Attachment {

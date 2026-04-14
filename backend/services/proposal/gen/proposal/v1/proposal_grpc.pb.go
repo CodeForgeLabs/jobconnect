@@ -19,13 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProposalService_SubmitProposal_FullMethodName     = "/proposal.v1.ProposalService/SubmitProposal"
-	ProposalService_ModifyProposal_FullMethodName     = "/proposal.v1.ProposalService/ModifyProposal"
-	ProposalService_WithdrawProposal_FullMethodName   = "/proposal.v1.ProposalService/WithdrawProposal"
-	ProposalService_GetProposal_FullMethodName        = "/proposal.v1.ProposalService/GetProposal"
-	ProposalService_ListProposalsByJob_FullMethodName = "/proposal.v1.ProposalService/ListProposalsByJob"
-	ProposalService_ListMyProposals_FullMethodName    = "/proposal.v1.ProposalService/ListMyProposals"
-	ProposalService_SetProposalStatus_FullMethodName  = "/proposal.v1.ProposalService/SetProposalStatus"
+	ProposalService_SubmitProposal_FullMethodName                   = "/proposal.v1.ProposalService/SubmitProposal"
+	ProposalService_ModifyProposal_FullMethodName                   = "/proposal.v1.ProposalService/ModifyProposal"
+	ProposalService_WithdrawProposal_FullMethodName                 = "/proposal.v1.ProposalService/WithdrawProposal"
+	ProposalService_GetProposal_FullMethodName                      = "/proposal.v1.ProposalService/GetProposal"
+	ProposalService_GetMyProposalForJob_FullMethodName              = "/proposal.v1.ProposalService/GetMyProposalForJob"
+	ProposalService_HasAppliedToJob_FullMethodName                  = "/proposal.v1.ProposalService/HasAppliedToJob"
+	ProposalService_ListProposalsByJob_FullMethodName               = "/proposal.v1.ProposalService/ListProposalsByJob"
+	ProposalService_ListMyProposals_FullMethodName                  = "/proposal.v1.ProposalService/ListMyProposals"
+	ProposalService_ListClientProposals_FullMethodName              = "/proposal.v1.ProposalService/ListClientProposals"
+	ProposalService_CountProposalsByJob_FullMethodName              = "/proposal.v1.ProposalService/CountProposalsByJob"
+	ProposalService_CountClientProposalInbox_FullMethodName         = "/proposal.v1.ProposalService/CountClientProposalInbox"
+	ProposalService_HireProposal_FullMethodName                     = "/proposal.v1.ProposalService/HireProposal"
+	ProposalService_GetProposalAttachmentUploadUrl_FullMethodName   = "/proposal.v1.ProposalService/GetProposalAttachmentUploadUrl"
+	ProposalService_GetProposalAttachmentDownloadUrl_FullMethodName = "/proposal.v1.ProposalService/GetProposalAttachmentDownloadUrl"
+	ProposalService_SetProposalStatus_FullMethodName                = "/proposal.v1.ProposalService/SetProposalStatus"
 )
 
 // ProposalServiceClient is the client API for ProposalService service.
@@ -36,8 +44,16 @@ type ProposalServiceClient interface {
 	ModifyProposal(ctx context.Context, in *ModifyProposalRequest, opts ...grpc.CallOption) (*ModifyProposalResponse, error)
 	WithdrawProposal(ctx context.Context, in *WithdrawProposalRequest, opts ...grpc.CallOption) (*WithdrawProposalResponse, error)
 	GetProposal(ctx context.Context, in *GetProposalRequest, opts ...grpc.CallOption) (*GetProposalResponse, error)
+	GetMyProposalForJob(ctx context.Context, in *GetMyProposalForJobRequest, opts ...grpc.CallOption) (*GetMyProposalForJobResponse, error)
+	HasAppliedToJob(ctx context.Context, in *HasAppliedToJobRequest, opts ...grpc.CallOption) (*HasAppliedToJobResponse, error)
 	ListProposalsByJob(ctx context.Context, in *ListProposalsByJobRequest, opts ...grpc.CallOption) (*ListProposalsByJobResponse, error)
 	ListMyProposals(ctx context.Context, in *ListMyProposalsRequest, opts ...grpc.CallOption) (*ListMyProposalsResponse, error)
+	ListClientProposals(ctx context.Context, in *ListClientProposalsRequest, opts ...grpc.CallOption) (*ListClientProposalsResponse, error)
+	CountProposalsByJob(ctx context.Context, in *CountProposalsByJobRequest, opts ...grpc.CallOption) (*CountProposalsByJobResponse, error)
+	CountClientProposalInbox(ctx context.Context, in *CountClientProposalInboxRequest, opts ...grpc.CallOption) (*CountClientProposalInboxResponse, error)
+	HireProposal(ctx context.Context, in *HireProposalRequest, opts ...grpc.CallOption) (*HireProposalResponse, error)
+	GetProposalAttachmentUploadUrl(ctx context.Context, in *GetProposalAttachmentUploadUrlRequest, opts ...grpc.CallOption) (*GetProposalAttachmentUploadUrlResponse, error)
+	GetProposalAttachmentDownloadUrl(ctx context.Context, in *GetProposalAttachmentDownloadUrlRequest, opts ...grpc.CallOption) (*GetProposalAttachmentDownloadUrlResponse, error)
 	SetProposalStatus(ctx context.Context, in *SetProposalStatusRequest, opts ...grpc.CallOption) (*SetProposalStatusResponse, error)
 }
 
@@ -89,6 +105,26 @@ func (c *proposalServiceClient) GetProposal(ctx context.Context, in *GetProposal
 	return out, nil
 }
 
+func (c *proposalServiceClient) GetMyProposalForJob(ctx context.Context, in *GetMyProposalForJobRequest, opts ...grpc.CallOption) (*GetMyProposalForJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMyProposalForJobResponse)
+	err := c.cc.Invoke(ctx, ProposalService_GetMyProposalForJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) HasAppliedToJob(ctx context.Context, in *HasAppliedToJobRequest, opts ...grpc.CallOption) (*HasAppliedToJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HasAppliedToJobResponse)
+	err := c.cc.Invoke(ctx, ProposalService_HasAppliedToJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *proposalServiceClient) ListProposalsByJob(ctx context.Context, in *ListProposalsByJobRequest, opts ...grpc.CallOption) (*ListProposalsByJobResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListProposalsByJobResponse)
@@ -103,6 +139,66 @@ func (c *proposalServiceClient) ListMyProposals(ctx context.Context, in *ListMyP
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListMyProposalsResponse)
 	err := c.cc.Invoke(ctx, ProposalService_ListMyProposals_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) ListClientProposals(ctx context.Context, in *ListClientProposalsRequest, opts ...grpc.CallOption) (*ListClientProposalsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListClientProposalsResponse)
+	err := c.cc.Invoke(ctx, ProposalService_ListClientProposals_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) CountProposalsByJob(ctx context.Context, in *CountProposalsByJobRequest, opts ...grpc.CallOption) (*CountProposalsByJobResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CountProposalsByJobResponse)
+	err := c.cc.Invoke(ctx, ProposalService_CountProposalsByJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) CountClientProposalInbox(ctx context.Context, in *CountClientProposalInboxRequest, opts ...grpc.CallOption) (*CountClientProposalInboxResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CountClientProposalInboxResponse)
+	err := c.cc.Invoke(ctx, ProposalService_CountClientProposalInbox_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) HireProposal(ctx context.Context, in *HireProposalRequest, opts ...grpc.CallOption) (*HireProposalResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HireProposalResponse)
+	err := c.cc.Invoke(ctx, ProposalService_HireProposal_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) GetProposalAttachmentUploadUrl(ctx context.Context, in *GetProposalAttachmentUploadUrlRequest, opts ...grpc.CallOption) (*GetProposalAttachmentUploadUrlResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProposalAttachmentUploadUrlResponse)
+	err := c.cc.Invoke(ctx, ProposalService_GetProposalAttachmentUploadUrl_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *proposalServiceClient) GetProposalAttachmentDownloadUrl(ctx context.Context, in *GetProposalAttachmentDownloadUrlRequest, opts ...grpc.CallOption) (*GetProposalAttachmentDownloadUrlResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProposalAttachmentDownloadUrlResponse)
+	err := c.cc.Invoke(ctx, ProposalService_GetProposalAttachmentDownloadUrl_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -127,8 +223,16 @@ type ProposalServiceServer interface {
 	ModifyProposal(context.Context, *ModifyProposalRequest) (*ModifyProposalResponse, error)
 	WithdrawProposal(context.Context, *WithdrawProposalRequest) (*WithdrawProposalResponse, error)
 	GetProposal(context.Context, *GetProposalRequest) (*GetProposalResponse, error)
+	GetMyProposalForJob(context.Context, *GetMyProposalForJobRequest) (*GetMyProposalForJobResponse, error)
+	HasAppliedToJob(context.Context, *HasAppliedToJobRequest) (*HasAppliedToJobResponse, error)
 	ListProposalsByJob(context.Context, *ListProposalsByJobRequest) (*ListProposalsByJobResponse, error)
 	ListMyProposals(context.Context, *ListMyProposalsRequest) (*ListMyProposalsResponse, error)
+	ListClientProposals(context.Context, *ListClientProposalsRequest) (*ListClientProposalsResponse, error)
+	CountProposalsByJob(context.Context, *CountProposalsByJobRequest) (*CountProposalsByJobResponse, error)
+	CountClientProposalInbox(context.Context, *CountClientProposalInboxRequest) (*CountClientProposalInboxResponse, error)
+	HireProposal(context.Context, *HireProposalRequest) (*HireProposalResponse, error)
+	GetProposalAttachmentUploadUrl(context.Context, *GetProposalAttachmentUploadUrlRequest) (*GetProposalAttachmentUploadUrlResponse, error)
+	GetProposalAttachmentDownloadUrl(context.Context, *GetProposalAttachmentDownloadUrlRequest) (*GetProposalAttachmentDownloadUrlResponse, error)
 	SetProposalStatus(context.Context, *SetProposalStatusRequest) (*SetProposalStatusResponse, error)
 	mustEmbedUnimplementedProposalServiceServer()
 }
@@ -152,11 +256,35 @@ func (UnimplementedProposalServiceServer) WithdrawProposal(context.Context, *Wit
 func (UnimplementedProposalServiceServer) GetProposal(context.Context, *GetProposalRequest) (*GetProposalResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProposal not implemented")
 }
+func (UnimplementedProposalServiceServer) GetMyProposalForJob(context.Context, *GetMyProposalForJobRequest) (*GetMyProposalForJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMyProposalForJob not implemented")
+}
+func (UnimplementedProposalServiceServer) HasAppliedToJob(context.Context, *HasAppliedToJobRequest) (*HasAppliedToJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HasAppliedToJob not implemented")
+}
 func (UnimplementedProposalServiceServer) ListProposalsByJob(context.Context, *ListProposalsByJobRequest) (*ListProposalsByJobResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListProposalsByJob not implemented")
 }
 func (UnimplementedProposalServiceServer) ListMyProposals(context.Context, *ListMyProposalsRequest) (*ListMyProposalsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyProposals not implemented")
+}
+func (UnimplementedProposalServiceServer) ListClientProposals(context.Context, *ListClientProposalsRequest) (*ListClientProposalsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListClientProposals not implemented")
+}
+func (UnimplementedProposalServiceServer) CountProposalsByJob(context.Context, *CountProposalsByJobRequest) (*CountProposalsByJobResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CountProposalsByJob not implemented")
+}
+func (UnimplementedProposalServiceServer) CountClientProposalInbox(context.Context, *CountClientProposalInboxRequest) (*CountClientProposalInboxResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CountClientProposalInbox not implemented")
+}
+func (UnimplementedProposalServiceServer) HireProposal(context.Context, *HireProposalRequest) (*HireProposalResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HireProposal not implemented")
+}
+func (UnimplementedProposalServiceServer) GetProposalAttachmentUploadUrl(context.Context, *GetProposalAttachmentUploadUrlRequest) (*GetProposalAttachmentUploadUrlResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProposalAttachmentUploadUrl not implemented")
+}
+func (UnimplementedProposalServiceServer) GetProposalAttachmentDownloadUrl(context.Context, *GetProposalAttachmentDownloadUrlRequest) (*GetProposalAttachmentDownloadUrlResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetProposalAttachmentDownloadUrl not implemented")
 }
 func (UnimplementedProposalServiceServer) SetProposalStatus(context.Context, *SetProposalStatusRequest) (*SetProposalStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetProposalStatus not implemented")
@@ -254,6 +382,42 @@ func _ProposalService_GetProposal_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProposalService_GetMyProposalForJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMyProposalForJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).GetMyProposalForJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProposalService_GetMyProposalForJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).GetMyProposalForJob(ctx, req.(*GetMyProposalForJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_HasAppliedToJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HasAppliedToJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).HasAppliedToJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProposalService_HasAppliedToJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).HasAppliedToJob(ctx, req.(*HasAppliedToJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ProposalService_ListProposalsByJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListProposalsByJobRequest)
 	if err := dec(in); err != nil {
@@ -286,6 +450,114 @@ func _ProposalService_ListMyProposals_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProposalServiceServer).ListMyProposals(ctx, req.(*ListMyProposalsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_ListClientProposals_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListClientProposalsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).ListClientProposals(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProposalService_ListClientProposals_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).ListClientProposals(ctx, req.(*ListClientProposalsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_CountProposalsByJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CountProposalsByJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).CountProposalsByJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProposalService_CountProposalsByJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).CountProposalsByJob(ctx, req.(*CountProposalsByJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_CountClientProposalInbox_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CountClientProposalInboxRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).CountClientProposalInbox(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProposalService_CountClientProposalInbox_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).CountClientProposalInbox(ctx, req.(*CountClientProposalInboxRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_HireProposal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HireProposalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).HireProposal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProposalService_HireProposal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).HireProposal(ctx, req.(*HireProposalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_GetProposalAttachmentUploadUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProposalAttachmentUploadUrlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).GetProposalAttachmentUploadUrl(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProposalService_GetProposalAttachmentUploadUrl_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).GetProposalAttachmentUploadUrl(ctx, req.(*GetProposalAttachmentUploadUrlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProposalService_GetProposalAttachmentDownloadUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProposalAttachmentDownloadUrlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProposalServiceServer).GetProposalAttachmentDownloadUrl(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProposalService_GetProposalAttachmentDownloadUrl_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProposalServiceServer).GetProposalAttachmentDownloadUrl(ctx, req.(*GetProposalAttachmentDownloadUrlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -332,12 +604,44 @@ var ProposalService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProposalService_GetProposal_Handler,
 		},
 		{
+			MethodName: "GetMyProposalForJob",
+			Handler:    _ProposalService_GetMyProposalForJob_Handler,
+		},
+		{
+			MethodName: "HasAppliedToJob",
+			Handler:    _ProposalService_HasAppliedToJob_Handler,
+		},
+		{
 			MethodName: "ListProposalsByJob",
 			Handler:    _ProposalService_ListProposalsByJob_Handler,
 		},
 		{
 			MethodName: "ListMyProposals",
 			Handler:    _ProposalService_ListMyProposals_Handler,
+		},
+		{
+			MethodName: "ListClientProposals",
+			Handler:    _ProposalService_ListClientProposals_Handler,
+		},
+		{
+			MethodName: "CountProposalsByJob",
+			Handler:    _ProposalService_CountProposalsByJob_Handler,
+		},
+		{
+			MethodName: "CountClientProposalInbox",
+			Handler:    _ProposalService_CountClientProposalInbox_Handler,
+		},
+		{
+			MethodName: "HireProposal",
+			Handler:    _ProposalService_HireProposal_Handler,
+		},
+		{
+			MethodName: "GetProposalAttachmentUploadUrl",
+			Handler:    _ProposalService_GetProposalAttachmentUploadUrl_Handler,
+		},
+		{
+			MethodName: "GetProposalAttachmentDownloadUrl",
+			Handler:    _ProposalService_GetProposalAttachmentDownloadUrl_Handler,
 		},
 		{
 			MethodName: "SetProposalStatus",
