@@ -35,6 +35,12 @@ type ConnectsClient interface {
 	DeductConnects(ctx context.Context, userID uuid.UUID, amount int32, referenceID string) error
 }
 
+type AttachmentObjectStore interface {
+	BuildObjectKey(proposalID int64, fileName string) string
+	PresignPutObject(ctx context.Context, storageKey string, ttl time.Duration) (string, error)
+	PresignGetObject(ctx context.Context, storageKey string, ttl time.Duration) (string, error)
+}
+
 type Clock interface {
 	Now() time.Time
 }

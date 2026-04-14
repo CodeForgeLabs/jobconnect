@@ -368,9 +368,9 @@ func (r *ProposalRepo) replaceAttachmentsTx(ctx context.Context, tx pgx.Tx, prop
 	}
 	for _, a := range attachments {
 		if _, err := tx.Exec(ctx, `
-			insert into proposal_attachments (proposal_id, file_name, content_type, url, size_bytes)
-			values ($1,$2,$3,$4,$5)
-		`, proposalID, a.FileName, a.ContentType, a.URL, a.SizeBytes); err != nil {
+			insert into proposal_attachments (proposal_id, file_name, content_type, url, size_bytes, storage_key)
+			values ($1,$2,$3,$4,$5,$6)
+		`, proposalID, a.FileName, a.ContentType, a.URL, a.SizeBytes, a.StorageKey); err != nil {
 			return err
 		}
 	}
@@ -393,7 +393,7 @@ func (r *ProposalRepo) loadAttachments(ctx context.Context, items []domain.Propo
 
 func (r *ProposalRepo) getAttachmentsByProposalID(ctx context.Context, proposalID int64) ([]domain.Attachment, error) {
 	rows, err := r.pool.Query(ctx, `
-		select id, file_name, content_type, url, size_bytes
+		select id, file_name, content_type, url, size_bytes, storage_key
 		from proposal_attachments
 		where proposal_id = $1
 		order by id asc
@@ -406,7 +406,7 @@ func (r *ProposalRepo) getAttachmentsByProposalID(ctx context.Context, proposalI
 	attachments := make([]domain.Attachment, 0)
 	for rows.Next() {
 		var a domain.Attachment
-		if err := rows.Scan(&a.ID, &a.FileName, &a.ContentType, &a.URL, &a.SizeBytes); err != nil {
+		if err := rows.Scan(&a.ID, &a.FileName, &a.ContentType, &a.URL, &a.SizeBytes, &a.StorageKey); err != nil {
 			return nil, err
 		}
 		attachments = append(attachments, a)

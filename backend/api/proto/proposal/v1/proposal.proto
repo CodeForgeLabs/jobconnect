@@ -51,6 +51,7 @@ message ProposalAttachment {
   string content_type = 3;
   string url = 4;
   int64 size_bytes = 5;
+  string storage_key = 6;
 }
 
 message Proposal {

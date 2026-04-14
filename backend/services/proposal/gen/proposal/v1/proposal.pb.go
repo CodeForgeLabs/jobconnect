@@ -190,6 +190,7 @@ type ProposalAttachment struct {
 	ContentType   string                 `protobuf:"bytes,3,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
 	Url           string                 `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
 	SizeBytes     int64                  `protobuf:"varint,5,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	StorageKey    string                 `protobuf:"bytes,6,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -257,6 +258,13 @@ func (x *ProposalAttachment) GetSizeBytes() int64 {
 		return x.SizeBytes
 	}
 	return 0
+}
+
+func (x *ProposalAttachment) GetStorageKey() string {
+	if x != nil {
+		return x.StorageKey
+	}
+	return ""
 }
 
 type Proposal struct {
@@ -2143,14 +2151,16 @@ var File_proposal_v1_proposal_proto protoreflect.FileDescriptor
 
 const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproposal/v1/proposal.proto\x12\vproposal.v1\"\x95\x01\n" +
+	"\x1aproposal/v1/proposal.proto\x12\vproposal.v1\"\xb6\x01\n" +
 	"\x12ProposalAttachment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1b\n" +
 	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12!\n" +
 	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\x12\x10\n" +
 	"\x03url\x18\x04 \x01(\tR\x03url\x12\x1d\n" +
 	"\n" +
-	"size_bytes\x18\x05 \x01(\x03R\tsizeBytes\"\x8f\x06\n" +
+	"size_bytes\x18\x05 \x01(\x03R\tsizeBytes\x12\x1f\n" +
+	"\vstorage_key\x18\x06 \x01(\tR\n" +
+	"storageKey\"\x8f\x06\n" +
 	"\bProposal\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x15\n" +
 	"\x06job_id\x18\x02 \x01(\x03R\x05jobId\x12\x1b\n" +

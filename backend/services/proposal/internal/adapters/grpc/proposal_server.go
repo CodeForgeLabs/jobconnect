@@ -23,6 +23,8 @@ type ProposalServer struct {
 	GetMineByJobUC *application.GetMyProposalForJob
 	HasAppliedUC   *application.HasAppliedToJob
 	HireUC         *application.HireProposal
+	AttachmentUploadURLUC   *application.GetProposalAttachmentUploadURL
+	AttachmentDownloadURLUC *application.GetProposalAttachmentDownloadURL
 	ListByJobUC *application.ListProposalsByJob
 	ListMineUC  *application.ListMyProposals
 	SetStatusUC *application.SetProposalStatus
@@ -38,6 +40,8 @@ func NewProposalServer(
 	getMineByJob *application.GetMyProposalForJob,
 	hasApplied *application.HasAppliedToJob,
 	hire *application.HireProposal,
+	attachmentUploadURL *application.GetProposalAttachmentUploadURL,
+	attachmentDownloadURL *application.GetProposalAttachmentDownloadURL,
 	listByJob *application.ListProposalsByJob,
 	listMine *application.ListMyProposals,
 	setStatus *application.SetProposalStatus,
@@ -51,6 +55,8 @@ func NewProposalServer(
 		GetMineByJobUC: getMineByJob,
 		HasAppliedUC:   hasApplied,
 		HireUC:         hire,
+		AttachmentUploadURLUC:   attachmentUploadURL,
+		AttachmentDownloadURLUC: attachmentDownloadURL,
 		ListByJobUC: listByJob,
 		ListMineUC:  listMine,
 		SetStatusUC: setStatus,
@@ -237,6 +243,58 @@ func (s *ProposalServer) HireProposal(ctx context.Context, req *proposalv1.HireP
 	}, nil
 }
 
+func (s *ProposalServer) GetProposalAttachmentUploadUrl(ctx context.Context, req *proposalv1.GetProposalAttachmentUploadUrlRequest) (*proposalv1.GetProposalAttachmentUploadUrlResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireFreelancerRole(role); err != nil {
+		return nil, err
+	}
+
+	out, err := s.AttachmentUploadURLUC.Execute(ctx, application.GetProposalAttachmentUploadURLInput{
+		FreelancerID: callerID,
+		ProposalID:   req.ProposalId,
+		FileName:     req.FileName,
+		ContentType:  req.ContentType,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &proposalv1.GetProposalAttachmentUploadUrlResponse{StorageKey: out.StorageKey, UploadUrl: out.UploadURL}, nil
+}
+
+func (s *ProposalServer) GetProposalAttachmentDownloadUrl(ctx context.Context, req *proposalv1.GetProposalAttachmentDownloadUrlRequest) (*proposalv1.GetProposalAttachmentDownloadUrlResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+
+	role = strings.ToLower(strings.TrimSpace(role))
+	if role != "client" && role != "freelancer" {
+		return nil, status.Error(codes.PermissionDenied, "client or freelancer role required")
+	}
+
+	out, err := s.AttachmentDownloadURLUC.Execute(ctx, application.GetProposalAttachmentDownloadURLInput{
+		ProposalID:   req.ProposalId,
+		AttachmentID: req.AttachmentId,
+		ActorID:      callerID,
+		ActorRole:    role,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	return &proposalv1.GetProposalAttachmentDownloadUrlResponse{DownloadUrl: out.DownloadURL}, nil
+}
+
 func (s *ProposalServer) ListProposalsByJob(ctx context.Context, req *proposalv1.ListProposalsByJobRequest) (*proposalv1.ListProposalsByJobResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -378,7 +436,7 @@ func fromProtoAttachments(in []*proposalv1.ProposalAttachment) []domain.Attachme
 		if a == nil {
 			continue
 		}
-		out = append(out, domain.Attachment{FileName: a.FileName, ContentType: a.ContentType, URL: a.Url, SizeBytes: a.SizeBytes})
+		out = append(out, domain.Attachment{FileName: a.FileName, ContentType: a.ContentType, URL: a.Url, SizeBytes: a.SizeBytes, StorageKey: a.StorageKey})
 	}
 	return out
 }
@@ -386,7 +444,7 @@ func fromProtoAttachments(in []*proposalv1.ProposalAttachment) []domain.Attachme
 func toProtoAttachments(in []domain.Attachment) []*proposalv1.ProposalAttachment {
 	out := make([]*proposalv1.ProposalAttachment, 0, len(in))
 	for _, a := range in {
-		out = append(out, &proposalv1.ProposalAttachment{Id: a.ID, FileName: a.FileName, ContentType: a.ContentType, Url: a.URL, SizeBytes: a.SizeBytes})
+		out = append(out, &proposalv1.ProposalAttachment{Id: a.ID, FileName: a.FileName, ContentType: a.ContentType, Url: a.URL, SizeBytes: a.SizeBytes, StorageKey: a.StorageKey})
 	}
 	return out
 }

@@ -18,6 +18,7 @@ import (
 	"jobconnect/proposal/internal/infrastructure/clock"
 	"jobconnect/proposal/internal/infrastructure/db"
 	"jobconnect/proposal/internal/infrastructure/jobgrpc"
+	"jobconnect/proposal/internal/infrastructure/storage"
 	"jobconnect/proposal/internal/infrastructure/tokens"
 
 	jobv1 "jobconnect/job/gen/job/v1"
@@ -49,6 +50,19 @@ func main() {
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
 
+	attachmentStore, err := storage.NewAttachmentStore(ctx, cfg.AttachmentStorage)
+	if err != nil {
+		log.Fatalf("proposal attachment store: %v", err)
+	}
+	putTTL, err := time.ParseDuration(cfg.AttachmentStorage.PresignPutTTL)
+	if err != nil {
+		log.Fatalf("invalid proposal attachment put ttl: %v", err)
+	}
+	getTTL, err := time.ParseDuration(cfg.AttachmentStorage.PresignGetTTL)
+	if err != nil {
+		log.Fatalf("invalid proposal attachment get ttl: %v", err)
+	}
+
 	jobConn, err := grpc.NewClient(cfg.JobServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("job service dial: %v", err)
@@ -74,6 +88,8 @@ func main() {
 	getMineByJobUC := &application.GetMyProposalForJob{Proposals: proposalRepo}
 	hasAppliedUC := &application.HasAppliedToJob{Proposals: proposalRepo}
 	hireUC := &application.HireProposal{Proposals: proposalRepo, Jobs: jobs, Clock: clockImpl}
+	attachmentUploadURLUC := &application.GetProposalAttachmentUploadURL{Proposals: proposalRepo, Store: attachmentStore, PutTTL: putTTL}
+	attachmentDownloadURLUC := &application.GetProposalAttachmentDownloadURL{Proposals: proposalRepo, Store: attachmentStore, GetTTL: getTTL}
 	listByJobUC := &application.ListProposalsByJob{Proposals: proposalRepo}
 	listMineUC := &application.ListMyProposals{Proposals: proposalRepo}
 	setStatusUC := &application.SetProposalStatus{Proposals: proposalRepo, Clock: clockImpl}
@@ -86,6 +102,8 @@ func main() {
 		getMineByJobUC,
 		hasAppliedUC,
 		hireUC,
+		attachmentUploadURLUC,
+		attachmentDownloadURLUC,
 		listByJobUC,
 		listMineUC,
 		setStatusUC,
