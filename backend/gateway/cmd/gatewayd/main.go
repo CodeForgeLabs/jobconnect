@@ -63,17 +63,25 @@ func main() {
 	}
 	defer proposalConn.Close()
 
+	recommendationConn, err := grpc.NewClient(cfg.RecommendationServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("recommendation service dial: %v", err)
+	}
+	defer recommendationConn.Close()
+
 	authClient := clients.NewAuthClient(authConn)
 	userClient := clients.NewUserClient(userConn)
 	verificationClient := clients.NewVerificationClient(verificationConn)
 	jobClient := clients.NewJobClient(jobConn)
 	proposalClient := clients.NewProposalClient(proposalConn)
+	recommendationClient := clients.NewRecommendationClient(recommendationConn)
 	authHandler := handlers.NewAuthHandler(cfg, authClient)
 	userHandler := handlers.NewUserHandler(userClient, verificationClient)
 	verificationHandler := handlers.NewVerificationHandler(verificationClient)
 	jobHandler := handlers.NewJobHandler(jobClient)
 	proposalHandler := handlers.NewProposalHandler(proposalClient)
-	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler, proposalHandler)
+	recommendationHandler := handlers.NewRecommendationHandler(recommendationClient)
+	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler, proposalHandler, recommendationHandler)
 
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPListenAddr,

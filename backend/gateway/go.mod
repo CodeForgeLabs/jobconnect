@@ -1,17 +1,18 @@
 module jobconnect/gateway
 
-go 1.25.1
+go 1.26.1
 
 require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	golang.org/x/time v0.15.0
-	google.golang.org/grpc v1.79.1
+	google.golang.org/grpc v1.79.2
 	google.golang.org/protobuf v1.36.11
 	jobconnect/auth v0.0.0
 	jobconnect/job v0.0.0
 	jobconnect/proposal v0.0.0
+	jobconnect/recommendation v0.0.0
 	jobconnect/user v0.0.0
 	jobconnect/verification v0.0.0-00010101000000-000000000000
 )
@@ -57,6 +58,8 @@ replace jobconnect/api => ../api
 replace jobconnect/job => ../services/job
 
 replace jobconnect/proposal => ../services/proposal
+
+replace jobconnect/recommendation => ../services/recommendation
 
 replace jobconnect/user => ../services/user
 
