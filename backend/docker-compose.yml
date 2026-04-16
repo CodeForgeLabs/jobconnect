@@ -343,6 +343,23 @@ services:
       verification:
         condition: service_started
 
+  recommendation:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: recommendation
+        CMD_PATH: ./cmd/recommendationd
+    env_file:
+      - .env
+    ports:
+      - "50064:50064"
+    depends_on:
+      user:
+        condition: service_started
+      job:
+        condition: service_started
+
   gateway:
     build:
       context: .
@@ -359,6 +376,8 @@ services:
       verification:
         condition: service_started
       payment:
+        condition: service_started
+      recommendation:
         condition: service_started
 
 volumes:

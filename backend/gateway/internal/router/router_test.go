@@ -27,6 +27,7 @@ func TestUserPortfolioUpdateRouteUsesPut(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		&handlers.RecommendationHandler{},
 	)
 
 	var foundPut bool
@@ -64,6 +65,7 @@ func TestUserRoutesDoNotExposePublicAdminInternalUserRoutes(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		&handlers.RecommendationHandler{},
 	)
 
 	for _, route := range engine.Routes() {
@@ -94,6 +96,7 @@ func TestUserRoutes_DoNotExposeCreateProfileButExposeGetSinglePortfolioEndpoint(
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		&handlers.RecommendationHandler{},
 	)
 
 	var foundGetPortfolioItem bool
@@ -125,6 +128,7 @@ func TestUserRoutesExposePortfolioMediaUploadURLRoute(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		&handlers.RecommendationHandler{},
 	)
 
 	for _, route := range engine.Routes() {
@@ -149,6 +153,7 @@ func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		&handlers.RecommendationHandler{},
 	)
 
 	clientToken := signTestAccessToken(t, secret, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "client")

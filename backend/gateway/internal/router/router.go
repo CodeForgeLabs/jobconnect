@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, recommendationHandler *handlers.RecommendationHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -35,8 +35,15 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerAdminVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
 	registerJobRoutes(api, jobHandler, jwtParser)
 	registerProposalRoutes(api, proposalHandler, jwtParser)
+	registerRecommendationRoutes(api, recommendationHandler, jwtParser)
 
 	return engine
+}
+
+func registerRecommendationRoutes(api *gin.RouterGroup, recommendationHandler *handlers.RecommendationHandler, jwtParser *auth.JWTParser) {
+	recommendationRoutes := api.Group("/recommendations")
+	recommendationRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("freelancer"))
+	recommendationRoutes.GET("/jobs", recommendationHandler.GetRecommendedJobs)
 }
 
 func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.ProposalHandler, jwtParser *auth.JWTParser) {

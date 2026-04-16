@@ -1,64 +1,145 @@
 package main
 
 import (
+	"bufio"
+	"context"
 	"log"
 	"net"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	
-	"jobconnect/recommendation/internal/application"
-	adaptergrpc "jobconnect/recommendation/internal/adapters/grpc"
+
 	pb "jobconnect/recommendation/gen/recommendation/v1"
-	
+	adaptergrpc "jobconnect/recommendation/internal/adapters/grpc"
+	"jobconnect/recommendation/internal/application"
+	"jobconnect/recommendation/internal/config"
+	"jobconnect/recommendation/internal/infrastructure/cache"
 	"jobconnect/recommendation/internal/infrastructure/jobgrpc"
 	"jobconnect/recommendation/internal/infrastructure/usergrpc"
 )
 
 func main() {
-	jobServiceAddr := os.Getenv("JOB_SERVICE_ADDR")
-	if jobServiceAddr == "" {
-		jobServiceAddr = "localhost:50053" // Default job service port
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if err := loadDotEnv(".env", "../../.env", "../../../.env"); err != nil {
+		log.Fatalf("load .env: %v", err)
 	}
 
-	userServiceAddr := os.Getenv("USER_SERVICE_ADDR")
-	if userServiceAddr == "" {
-		userServiceAddr = "localhost:50052" // Default user service port
-	}
-
-	// Connect to Job Service
-	jobConn, err := grpc.NewClient(jobServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cfg, err := config.LoadFromEnv()
 	if err != nil {
-		log.Fatalf("failed to connect to job service: %v", err)
+		log.Fatalf("config: %v", err)
+	}
+
+	jobConn, err := grpc.NewClient(cfg.JobServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("job service dial: %v", err)
 	}
 	defer jobConn.Close()
-	jobClient := jobgrpc.NewClient(jobConn)
 
-	// Connect to User Service
-	userConn, err := grpc.NewClient(userServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	userConn, err := grpc.NewClient(cfg.UserServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("failed to connect to user service: %v", err)
+		log.Fatalf("user service dial: %v", err)
 	}
 	defer userConn.Close()
-	userClient := usergrpc.NewClient(userConn)
 
-	// Setup application service
-	app := application.NewRecommendationService(jobClient, userClient)
+	app := application.NewRecommendationService(
+		jobgrpc.NewClient(jobConn),
+		usergrpc.NewClient(userConn),
+		cache.NewMemoryCache(cfg.RecommendationCacheTTL),
+		application.ServiceConfig{
+			DefaultLimit:      cfg.DefaultRecommendationLimit,
+			MaxLimit:          cfg.MaxRecommendationLimit,
+			CandidatePageSize: cfg.CandidatePageSize,
+			PerSkillPageSize:  cfg.PerSkillPageSize,
+			MaxSkillQueries:   cfg.MaxSkillQueries,
+		},
+	)
 
-	// Setup gRPC server
 	server := adaptergrpc.NewServer(app)
 	grpcServer := grpc.NewServer()
 	pb.RegisterRecommendationServiceServer(grpcServer, server)
 
-	// Listen and serve
-	lis, err := net.Listen("tcp", ":50055")
+	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.Fatalf("listen: %v", err)
 	}
 
-	log.Println("Recommendation service listening on :50055")
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	go func() {
+		log.Printf("recommendation gRPC listening on %s", cfg.GRPCListenAddr)
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Printf("serve: %v", err)
+			cancel()
+		}
+	}()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	select {
+	case <-sigCh:
+		log.Printf("shutdown requested")
+	case <-ctx.Done():
 	}
+
+	gracefulStop(grpcServer)
+}
+
+func gracefulStop(srv *grpc.Server) {
+	stopped := make(chan struct{})
+	go func() {
+		srv.GracefulStop()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(5 * time.Second):
+		srv.Stop()
+	}
+}
+
+func loadDotEnv(paths ...string) error {
+	for _, path := range paths {
+		if err := loadDotEnvFile(path); err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return err
+		}
+	}
+	return nil
+}
+
+func loadDotEnvFile(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, val, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		val = strings.Trim(strings.TrimSpace(val), "\"'")
+		if key == "" {
+			continue
+		}
+		if _, exists := os.LookupEnv(key); !exists {
+			_ = os.Setenv(key, val)
+		}
+	}
+
+	return scanner.Err()
 }
