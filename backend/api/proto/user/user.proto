@@ -27,7 +27,7 @@ service UserService {
   rpc GetMyCV(GetMyCVRequest) returns (GetMyCVResponse);
   rpc RemoveMyCV(RemoveMyCVRequest) returns (RemoveMyCVResponse);
 
-    rpc GetMyPortfolioMediaUploadUrl(GetMyPortfolioMediaUploadUrlRequest)
+  rpc GetMyPortfolioMediaUploadUrl(GetMyPortfolioMediaUploadUrlRequest)
       returns (GetMyPortfolioMediaUploadUrlResponse);
 
   rpc CreateMyPortfolioItem(CreateMyPortfolioItemRequest)
