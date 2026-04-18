@@ -1,7 +1,8 @@
 import ContractJobCard from "@/components/Contractjobcard";
+import { MilestoneCard } from "@/components/milestoncard";
 const MyContractsPage = () => {
   return (
-    <div className="flex flex-col gap-6 p-8 bg-[#eff1f5] min-h-screen">
+    <div className="flex flex-col gap p-8 bg-[#eff1f5] min-h-screen">
       <div>
         <div>
           <h1 className="text-4xl text-jobBlue">My Contracts</h1>
@@ -11,7 +12,7 @@ const MyContractsPage = () => {
         </div>
       </div>
       <div className="flex gap-4 justify-between mt-6">
-        <div className="flex flex-col gap-11">
+        <div className="flex flex-col gap-6 w-[70%]">
           <div className="flex items-center gap-8">
             <ul className="flex items-center gap-4 rounded-full bg-[#f3f4f6] p-1.25 shadow-sm">
               <li>
@@ -59,8 +60,8 @@ const MyContractsPage = () => {
               />
             </div>
           </div>
-          <div className="flex flex-col items-center gap-4">
-            {/* <ContractJobCard
+          <div className="flex flex-wrap items-center gap-4">
+            <ContractJobCard
               milestoneCurrent={2}
               milestoneTotal={5}
               employer="Aster Technologies"
@@ -68,14 +69,28 @@ const MyContractsPage = () => {
               milestoneDescription="Build and deliver the dashboard UI with fully responsive contract filtering and search experience."
               dueDate="Apr 20, 2026"
               amountToBePaid="$1,250"
+              ContractValue="$5,000"
               status="Active"
               clientId="CL-20417"
-            /> */}
+            />
+            <ContractJobCard
+              milestoneCurrent={2}
+              milestoneTotal={5}
+              employer="Aster Technologies"
+              projectName="JobConnect Frontend Revamp"
+              milestoneDescription="Build and deliver the dashboard UI with fully responsive contract filtering and search experience."
+              dueDate="Apr 20, 2026"
+              amountToBePaid="$1,250"
+              ContractValue="$5,000"
+              status="Active"
+              clientId="CL-20417"
+            />
           </div>
+          <MilestoneCard/>
         </div>
 
         {/* //contracts stats on the right*/}
-        <div></div>
+        <div className=" bg-white">fdgdfg</div>
       </div>
     </div>
   );
