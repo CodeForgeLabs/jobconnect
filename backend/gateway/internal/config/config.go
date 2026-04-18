@@ -25,10 +25,10 @@ type Config struct {
 	RecaptchaMinScore             float64
 	RecaptchaDevBypass            bool
 	RecaptchaBypassToken          string
-
-	OAuthGoogleClientID     string
-	OAuthGoogleClientSecret string
-	OAuthGoogleRedirectURI  string
+	ChatServiceGRPCAddr           string
+	OAuthGoogleClientID           string
+	OAuthGoogleClientSecret       string
+	OAuthGoogleRedirectURI        string
 
 	OAuthGitHubClientID     string
 	OAuthGitHubClientSecret string
@@ -55,6 +55,7 @@ func LoadFromEnv() (Config, error) {
 		UserServiceGRPCAddr:           getEnv("USER_SERVICE_GRPC_ADDR", "user:50052"),
 		VerificationServiceGRPCAddr:   getEnv("VERIFICATION_SERVICE_GRPC_ADDR", "verification:50060"),
 		JobServiceGRPCAddr:            getEnv("JOB_SERVICE_GRPC_ADDR", "job:50053"),
+		ChatServiceGRPCAddr:           getEnv("CHAT_SERVICE_GRPC_ADDR", "chat:50054"),
 		ProposalServiceGRPCAddr:       getEnv("PROPOSAL_SERVICE_GRPC_ADDR", "proposal:50054"),
 		RecommendationServiceGRPCAddr: getEnv("RECOMMENDATION_SERVICE_GRPC_ADDR", "recommendation:50064"),
 		JWTSecret:                     []byte(secret),
@@ -97,6 +98,9 @@ func LoadFromEnv() (Config, error) {
 	}
 	if cfg.RecommendationServiceGRPCAddr == "" {
 		return Config{}, fmt.Errorf("RECOMMENDATION_SERVICE_GRPC_ADDR is required")
+	}
+	if cfg.ChatServiceGRPCAddr == "" {
+		return Config{}, fmt.Errorf("CHAT_SERVICE_GRPC_ADDR is required")
 	}
 	return cfg, nil
 }

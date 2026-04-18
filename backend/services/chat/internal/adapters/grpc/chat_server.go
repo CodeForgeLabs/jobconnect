@@ -2,11 +2,14 @@ package grpcadapter
 
 import (
 	"context"
+	"errors"
 	chatv1 "jobconnect/chat/gen/chat/v1"
 	"jobconnect/chat/internal/adapters/ws"
 	applications "jobconnect/chat/internal/application"
 	"jobconnect/chat/internal/domain"
 	"time"
+
+	"google.golang.org/grpc/metadata"
 )
 
 type ChatServer struct {
@@ -121,9 +124,13 @@ func (s *ChatServer) MarkAsSeen(ctx context.Context, req *chatv1.MarkAsSeenReque
 }
 
 func (s *ChatServer) EditMessage(ctx context.Context, req *chatv1.EditMessageRequest) (*chatv1.EditMessageResponse, error) {
+	userId, err := getUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	input := applications.EditMessageInput{
 		MessageID:  req.GetMessageId(),
-		UserID:     "771f9511-f30c-52e5-b827-557766551111", // later the userID should be extracted from the token
+		UserID:     userId, // later the userID should be extracted from the token
 		NewContent: getMessageContentFromProto(req.GetNewContent()),
 	}
 	output, err := s.editMessage.Execute(ctx, input)
@@ -137,9 +144,13 @@ func (s *ChatServer) EditMessage(ctx context.Context, req *chatv1.EditMessageReq
 }
 
 func (s *ChatServer) DeleteMessage(ctx context.Context, req *chatv1.DeleteMessageRequest) (*chatv1.DeleteMessageResponse, error) {
+	userId, err := getUserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	input := applications.DeleteMessageInput{
 		MessageID: req.GetMessageId(),
-		UserID:    "771f9511-f30c-52e5-b827-557766551111", // later the userID should be extracted from the token
+		UserID:    userId, // later the userID should be extracted from the token
 	}
 
 	output, err := s.deleteMessage.Execute(ctx, input)
@@ -206,4 +217,23 @@ func (s *ChatServer) DeleteConversation(ctx context.Context, req *chatv1.DeleteC
 	return &chatv1.DeleteConversationResponse{
 		Success: output.Success,
 	}, nil
+}
+
+func getUserIDFromContext(ctx context.Context) (string, error) {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return "", errors.New("missing metadata")
+	}
+
+	userIDs := md.Get("user_id")
+	if len(userIDs) == 0 {
+		return "", errors.New("missing user_id")
+	}
+
+	userID := userIDs[0]
+	if userID == "" {
+		return "", errors.New("empty user_id")
+	}
+
+	return userID, nil
 }

@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, recommendationHandler *handlers.RecommendationHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -21,7 +21,6 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	engine.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
-
 	jwtParser := auth.NewJWTParser(cfg.JWTSecret)
 	engine.Use(middleware.OptionalAuth(jwtParser))
 
@@ -36,6 +35,7 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerJobRoutes(api, jobHandler, jwtParser)
 	registerProposalRoutes(api, proposalHandler, jwtParser)
 	registerRecommendationRoutes(api, recommendationHandler, jwtParser)
+	registerChatRoutes(api, chatHandler, jwtParser)
 
 	return engine
 }
@@ -201,4 +201,23 @@ func registerAdminVerificationRoutes(api *gin.RouterGroup, verificationHandler *
 	adminVerificationRoutes.GET("/:requestId", verificationHandler.GetByID)
 	adminVerificationRoutes.POST("/:requestId/review", sensitiveLimiter.Middleware(), verificationHandler.Review)
 	adminVerificationRoutes.POST("/reverification", sensitiveLimiter.Middleware(), verificationHandler.RequestReverification)
+}
+
+// CHAT
+func registerChatRoutes(api *gin.RouterGroup, chatHandler *handlers.ChatHandler, jwtParser *auth.JWTParser) {
+	chat := api.Group("/chat")
+	chat.Use(middleware.RequireAuth(jwtParser))
+
+	// Conversations
+	chat.GET("/conversations", chatHandler.GetMyConversations)
+	chat.DELETE("/conversations/:userId", chatHandler.DeleteConversation)
+
+	// Messages
+	chat.GET("/:userId/messages", chatHandler.GetMessages)
+	chat.POST("/messages", chatHandler.SendMessage)
+
+	// Message actions
+	chat.POST("/messages/:messageId/seen", chatHandler.MarkAsSeen)
+	chat.PUT("/messages/:messageId", chatHandler.EditMessage)
+	chat.DELETE("/messages/:messageId", chatHandler.DeleteMessage)
 }

@@ -300,6 +300,7 @@ services:
       - .env
     ports:
       - "50063:50060"
+      - "8081:8080"
     depends_on:
       chat-db:
         condition: service_healthy

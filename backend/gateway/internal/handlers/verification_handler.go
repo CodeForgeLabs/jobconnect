@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	verificationv1 "jobconnect/verification/gen/verification/v1"
 
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/metadata"
 )
 
 type VerificationHandler struct {
@@ -205,4 +207,8 @@ func parseIntQuery(c *gin.Context, key string, def int) int {
 		return def
 	}
 	return n
+}
+
+func attachUserID(ctx context.Context, userID string) context.Context {
+	return metadata.AppendToOutgoingContext(ctx, "user_id", userID)
 }
