@@ -1,0 +1,13 @@
+/* @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"); */
+@config "../tailwind.config.ts";
+@plugin "daisyui";
+@import "tailwindcss";
+
+
+
+/* Set global font for body */
+html, body {
+  @apply font-sans;
+  font-family: 'Inter', sans-serif;
+  
+}
