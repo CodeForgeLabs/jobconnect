@@ -7,9 +7,10 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	golang.org/x/time v0.15.0
-	google.golang.org/grpc v1.79.2
+	google.golang.org/grpc v1.79.3
 	google.golang.org/protobuf v1.36.11
 	jobconnect/auth v0.0.0
+	jobconnect/chat v0.0.0
 	jobconnect/job v0.0.0
 	jobconnect/proposal v0.0.0
 	jobconnect/recommendation v0.0.0
@@ -62,5 +63,7 @@ replace jobconnect/proposal => ../services/proposal
 replace jobconnect/recommendation => ../services/recommendation
 
 replace jobconnect/user => ../services/user
+
+replace jobconnect/chat => ../services/chat
 
 replace jobconnect/verification => ../services/verification
