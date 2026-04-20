@@ -18,7 +18,8 @@ $maps = @(
     @{ Name = "wallet-db";   User = "wallet";   Db = "jobconnect_wallet";   Dir = "services/wallet/migrations" },
     @{ Name = "chat-db";     User = "chat";     Db = "jobconnect_chat";     Dir = "services/chat/migrations" },
     @{ Name = "connects-db"; User = "connects"; Db = "jobconnect_connects"; Dir = "services/connects/migrations" },
-    @{ Name = "verification-db"; User = "verification"; Db = "jobconnect_verification"; Dir = "services/verification/migrations" }
+    @{ Name = "verification-db"; User = "verification"; Db = "jobconnect_verification"; Dir = "services/verification/migrations" },
+    @{ Name = "reviews-db"; User = "reviews"; Db = "jobconnect_reviews"; Dir = "services/reviews/migrations" }
 )
 
 function Ensure-MigrationTable {
