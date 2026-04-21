@@ -299,7 +299,6 @@ type Milestone struct {
 	Title                  string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	Description            string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Amount                 float64                `protobuf:"fixed64,4,opt,name=amount,proto3" json:"amount,omitempty"`
-	Currency               string                 `protobuf:"bytes,5,opt,name=currency,proto3" json:"currency,omitempty"`
 	DueAtUnixSeconds       int64                  `protobuf:"varint,6,opt,name=due_at_unix_seconds,json=dueAtUnixSeconds,proto3" json:"due_at_unix_seconds,omitempty"`
 	Status                 MilestoneStatus        `protobuf:"varint,7,opt,name=status,proto3,enum=contract.v1.MilestoneStatus" json:"status,omitempty"`
 	SubmissionNote         string                 `protobuf:"bytes,8,opt,name=submission_note,json=submissionNote,proto3" json:"submission_note,omitempty"`
@@ -368,13 +367,6 @@ func (x *Milestone) GetAmount() float64 {
 		return x.Amount
 	}
 	return 0
-}
-
-func (x *Milestone) GetCurrency() string {
-	if x != nil {
-		return x.Currency
-	}
-	return ""
 }
 
 func (x *Milestone) GetDueAtUnixSeconds() int64 {
@@ -768,7 +760,6 @@ type Contract struct {
 	Status                 ContractStatus         `protobuf:"varint,7,opt,name=status,proto3,enum=contract.v1.ContractStatus" json:"status,omitempty"`
 	Title                  string                 `protobuf:"bytes,8,opt,name=title,proto3" json:"title,omitempty"`
 	Description            string                 `protobuf:"bytes,9,opt,name=description,proto3" json:"description,omitempty"`
-	Currency               string                 `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"`
 	HourlyRate             float64                `protobuf:"fixed64,11,opt,name=hourly_rate,json=hourlyRate,proto3" json:"hourly_rate,omitempty"`
 	FixedTotal             float64                `protobuf:"fixed64,12,opt,name=fixed_total,json=fixedTotal,proto3" json:"fixed_total,omitempty"`
 	WeeklyHourLimit        int32                  `protobuf:"varint,13,opt,name=weekly_hour_limit,json=weeklyHourLimit,proto3" json:"weekly_hour_limit,omitempty"`
@@ -876,13 +867,6 @@ func (x *Contract) GetDescription() string {
 	return ""
 }
 
-func (x *Contract) GetCurrency() string {
-	if x != nil {
-		return x.Currency
-	}
-	return ""
-}
-
 func (x *Contract) GetHourlyRate() float64 {
 	if x != nil {
 		return x.HourlyRate
@@ -961,7 +945,6 @@ type CreateContractRequest struct {
 	ContractType    ContractType           `protobuf:"varint,4,opt,name=contract_type,json=contractType,proto3,enum=contract.v1.ContractType" json:"contract_type,omitempty"`
 	Title           string                 `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
 	Description     string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
-	Currency        string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
 	HourlyRate      float64                `protobuf:"fixed64,8,opt,name=hourly_rate,json=hourlyRate,proto3" json:"hourly_rate,omitempty"`
 	FixedTotal      float64                `protobuf:"fixed64,9,opt,name=fixed_total,json=fixedTotal,proto3" json:"fixed_total,omitempty"`
 	WeeklyHourLimit int32                  `protobuf:"varint,10,opt,name=weekly_hour_limit,json=weeklyHourLimit,proto3" json:"weekly_hour_limit,omitempty"`
@@ -1038,13 +1021,6 @@ func (x *CreateContractRequest) GetTitle() string {
 func (x *CreateContractRequest) GetDescription() string {
 	if x != nil {
 		return x.Description
-	}
-	return ""
-}
-
-func (x *CreateContractRequest) GetCurrency() string {
-	if x != nil {
-		return x.Currency
 	}
 	return ""
 }
@@ -2685,13 +2661,12 @@ var File_contract_v1_contract_proto protoreflect.FileDescriptor
 
 const file_contract_v1_contract_proto_rawDesc = "" +
 	"\n" +
-	"\x1acontract/v1/contract.proto\x12\vcontract.v1\"\xfa\x03\n" +
+	"\x1acontract/v1/contract.proto\x12\vcontract.v1\"\xee\x03\n" +
 	"\tMilestone\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x16\n" +
-	"\x06amount\x18\x04 \x01(\x01R\x06amount\x12\x1a\n" +
-	"\bcurrency\x18\x05 \x01(\tR\bcurrency\x12-\n" +
+	"\x06amount\x18\x04 \x01(\x01R\x06amount\x12-\n" +
 	"\x13due_at_unix_seconds\x18\x06 \x01(\x03R\x10dueAtUnixSeconds\x124\n" +
 	"\x06status\x18\a \x01(\x0e2\x1c.contract.v1.MilestoneStatusR\x06status\x12'\n" +
 	"\x0fsubmission_note\x18\b \x01(\tR\x0esubmissionNote\x12'\n" +
@@ -2701,7 +2676,7 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\vreview_note\x18\v \x01(\tR\n" +
 	"reviewNote\x127\n" +
 	"\x18reviewed_at_unix_seconds\x18\f \x01(\x03R\x15reviewedAtUnixSeconds\x12%\n" +
-	"\x0erevision_count\x18\r \x01(\x05R\rrevisionCount\"\xfe\x03\n" +
+	"\x0erevision_count\x18\r \x01(\x05R\rrevisionCountJ\x04\b\x05\x10\x06R\bcurrency\"\xfe\x03\n" +
 	"\tHourlyLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
 	"\vcontract_id\x18\x02 \x01(\x03R\n" +
@@ -2737,7 +2712,7 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\x06status\x18\x03 \x01(\x0e2\x1b.contract.v1.ContractStatusR\x06status\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x19\n" +
 	"\bactor_id\x18\x05 \x01(\tR\aactorId\x125\n" +
-	"\x17created_at_unix_seconds\x18\x06 \x01(\x03R\x14createdAtUnixSeconds\"\xcd\x06\n" +
+	"\x17created_at_unix_seconds\x18\x06 \x01(\x03R\x14createdAtUnixSeconds\"\xc1\x06\n" +
 	"\bContract\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1b\n" +
 	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12#\n" +
@@ -2748,9 +2723,7 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\rcontract_type\x18\x06 \x01(\x0e2\x19.contract.v1.ContractTypeR\fcontractType\x123\n" +
 	"\x06status\x18\a \x01(\x0e2\x1b.contract.v1.ContractStatusR\x06status\x12\x14\n" +
 	"\x05title\x18\b \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\t \x01(\tR\vdescription\x12\x1a\n" +
-	"\bcurrency\x18\n" +
-	" \x01(\tR\bcurrency\x12\x1f\n" +
+	"\vdescription\x18\t \x01(\tR\vdescription\x12\x1f\n" +
 	"\vhourly_rate\x18\v \x01(\x01R\n" +
 	"hourlyRate\x12\x1f\n" +
 	"\vfixed_total\x18\f \x01(\x01R\n" +
@@ -2764,7 +2737,8 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\x19activated_at_unix_seconds\x18\x11 \x01(\x03R\x16activatedAtUnixSeconds\x127\n" +
 	"\x18declined_at_unix_seconds\x18\x12 \x01(\x03R\x15declinedAtUnixSeconds\x123\n" +
 	"\x16paused_at_unix_seconds\x18\x13 \x01(\x03R\x13pausedAtUnixSeconds\x121\n" +
-	"\x15ended_at_unix_seconds\x18\x14 \x01(\x03R\x12endedAtUnixSeconds\"\xae\x03\n" +
+	"\x15ended_at_unix_seconds\x18\x14 \x01(\x03R\x12endedAtUnixSecondsJ\x04\b\n" +
+	"\x10\vR\bcurrency\"\xa2\x03\n" +
 	"\x15CreateContractRequest\x12#\n" +
 	"\rfreelancer_id\x18\x01 \x01(\tR\ffreelancerId\x12\x15\n" +
 	"\x06job_id\x18\x02 \x01(\x03R\x05jobId\x12\x1f\n" +
@@ -2772,8 +2746,7 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"proposalId\x12>\n" +
 	"\rcontract_type\x18\x04 \x01(\x0e2\x19.contract.v1.ContractTypeR\fcontractType\x12\x14\n" +
 	"\x05title\x18\x05 \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\x06 \x01(\tR\vdescription\x12\x1a\n" +
-	"\bcurrency\x18\a \x01(\tR\bcurrency\x12\x1f\n" +
+	"\vdescription\x18\x06 \x01(\tR\vdescription\x12\x1f\n" +
 	"\vhourly_rate\x18\b \x01(\x01R\n" +
 	"hourlyRate\x12\x1f\n" +
 	"\vfixed_total\x18\t \x01(\x01R\n" +
@@ -2782,7 +2755,7 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	" \x01(\x05R\x0fweeklyHourLimit\x126\n" +
 	"\n" +
 	"milestones\x18\v \x03(\v2\x16.contract.v1.MilestoneR\n" +
-	"milestones\"K\n" +
+	"milestonesJ\x04\b\a\x10\bR\bcurrency\"K\n" +
 	"\x16CreateContractResponse\x121\n" +
 	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"5\n" +
 	"\x12GetContractRequest\x12\x1f\n" +
