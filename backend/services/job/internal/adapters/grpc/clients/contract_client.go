@@ -28,13 +28,13 @@ func NewContractClient(address string) (*ContractClient, error) {
 
 func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.CreateContractFromProposalInput) (int64, error) {
 	if c == nil || c.client == nil {
-		return fmt.Errorf("contract client is nil")
+		return 0, fmt.Errorf("contract client is nil")
 	}
 	if in.JobID <= 0 {
-		return fmt.Errorf("job_id is required")
+		return 0, fmt.Errorf("job_id is required")
 	}
 	if in.ProposalID <= 0 {
-		return fmt.Errorf("proposal_id is required")
+		return 0, fmt.Errorf("proposal_id is required")
 	}
 
 	contractType := contractv1.ContractType_CONTRACT_TYPE_FIXED
@@ -59,7 +59,7 @@ func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.
 		WeeklyHourLimit: 0,
 	})
 	if err != nil {
-		return fmt.Errorf("create contract: %w", err)
+		return 0, fmt.Errorf("create contract: %w", err)
 	}
 	if res == nil || res.Contract == nil {
 		return 0, fmt.Errorf("create contract: empty response")

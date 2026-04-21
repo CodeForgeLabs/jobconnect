@@ -171,7 +171,6 @@ func (s *JobServer) CreateJob(ctx context.Context, req *jobv1.CreateJobRequest) 
 		JobType:        jobType,
 		BudgetFixed:    req.BudgetFixed,
 		HourlyRate:     req.HourlyRate,
-		Currency:       req.Currency,
 		Deadline:       deadline,
 		Attachments:    attachments,
 	})
@@ -274,9 +273,6 @@ func (s *JobServer) UpdateJob(ctx context.Context, req *jobv1.UpdateJobRequest) 
 	}
 	if req.HourlyRate != nil {
 		in.HourlyRate = req.HourlyRate
-	}
-	if req.Currency != nil {
-		in.Currency = req.Currency
 	}
 	if req.DeadlineUnixSeconds != nil {
 		in.Deadline = req.DeadlineUnixSeconds
@@ -1005,7 +1001,6 @@ func toProtoJob(in domain.Job) *jobv1.Job {
 		RequiredSkills:       in.RequiredSkills,
 		BudgetFixed:          in.BudgetFixed,
 		HourlyRate:           in.HourlyRate,
-		Currency:             in.Currency,
 		BudgetMin:            in.BudgetMin,
 		BudgetMax:            in.BudgetMax,
 		Attachments:          attachments,

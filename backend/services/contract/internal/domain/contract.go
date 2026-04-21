@@ -148,10 +148,6 @@ func ValidateForCreate(c Contract) error {
 	if err := ValidateType(c.ContractType); err != nil {
 		return err
 	}
-	if strings.TrimSpace(c.Currency) == "" {
-		return fmt.Errorf("currency is required")
-	}
-
 	if strings.EqualFold(c.ContractType, TypeFixed) {
 		if c.FixedTotal <= 0 {
 			return fmt.Errorf("fixed_total must be greater than zero")

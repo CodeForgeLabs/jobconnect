@@ -151,12 +151,6 @@ func ValidateCreate(job Job, now time.Time) error {
 			return fmt.Errorf("budget_fixed must be empty for hourly jobs")
 		}
 	}
-	if job.Currency == "" {
-		return fmt.Errorf("currency is required")
-	}
-	if len(job.Currency) > 8 {
-		return fmt.Errorf("currency too long")
-	}
 	if job.Deadline != nil && !job.Deadline.After(now) {
 		return fmt.Errorf("deadline must be in the future")
 	}
