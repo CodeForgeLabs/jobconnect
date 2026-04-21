@@ -71,8 +71,18 @@ func main() {
 		log.Fatalf("proposal service dial: %v", err)
 	}
 
+	contractAddr := os.Getenv("CONTRACT_SERVICE_ADDR")
+	if contractAddr == "" {
+		contractAddr = "localhost:50055"
+	}
+	contractCli, err := clients.NewContractClient(contractAddr)
+	if err != nil {
+		log.Fatalf("contract service dial: %v", err)
+	}
+
 	createJobUC := &application.CreateJob{Jobs: jobRepo, Clock: clockImpl}
 	getJobUC := &application.GetJob{Jobs: jobRepo}
+	getJobSummaryUC := &application.GetJobSummary{Jobs: jobRepo}
 	updateJobUC := &application.UpdateJob{Jobs: jobRepo, Clock: clockImpl}
 	listMyJobsUC := &application.ListMyJobs{Jobs: jobRepo}
 	listOpenJobsUC := &application.ListOpenJobs{Jobs: jobRepo}
@@ -97,7 +107,7 @@ func main() {
 	saveJobUC := &application.SaveJob{Jobs: jobRepo, Clock: clockImpl}
 	unsaveJobUC := &application.UnsaveJob{Jobs: jobRepo}
 	listSavedJobsUC := &application.ListSavedJobs{Jobs: jobRepo}
-	hireApplicantUC := &application.HireApplicant{Jobs: jobRepo, Proposals: proposalCli, Clock: clockImpl}
+	hireApplicantUC := &application.HireApplicant{Jobs: jobRepo, Proposals: proposalCli, Contracts: contractCli, Clock: clockImpl}
 	rejectAllUC := &application.RejectAllApplicants{Jobs: jobRepo, Proposals: proposalCli}
 	reopenHiringUC := &application.ReopenHiringForJob{Jobs: jobRepo, Clock: clockImpl}
 	getJobStatsUC := &application.GetJobStats{Jobs: jobRepo, Proposals: proposalCli}
@@ -108,6 +118,7 @@ func main() {
 	jobServer := grpcadapter.NewJobServer(grpcadapter.JobServerConfig{
 		CreateJobUC:        createJobUC,
 		GetJobUC:           getJobUC,
+		GetJobSummaryUC:    getJobSummaryUC,
 		UpdateJobUC:        updateJobUC,
 		ListMyJobsUC:       listMyJobsUC,
 		ListOpenJobsUC:     listOpenJobsUC,

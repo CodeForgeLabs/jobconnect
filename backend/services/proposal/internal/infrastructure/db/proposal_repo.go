@@ -2,7 +2,9 @@ package db
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -40,6 +42,9 @@ func (r *ProposalRepo) Create(ctx context.Context, p domain.Proposal) (int64, er
 	`, p.JobID, p.ClientID, p.FreelancerID, p.CoverLetter, p.BidType, p.BidAmount, p.EstimatedDays,
 		p.Status, p.StatusReason, p.CreatedAt, p.UpdatedAt, p.ConnectsSpent).Scan(&id)
 	if err != nil {
+		if isUniqueViolation(err, "uq_proposals_active_per_job_freelancer") {
+			return 0, fmt.Errorf("active proposal already exists for this job: %w", ErrConflict)
+		}
 		return 0, err
 	}
 
@@ -59,6 +64,10 @@ func (r *ProposalRepo) GetByID(ctx context.Context, proposalID int64) (domain.Pr
 
 func (r *ProposalRepo) GetByIDForFreelancer(ctx context.Context, proposalID int64, freelancerID uuid.UUID) (domain.Proposal, error) {
 	return r.getByWhere(ctx, `where id = $1 and freelancer_id = $2`, proposalID, freelancerID)
+}
+
+func (r *ProposalRepo) GetLatestByJobForFreelancer(ctx context.Context, jobID int64, freelancerID uuid.UUID) (domain.Proposal, error) {
+	return r.getByWhere(ctx, `where job_id = $1 and freelancer_id = $2 order by created_at desc limit 1`, jobID, freelancerID)
 }
 
 func (r *ProposalRepo) GetByIDForClient(ctx context.Context, proposalID int64, clientID uuid.UUID) (domain.Proposal, error) {
@@ -147,7 +156,113 @@ func (r *ProposalRepo) SetStatus(ctx context.Context, proposalID int64, clientID
 	return nil
 }
 
-func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJobFilter, limit, offset int) ([]domain.Proposal, error) {
+func (r *ProposalRepo) RevertHire(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error {
+	res, err := r.pool.Exec(ctx, `
+		update proposals
+		set status = 'shortlisted',
+			status_reason = $3,
+			hired_at = null,
+			updated_at = $4
+		where id = $1 and client_id = $2 and status = 'hired'
+	`, proposalID, clientID, reason, at)
+	if err != nil {
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *ProposalRepo) HasHiredProposalForJob(ctx context.Context, jobID int64) (bool, error) {
+	var exists bool
+	err := r.pool.QueryRow(ctx, `
+		select exists(
+			select 1 from proposals
+			where job_id = $1 and status = 'hired'
+		)
+	`, jobID).Scan(&exists)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func (r *ProposalRepo) HireWithRequestID(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error) {
+	tx, err := r.pool.Begin(ctx)
+	if err != nil {
+		return domain.Proposal{}, false, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var existingProposalID int64
+	err = tx.QueryRow(ctx, `
+		select proposal_id
+		from proposal_hire_requests
+		where client_id = $1 and proposal_id = $2 and request_id = $3
+	`, clientID, proposalID, requestID).Scan(&existingProposalID)
+	if err == nil {
+		if err := tx.Commit(ctx); err != nil {
+			return domain.Proposal{}, false, err
+		}
+		p, getErr := r.GetByIDForClient(ctx, existingProposalID, clientID)
+		if getErr != nil {
+			return domain.Proposal{}, false, getErr
+		}
+		return p, true, nil
+	}
+	if !isNoRows(err) {
+		return domain.Proposal{}, false, err
+	}
+
+	res, err := tx.Exec(ctx, `
+		update proposals
+		set status = 'hired',
+			status_reason = $3,
+			hired_at = $4,
+			updated_at = $4
+		where id = $1 and client_id = $2 and status in ('sent', 'shortlisted')
+	`, proposalID, clientID, reason, at)
+	if err != nil {
+		if isUniqueViolation(err, "uq_proposals_single_hired_per_job") {
+			return domain.Proposal{}, false, fmt.Errorf("job already has a hired proposal: %w", ErrConflict)
+		}
+		return domain.Proposal{}, false, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Proposal{}, false, fmt.Errorf("proposal cannot be hired in current status: %w", ErrConflict)
+	}
+
+	_, err = tx.Exec(ctx, `
+		insert into proposal_hire_requests (client_id, proposal_id, request_id, created_at)
+		values ($1, $2, $3, $4)
+	`, clientID, proposalID, requestID, at)
+	if err != nil {
+		if isUniqueViolation(err, "proposal_hire_requests_client_id_proposal_id_request_id_key") {
+			if err := tx.Commit(ctx); err != nil {
+				return domain.Proposal{}, false, err
+			}
+			p, getErr := r.GetByIDForClient(ctx, proposalID, clientID)
+			if getErr != nil {
+				return domain.Proposal{}, false, getErr
+			}
+			return p, true, nil
+		}
+		return domain.Proposal{}, false, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return domain.Proposal{}, false, err
+	}
+
+	p, err := r.GetByIDForClient(ctx, proposalID, clientID)
+	if err != nil {
+		return domain.Proposal{}, false, err
+	}
+	return p, false, nil
+}
+
+func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJobFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 	order := mapSortBy(filter.SortBy)
 	args := []any{filter.ClientID, filter.JobID}
 	idx := 3
@@ -168,12 +283,21 @@ func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJ
 		args = append(args, *filter.FreelancerID)
 		idx++
 	}
-	query += fmt.Sprintf(` order by %s limit $%d offset $%d`, order, idx, idx+1)
-	args = append(args, limit, offset)
+
+	if strings.TrimSpace(pageToken) != "" {
+		cursor, err := decodeCursorToken(pageToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("invalid page_token")
+		}
+		query, args, idx = appendCursorPredicate(query, args, idx, filter.SortBy, cursor)
+	}
+
+	query += fmt.Sprintf(` order by %s limit $%d`, order, idx)
+	args = append(args, pageSize+1)
 
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer rows.Close()
 
@@ -181,21 +305,27 @@ func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJ
 	for rows.Next() {
 		p, err := scanProposal(rows)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		items = append(items, p)
 	}
 	if rows.Err() != nil {
-		return nil, rows.Err()
+		return nil, "", rows.Err()
+	}
+
+	nextToken := ""
+	if len(items) > pageSize {
+		nextToken = encodeCursorToken(items[pageSize-1])
+		items = items[:pageSize]
 	}
 
 	if err := r.loadAttachments(ctx, items); err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return items, nil
+	return items, nextToken, nil
 }
 
-func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.ListByFreelancerFilter, limit, offset int) ([]domain.Proposal, error) {
+func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.ListByFreelancerFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
 	order := mapSortBy(filter.SortBy)
 	args := []any{filter.FreelancerID}
 	idx := 2
@@ -216,12 +346,21 @@ func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.
 		args = append(args, *filter.JobID)
 		idx++
 	}
-	query += fmt.Sprintf(` order by %s limit $%d offset $%d`, order, idx, idx+1)
-	args = append(args, limit, offset)
+
+	if strings.TrimSpace(pageToken) != "" {
+		cursor, err := decodeCursorToken(pageToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("invalid page_token")
+		}
+		query, args, idx = appendCursorPredicate(query, args, idx, filter.SortBy, cursor)
+	}
+
+	query += fmt.Sprintf(` order by %s limit $%d`, order, idx)
+	args = append(args, pageSize+1)
 
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	defer rows.Close()
 
@@ -229,18 +368,157 @@ func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.
 	for rows.Next() {
 		p, err := scanProposal(rows)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		items = append(items, p)
 	}
 	if rows.Err() != nil {
-		return nil, rows.Err()
+		return nil, "", rows.Err()
+	}
+
+	nextToken := ""
+	if len(items) > pageSize {
+		nextToken = encodeCursorToken(items[pageSize-1])
+		items = items[:pageSize]
 	}
 
 	if err := r.loadAttachments(ctx, items); err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return items, nil
+	return items, nextToken, nil
+}
+
+func (r *ProposalRepo) ListByClient(ctx context.Context, filter application.ListByClientFilter, pageSize int, pageToken string) ([]domain.Proposal, string, error) {
+	order := mapSortBy(filter.SortBy)
+	args := []any{filter.ClientID}
+	idx := 2
+	query := `
+		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
+			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at, connects_spent
+		from proposals
+		where client_id = $1
+	`
+
+	if len(filter.Statuses) > 0 {
+		query += fmt.Sprintf(` and status = any($%d)`, idx)
+		args = append(args, filter.Statuses)
+		idx++
+	}
+	if filter.JobID != nil {
+		query += fmt.Sprintf(` and job_id = $%d`, idx)
+		args = append(args, *filter.JobID)
+		idx++
+	}
+	if filter.FreelancerID != nil {
+		query += fmt.Sprintf(` and freelancer_id = $%d`, idx)
+		args = append(args, *filter.FreelancerID)
+		idx++
+	}
+
+	if strings.TrimSpace(pageToken) != "" {
+		cursor, err := decodeCursorToken(pageToken)
+		if err != nil {
+			return nil, "", fmt.Errorf("invalid page_token")
+		}
+		query, args, idx = appendCursorPredicate(query, args, idx, filter.SortBy, cursor)
+	}
+
+	query += fmt.Sprintf(` order by %s limit $%d`, order, idx)
+	args = append(args, pageSize+1)
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return nil, "", err
+	}
+	defer rows.Close()
+
+	items := make([]domain.Proposal, 0)
+	for rows.Next() {
+		p, err := scanProposal(rows)
+		if err != nil {
+			return nil, "", err
+		}
+		items = append(items, p)
+	}
+	if rows.Err() != nil {
+		return nil, "", rows.Err()
+	}
+
+	nextToken := ""
+	if len(items) > pageSize {
+		nextToken = encodeCursorToken(items[pageSize-1])
+		items = items[:pageSize]
+	}
+
+	if err := r.loadAttachments(ctx, items); err != nil {
+		return nil, "", err
+	}
+	return items, nextToken, nil
+}
+
+func (r *ProposalRepo) CountByJobForClient(ctx context.Context, clientID uuid.UUID, jobID int64) (int64, map[string]int64, error) {
+	rows, err := r.pool.Query(ctx, `
+		select status, count(*)
+		from proposals
+		where client_id = $1 and job_id = $2
+		group by status
+	`, clientID, jobID)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	byStatus := make(map[string]int64)
+	var total int64
+	for rows.Next() {
+		var status string
+		var count int64
+		if err := rows.Scan(&status, &count); err != nil {
+			return 0, nil, err
+		}
+		byStatus[status] = count
+		total += count
+	}
+	if rows.Err() != nil {
+		return 0, nil, rows.Err()
+	}
+	return total, byStatus, nil
+}
+
+func (r *ProposalRepo) CountClientInbox(ctx context.Context, clientID uuid.UUID, statuses []string) (int64, map[string]int64, error) {
+	args := []any{clientID}
+	query := `
+		select status, count(*)
+		from proposals
+		where client_id = $1
+	`
+	if len(statuses) > 0 {
+		query += ` and status = any($2)`
+		args = append(args, statuses)
+	}
+	query += ` group by status`
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return 0, nil, err
+	}
+	defer rows.Close()
+
+	byStatus := make(map[string]int64)
+	var total int64
+	for rows.Next() {
+		var status string
+		var count int64
+		if err := rows.Scan(&status, &count); err != nil {
+			return 0, nil, err
+		}
+		byStatus[status] = count
+		total += count
+	}
+	if rows.Err() != nil {
+		return 0, nil, rows.Err()
+	}
+	return total, byStatus, nil
 }
 
 func (r *ProposalRepo) getByWhere(ctx context.Context, where string, args ...any) (domain.Proposal, error) {
@@ -273,9 +551,9 @@ func (r *ProposalRepo) replaceAttachmentsTx(ctx context.Context, tx pgx.Tx, prop
 	}
 	for _, a := range attachments {
 		if _, err := tx.Exec(ctx, `
-			insert into proposal_attachments (proposal_id, file_name, content_type, url, size_bytes)
-			values ($1,$2,$3,$4,$5)
-		`, proposalID, a.FileName, a.ContentType, a.URL, a.SizeBytes); err != nil {
+			insert into proposal_attachments (proposal_id, file_name, content_type, url, size_bytes, storage_key)
+			values ($1,$2,$3,$4,$5,$6)
+		`, proposalID, a.FileName, a.ContentType, a.URL, a.SizeBytes, a.StorageKey); err != nil {
 			return err
 		}
 	}
@@ -298,7 +576,7 @@ func (r *ProposalRepo) loadAttachments(ctx context.Context, items []domain.Propo
 
 func (r *ProposalRepo) getAttachmentsByProposalID(ctx context.Context, proposalID int64) ([]domain.Attachment, error) {
 	rows, err := r.pool.Query(ctx, `
-		select id, file_name, content_type, url, size_bytes
+		select id, file_name, content_type, url, size_bytes, storage_key
 		from proposal_attachments
 		where proposal_id = $1
 		order by id asc
@@ -311,7 +589,7 @@ func (r *ProposalRepo) getAttachmentsByProposalID(ctx context.Context, proposalI
 	attachments := make([]domain.Attachment, 0)
 	for rows.Next() {
 		var a domain.Attachment
-		if err := rows.Scan(&a.ID, &a.FileName, &a.ContentType, &a.URL, &a.SizeBytes); err != nil {
+		if err := rows.Scan(&a.ID, &a.FileName, &a.ContentType, &a.URL, &a.SizeBytes, &a.StorageKey); err != nil {
 			return nil, err
 		}
 		attachments = append(attachments, a)
@@ -356,14 +634,79 @@ func scanProposal(scanner rowScanner) (domain.Proposal, error) {
 func mapSortBy(v string) string {
 	switch strings.ToLower(strings.TrimSpace(v)) {
 	case domain.SortOldest:
-		return "created_at asc"
+		return "created_at asc, id asc"
 	case domain.SortBidHigh:
-		return "bid_amount desc, created_at desc"
+		return "bid_amount desc, created_at desc, id desc"
 	case domain.SortBidLow:
-		return "bid_amount asc, created_at desc"
+		return "bid_amount asc, created_at desc, id desc"
 	case domain.SortNewest, "":
 		fallthrough
 	default:
-		return "created_at desc"
+		return "created_at desc, id desc"
 	}
+}
+
+type listCursor struct {
+	BidAmount   float64
+	CreatedAtNS int64
+	ID          int64
+}
+
+func encodeCursorToken(p domain.Proposal) string {
+	raw := strings.Join([]string{
+		strconv.FormatFloat(p.BidAmount, 'g', -1, 64),
+		strconv.FormatInt(p.CreatedAt.UnixNano(), 10),
+		strconv.FormatInt(p.ID, 10),
+	}, "|")
+	return base64.RawURLEncoding.EncodeToString([]byte(raw))
+}
+
+func decodeCursorToken(token string) (listCursor, error) {
+	decoded, err := base64.RawURLEncoding.DecodeString(strings.TrimSpace(token))
+	if err != nil {
+		return listCursor{}, err
+	}
+	parts := strings.Split(string(decoded), "|")
+	if len(parts) != 3 {
+		return listCursor{}, fmt.Errorf("invalid cursor")
+	}
+	bid, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return listCursor{}, err
+	}
+	createdAtNS, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return listCursor{}, err
+	}
+	id, err := strconv.ParseInt(parts[2], 10, 64)
+	if err != nil {
+		return listCursor{}, err
+	}
+	return listCursor{BidAmount: bid, CreatedAtNS: createdAtNS, ID: id}, nil
+}
+
+func appendCursorPredicate(query string, args []any, idx int, sortBy string, cursor listCursor) (string, []any, int) {
+	createdAt := time.Unix(0, cursor.CreatedAtNS).UTC()
+	sort := strings.ToLower(strings.TrimSpace(sortBy))
+	switch sort {
+	case domain.SortOldest:
+		query += fmt.Sprintf(` and (created_at > $%d or (created_at = $%d and id > $%d))`, idx, idx, idx+1)
+		args = append(args, createdAt, cursor.ID)
+		idx += 2
+	case domain.SortBidHigh:
+		query += fmt.Sprintf(` and (bid_amount < $%d or (bid_amount = $%d and created_at < $%d) or (bid_amount = $%d and created_at = $%d and id < $%d))`, idx, idx, idx+1, idx, idx+1, idx+2)
+		args = append(args, cursor.BidAmount, createdAt, cursor.ID)
+		idx += 3
+	case domain.SortBidLow:
+		query += fmt.Sprintf(` and (bid_amount > $%d or (bid_amount = $%d and created_at < $%d) or (bid_amount = $%d and created_at = $%d and id < $%d))`, idx, idx, idx+1, idx, idx+1, idx+2)
+		args = append(args, cursor.BidAmount, createdAt, cursor.ID)
+		idx += 3
+	case domain.SortNewest, "":
+		fallthrough
+	default:
+		query += fmt.Sprintf(` and (created_at < $%d or (created_at = $%d and id < $%d))`, idx, idx, idx+1)
+		args = append(args, createdAt, cursor.ID)
+		idx += 2
+	}
+	return query, args, idx
 }

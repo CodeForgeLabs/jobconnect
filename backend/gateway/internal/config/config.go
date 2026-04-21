@@ -10,23 +10,25 @@ import (
 )
 
 type Config struct {
-	HTTPListenAddr              string
-	AuthServiceGRPCAddr         string
-	UserServiceGRPCAddr         string
-	VerificationServiceGRPCAddr string
-	JobServiceGRPCAddr          string
-	JWTSecret                   []byte
-	OAuthStateSecret            []byte
-	ChallengeProofSecret        []byte
-	ChallengeProofTTL           time.Duration
-	RecaptchaSecretKey          string
-	RecaptchaMinScore           float64
-	RecaptchaDevBypass          bool
-	RecaptchaBypassToken        string
-
-	OAuthGoogleClientID     string
-	OAuthGoogleClientSecret string
-	OAuthGoogleRedirectURI  string
+	HTTPListenAddr                string
+	AuthServiceGRPCAddr           string
+	UserServiceGRPCAddr           string
+	VerificationServiceGRPCAddr   string
+	JobServiceGRPCAddr            string
+	ProposalServiceGRPCAddr       string
+	RecommendationServiceGRPCAddr string
+	JWTSecret                     []byte
+	OAuthStateSecret              []byte
+	ChallengeProofSecret          []byte
+	ChallengeProofTTL             time.Duration
+	RecaptchaSecretKey            string
+	RecaptchaMinScore             float64
+	RecaptchaDevBypass            bool
+	RecaptchaBypassToken          string
+	ChatServiceGRPCAddr           string
+	OAuthGoogleClientID           string
+	OAuthGoogleClientSecret       string
+	OAuthGoogleRedirectURI        string
 
 	OAuthGitHubClientID     string
 	OAuthGitHubClientSecret string
@@ -48,32 +50,35 @@ func LoadFromEnv() (Config, error) {
 	}
 
 	cfg := Config{
-		HTTPListenAddr:              getEnv("GATEWAY_HTTP_LISTEN_ADDR", ":8080"),
-		AuthServiceGRPCAddr:         getEnv("AUTH_SERVICE_GRPC_ADDR", "auth:50051"),
-		UserServiceGRPCAddr:         getEnv("USER_SERVICE_GRPC_ADDR", "user:50052"),
-		VerificationServiceGRPCAddr: getEnv("VERIFICATION_SERVICE_GRPC_ADDR", "verification:50060"),
-		JobServiceGRPCAddr:          getEnv("JOB_SERVICE_GRPC_ADDR", "job:50053"),
-		JWTSecret:                   []byte(secret),
-		OAuthStateSecret:            []byte(getEnv("GATEWAY_OAUTH_STATE_SECRET", secret)),
-		ChallengeProofSecret:        []byte(getEnv("GATEWAY_CHALLENGE_PROOF_SECRET", secret)),
-		ChallengeProofTTL:           getEnvDurationSeconds("GATEWAY_CHALLENGE_PROOF_TTL_SECONDS", 120),
-		RecaptchaSecretKey:          os.Getenv("GATEWAY_RECAPTCHA_SECRET_KEY"),
-		RecaptchaMinScore:           getEnvFloat("GATEWAY_RECAPTCHA_MIN_SCORE", 0.5),
-		RecaptchaDevBypass:          getEnvBool("GATEWAY_RECAPTCHA_DEV_BYPASS", false),
-		RecaptchaBypassToken:        getEnv("GATEWAY_RECAPTCHA_BYPASS_TOKEN", "dev-human"),
-		OAuthGoogleClientID:         os.Getenv("GATEWAY_OAUTH_GOOGLE_CLIENT_ID"),
-		OAuthGoogleClientSecret:     os.Getenv("GATEWAY_OAUTH_GOOGLE_CLIENT_SECRET"),
-		OAuthGoogleRedirectURI:      os.Getenv("GATEWAY_OAUTH_GOOGLE_REDIRECT_URI"),
-		OAuthGitHubClientID:         os.Getenv("GATEWAY_OAUTH_GITHUB_CLIENT_ID"),
-		OAuthGitHubClientSecret:     os.Getenv("GATEWAY_OAUTH_GITHUB_CLIENT_SECRET"),
-		OAuthGitHubRedirectURI:      os.Getenv("GATEWAY_OAUTH_GITHUB_REDIRECT_URI"),
-		RefreshCookieName:           getEnv("GATEWAY_REFRESH_COOKIE_NAME", "jc_refresh_token"),
-		RefreshCookieDomain:         os.Getenv("GATEWAY_REFRESH_COOKIE_DOMAIN"),
-		RefreshCookieSecure:         getEnvBool("GATEWAY_REFRESH_COOKIE_SECURE", false),
-		RefreshCookieHTTPOnly:       getEnvBool("GATEWAY_REFRESH_COOKIE_HTTP_ONLY", true),
-		RefreshCookiePath:           getEnv("GATEWAY_REFRESH_COOKIE_PATH", "/"),
-		RefreshCookieSameSite:       parseSameSite(getEnv("GATEWAY_REFRESH_COOKIE_SAME_SITE", "lax")),
-		RefreshCookieMaxAge:         getEnvDurationSeconds("AUTH_REFRESH_TOKEN_TTL_SECONDS", 30*24*60*60),
+		HTTPListenAddr:                getEnv("GATEWAY_HTTP_LISTEN_ADDR", ":8080"),
+		AuthServiceGRPCAddr:           getEnv("AUTH_SERVICE_GRPC_ADDR", "auth:50051"),
+		UserServiceGRPCAddr:           getEnv("USER_SERVICE_GRPC_ADDR", "user:50052"),
+		VerificationServiceGRPCAddr:   getEnv("VERIFICATION_SERVICE_GRPC_ADDR", "verification:50060"),
+		JobServiceGRPCAddr:            getEnv("JOB_SERVICE_GRPC_ADDR", "job:50053"),
+		ChatServiceGRPCAddr:           getEnv("CHAT_SERVICE_GRPC_ADDR", "chat:50054"),
+		ProposalServiceGRPCAddr:       getEnv("PROPOSAL_SERVICE_GRPC_ADDR", "proposal:50054"),
+		RecommendationServiceGRPCAddr: getEnv("RECOMMENDATION_SERVICE_GRPC_ADDR", "recommendation:50064"),
+		JWTSecret:                     []byte(secret),
+		OAuthStateSecret:              []byte(getEnv("GATEWAY_OAUTH_STATE_SECRET", secret)),
+		ChallengeProofSecret:          []byte(getEnv("GATEWAY_CHALLENGE_PROOF_SECRET", secret)),
+		ChallengeProofTTL:             getEnvDurationSeconds("GATEWAY_CHALLENGE_PROOF_TTL_SECONDS", 120),
+		RecaptchaSecretKey:            os.Getenv("GATEWAY_RECAPTCHA_SECRET_KEY"),
+		RecaptchaMinScore:             getEnvFloat("GATEWAY_RECAPTCHA_MIN_SCORE", 0.5),
+		RecaptchaDevBypass:            getEnvBool("GATEWAY_RECAPTCHA_DEV_BYPASS", false),
+		RecaptchaBypassToken:          getEnv("GATEWAY_RECAPTCHA_BYPASS_TOKEN", "dev-human"),
+		OAuthGoogleClientID:           os.Getenv("GATEWAY_OAUTH_GOOGLE_CLIENT_ID"),
+		OAuthGoogleClientSecret:       os.Getenv("GATEWAY_OAUTH_GOOGLE_CLIENT_SECRET"),
+		OAuthGoogleRedirectURI:        os.Getenv("GATEWAY_OAUTH_GOOGLE_REDIRECT_URI"),
+		OAuthGitHubClientID:           os.Getenv("GATEWAY_OAUTH_GITHUB_CLIENT_ID"),
+		OAuthGitHubClientSecret:       os.Getenv("GATEWAY_OAUTH_GITHUB_CLIENT_SECRET"),
+		OAuthGitHubRedirectURI:        os.Getenv("GATEWAY_OAUTH_GITHUB_REDIRECT_URI"),
+		RefreshCookieName:             getEnv("GATEWAY_REFRESH_COOKIE_NAME", "jc_refresh_token"),
+		RefreshCookieDomain:           os.Getenv("GATEWAY_REFRESH_COOKIE_DOMAIN"),
+		RefreshCookieSecure:           getEnvBool("GATEWAY_REFRESH_COOKIE_SECURE", false),
+		RefreshCookieHTTPOnly:         getEnvBool("GATEWAY_REFRESH_COOKIE_HTTP_ONLY", true),
+		RefreshCookiePath:             getEnv("GATEWAY_REFRESH_COOKIE_PATH", "/"),
+		RefreshCookieSameSite:         parseSameSite(getEnv("GATEWAY_REFRESH_COOKIE_SAME_SITE", "lax")),
+		RefreshCookieMaxAge:           getEnvDurationSeconds("AUTH_REFRESH_TOKEN_TTL_SECONDS", 30*24*60*60),
 	}
 
 	if cfg.AuthServiceGRPCAddr == "" {
@@ -87,6 +92,15 @@ func LoadFromEnv() (Config, error) {
 	}
 	if cfg.JobServiceGRPCAddr == "" {
 		return Config{}, fmt.Errorf("JOB_SERVICE_GRPC_ADDR is required")
+	}
+	if cfg.ProposalServiceGRPCAddr == "" {
+		return Config{}, fmt.Errorf("PROPOSAL_SERVICE_GRPC_ADDR is required")
+	}
+	if cfg.RecommendationServiceGRPCAddr == "" {
+		return Config{}, fmt.Errorf("RECOMMENDATION_SERVICE_GRPC_ADDR is required")
+	}
+	if cfg.ChatServiceGRPCAddr == "" {
+		return Config{}, fmt.Errorf("CHAT_SERVICE_GRPC_ADDR is required")
 	}
 	return cfg, nil
 }

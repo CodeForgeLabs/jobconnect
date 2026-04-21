@@ -72,7 +72,7 @@ func (h *JobHandler) ListMyJobs(c *gin.Context) {
 		return
 	}
 	resp, err := h.client.ListMyJobs(c.Request.Context(), &jobv1.ListMyJobsRequest{
-		StatusEnum: statusEnum,
+		StatusEnum: mapJobStatus(strings.TrimSpace(c.Query("status"))),
 		PageSize:   int32(parseIntQuery(c, "page_size", 20)),
 		PageToken:  strings.TrimSpace(c.Query("page_token")),
 	})

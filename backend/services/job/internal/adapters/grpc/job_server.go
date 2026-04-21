@@ -16,6 +16,7 @@ type JobServer struct {
 	jobv1.UnimplementedJobServiceServer
 	CreateJobUC        *application.CreateJob
 	GetJobUC           *application.GetJob
+	GetJobSummaryUC    *application.GetJobSummary
 	UpdateJobUC        *application.UpdateJob
 	ListMyJobsUC       *application.ListMyJobs
 	ListOpenJobsUC     *application.ListOpenJobs
@@ -53,6 +54,7 @@ type JobServer struct {
 type JobServerConfig struct {
 	CreateJobUC        *application.CreateJob
 	GetJobUC           *application.GetJob
+	GetJobSummaryUC    *application.GetJobSummary
 	UpdateJobUC        *application.UpdateJob
 	ListMyJobsUC       *application.ListMyJobs
 	ListOpenJobsUC     *application.ListOpenJobs
@@ -91,6 +93,7 @@ func NewJobServer(cfg JobServerConfig) *JobServer {
 	return &JobServer{
 		CreateJobUC:        cfg.CreateJobUC,
 		GetJobUC:           cfg.GetJobUC,
+		GetJobSummaryUC:    cfg.GetJobSummaryUC,
 		UpdateJobUC:        cfg.UpdateJobUC,
 		ListMyJobsUC:       cfg.ListMyJobsUC,
 		ListOpenJobsUC:     cfg.ListOpenJobsUC,
@@ -205,6 +208,40 @@ func (s *JobServer) GetJob(ctx context.Context, req *jobv1.GetJobRequest) (*jobv
 		return nil, toStatus(err)
 	}
 	return &jobv1.GetJobResponse{Job: toProtoJob(out.Job)}, nil
+}
+
+func (s *JobServer) GetJobSummary(ctx context.Context, req *jobv1.GetJobSummaryRequest) (*jobv1.GetJobSummaryResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	_, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	role = strings.ToLower(strings.TrimSpace(role))
+	if role != "client" && role != "freelancer" {
+		return nil, status.Error(codes.PermissionDenied, "client or freelancer role required")
+	}
+
+	out, err := s.GetJobSummaryUC.Execute(ctx, application.GetJobSummaryInput{JobID: req.JobId})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	resp := &jobv1.GetJobSummaryResponse{}
+	if !out.Summary.Found {
+		resp.Summary = &jobv1.JobSummary{JobId: req.JobId, Found: false}
+		return resp, nil
+	}
+
+	resp.Summary = &jobv1.JobSummary{
+		JobId:    out.Summary.JobID,
+		ClientId: out.Summary.ClientID,
+		Status:   jobStatusToEnum(out.Summary.Status),
+		IsOpen:   out.Summary.IsOpen,
+		Found:    out.Summary.Found,
+	}
+	return resp, nil
 }
 
 func (s *JobServer) UpdateJob(ctx context.Context, req *jobv1.UpdateJobRequest) (*jobv1.UpdateJobResponse, error) {

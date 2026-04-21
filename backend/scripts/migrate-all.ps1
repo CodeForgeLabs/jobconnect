@@ -10,14 +10,16 @@ $backendDir = Split-Path -Parent $scriptDir
 Set-Location $backendDir
 
 $maps = @(
-    @{ Name = "auth-db";     User = "auth";     Db = "jobconnect_auth";     Dir = "services/auth/migrations" },
-    @{ Name = "user-db";     User = "user";     Db = "jobconnect_user";     Dir = "services/user/migrations" },
-    @{ Name = "job-db";      User = "job";      Db = "jobconnect_job";      Dir = "services/job/migrations" },
-    @{ Name = "proposal-db"; User = "proposal"; Db = "jobconnect_proposal"; Dir = "services/proposal/migrations" },
-    @{ Name = "contract-db"; User = "contract"; Db = "jobconnect_contract"; Dir = "services/contract/migrations" },
-    @{ Name = "wallet-db";   User = "wallet";   Db = "jobconnect_wallet";   Dir = "services/wallet/migrations" },
-    @{ Name = "chat-db";     User = "chat";     Db = "jobconnect_chat";     Dir = "services/chat/migrations" }
-    @{ Name = "verification-db"; User = "verification"; Db = "jobconnect_verification"; Dir = "services/verification/migrations" }
+    @{ Name = "postgres"; User = "auth";         Db = "jobconnect_auth";         Dir = "services/auth/migrations" },
+    @{ Name = "postgres"; User = "user";         Db = "jobconnect_user";         Dir = "services/user/migrations" },
+    @{ Name = "postgres"; User = "job";          Db = "jobconnect_job";          Dir = "services/job/migrations" },
+    @{ Name = "postgres"; User = "proposal";     Db = "jobconnect_proposal";     Dir = "services/proposal/migrations" },
+    @{ Name = "postgres"; User = "contract";     Db = "jobconnect_contract";     Dir = "services/contract/migrations" },
+    @{ Name = "postgres"; User = "wallet";       Db = "jobconnect_wallet";       Dir = "services/wallet/migrations" },
+    @{ Name = "postgres"; User = "chat";         Db = "jobconnect_chat";         Dir = "services/chat/migrations" },
+    @{ Name = "postgres"; User = "connects";     Db = "jobconnect_connects";     Dir = "services/connects/migrations" },
+    @{ Name = "postgres"; User = "verification"; Db = "jobconnect_verification"; Dir = "services/verification/migrations" },
+    @{ Name = "postgres"; User = "payment";      Db = "jobconnect_payment";      Dir = "services/payment/migrations" }
 )
 
 function Ensure-MigrationTable {

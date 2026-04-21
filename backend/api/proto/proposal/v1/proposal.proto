@@ -9,9 +9,17 @@ service ProposalService {
   rpc ModifyProposal(ModifyProposalRequest) returns (ModifyProposalResponse);
   rpc WithdrawProposal(WithdrawProposalRequest) returns (WithdrawProposalResponse);
   rpc GetProposal(GetProposalRequest) returns (GetProposalResponse);
+  rpc GetMyProposalForJob(GetMyProposalForJobRequest) returns (GetMyProposalForJobResponse);
+  rpc HasAppliedToJob(HasAppliedToJobRequest) returns (HasAppliedToJobResponse);
   rpc ListProposalsByJob(ListProposalsByJobRequest) returns (ListProposalsByJobResponse);
   rpc ListMyProposals(ListMyProposalsRequest) returns (ListMyProposalsResponse);
+  rpc ListClientProposals(ListClientProposalsRequest) returns (ListClientProposalsResponse);
+  rpc CountProposalsByJob(CountProposalsByJobRequest) returns (CountProposalsByJobResponse);
+  rpc CountClientProposalInbox(CountClientProposalInboxRequest) returns (CountClientProposalInboxResponse);
+  rpc GetProposalAttachmentUploadUrl(GetProposalAttachmentUploadUrlRequest) returns (GetProposalAttachmentUploadUrlResponse);
+  rpc GetProposalAttachmentDownloadUrl(GetProposalAttachmentDownloadUrlRequest) returns (GetProposalAttachmentDownloadUrlResponse);
   rpc SetProposalStatus(SetProposalStatusRequest) returns (SetProposalStatusResponse);
+  rpc InternalHireProposal(InternalHireProposalRequest) returns (InternalHireProposalResponse);
 }
 
 enum ProposalStatus {
@@ -31,12 +39,19 @@ enum SortBy {
   SORT_BY_BID_LOW = 4;
 }
 
+enum ClientDecision {
+  CLIENT_DECISION_UNSPECIFIED = 0;
+  CLIENT_DECISION_SHORTLISTED = 1;
+  CLIENT_DECISION_REJECTED = 2;
+}
+
 message ProposalAttachment {
   int64 id = 1;
   string file_name = 2;
   string content_type = 3;
   string url = 4;
   int64 size_bytes = 5;
+  string storage_key = 6;
 }
 
 message Proposal {
@@ -103,6 +118,24 @@ message GetProposalResponse {
   Proposal proposal = 1;
 }
 
+message GetMyProposalForJobRequest {
+  int64 job_id = 1;
+}
+
+message GetMyProposalForJobResponse {
+  Proposal proposal = 1;
+}
+
+message HasAppliedToJobRequest {
+  int64 job_id = 1;
+}
+
+message HasAppliedToJobResponse {
+  bool has_applied = 1;
+  int64 proposal_id = 2;
+  ProposalStatus active_status = 3;
+}
+
 message ListProposalsByJobRequest {
   int64 job_id = 1;
   repeated ProposalStatus status_filter = 2;
@@ -130,9 +163,78 @@ message ListMyProposalsResponse {
   string next_page_token = 2;
 }
 
+message ListClientProposalsRequest {
+  repeated ProposalStatus status_filter = 1;
+  optional int64 job_id_filter = 2;
+  optional string freelancer_id_filter = 3;
+  SortBy sort_by = 4;
+  int32 page_size = 5;
+  string page_token = 6;
+}
+
+message ListClientProposalsResponse {
+  repeated Proposal proposals = 1;
+  string next_page_token = 2;
+}
+
+message ProposalStatusCount {
+  ProposalStatus status = 1;
+  int64 count = 2;
+}
+
+message CountProposalsByJobRequest {
+  int64 job_id = 1;
+}
+
+message CountProposalsByJobResponse {
+  int64 total = 1;
+  repeated ProposalStatusCount by_status = 2;
+}
+
+message CountClientProposalInboxRequest {
+  repeated ProposalStatus status_filter = 1;
+}
+
+message CountClientProposalInboxResponse {
+  int64 total = 1;
+  repeated ProposalStatusCount by_status = 2;
+}
+
+message InternalHireProposalRequest {
+  int64 proposal_id = 1;
+  string client_id = 2;
+  string request_id = 3;
+  string note = 4;
+}
+
+message InternalHireProposalResponse {
+  Proposal proposal = 1;
+  bool reused_idempotent_result = 2;
+}
+
+message GetProposalAttachmentUploadUrlRequest {
+  int64 proposal_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+}
+
+message GetProposalAttachmentUploadUrlResponse {
+  string storage_key = 1;
+  string upload_url = 2;
+}
+
+message GetProposalAttachmentDownloadUrlRequest {
+  int64 proposal_id = 1;
+  int64 attachment_id = 2;
+}
+
+message GetProposalAttachmentDownloadUrlResponse {
+  string download_url = 1;
+}
+
 message SetProposalStatusRequest {
   int64 proposal_id = 1;
-  ProposalStatus status = 2; // shortlisted | rejected | hired
+  ClientDecision decision = 2; // shortlisted | rejected
   string reason = 3;
 }
 

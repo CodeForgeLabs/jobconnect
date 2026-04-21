@@ -46,7 +46,7 @@ func (c *ProposalClient) SetHired(ctx context.Context, proposalID int64, clientI
 
 	_, err = c.client.SetProposalStatus(ctx, &proposalv1.SetProposalStatusRequest{
 		ProposalId: proposalID,
-		Status:     proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED,
+		Decision:   proposalv1.ClientDecision_CLIENT_DECISION_SHORTLISTED,
 		Reason:     strings.TrimSpace(reason),
 	})
 	if err != nil {

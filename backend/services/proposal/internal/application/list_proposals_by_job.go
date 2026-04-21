@@ -45,22 +45,15 @@ func (uc *ListProposalsByJob) Execute(ctx context.Context, in ListProposalsByJob
 	}
 
 	limit := normalizePageSize(in.PageSize, 20)
-	offset, err := parsePageToken(in.PageToken)
-	if err != nil {
-		return ListProposalsByJobOutput{}, err
-	}
-
-	items, err := uc.Proposals.ListByJob(ctx, ListByJobFilter{
+	items, next, err := uc.Proposals.ListByJob(ctx, ListByJobFilter{
 		ClientID:     in.ClientID,
 		JobID:        in.JobID,
 		Statuses:     in.StatusFilter,
 		FreelancerID: in.FreelancerID,
 		SortBy:       in.SortBy,
-	}, limit, offset)
+	}, limit, in.PageToken)
 	if err != nil {
 		return ListProposalsByJobOutput{}, err
 	}
-
-	next := nextPageToken(offset, limit, len(items))
 	return ListProposalsByJobOutput{Proposals: items, NextPageToken: next}, nil
 }

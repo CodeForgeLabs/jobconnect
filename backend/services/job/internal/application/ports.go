@@ -83,13 +83,28 @@ type Proposal struct {
 	ClientID      string
 	FreelancerID  string
 	ConnectsSpent int32
+	BidType       string
+	BidAmount     float64
 	Status        string
+}
+
+type ContractCreator interface {
+	CreateFromProposal(ctx context.Context, in CreateContractFromProposalInput) error
+}
+
+type CreateContractFromProposalInput struct {
+	FreelancerID string
+	JobID        int64
+	ProposalID   int64
+	BidType      string
+	BidAmount    float64
 }
 
 type ProposalClient interface {
 	ListProposalsByJob(ctx context.Context, jobID int64) ([]Proposal, error)
 	GetProposal(ctx context.Context, proposalID int64) (Proposal, error)
 	SetProposalStatus(ctx context.Context, proposalID int64, status string, reason string) error
+	InternalHireProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string) error
 }
 
 type Clock interface {

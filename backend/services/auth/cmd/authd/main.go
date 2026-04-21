@@ -33,7 +33,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	if err := loadDotEnv(".env", "../../.env", "../../../.env"); err != nil {
+	if err := loadDotEnv(".env", "../../.env", "../../../.env", "../../../../.env"); err != nil {
 		log.Fatalf("load .env: %v", err)
 	}
 

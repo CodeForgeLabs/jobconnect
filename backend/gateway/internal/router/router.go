@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -21,7 +21,6 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	engine.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
-
 	jwtParser := auth.NewJWTParser(cfg.JWTSecret)
 	engine.Use(middleware.OptionalAuth(jwtParser))
 
@@ -34,8 +33,38 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerUserRoutes(api, userHandler, jwtParser)
 	registerAdminVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
 	registerJobRoutes(api, jobHandler, jwtParser)
+	registerProposalRoutes(api, proposalHandler, jwtParser)
+	registerRecommendationRoutes(api, recommendationHandler, jwtParser)
+	registerChatRoutes(api, chatHandler, jwtParser)
 
 	return engine
+}
+
+func registerRecommendationRoutes(api *gin.RouterGroup, recommendationHandler *handlers.RecommendationHandler, jwtParser *auth.JWTParser) {
+	recommendationRoutes := api.Group("/recommendations")
+	recommendationRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("freelancer"))
+	recommendationRoutes.GET("/jobs", recommendationHandler.GetRecommendedJobs)
+}
+
+func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.ProposalHandler, jwtParser *auth.JWTParser) {
+	proposalRoutes := api.Group("/proposals")
+	proposalRoutes.Use(middleware.RequireAuth(jwtParser))
+	proposalRoutes.GET("/:proposalId", proposalHandler.GetProposal)
+	proposalRoutes.GET("/:proposalId/attachments/:attachmentId/download-url", proposalHandler.GetProposalAttachmentDownloadURL)
+
+	freelancerRoutes := proposalRoutes.Group("")
+	freelancerRoutes.Use(middleware.RequireRoles("freelancer"))
+	freelancerRoutes.GET("/me/jobs/:jobId", proposalHandler.GetMyProposalForJob)
+	freelancerRoutes.GET("/me/jobs/:jobId/has-applied", proposalHandler.HasAppliedToJob)
+	freelancerRoutes.GET("/me", proposalHandler.ListMyProposals)
+	freelancerRoutes.POST("/:proposalId/attachments/upload-url", proposalHandler.GetProposalAttachmentUploadURL)
+
+	clientRoutes := proposalRoutes.Group("")
+	clientRoutes.Use(middleware.RequireRoles("client"))
+	clientRoutes.GET("/client", proposalHandler.ListClientProposals)
+	clientRoutes.GET("/client/counts", proposalHandler.CountClientProposalInbox)
+	clientRoutes.GET("/jobs/:jobId/counts", proposalHandler.CountProposalsByJob)
+	clientRoutes.POST("/:proposalId/decision", proposalHandler.SetProposalDecision)
 }
 
 func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jwtParser *auth.JWTParser) {
@@ -172,4 +201,23 @@ func registerAdminVerificationRoutes(api *gin.RouterGroup, verificationHandler *
 	adminVerificationRoutes.GET("/:requestId", verificationHandler.GetByID)
 	adminVerificationRoutes.POST("/:requestId/review", sensitiveLimiter.Middleware(), verificationHandler.Review)
 	adminVerificationRoutes.POST("/reverification", sensitiveLimiter.Middleware(), verificationHandler.RequestReverification)
+}
+
+// CHAT
+func registerChatRoutes(api *gin.RouterGroup, chatHandler *handlers.ChatHandler, jwtParser *auth.JWTParser) {
+	chat := api.Group("/chat")
+	chat.Use(middleware.RequireAuth(jwtParser))
+
+	// Conversations
+	chat.GET("/conversations", chatHandler.GetMyConversations)
+	chat.DELETE("/conversations/:userId", chatHandler.DeleteConversation)
+
+	// Messages
+	chat.GET("/:userId/messages", chatHandler.GetMessages)
+	chat.POST("/messages", chatHandler.SendMessage)
+
+	// Message actions
+	chat.POST("/messages/:messageId/seen", chatHandler.MarkAsSeen)
+	chat.PUT("/messages/:messageId", chatHandler.EditMessage)
+	chat.DELETE("/messages/:messageId", chatHandler.DeleteMessage)
 }
