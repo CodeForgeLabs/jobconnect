@@ -11,8 +11,10 @@ Authentication API docs (Gateway HTTP + Auth gRPC):
 Run from `backend`:
 
 ```powershell
-docker compose up -d auth-db user-db job-db proposal-db contract-db wallet-db
+docker compose up -d postgres
 ```
+
+The shared `postgres` container initializes per-service roles and databases on first boot.
 
 ## 2) Apply all migrations
 
