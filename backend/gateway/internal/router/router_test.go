@@ -158,6 +158,28 @@ func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
 	}
 }
 
+func TestJobRoutes_DoNotExposeExperienceLevelRoute(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	cfg := config.Config{
+		JWTSecret: []byte("test-secret"),
+	}
+
+	engine := New(
+		cfg,
+		&handlers.AuthHandler{},
+		&handlers.VerificationHandler{},
+		&handlers.UserHandler{},
+		&handlers.JobHandler{},
+	)
+
+	for _, route := range engine.Routes() {
+		if route.Path == "/api/v1/jobs/:jobId/experience-level" {
+			t.Fatalf("did not expect removed route to remain registered: %s %s", route.Method, route.Path)
+		}
+	}
+}
+
 func signTestAccessToken(t *testing.T, secret []byte, userID string, role string) string {
 	t.Helper()
 	claims := &auth.AccessClaims{UserID: userID, Role: role}

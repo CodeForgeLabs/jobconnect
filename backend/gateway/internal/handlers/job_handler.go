@@ -66,10 +66,15 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 }
 
 func (h *JobHandler) ListMyJobs(c *gin.Context) {
+	statusEnum, ok := mapJobStatusQuery(c.Query("status"))
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+		return
+	}
 	resp, err := h.client.ListMyJobs(c.Request.Context(), &jobv1.ListMyJobsRequest{
-		Status:    strings.TrimSpace(c.Query("status")),
-		PageSize:  int32(parseIntQuery(c, "page_size", 20)),
-		PageToken: strings.TrimSpace(c.Query("page_token")),
+		StatusEnum: statusEnum,
+		PageSize:   int32(parseIntQuery(c, "page_size", 20)),
+		PageToken:  strings.TrimSpace(c.Query("page_token")),
 	})
 	if err != nil {
 		writeGRPCError(c, err)
@@ -84,12 +89,17 @@ func (h *JobHandler) ListMyJobs(c *gin.Context) {
 }
 
 func (h *JobHandler) ListOpenJobs(c *gin.Context) {
+	jobTypeEnum, ok := mapJobTypeQuery(c.Query("job_type"))
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid job_type"})
+		return
+	}
 	resp, err := h.client.ListOpenJobs(c.Request.Context(), &jobv1.ListOpenJobsRequest{
 		PageSize:    int32(parseIntQuery(c, "page_size", 20)),
 		PageToken:   strings.TrimSpace(c.Query("page_token")),
 		SearchQuery: strings.TrimSpace(c.Query("query")),
 		Skills:      c.QueryArray("skills"),
-		JobType:     strings.TrimSpace(c.Query("job_type")),
+		JobTypeEnum: jobTypeEnum,
 	})
 	if err != nil {
 		writeGRPCError(c, err)
@@ -135,7 +145,12 @@ func (h *JobHandler) SetJobVisibility(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	resp, err := h.client.SetJobVisibility(c.Request.Context(), &jobv1.SetJobVisibilityRequest{JobId: jobID, Visibility: mapVisibility(body.Visibility)})
+	visibility, ok := mapVisibilityBody(body.Visibility)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid visibility"})
+		return
+	}
+	resp, err := h.client.SetJobVisibility(c.Request.Context(), &jobv1.SetJobVisibilityRequest{JobId: jobID, Visibility: visibility})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -157,26 +172,6 @@ func (h *JobHandler) SetJobBudgetRange(c *gin.Context) {
 		return
 	}
 	resp, err := h.client.SetJobBudgetRange(c.Request.Context(), &jobv1.SetJobBudgetRangeRequest{JobId: jobID, BudgetMin: body.BudgetMin, BudgetMax: body.BudgetMax})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-	writeProtoEnvelope(c, http.StatusOK, "job", resp.GetJob())
-}
-
-func (h *JobHandler) SetJobExperienceLevel(c *gin.Context) {
-	jobID, ok := parseInt64Param(c, "jobId")
-	if !ok {
-		return
-	}
-	var body struct {
-		ExperienceLevel string `json:"experience_level"`
-	}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	resp, err := h.client.SetJobExperienceLevel(c.Request.Context(), &jobv1.SetJobExperienceLevelRequest{JobId: jobID, ExperienceLevel: mapExperienceLevel(body.ExperienceLevel)})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -235,7 +230,12 @@ func (h *JobHandler) CloseJob(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	resp, err := h.client.CloseJob(c.Request.Context(), &jobv1.CloseJobRequest{JobId: jobID, Reason: body.Reason})
+	reasonEnum, ok := mapCloseReasonBody(body.Reason)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid reason"})
+		return
+	}
+	resp, err := h.client.CloseJob(c.Request.Context(), &jobv1.CloseJobRequest{JobId: jobID, ReasonEnum: reasonEnum})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -584,25 +584,63 @@ func parseInt64Param(c *gin.Context, key string) (int64, bool) {
 	return n, true
 }
 
-func mapVisibility(in string) jobv1.Visibility {
+func mapVisibilityBody(in string) (jobv1.Visibility, bool) {
 	switch strings.ToLower(strings.TrimSpace(in)) {
+	case "":
+		return jobv1.Visibility_VISIBILITY_UNSPECIFIED, true
+	case "public":
+		return jobv1.Visibility_VISIBILITY_PUBLIC, true
 	case "private":
-		return jobv1.Visibility_VISIBILITY_PRIVATE
+		return jobv1.Visibility_VISIBILITY_PRIVATE, true
 	case "invite_only":
-		return jobv1.Visibility_VISIBILITY_INVITE_ONLY
+		return jobv1.Visibility_VISIBILITY_INVITE_ONLY, true
 	default:
-		return jobv1.Visibility_VISIBILITY_PUBLIC
+		return jobv1.Visibility_VISIBILITY_UNSPECIFIED, false
 	}
 }
 
-func mapExperienceLevel(in string) jobv1.ExperienceLevel {
+func mapJobStatusQuery(in string) (jobv1.JobStatus, bool) {
 	switch strings.ToLower(strings.TrimSpace(in)) {
-	case "entry":
-		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_ENTRY
-	case "expert":
-		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_EXPERT
+	case "":
+		return jobv1.JobStatus_JOB_STATUS_UNSPECIFIED, true
+	case "open":
+		return jobv1.JobStatus_JOB_STATUS_OPEN, true
+	case "paused":
+		return jobv1.JobStatus_JOB_STATUS_PAUSED, true
+	case "filled":
+		return jobv1.JobStatus_JOB_STATUS_FILLED, true
+	case "closed":
+		return jobv1.JobStatus_JOB_STATUS_CLOSED, true
+	case "completed":
+		return jobv1.JobStatus_JOB_STATUS_COMPLETED, true
+	case "canceled":
+		return jobv1.JobStatus_JOB_STATUS_CANCELED, true
 	default:
-		return jobv1.ExperienceLevel_EXPERIENCE_LEVEL_INTERMEDIATE
+		return jobv1.JobStatus_JOB_STATUS_UNSPECIFIED, false
+	}
+}
+
+func mapJobTypeQuery(in string) (jobv1.JobType, bool) {
+	switch strings.ToLower(strings.TrimSpace(in)) {
+	case "":
+		return jobv1.JobType_JOB_TYPE_UNSPECIFIED, true
+	case "fixed":
+		return jobv1.JobType_JOB_TYPE_FIXED, true
+	case "hourly":
+		return jobv1.JobType_JOB_TYPE_HOURLY, true
+	default:
+		return jobv1.JobType_JOB_TYPE_UNSPECIFIED, false
+	}
+}
+
+func mapCloseReasonBody(in string) (jobv1.CloseReason, bool) {
+	switch strings.ToLower(strings.TrimSpace(in)) {
+	case "":
+		return jobv1.CloseReason_CLOSE_REASON_UNSPECIFIED, true
+	case "canceled":
+		return jobv1.CloseReason_CLOSE_REASON_CANCELED, true
+	default:
+		return jobv1.CloseReason_CLOSE_REASON_UNSPECIFIED, false
 	}
 }
 
