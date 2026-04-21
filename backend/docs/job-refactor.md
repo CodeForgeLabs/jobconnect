@@ -97,7 +97,7 @@ message CreateJobRequest {
 }
 ```
 
-**Reason:** Previously, visibility could only be set after job creation via `SetJobVisibility`. A new job would default to `VISIBILITY_UNSPECIFIED` with no way to publish it atomically at creation time. Making it optional allows clients to set it on creation while keeping it non-required (server defaults to `VISIBILITY_PRIVATE` when omitted).
+**Reason:** Previously, visibility could only be set after job creation via `SetJobVisibility`. A new job would default to `VISIBILITY_UNSPECIFIED` with no way to publish it atomically at creation time. Making it optional allows clients to set it on creation while keeping it non-required (server defaults to `VISIBILITY_PUBLIC` when omitted).
 
 ---
 
