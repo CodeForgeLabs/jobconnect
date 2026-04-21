@@ -69,11 +69,12 @@ enum AmendmentStatus {
 }
 
 message Milestone {
+  reserved 5;
+  reserved "currency";
   int64 id = 1;
   string title = 2;
   string description = 3;
   double amount = 4;
-  string currency = 5;
   int64 due_at_unix_seconds = 6;
   MilestoneStatus status = 7;
   string submission_note = 8;
@@ -121,6 +122,8 @@ message StatusHistoryEntry {
 }
 
 message Contract {
+  reserved 10;
+  reserved "currency";
   int64 id = 1;
   string client_id = 2;
   string freelancer_id = 3;
@@ -131,7 +134,6 @@ message Contract {
 
   string title = 8;
   string description = 9;
-  string currency = 10;
   double hourly_rate = 11;
   double fixed_total = 12;
   int32 weekly_hour_limit = 13;
@@ -147,13 +149,14 @@ message Contract {
 }
 
 message CreateContractRequest {
+  reserved 7;
+  reserved "currency";
   string freelancer_id = 1;
   int64 job_id = 2;
   int64 proposal_id = 3;
   ContractType contract_type = 4;
   string title = 5;
   string description = 6;
-  string currency = 7;
   double hourly_rate = 8;
   double fixed_total = 9;
   int32 weekly_hour_limit = 10;

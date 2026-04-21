@@ -136,12 +136,13 @@ enum SettlementPolicy {
 message CreateJobRequest {
   reserved 4;
   reserved "job_type";
+  reserved 7;
+  reserved "currency";
   string title = 1;
   string description = 2;
   repeated string required_skills = 3;
   double budget_fixed = 5;
   double hourly_rate = 6;
-  string currency = 7;
   int64 deadline_unix_seconds = 8;
   repeated JobAttachment attachments = 9;
   JobType job_type_enum = 10;
@@ -382,6 +383,7 @@ message HireApplicantRequest { int64 proposal_id = 1; }
 message HireApplicantResponse {
   bool hired = 1;
   int64 job_id = 2;
+  int64 contract_id = 3;
 }
 
 message RejectAllApplicantsRequest {
@@ -438,13 +440,14 @@ message CancelJobWithSettlementPolicyResponse { bool canceled = 1; }
 message UpdateJobRequest {
   reserved 5;
   reserved "job_type";
+  reserved 8;
+  reserved "currency";
   int64 job_id = 1;
   optional string title = 2;
   optional string description = 3;
   repeated string required_skills = 4;
   optional double budget_fixed = 6;
   optional double hourly_rate = 7;
-  optional string currency = 8;
   optional int64 deadline_unix_seconds = 9;
   repeated JobAttachment attachments = 10;
   optional JobType job_type_enum = 11;
@@ -465,8 +468,8 @@ message JobAttachment {
 }
 
 message Job {
-  reserved 6, 12;
-  reserved "job_type", "status";
+  reserved 6, 9, 12;
+  reserved "job_type", "currency", "status";
   int64 id = 1;
   string client_id = 2;
   string title = 3;
@@ -474,7 +477,6 @@ message Job {
   repeated string required_skills = 5;
   double budget_fixed = 7;
   double hourly_rate = 8;
-  string currency = 9;
   int64 deadline_unix_seconds = 10;
   repeated JobAttachment attachments = 11;
   int64 created_at_unix_seconds = 13;
