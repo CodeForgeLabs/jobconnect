@@ -23,8 +23,9 @@ type HireApplicantInput struct {
 }
 
 type HireApplicantOutput struct {
-	Hired bool
-	JobID int64
+	Hired     bool
+	JobID     int64
+	ContractID int64
 }
 
 func (uc *HireApplicant) Execute(ctx context.Context, in HireApplicantInput) (HireApplicantOutput, error) {
@@ -51,19 +52,20 @@ func (uc *HireApplicant) Execute(ctx context.Context, in HireApplicantInput) (Hi
 	if err := uc.Proposals.InternalHireProposal(ctx, in.ProposalID, in.ClientID, requestID, ""); err != nil {
 		return HireApplicantOutput{}, err
 	}
-	if err := uc.Contracts.CreateFromProposal(ctx, CreateContractFromProposalInput{
+	contractID, err := uc.Contracts.CreateFromProposal(ctx, CreateContractFromProposalInput{
 		FreelancerID: proposal.FreelancerID,
 		JobID:        proposal.JobID,
 		ProposalID:   proposal.ID,
 		BidType:      proposal.BidType,
 		BidAmount:    proposal.BidAmount,
-	}); err != nil {
+	})
+	if err != nil {
 		return HireApplicantOutput{}, err
 	}
 	if _, err := uc.Jobs.MarkFilled(ctx, proposal.JobID, in.ClientID, uc.Clock.Now()); err != nil {
 		return HireApplicantOutput{}, err
 	}
-	return HireApplicantOutput{Hired: true, JobID: proposal.JobID}, nil
+	return HireApplicantOutput{Hired: true, JobID: proposal.JobID, ContractID: contractID}, nil
 }
 
 type RejectAllApplicants struct {

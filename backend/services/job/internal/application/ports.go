@@ -89,7 +89,7 @@ type Proposal struct {
 }
 
 type ContractCreator interface {
-	CreateFromProposal(ctx context.Context, in CreateContractFromProposalInput) error
+	CreateFromProposal(ctx context.Context, in CreateContractFromProposalInput) (int64, error)
 }
 
 type CreateContractFromProposalInput struct {

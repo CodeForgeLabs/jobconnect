@@ -844,7 +844,7 @@ func (s *JobServer) HireApplicant(ctx context.Context, req *jobv1.HireApplicantR
 	if err != nil {
 		return nil, toStatus(err)
 	}
-	return &jobv1.HireApplicantResponse{Hired: out.Hired, JobId: out.JobID}, nil
+	return &jobv1.HireApplicantResponse{Hired: out.Hired, JobId: out.JobID, ContractId: out.ContractID}, nil
 }
 
 func (s *JobServer) RejectAllApplicants(ctx context.Context, req *jobv1.RejectAllApplicantsRequest) (*jobv1.RejectAllApplicantsResponse, error) {

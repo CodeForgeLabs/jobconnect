@@ -395,7 +395,7 @@ func (h *JobHandler) HireApplicant(c *gin.Context) {
 		writeGRPCError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"hired": resp.GetHired(), "job_id": resp.GetJobId()})
+	c.JSON(http.StatusOK, gin.H{"hired": resp.GetHired(), "job_id": resp.GetJobId(), "contract_id": resp.GetContractId()})
 }
 
 func (h *JobHandler) RejectAllApplicants(c *gin.Context) {

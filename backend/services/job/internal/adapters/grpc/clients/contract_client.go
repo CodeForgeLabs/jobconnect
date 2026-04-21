@@ -26,7 +26,7 @@ func NewContractClient(address string) (*ContractClient, error) {
 	return &ContractClient{client: contractv1.NewContractServiceClient(conn)}, nil
 }
 
-func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.CreateContractFromProposalInput) error {
+func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.CreateContractFromProposalInput) (int64, error) {
 	if c == nil || c.client == nil {
 		return fmt.Errorf("contract client is nil")
 	}
@@ -47,14 +47,13 @@ func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.
 	}
 
 	forwardCtx := forwardAuthorization(ctx)
-	_, err := c.client.CreateContract(forwardCtx, &contractv1.CreateContractRequest{
+	res, err := c.client.CreateContract(forwardCtx, &contractv1.CreateContractRequest{
 		FreelancerId:    in.FreelancerID,
 		JobId:           in.JobID,
 		ProposalId:      in.ProposalID,
 		ContractType:    contractType,
 		Title:           fmt.Sprintf("Contract for job %d", in.JobID),
 		Description:     fmt.Sprintf("Auto-created from proposal %d", in.ProposalID),
-		Currency:        "USD",
 		HourlyRate:      hourlyRate,
 		FixedTotal:      fixedTotal,
 		WeeklyHourLimit: 0,
@@ -62,5 +61,8 @@ func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.
 	if err != nil {
 		return fmt.Errorf("create contract: %w", err)
 	}
-	return nil
+	if res == nil || res.Contract == nil {
+		return 0, fmt.Errorf("create contract: empty response")
+	}
+	return res.Contract.Id, nil
 }
