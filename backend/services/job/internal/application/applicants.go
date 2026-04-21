@@ -146,7 +146,7 @@ func (uc *SetApplicantStage) Execute(ctx context.Context, in SetApplicantStageIn
 	if !isValidApplicantStage(stage) {
 		return SetApplicantStageOutput{}, fmt.Errorf("invalid stage")
 	}
-	if stage == ApplicantStageSent {
+	if stage == ApplicantStageSent || stage == ApplicantStageHired {
 		return SetApplicantStageOutput{}, fmt.Errorf("invalid stage")
 	}
 
@@ -167,7 +167,7 @@ func (uc *SetApplicantStage) Execute(ctx context.Context, in SetApplicantStageIn
 
 func isValidApplicantStage(stage string) bool {
 	switch stage {
-	case ApplicantStageSent, ApplicantStageShortlisted, ApplicantStageRejected, ApplicantStageHired:
+	case ApplicantStageSent, ApplicantStageShortlisted, ApplicantStageRejected:
 		return true
 	default:
 		return false

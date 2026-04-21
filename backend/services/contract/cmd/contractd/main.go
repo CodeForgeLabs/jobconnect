@@ -20,6 +20,7 @@ import (
 	"jobconnect/contract/internal/infrastructure/proposalgrpc"
 	"jobconnect/contract/internal/infrastructure/tokens"
 
+	jobv1 "jobconnect/job/gen/job/v1"
 	proposalv1 "jobconnect/proposal/gen/proposal/v1"
 
 	"google.golang.org/grpc"
@@ -51,12 +52,18 @@ func main() {
 	}
 	defer proposalConn.Close()
 
+	jobConn, err := grpc.NewClient(cfg.JobServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("job service dial: %v", err)
+	}
+	defer jobConn.Close()
+
 	repo := db.NewContractRepo(pool)
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
 	jwtIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
 	proposalClient := proposalgrpc.NewProposalClient(proposalv1.NewProposalServiceClient(proposalConn), jwtIssuer)
-	jobClient := jobgrpc.NewNoopJobClient()
+	jobClient := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn), jwtIssuer)
 
 	createUC := &application.CreateContract{Contracts: repo, Clock: clockImpl}
 	getUC := &application.GetContract{Contracts: repo}

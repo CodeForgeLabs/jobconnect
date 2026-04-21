@@ -43,11 +43,13 @@ func (c *ProposalClient) SetHired(ctx context.Context, proposalID int64, clientI
 		return err
 	}
 	ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx = metadata.AppendToOutgoingContext(ctx, "x-jobconnect-internal", "job-service")
 
-	_, err = c.client.SetProposalStatus(ctx, &proposalv1.SetProposalStatusRequest{
+	_, err = c.client.InternalHireProposal(ctx, &proposalv1.InternalHireProposalRequest{
 		ProposalId: proposalID,
-		Decision:   proposalv1.ClientDecision_CLIENT_DECISION_SHORTLISTED,
-		Reason:     strings.TrimSpace(reason),
+		ClientId:   clientID.String(),
+		RequestId:  fmt.Sprintf("contract-accept-%d-%d", proposalID, time.Now().UnixNano()),
+		Note:       strings.TrimSpace(reason),
 	})
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
