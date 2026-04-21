@@ -44,11 +44,12 @@ func (c *JobClient) GetJobSummary(ctx context.Context, jobID int64) (application
 			if err != nil {
 				return application.JobSummary{}, fmt.Errorf("invalid client_id from job service")
 			}
+			status := jobStatusEnumToString(j.GetStatusEnum())
 			return application.JobSummary{
 				JobID:    j.GetId(),
 				ClientID: clientID,
-				Status:   j.GetStatus(),
-				IsOpen:   j.GetStatus() == "open",
+				Status:   status,
+				IsOpen:   j.GetStatusEnum() == jobv1.JobStatus_JOB_STATUS_OPEN,
 				Found:    true,
 			}, nil
 		}
@@ -61,4 +62,23 @@ func (c *JobClient) GetJobSummary(ctx context.Context, jobID int64) (application
 	}
 
 	return application.JobSummary{JobID: jobID, Found: false}, nil
+}
+
+func jobStatusEnumToString(s jobv1.JobStatus) string {
+	switch s {
+	case jobv1.JobStatus_JOB_STATUS_OPEN:
+		return "open"
+	case jobv1.JobStatus_JOB_STATUS_PAUSED:
+		return "paused"
+	case jobv1.JobStatus_JOB_STATUS_FILLED:
+		return "filled"
+	case jobv1.JobStatus_JOB_STATUS_CLOSED:
+		return "closed"
+	case jobv1.JobStatus_JOB_STATUS_COMPLETED:
+		return "completed"
+	case jobv1.JobStatus_JOB_STATUS_CANCELED:
+		return "canceled"
+	default:
+		return ""
+	}
 }
