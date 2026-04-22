@@ -78,6 +78,16 @@ func registerContractRoutes(api *gin.RouterGroup, contractHandler *handlers.Cont
 	contractRoutes.POST("/:contractId/accept", middleware.RequireRoles("freelancer"), contractHandler.AcceptContract)
 	contractRoutes.POST("/:contractId/decline", middleware.RequireRoles("freelancer"), contractHandler.DeclineContract)
 	contractRoutes.POST("/:contractId/revoke", middleware.RequireRoles("client"), contractHandler.RevokeContractOffer)
+
+	// Amendment endpoints
+	contractRoutes.POST(":/contractId/amendments", contractHandler.ProposeAmendment)
+	contractRoutes.GET(":/contractId/amendments", contractHandler.ListAmendments)
+	contractRoutes.POST(":/contractId/amendments/:amendmentId/respond", contractHandler.RespondAmendment)
+
+	// Lifecycle endpoints
+	contractRoutes.POST(":/contractId/pause", contractHandler.PauseContract)
+	contractRoutes.POST(":/contractId/resume", contractHandler.ResumeContract)
+	contractRoutes.POST(":/contractId/end", contractHandler.EndContract)
 }
 
 func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jwtParser *auth.JWTParser) {

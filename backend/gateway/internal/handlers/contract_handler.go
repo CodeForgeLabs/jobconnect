@@ -317,6 +317,141 @@ func (h *ContractHandler) RevokeContractOffer(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+func (h *ContractHandler) ProposeAmendment(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Summary     string `json:"summary"`
+		PayloadJSON string `json:"payload_json"`
+		ExpiresAt   int64  `json:"expires_at_unix_seconds"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.ProposeAmendment(withAuthContext(c), &contractv1.ProposeAmendmentRequest{
+		ContractId:        contractID,
+		Summary:           body.Summary,
+		PayloadJson:       body.PayloadJSON,
+		ExpiresAtUnixSeconds: body.ExpiresAt,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "amendment", resp.GetAmendment())
+}
+
+func (h *ContractHandler) RespondAmendment(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}	amendmentID, ok := parseInt64Param(c, "amendmentId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Status string `json:"status"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.RespondAmendment(withAuthContext(c), &contractv1.RespondAmendmentRequest{
+		AmendmentId: amendmentID,
+		Status:     contractv1.AmendmentStatus(contractv1.AmendmentStatus_value[strings.ToUpper(body.Status)]),
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "amendment", resp.GetAmendment())
+}
+
+func (h *ContractHandler) ListAmendments(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.ListAmendments(withAuthContext(c), &contractv1.ListAmendmentsRequest{
+		ContractId: contractID,
+		PageSize:  int32(parseIntQuery(c, "page_size", 20)),
+		PageToken: strings.TrimSpace(c.Query("page_token")),
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	payload, convErr := protoSliceToAny(resp.GetAmendments())
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"amendments": payload, "next_page_token": resp.GetNextPageToken()})
+}
+
+func (h *ContractHandler) PauseContract(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Reason string `json:"reason"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.PauseContract(withAuthContext(c), &contractv1.PauseContractRequest{ContractId: contractID, Reason: body.Reason})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
+func (h *ContractHandler) ResumeContract(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Reason string `json:"reason"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.ResumeContract(withAuthContext(c), &contractv1.ResumeContractRequest{ContractId: contractID, Reason: body.Reason})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
+func (h *ContractHandler) EndContract(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Reason string `json:"reason"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.EndContract(withAuthContext(c), &contractv1.EndContractRequest{ContractId: contractID, Reason: body.Reason})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
 func parseBootstrapID(c *gin.Context, key string) (int64, bool) {
 	v := strings.TrimSpace(c.Query(key))
 	if v == "" {
