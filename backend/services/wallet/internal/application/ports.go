@@ -10,9 +10,9 @@ import (
 )
 
 type WalletRepository interface {
-	CreateWallet(ctx context.Context, ownerID uuid.UUID, currency string) (domain.WalletAccount, error)
+	CreateWallet(ctx context.Context, ownerID uuid.UUID) (domain.WalletAccount, error)
 	GetWalletByID(ctx context.Context, walletID int64) (domain.WalletAccount, error)
-	GetWalletByOwnerCurrency(ctx context.Context, ownerID uuid.UUID, currency string) (domain.WalletAccount, error)
+	GetWalletByOwner(ctx context.Context, ownerID uuid.UUID) (domain.WalletAccount, error)
 	GetBalance(ctx context.Context, walletID int64) (domain.BalanceSnapshot, error)
 	CreditInternal(ctx context.Context, in CreditInput) (MutationResult, error)
 	DebitInternal(ctx context.Context, in DebitInput) (MutationResult, error)

@@ -16,7 +16,6 @@ type GetWallet struct {
 type GetWalletInput struct {
 	WalletID int64
 	OwnerID  uuid.UUID
-	Currency string
 }
 
 type GetWalletOutput struct {
@@ -37,8 +36,7 @@ func (uc *GetWallet) Execute(ctx context.Context, in GetWalletInput) (GetWalletO
 	if in.OwnerID == uuid.Nil {
 		return GetWalletOutput{}, fmt.Errorf("%w: owner_id is required", domain.ErrInvalidArgument)
 	}
-	currency := domain.NormalizeCurrency(in.Currency)
-	w, err := uc.Wallets.GetWalletByOwnerCurrency(ctx, in.OwnerID, currency)
+	w, err := uc.Wallets.GetWalletByOwner(ctx, in.OwnerID)
 	if err != nil {
 		return GetWalletOutput{}, err
 	}

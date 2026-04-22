@@ -25,15 +25,15 @@ func NewPaymentRepo(pool *pgxpool.Pool) *PaymentRepo {
 func (r *PaymentRepo) Create(ctx context.Context, s domain.PaymentSession) (domain.PaymentSession, error) {
 	query := `
 		INSERT INTO payment_sessions (
-			user_id, provider, payment_type, status, amount_minor, currency,
+			user_id, provider, payment_type, status, amount_minor,
 			idempotency_key, external_ref, receipt_key, reference_type, reference_id,
 			error_message, created_at, updated_at, completed_at
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 		) RETURNING id
 	`
 	err := r.pool.QueryRow(ctx, query,
-		s.UserID, s.Provider, s.PaymentType, s.Status, s.AmountMinor, s.Currency,
+		s.UserID, s.Provider, s.PaymentType, s.Status, s.AmountMinor,
 		s.IdempotencyKey, s.ExternalRef, s.ReceiptKey, s.ReferenceType, s.ReferenceID,
 		s.ErrorMessage, s.CreatedAt, s.UpdatedAt, s.CompletedAt,
 	).Scan(&s.ID)
@@ -48,14 +48,14 @@ func (r *PaymentRepo) Create(ctx context.Context, s domain.PaymentSession) (doma
 }
 
 func (r *PaymentRepo) GetByID(ctx context.Context, id int64) (domain.PaymentSession, error) {
-	query := `SELECT id, user_id, provider, payment_type, status, amount_minor, currency,
+	query := `SELECT id, user_id, provider, payment_type, status, amount_minor,
 			idempotency_key, external_ref, receipt_key, reference_type, reference_id,
 			error_message, created_at, updated_at, completed_at
 			FROM payment_sessions WHERE id = $1`
-	
+
 	var s domain.PaymentSession
 	err := r.pool.QueryRow(ctx, query, id).Scan(
-		&s.ID, &s.UserID, &s.Provider, &s.PaymentType, &s.Status, &s.AmountMinor, &s.Currency,
+		&s.ID, &s.UserID, &s.Provider, &s.PaymentType, &s.Status, &s.AmountMinor,
 		&s.IdempotencyKey, &s.ExternalRef, &s.ReceiptKey, &s.ReferenceType, &s.ReferenceID,
 		&s.ErrorMessage, &s.CreatedAt, &s.UpdatedAt, &s.CompletedAt,
 	)
@@ -69,14 +69,14 @@ func (r *PaymentRepo) GetByID(ctx context.Context, id int64) (domain.PaymentSess
 }
 
 func (r *PaymentRepo) GetByIdempotencyKey(ctx context.Context, key string) (domain.PaymentSession, bool, error) {
-	query := `SELECT id, user_id, provider, payment_type, status, amount_minor, currency,
+	query := `SELECT id, user_id, provider, payment_type, status, amount_minor,
 			idempotency_key, external_ref, receipt_key, reference_type, reference_id,
 			error_message, created_at, updated_at, completed_at
 			FROM payment_sessions WHERE idempotency_key = $1`
-	
+
 	var s domain.PaymentSession
 	err := r.pool.QueryRow(ctx, query, key).Scan(
-		&s.ID, &s.UserID, &s.Provider, &s.PaymentType, &s.Status, &s.AmountMinor, &s.Currency,
+		&s.ID, &s.UserID, &s.Provider, &s.PaymentType, &s.Status, &s.AmountMinor,
 		&s.IdempotencyKey, &s.ExternalRef, &s.ReceiptKey, &s.ReferenceType, &s.ReferenceID,
 		&s.ErrorMessage, &s.CreatedAt, &s.UpdatedAt, &s.CompletedAt,
 	)
@@ -90,14 +90,14 @@ func (r *PaymentRepo) GetByIdempotencyKey(ctx context.Context, key string) (doma
 }
 
 func (r *PaymentRepo) GetByExternalRef(ctx context.Context, ref string) (domain.PaymentSession, bool, error) {
-	query := `SELECT id, user_id, provider, payment_type, status, amount_minor, currency,
+	query := `SELECT id, user_id, provider, payment_type, status, amount_minor,
 			idempotency_key, external_ref, receipt_key, reference_type, reference_id,
 			error_message, created_at, updated_at, completed_at
 			FROM payment_sessions WHERE external_ref = $1 LIMIT 1`
-	
+
 	var s domain.PaymentSession
 	err := r.pool.QueryRow(ctx, query, ref).Scan(
-		&s.ID, &s.UserID, &s.Provider, &s.PaymentType, &s.Status, &s.AmountMinor, &s.Currency,
+		&s.ID, &s.UserID, &s.Provider, &s.PaymentType, &s.Status, &s.AmountMinor,
 		&s.IdempotencyKey, &s.ExternalRef, &s.ReceiptKey, &s.ReferenceType, &s.ReferenceID,
 		&s.ErrorMessage, &s.CreatedAt, &s.UpdatedAt, &s.CompletedAt,
 	)
@@ -130,11 +130,11 @@ func (r *PaymentRepo) Update(ctx context.Context, s domain.PaymentSession) error
 }
 
 func (r *PaymentRepo) ListByUserID(ctx context.Context, userID uuid.UUID, filters application.SessionFilters, limit, offset int) ([]domain.PaymentSession, error) {
-	query := `SELECT id, user_id, provider, payment_type, status, amount_minor, currency,
+	query := `SELECT id, user_id, provider, payment_type, status, amount_minor,
 			idempotency_key, external_ref, receipt_key, reference_type, reference_id,
 			error_message, created_at, updated_at, completed_at
 			FROM payment_sessions WHERE user_id = $1`
-	
+
 	args := []any{userID}
 	argIdx := 2
 
@@ -162,7 +162,7 @@ func (r *PaymentRepo) ListByUserID(ctx context.Context, userID uuid.UUID, filter
 	for rows.Next() {
 		var s domain.PaymentSession
 		if err := rows.Scan(
-			&s.ID, &s.UserID, &s.Provider, &s.PaymentType, &s.Status, &s.AmountMinor, &s.Currency,
+			&s.ID, &s.UserID, &s.Provider, &s.PaymentType, &s.Status, &s.AmountMinor,
 			&s.IdempotencyKey, &s.ExternalRef, &s.ReceiptKey, &s.ReferenceType, &s.ReferenceID,
 			&s.ErrorMessage, &s.CreatedAt, &s.UpdatedAt, &s.CompletedAt,
 		); err != nil {

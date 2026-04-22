@@ -49,7 +49,7 @@ func (c *ProposalClient) SetHired(ctx context.Context, proposalID int64, clientI
 	_, err = c.client.InternalHireProposal(ctx, &proposalv1.InternalHireProposalRequest{
 		ProposalId: proposalID,
 		ClientId:   clientID.String(),
-		RequestId:  fmt.Sprintf("contract-accept-%d-%d", proposalID, time.Now().UnixNano()),
+		RequestId:  hiredRequestID(proposalID, clientID, reason),
 		Note:       strings.TrimSpace(reason),
 	})
 	if err != nil {
@@ -146,4 +146,12 @@ func proposalStatus(v proposalv1.ProposalStatus) string {
 	default:
 		return "sent"
 	}
+}
+
+func hiredRequestID(proposalID int64, clientID uuid.UUID, reason string) string {
+	normalizedReason := strings.ToLower(strings.TrimSpace(reason))
+	if normalizedReason == "" {
+		normalizedReason = "unspecified"
+	}
+	return fmt.Sprintf("contract-offer-%d-%s-%s", proposalID, clientID.String(), normalizedReason)
 }

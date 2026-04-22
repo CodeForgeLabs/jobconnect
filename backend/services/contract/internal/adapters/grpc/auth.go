@@ -2,6 +2,7 @@ package grpcadapter
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	"github.com/google/uuid"
@@ -64,6 +65,17 @@ func requireInternalCaller(ctx context.Context, services ...string) error {
 	caller := strings.TrimSpace(vals[0])
 	for _, service := range services {
 		if strings.EqualFold(caller, service) {
+			requiredSecret := strings.TrimSpace(os.Getenv("JOBCONNECT_INTERNAL_CALLER_SECRET"))
+			if requiredSecret == "" {
+				return nil
+			}
+			secretVals := md.Get("x-jobconnect-internal-secret")
+			if len(secretVals) == 0 {
+				return status.Error(codes.PermissionDenied, "internal caller secret required")
+			}
+			if strings.TrimSpace(secretVals[0]) != requiredSecret {
+				return status.Error(codes.PermissionDenied, "invalid internal caller secret")
+			}
 			return nil
 		}
 	}

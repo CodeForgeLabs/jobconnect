@@ -41,7 +41,6 @@ type JobServer struct {
 	SaveJobUC          *application.SaveJob
 	UnsaveJobUC        *application.UnsaveJob
 	ListSavedJobsUC    *application.ListSavedJobs
-	HireApplicantUC    *application.HireApplicant
 	RejectAllUC        *application.RejectAllApplicants
 	ReopenHiringUC     *application.ReopenHiringForJob
 	GetJobStatsUC      *application.GetJobStats
@@ -79,7 +78,6 @@ type JobServerConfig struct {
 	SaveJobUC          *application.SaveJob
 	UnsaveJobUC        *application.UnsaveJob
 	ListSavedJobsUC    *application.ListSavedJobs
-	HireApplicantUC    *application.HireApplicant
 	RejectAllUC        *application.RejectAllApplicants
 	ReopenHiringUC     *application.ReopenHiringForJob
 	GetJobStatsUC      *application.GetJobStats
@@ -118,7 +116,6 @@ func NewJobServer(cfg JobServerConfig) *JobServer {
 		SaveJobUC:          cfg.SaveJobUC,
 		UnsaveJobUC:        cfg.UnsaveJobUC,
 		ListSavedJobsUC:    cfg.ListSavedJobsUC,
-		HireApplicantUC:    cfg.HireApplicantUC,
 		RejectAllUC:        cfg.RejectAllUC,
 		ReopenHiringUC:     cfg.ReopenHiringUC,
 		GetJobStatsUC:      cfg.GetJobStatsUC,
@@ -823,24 +820,6 @@ func (s *JobServer) ListSavedJobs(ctx context.Context, req *jobv1.ListSavedJobsR
 		jobs = append(jobs, toProtoJob(j))
 	}
 	return &jobv1.ListSavedJobsResponse{Jobs: jobs, NextPageToken: out.NextPageToken}, nil
-}
-
-func (s *JobServer) HireApplicant(ctx context.Context, req *jobv1.HireApplicantRequest) (*jobv1.HireApplicantResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	callerID, role, err := callerFromContext(ctx, s.TokenParser)
-	if err != nil {
-		return nil, err
-	}
-	if err := requireClientRole(role); err != nil {
-		return nil, err
-	}
-	out, err := s.HireApplicantUC.Execute(ctx, application.HireApplicantInput{ProposalID: req.ProposalId, ClientID: callerID})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &jobv1.HireApplicantResponse{Hired: out.Hired, JobId: out.JobID, ContractId: out.ContractID}, nil
 }
 
 func (s *JobServer) RejectAllApplicants(ctx context.Context, req *jobv1.RejectAllApplicantsRequest) (*jobv1.RejectAllApplicantsResponse, error) {

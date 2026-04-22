@@ -5,11 +5,14 @@ package contract.v1;
 option go_package = "jobconnect/contract/gen/contract/v1;contractv1";
 
 service ContractService {
+  // Sends or resends an offer for a proposal. Opening the offer page is UI-only;
+  // this RPC is the first backend write in the hire flow.
   rpc CreateContract(CreateContractRequest) returns (CreateContractResponse);
   rpc GetContract(GetContractRequest) returns (GetContractResponse);
   rpc ListMyContracts(ListMyContractsRequest) returns (ListMyContractsResponse);
   rpc GetJobOfferState(GetJobOfferStateRequest) returns (GetJobOfferStateResponse);
 
+  // Accepting the offer activates the contract and finalizes the hire.
   rpc AcceptContract(AcceptContractRequest) returns (AcceptContractResponse);
   rpc DeclineContract(DeclineContractRequest) returns (DeclineContractResponse);
   rpc RevokeContractOffer(RevokeContractOfferRequest) returns (RevokeContractOfferResponse);

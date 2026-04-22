@@ -13,6 +13,7 @@ import (
 type CreateContract struct {
 	Contracts ContractRepository
 	Proposals ProposalSync
+	Jobs      JobReader
 	Actors    ActorPolicy
 	Clock     Clock
 }
@@ -36,7 +37,7 @@ type CreateContractOutput struct {
 }
 
 func (uc *CreateContract) Execute(ctx context.Context, in CreateContractInput) (CreateContractOutput, error) {
-	if uc.Contracts == nil || uc.Proposals == nil || uc.Actors == nil || uc.Clock == nil {
+	if uc.Contracts == nil || uc.Proposals == nil || uc.Jobs == nil || uc.Actors == nil || uc.Clock == nil {
 		return CreateContractOutput{}, fmt.Errorf("create contract dependencies are not configured")
 	}
 	if err := uc.Actors.EnsureClientCanHire(ctx, in.ClientID); err != nil {
@@ -56,8 +57,26 @@ func (uc *CreateContract) Execute(ctx context.Context, in CreateContractInput) (
 	if proposal.FreelancerID != in.FreelancerID.String() {
 		return CreateContractOutput{}, fmt.Errorf("proposal does not belong to freelancer")
 	}
-	if !strings.EqualFold(proposal.Status, "hired") {
-		return CreateContractOutput{}, fmt.Errorf("proposal must be reserved before sending an offer")
+	if !strings.EqualFold(proposal.Status, "sent") && !strings.EqualFold(proposal.Status, "shortlisted") && !strings.EqualFold(proposal.Status, "hired") {
+		return CreateContractOutput{}, fmt.Errorf("proposal is not eligible for offer")
+	}
+
+	job, err := uc.Jobs.GetSummary(ctx, in.JobID, in.ClientID)
+	if err != nil {
+		return CreateContractOutput{}, err
+	}
+	if !job.Found || !strings.EqualFold(job.ClientID, in.ClientID.String()) {
+		return CreateContractOutput{}, fmt.Errorf("job not found")
+	}
+	if !job.IsOpen {
+		return CreateContractOutput{}, fmt.Errorf("job must be open to send an offer")
+	}
+	offerState, err := uc.Contracts.GetJobOfferState(ctx, in.JobID, in.ClientID)
+	if err != nil {
+		return CreateContractOutput{}, err
+	}
+	if offerState.HasActiveContract {
+		return CreateContractOutput{}, fmt.Errorf("job already has an active contract")
 	}
 
 	now := uc.Clock.Now()
@@ -86,15 +105,29 @@ func (uc *CreateContract) Execute(ctx context.Context, in CreateContractInput) (
 	switch {
 	case err == nil:
 		switch existing.Status {
-		case domain.StatusPendingAcceptance, domain.StatusDeclined, domain.StatusRevoked:
+		case domain.StatusPendingAcceptance:
+			return CreateContractOutput{}, fmt.Errorf("job already has a pending offer")
+		case domain.StatusDeclined, domain.StatusRevoked:
+			if offerState.HasPendingOffer && offerState.PendingContractID != existing.ID {
+				return CreateContractOutput{}, fmt.Errorf("job already has a pending offer")
+			}
 			c.ID = existing.ID
+			if !strings.EqualFold(proposal.Status, "hired") {
+				if err := uc.Proposals.SetHired(ctx, in.ProposalID, in.ClientID, "offer sent"); err != nil {
+					return CreateContractOutput{}, fmt.Errorf("sync proposal status: %w", err)
+				}
+			}
 			if err := uc.Contracts.UpdateOfferForClient(ctx, c); err != nil {
+				if !strings.EqualFold(proposal.Status, "hired") {
+					revertErr := uc.Proposals.ReleaseHired(ctx, in.ProposalID, in.ClientID, "offer resend compensation")
+					return CreateContractOutput{}, wrapCompensationError(fmt.Errorf("update resent offer: %w", err), revertErr, "revert proposal hire after offer resend failure")
+				}
 				return CreateContractOutput{}, err
 			}
 			_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
 				ContractID: existing.ID,
 				Status:     domain.StatusPendingAcceptance,
-				Reason:     "offer sent",
+				Reason:     "offer resent",
 				ActorID:    in.ClientID,
 				CreatedAt:  now,
 			})
@@ -109,10 +142,26 @@ func (uc *CreateContract) Execute(ctx context.Context, in CreateContractInput) (
 	case !strings.Contains(strings.ToLower(err.Error()), "not found"):
 		return CreateContractOutput{}, err
 	}
+	if offerState.HasPendingOffer {
+		return CreateContractOutput{}, fmt.Errorf("job already has a pending offer")
+	}
 
 	id, err := uc.Contracts.Create(ctx, c)
 	if err != nil {
 		return CreateContractOutput{}, err
+	}
+	if !strings.EqualFold(proposal.Status, "hired") {
+		if err := uc.Proposals.SetHired(ctx, in.ProposalID, in.ClientID, "offer sent"); err != nil {
+			revertErr := uc.Contracts.SetStatusForClient(ctx, id, in.ClientID, domain.StatusRevoked, now)
+			_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
+				ContractID: id,
+				Status:     domain.StatusRevoked,
+				Reason:     "offer send compensation",
+				ActorID:    in.ClientID,
+				CreatedAt:  now,
+			})
+			return CreateContractOutput{}, wrapCompensationError(err, revertErr, "revoke offer after proposal sync failure")
+		}
 	}
 	_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
 		ContractID: id,

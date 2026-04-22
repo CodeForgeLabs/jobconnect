@@ -61,11 +61,6 @@ func main() {
 		log.Fatalf("connects service dial: %v", err)
 	}
 
-	userCli, err := clients.NewUserClient(cfg.UserServiceAddr)
-	if err != nil {
-		log.Fatalf("user service dial: %v", err)
-	}
-
 	// Proposal Client
 	proposalAddr := os.Getenv("PROPOSAL_SERVICE_ADDR")
 	if proposalAddr == "" {
@@ -112,7 +107,6 @@ func main() {
 	saveJobUC := &application.SaveJob{Jobs: jobRepo, Clock: clockImpl}
 	unsaveJobUC := &application.UnsaveJob{Jobs: jobRepo}
 	listSavedJobsUC := &application.ListSavedJobs{Jobs: jobRepo}
-	hireApplicantUC := &application.HireApplicant{Jobs: jobRepo, Proposals: proposalCli, Contracts: contractCli, Actors: userCli, Clock: clockImpl}
 	rejectAllUC := &application.RejectAllApplicants{Jobs: jobRepo, Proposals: proposalCli}
 	reopenHiringUC := &application.ReopenHiringForJob{Jobs: jobRepo, Proposals: proposalCli, Contracts: contractCli, Clock: clockImpl}
 	getJobStatsUC := &application.GetJobStats{Jobs: jobRepo, Proposals: proposalCli}
@@ -148,7 +142,6 @@ func main() {
 		SaveJobUC:          saveJobUC,
 		UnsaveJobUC:        unsaveJobUC,
 		ListSavedJobsUC:    listSavedJobsUC,
-		HireApplicantUC:    hireApplicantUC,
 		RejectAllUC:        rejectAllUC,
 		ReopenHiringUC:     reopenHiringUC,
 		GetJobStatsUC:      getJobStatsUC,

@@ -56,6 +56,14 @@ func (r *ContractRepo) Create(ctx context.Context, c domain.Contract) (int64, er
 		c.UpdatedAt,
 	).Scan(&id)
 	if err != nil {
+		if isUniqueViolation(err) {
+			switch uniqueViolationConstraint(err) {
+			case "uq_contracts_proposal_id_nonzero":
+				return 0, fmt.Errorf("contract already exists for proposal")
+			case "uq_contracts_pending_offer_per_job_client":
+				return 0, fmt.Errorf("job already has a pending offer")
+			}
+		}
 		return 0, err
 	}
 	return id, nil

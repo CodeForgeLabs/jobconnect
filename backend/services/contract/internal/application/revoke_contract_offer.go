@@ -53,8 +53,15 @@ func (uc *RevokeContractOffer) Execute(ctx context.Context, in RevokeContractOff
 	}
 	if current.ProposalID > 0 {
 		if err := uc.Proposals.ReleaseHired(ctx, current.ProposalID, current.ClientID, in.Reason); err != nil {
-			_ = uc.Contracts.SetStatusForClient(ctx, in.ContractID, in.ClientID, domain.StatusPendingAcceptance, uc.Clock.Now())
-			return RevokeContractOfferOutput{}, fmt.Errorf("sync proposal status: %w", err)
+			revertErr := uc.Contracts.SetStatusForClient(ctx, in.ContractID, in.ClientID, domain.StatusPendingAcceptance, uc.Clock.Now())
+			_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
+				ContractID: in.ContractID,
+				Status:     domain.StatusPendingAcceptance,
+				Reason:     "revoke compensation",
+				ActorID:    in.ClientID,
+				CreatedAt:  uc.Clock.Now(),
+			})
+			return RevokeContractOfferOutput{}, wrapCompensationError(fmt.Errorf("sync proposal status: %w", err), revertErr, "revert contract revocation")
 		}
 	}
 	_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{

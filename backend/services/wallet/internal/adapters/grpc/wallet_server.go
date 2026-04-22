@@ -78,7 +78,7 @@ func (s *WalletServer) CreateWallet(ctx context.Context, req *walletv1.CreateWal
 		ownerID = parsed
 	}
 
-	out, err := s.CreateWalletUC.Execute(ctx, application.CreateWalletInput{OwnerID: ownerID, Currency: req.GetCurrency()})
+	out, err := s.CreateWalletUC.Execute(ctx, application.CreateWalletInput{OwnerID: ownerID})
 	if err != nil {
 		return nil, toStatus(err)
 	}
@@ -98,16 +98,12 @@ func (s *WalletServer) GetWallet(ctx context.Context, req *walletv1.GetWalletReq
 	switch target := req.GetTarget().(type) {
 	case *walletv1.GetWalletRequest_WalletId:
 		in.WalletID = target.WalletId
-	case *walletv1.GetWalletRequest_OwnerCurrency:
-		if target.OwnerCurrency == nil {
-			return nil, status.Error(codes.InvalidArgument, "owner_currency is required")
-		}
-		ownerID, parseErr := uuid.Parse(target.OwnerCurrency.GetOwnerId())
+	case *walletv1.GetWalletRequest_OwnerId:
+		ownerID, parseErr := uuid.Parse(strings.TrimSpace(target.OwnerId))
 		if parseErr != nil {
 			return nil, status.Error(codes.InvalidArgument, "invalid owner_id")
 		}
 		in.OwnerID = ownerID
-		in.Currency = target.OwnerCurrency.GetCurrency()
 	default:
 		return nil, status.Error(codes.InvalidArgument, "target is required")
 	}
@@ -325,7 +321,6 @@ func toProtoWallet(in domain.WalletAccount) *walletv1.Wallet {
 	return &walletv1.Wallet{
 		Id:                   in.ID,
 		OwnerId:              in.OwnerID.String(),
-		Currency:             in.Currency,
 		Status:               toProtoWalletStatus(in.Status),
 		AvailableMinor:       in.AvailableMinor,
 		HeldMinor:            in.HeldMinor,
@@ -339,7 +334,6 @@ func toProtoBalance(in domain.BalanceSnapshot) *walletv1.Balance {
 		AvailableMinor: in.AvailableMinor,
 		HeldMinor:      in.HeldMinor,
 		TotalMinor:     in.TotalMinor(),
-		Currency:       in.Currency,
 	}
 }
 

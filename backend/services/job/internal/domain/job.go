@@ -46,7 +46,6 @@ type Job struct {
 	JobType            string
 	BudgetFixed        float64
 	HourlyRate         float64
-	Currency           string
 	BudgetMin          float64
 	BudgetMax          float64
 	Visibility         string

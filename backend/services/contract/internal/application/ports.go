@@ -46,6 +46,18 @@ type ProposalSync interface {
 	ReleaseHired(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error
 }
 
+type JobSummary struct {
+	JobID    int64
+	ClientID string
+	Status   string
+	IsOpen   bool
+	Found    bool
+}
+
+type JobReader interface {
+	GetSummary(ctx context.Context, jobID int64, clientID uuid.UUID) (JobSummary, error)
+}
+
 type JobStatusSync interface {
 	SetInProgress(ctx context.Context, jobID int64, clientID uuid.UUID) error
 }

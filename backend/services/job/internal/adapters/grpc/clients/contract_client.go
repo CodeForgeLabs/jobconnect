@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	contractv1 "jobconnect/job/gen/contract/v1"
 	"jobconnect/job/internal/application"
@@ -39,6 +41,9 @@ func (c *ContractClient) GetJobOfferState(ctx context.Context, jobID int64, clie
 	}
 	forwardCtx := forwardAuthorization(ctx)
 	forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal", "job-service")
+	if secret := strings.TrimSpace(os.Getenv("JOBCONNECT_INTERNAL_CALLER_SECRET")); secret != "" {
+		forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal-secret", secret)
+	}
 	res, err := c.client.GetJobOfferState(forwardCtx, &contractv1.GetJobOfferStateRequest{JobId: jobID})
 	if err != nil {
 		return application.ContractState{}, fmt.Errorf("get job offer state: %w", err)

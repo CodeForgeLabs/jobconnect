@@ -1843,6 +1843,110 @@ func (x *InternalHireProposalResponse) GetReusedIdempotentResult() bool {
 	return false
 }
 
+type InternalReleaseHiredProposalRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	ClientId      string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalReleaseHiredProposalRequest) Reset() {
+	*x = InternalReleaseHiredProposalRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalReleaseHiredProposalRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalReleaseHiredProposalRequest) ProtoMessage() {}
+
+func (x *InternalReleaseHiredProposalRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalReleaseHiredProposalRequest.ProtoReflect.Descriptor instead.
+func (*InternalReleaseHiredProposalRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *InternalReleaseHiredProposalRequest) GetProposalId() int64 {
+	if x != nil {
+		return x.ProposalId
+	}
+	return 0
+}
+
+func (x *InternalReleaseHiredProposalRequest) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *InternalReleaseHiredProposalRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type InternalReleaseHiredProposalResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Proposal      *Proposal              `protobuf:"bytes,1,opt,name=proposal,proto3" json:"proposal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalReleaseHiredProposalResponse) Reset() {
+	*x = InternalReleaseHiredProposalResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalReleaseHiredProposalResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalReleaseHiredProposalResponse) ProtoMessage() {}
+
+func (x *InternalReleaseHiredProposalResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalReleaseHiredProposalResponse.ProtoReflect.Descriptor instead.
+func (*InternalReleaseHiredProposalResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *InternalReleaseHiredProposalResponse) GetProposal() *Proposal {
+	if x != nil {
+		return x.Proposal
+	}
+	return nil
+}
+
 type GetProposalAttachmentUploadUrlRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
@@ -1854,7 +1958,7 @@ type GetProposalAttachmentUploadUrlRequest struct {
 
 func (x *GetProposalAttachmentUploadUrlRequest) Reset() {
 	*x = GetProposalAttachmentUploadUrlRequest{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[27]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1866,7 +1970,7 @@ func (x *GetProposalAttachmentUploadUrlRequest) String() string {
 func (*GetProposalAttachmentUploadUrlRequest) ProtoMessage() {}
 
 func (x *GetProposalAttachmentUploadUrlRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[27]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1879,7 +1983,7 @@ func (x *GetProposalAttachmentUploadUrlRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use GetProposalAttachmentUploadUrlRequest.ProtoReflect.Descriptor instead.
 func (*GetProposalAttachmentUploadUrlRequest) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{27}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetProposalAttachmentUploadUrlRequest) GetProposalId() int64 {
@@ -1913,7 +2017,7 @@ type GetProposalAttachmentUploadUrlResponse struct {
 
 func (x *GetProposalAttachmentUploadUrlResponse) Reset() {
 	*x = GetProposalAttachmentUploadUrlResponse{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[28]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1925,7 +2029,7 @@ func (x *GetProposalAttachmentUploadUrlResponse) String() string {
 func (*GetProposalAttachmentUploadUrlResponse) ProtoMessage() {}
 
 func (x *GetProposalAttachmentUploadUrlResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[28]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1938,7 +2042,7 @@ func (x *GetProposalAttachmentUploadUrlResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use GetProposalAttachmentUploadUrlResponse.ProtoReflect.Descriptor instead.
 func (*GetProposalAttachmentUploadUrlResponse) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{28}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetProposalAttachmentUploadUrlResponse) GetStorageKey() string {
@@ -1965,7 +2069,7 @@ type GetProposalAttachmentDownloadUrlRequest struct {
 
 func (x *GetProposalAttachmentDownloadUrlRequest) Reset() {
 	*x = GetProposalAttachmentDownloadUrlRequest{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[29]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1977,7 +2081,7 @@ func (x *GetProposalAttachmentDownloadUrlRequest) String() string {
 func (*GetProposalAttachmentDownloadUrlRequest) ProtoMessage() {}
 
 func (x *GetProposalAttachmentDownloadUrlRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[29]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1990,7 +2094,7 @@ func (x *GetProposalAttachmentDownloadUrlRequest) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use GetProposalAttachmentDownloadUrlRequest.ProtoReflect.Descriptor instead.
 func (*GetProposalAttachmentDownloadUrlRequest) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{29}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetProposalAttachmentDownloadUrlRequest) GetProposalId() int64 {
@@ -2016,7 +2120,7 @@ type GetProposalAttachmentDownloadUrlResponse struct {
 
 func (x *GetProposalAttachmentDownloadUrlResponse) Reset() {
 	*x = GetProposalAttachmentDownloadUrlResponse{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[30]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2028,7 +2132,7 @@ func (x *GetProposalAttachmentDownloadUrlResponse) String() string {
 func (*GetProposalAttachmentDownloadUrlResponse) ProtoMessage() {}
 
 func (x *GetProposalAttachmentDownloadUrlResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[30]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2041,7 +2145,7 @@ func (x *GetProposalAttachmentDownloadUrlResponse) ProtoReflect() protoreflect.M
 
 // Deprecated: Use GetProposalAttachmentDownloadUrlResponse.ProtoReflect.Descriptor instead.
 func (*GetProposalAttachmentDownloadUrlResponse) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{30}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *GetProposalAttachmentDownloadUrlResponse) GetDownloadUrl() string {
@@ -2062,7 +2166,7 @@ type SetProposalStatusRequest struct {
 
 func (x *SetProposalStatusRequest) Reset() {
 	*x = SetProposalStatusRequest{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[31]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2074,7 +2178,7 @@ func (x *SetProposalStatusRequest) String() string {
 func (*SetProposalStatusRequest) ProtoMessage() {}
 
 func (x *SetProposalStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[31]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2087,7 +2191,7 @@ func (x *SetProposalStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProposalStatusRequest.ProtoReflect.Descriptor instead.
 func (*SetProposalStatusRequest) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{31}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *SetProposalStatusRequest) GetProposalId() int64 {
@@ -2120,7 +2224,7 @@ type SetProposalStatusResponse struct {
 
 func (x *SetProposalStatusResponse) Reset() {
 	*x = SetProposalStatusResponse{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[32]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2132,7 +2236,7 @@ func (x *SetProposalStatusResponse) String() string {
 func (*SetProposalStatusResponse) ProtoMessage() {}
 
 func (x *SetProposalStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[32]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2145,7 +2249,7 @@ func (x *SetProposalStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProposalStatusResponse.ProtoReflect.Descriptor instead.
 func (*SetProposalStatusResponse) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{32}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *SetProposalStatusResponse) GetProposal() *Proposal {
@@ -2292,7 +2396,14 @@ const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\x04note\x18\x04 \x01(\tR\x04note\"\x8b\x01\n" +
 	"\x1cInternalHireProposalResponse\x121\n" +
 	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal\x128\n" +
-	"\x18reused_idempotent_result\x18\x02 \x01(\bR\x16reusedIdempotentResult\"\x88\x01\n" +
+	"\x18reused_idempotent_result\x18\x02 \x01(\bR\x16reusedIdempotentResult\"{\n" +
+	"#InternalReleaseHiredProposalRequest\x12\x1f\n" +
+	"\vproposal_id\x18\x01 \x01(\x03R\n" +
+	"proposalId\x12\x1b\n" +
+	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"Y\n" +
+	"$InternalReleaseHiredProposalResponse\x121\n" +
+	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal\"\x88\x01\n" +
 	"%GetProposalAttachmentUploadUrlRequest\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\x03R\n" +
 	"proposalId\x12\x1b\n" +
@@ -2332,7 +2443,7 @@ const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\x0eClientDecision\x12\x1f\n" +
 	"\x1bCLIENT_DECISION_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bCLIENT_DECISION_SHORTLISTED\x10\x01\x12\x1c\n" +
-	"\x18CLIENT_DECISION_REJECTED\x10\x022\xc3\f\n" +
+	"\x18CLIENT_DECISION_REJECTED\x10\x022\xc9\r\n" +
 	"\x0fProposalService\x12Y\n" +
 	"\x0eSubmitProposal\x12\".proposal.v1.SubmitProposalRequest\x1a#.proposal.v1.SubmitProposalResponse\x12Y\n" +
 	"\x0eModifyProposal\x12\".proposal.v1.ModifyProposalRequest\x1a#.proposal.v1.ModifyProposalResponse\x12_\n" +
@@ -2348,7 +2459,8 @@ const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\x1eGetProposalAttachmentUploadUrl\x122.proposal.v1.GetProposalAttachmentUploadUrlRequest\x1a3.proposal.v1.GetProposalAttachmentUploadUrlResponse\x12\x8f\x01\n" +
 	" GetProposalAttachmentDownloadUrl\x124.proposal.v1.GetProposalAttachmentDownloadUrlRequest\x1a5.proposal.v1.GetProposalAttachmentDownloadUrlResponse\x12b\n" +
 	"\x11SetProposalStatus\x12%.proposal.v1.SetProposalStatusRequest\x1a&.proposal.v1.SetProposalStatusResponse\x12k\n" +
-	"\x14InternalHireProposal\x12(.proposal.v1.InternalHireProposalRequest\x1a).proposal.v1.InternalHireProposalResponseB0Z.jobconnect/proposal/gen/proposal/v1;proposalv1b\x06proto3"
+	"\x14InternalHireProposal\x12(.proposal.v1.InternalHireProposalRequest\x1a).proposal.v1.InternalHireProposalResponse\x12\x83\x01\n" +
+	"\x1cInternalReleaseHiredProposal\x120.proposal.v1.InternalReleaseHiredProposalRequest\x1a1.proposal.v1.InternalReleaseHiredProposalResponseB0Z.jobconnect/proposal/gen/proposal/v1;proposalv1b\x06proto3"
 
 var (
 	file_proposal_v1_proposal_proto_rawDescOnce sync.Once
@@ -2363,7 +2475,7 @@ func file_proposal_v1_proposal_proto_rawDescGZIP() []byte {
 }
 
 var file_proposal_v1_proposal_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_proposal_v1_proposal_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_proposal_v1_proposal_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_proposal_v1_proposal_proto_goTypes = []any{
 	(ProposalStatus)(0),                              // 0: proposal.v1.ProposalStatus
 	(SortBy)(0),                                      // 1: proposal.v1.SortBy
@@ -2395,12 +2507,14 @@ var file_proposal_v1_proposal_proto_goTypes = []any{
 	(*CountClientProposalInboxResponse)(nil),         // 27: proposal.v1.CountClientProposalInboxResponse
 	(*InternalHireProposalRequest)(nil),              // 28: proposal.v1.InternalHireProposalRequest
 	(*InternalHireProposalResponse)(nil),             // 29: proposal.v1.InternalHireProposalResponse
-	(*GetProposalAttachmentUploadUrlRequest)(nil),    // 30: proposal.v1.GetProposalAttachmentUploadUrlRequest
-	(*GetProposalAttachmentUploadUrlResponse)(nil),   // 31: proposal.v1.GetProposalAttachmentUploadUrlResponse
-	(*GetProposalAttachmentDownloadUrlRequest)(nil),  // 32: proposal.v1.GetProposalAttachmentDownloadUrlRequest
-	(*GetProposalAttachmentDownloadUrlResponse)(nil), // 33: proposal.v1.GetProposalAttachmentDownloadUrlResponse
-	(*SetProposalStatusRequest)(nil),                 // 34: proposal.v1.SetProposalStatusRequest
-	(*SetProposalStatusResponse)(nil),                // 35: proposal.v1.SetProposalStatusResponse
+	(*InternalReleaseHiredProposalRequest)(nil),      // 30: proposal.v1.InternalReleaseHiredProposalRequest
+	(*InternalReleaseHiredProposalResponse)(nil),     // 31: proposal.v1.InternalReleaseHiredProposalResponse
+	(*GetProposalAttachmentUploadUrlRequest)(nil),    // 32: proposal.v1.GetProposalAttachmentUploadUrlRequest
+	(*GetProposalAttachmentUploadUrlResponse)(nil),   // 33: proposal.v1.GetProposalAttachmentUploadUrlResponse
+	(*GetProposalAttachmentDownloadUrlRequest)(nil),  // 34: proposal.v1.GetProposalAttachmentDownloadUrlRequest
+	(*GetProposalAttachmentDownloadUrlResponse)(nil), // 35: proposal.v1.GetProposalAttachmentDownloadUrlResponse
+	(*SetProposalStatusRequest)(nil),                 // 36: proposal.v1.SetProposalStatusRequest
+	(*SetProposalStatusResponse)(nil),                // 37: proposal.v1.SetProposalStatusResponse
 }
 var file_proposal_v1_proposal_proto_depIdxs = []int32{
 	3,  // 0: proposal.v1.Proposal.attachments:type_name -> proposal.v1.ProposalAttachment
@@ -2426,43 +2540,46 @@ var file_proposal_v1_proposal_proto_depIdxs = []int32{
 	0,  // 20: proposal.v1.CountClientProposalInboxRequest.status_filter:type_name -> proposal.v1.ProposalStatus
 	23, // 21: proposal.v1.CountClientProposalInboxResponse.by_status:type_name -> proposal.v1.ProposalStatusCount
 	4,  // 22: proposal.v1.InternalHireProposalResponse.proposal:type_name -> proposal.v1.Proposal
-	2,  // 23: proposal.v1.SetProposalStatusRequest.decision:type_name -> proposal.v1.ClientDecision
-	4,  // 24: proposal.v1.SetProposalStatusResponse.proposal:type_name -> proposal.v1.Proposal
-	5,  // 25: proposal.v1.ProposalService.SubmitProposal:input_type -> proposal.v1.SubmitProposalRequest
-	7,  // 26: proposal.v1.ProposalService.ModifyProposal:input_type -> proposal.v1.ModifyProposalRequest
-	9,  // 27: proposal.v1.ProposalService.WithdrawProposal:input_type -> proposal.v1.WithdrawProposalRequest
-	11, // 28: proposal.v1.ProposalService.GetProposal:input_type -> proposal.v1.GetProposalRequest
-	13, // 29: proposal.v1.ProposalService.GetMyProposalForJob:input_type -> proposal.v1.GetMyProposalForJobRequest
-	15, // 30: proposal.v1.ProposalService.HasAppliedToJob:input_type -> proposal.v1.HasAppliedToJobRequest
-	17, // 31: proposal.v1.ProposalService.ListProposalsByJob:input_type -> proposal.v1.ListProposalsByJobRequest
-	19, // 32: proposal.v1.ProposalService.ListMyProposals:input_type -> proposal.v1.ListMyProposalsRequest
-	21, // 33: proposal.v1.ProposalService.ListClientProposals:input_type -> proposal.v1.ListClientProposalsRequest
-	24, // 34: proposal.v1.ProposalService.CountProposalsByJob:input_type -> proposal.v1.CountProposalsByJobRequest
-	26, // 35: proposal.v1.ProposalService.CountClientProposalInbox:input_type -> proposal.v1.CountClientProposalInboxRequest
-	30, // 36: proposal.v1.ProposalService.GetProposalAttachmentUploadUrl:input_type -> proposal.v1.GetProposalAttachmentUploadUrlRequest
-	32, // 37: proposal.v1.ProposalService.GetProposalAttachmentDownloadUrl:input_type -> proposal.v1.GetProposalAttachmentDownloadUrlRequest
-	34, // 38: proposal.v1.ProposalService.SetProposalStatus:input_type -> proposal.v1.SetProposalStatusRequest
-	28, // 39: proposal.v1.ProposalService.InternalHireProposal:input_type -> proposal.v1.InternalHireProposalRequest
-	6,  // 40: proposal.v1.ProposalService.SubmitProposal:output_type -> proposal.v1.SubmitProposalResponse
-	8,  // 41: proposal.v1.ProposalService.ModifyProposal:output_type -> proposal.v1.ModifyProposalResponse
-	10, // 42: proposal.v1.ProposalService.WithdrawProposal:output_type -> proposal.v1.WithdrawProposalResponse
-	12, // 43: proposal.v1.ProposalService.GetProposal:output_type -> proposal.v1.GetProposalResponse
-	14, // 44: proposal.v1.ProposalService.GetMyProposalForJob:output_type -> proposal.v1.GetMyProposalForJobResponse
-	16, // 45: proposal.v1.ProposalService.HasAppliedToJob:output_type -> proposal.v1.HasAppliedToJobResponse
-	18, // 46: proposal.v1.ProposalService.ListProposalsByJob:output_type -> proposal.v1.ListProposalsByJobResponse
-	20, // 47: proposal.v1.ProposalService.ListMyProposals:output_type -> proposal.v1.ListMyProposalsResponse
-	22, // 48: proposal.v1.ProposalService.ListClientProposals:output_type -> proposal.v1.ListClientProposalsResponse
-	25, // 49: proposal.v1.ProposalService.CountProposalsByJob:output_type -> proposal.v1.CountProposalsByJobResponse
-	27, // 50: proposal.v1.ProposalService.CountClientProposalInbox:output_type -> proposal.v1.CountClientProposalInboxResponse
-	31, // 51: proposal.v1.ProposalService.GetProposalAttachmentUploadUrl:output_type -> proposal.v1.GetProposalAttachmentUploadUrlResponse
-	33, // 52: proposal.v1.ProposalService.GetProposalAttachmentDownloadUrl:output_type -> proposal.v1.GetProposalAttachmentDownloadUrlResponse
-	35, // 53: proposal.v1.ProposalService.SetProposalStatus:output_type -> proposal.v1.SetProposalStatusResponse
-	29, // 54: proposal.v1.ProposalService.InternalHireProposal:output_type -> proposal.v1.InternalHireProposalResponse
-	40, // [40:55] is the sub-list for method output_type
-	25, // [25:40] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	4,  // 23: proposal.v1.InternalReleaseHiredProposalResponse.proposal:type_name -> proposal.v1.Proposal
+	2,  // 24: proposal.v1.SetProposalStatusRequest.decision:type_name -> proposal.v1.ClientDecision
+	4,  // 25: proposal.v1.SetProposalStatusResponse.proposal:type_name -> proposal.v1.Proposal
+	5,  // 26: proposal.v1.ProposalService.SubmitProposal:input_type -> proposal.v1.SubmitProposalRequest
+	7,  // 27: proposal.v1.ProposalService.ModifyProposal:input_type -> proposal.v1.ModifyProposalRequest
+	9,  // 28: proposal.v1.ProposalService.WithdrawProposal:input_type -> proposal.v1.WithdrawProposalRequest
+	11, // 29: proposal.v1.ProposalService.GetProposal:input_type -> proposal.v1.GetProposalRequest
+	13, // 30: proposal.v1.ProposalService.GetMyProposalForJob:input_type -> proposal.v1.GetMyProposalForJobRequest
+	15, // 31: proposal.v1.ProposalService.HasAppliedToJob:input_type -> proposal.v1.HasAppliedToJobRequest
+	17, // 32: proposal.v1.ProposalService.ListProposalsByJob:input_type -> proposal.v1.ListProposalsByJobRequest
+	19, // 33: proposal.v1.ProposalService.ListMyProposals:input_type -> proposal.v1.ListMyProposalsRequest
+	21, // 34: proposal.v1.ProposalService.ListClientProposals:input_type -> proposal.v1.ListClientProposalsRequest
+	24, // 35: proposal.v1.ProposalService.CountProposalsByJob:input_type -> proposal.v1.CountProposalsByJobRequest
+	26, // 36: proposal.v1.ProposalService.CountClientProposalInbox:input_type -> proposal.v1.CountClientProposalInboxRequest
+	32, // 37: proposal.v1.ProposalService.GetProposalAttachmentUploadUrl:input_type -> proposal.v1.GetProposalAttachmentUploadUrlRequest
+	34, // 38: proposal.v1.ProposalService.GetProposalAttachmentDownloadUrl:input_type -> proposal.v1.GetProposalAttachmentDownloadUrlRequest
+	36, // 39: proposal.v1.ProposalService.SetProposalStatus:input_type -> proposal.v1.SetProposalStatusRequest
+	28, // 40: proposal.v1.ProposalService.InternalHireProposal:input_type -> proposal.v1.InternalHireProposalRequest
+	30, // 41: proposal.v1.ProposalService.InternalReleaseHiredProposal:input_type -> proposal.v1.InternalReleaseHiredProposalRequest
+	6,  // 42: proposal.v1.ProposalService.SubmitProposal:output_type -> proposal.v1.SubmitProposalResponse
+	8,  // 43: proposal.v1.ProposalService.ModifyProposal:output_type -> proposal.v1.ModifyProposalResponse
+	10, // 44: proposal.v1.ProposalService.WithdrawProposal:output_type -> proposal.v1.WithdrawProposalResponse
+	12, // 45: proposal.v1.ProposalService.GetProposal:output_type -> proposal.v1.GetProposalResponse
+	14, // 46: proposal.v1.ProposalService.GetMyProposalForJob:output_type -> proposal.v1.GetMyProposalForJobResponse
+	16, // 47: proposal.v1.ProposalService.HasAppliedToJob:output_type -> proposal.v1.HasAppliedToJobResponse
+	18, // 48: proposal.v1.ProposalService.ListProposalsByJob:output_type -> proposal.v1.ListProposalsByJobResponse
+	20, // 49: proposal.v1.ProposalService.ListMyProposals:output_type -> proposal.v1.ListMyProposalsResponse
+	22, // 50: proposal.v1.ProposalService.ListClientProposals:output_type -> proposal.v1.ListClientProposalsResponse
+	25, // 51: proposal.v1.ProposalService.CountProposalsByJob:output_type -> proposal.v1.CountProposalsByJobResponse
+	27, // 52: proposal.v1.ProposalService.CountClientProposalInbox:output_type -> proposal.v1.CountClientProposalInboxResponse
+	33, // 53: proposal.v1.ProposalService.GetProposalAttachmentUploadUrl:output_type -> proposal.v1.GetProposalAttachmentUploadUrlResponse
+	35, // 54: proposal.v1.ProposalService.GetProposalAttachmentDownloadUrl:output_type -> proposal.v1.GetProposalAttachmentDownloadUrlResponse
+	37, // 55: proposal.v1.ProposalService.SetProposalStatus:output_type -> proposal.v1.SetProposalStatusResponse
+	29, // 56: proposal.v1.ProposalService.InternalHireProposal:output_type -> proposal.v1.InternalHireProposalResponse
+	31, // 57: proposal.v1.ProposalService.InternalReleaseHiredProposal:output_type -> proposal.v1.InternalReleaseHiredProposalResponse
+	42, // [42:58] is the sub-list for method output_type
+	26, // [26:42] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_proposal_v1_proposal_proto_init() }
@@ -2479,7 +2596,7 @@ func file_proposal_v1_proposal_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proposal_v1_proposal_proto_rawDesc), len(file_proposal_v1_proposal_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   33,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

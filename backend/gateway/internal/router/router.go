@@ -92,7 +92,6 @@ func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jw
 	clientJobs.POST("/applicants/:proposalId/stage", jobHandler.SetApplicantStage)
 	clientJobs.POST("/:jobId/reject-all", jobHandler.RejectAllApplicants)
 	clientJobs.POST("/:jobId/reopen-hiring", jobHandler.ReopenHiringForJob)
-	clientJobs.POST("/hire", jobHandler.HireApplicant)
 	clientJobs.GET("/:jobId/stats", jobHandler.GetJobStats)
 	clientJobs.POST("/:jobId/mark-completed", jobHandler.MarkJobCompleted)
 	clientJobs.POST("/:jobId/cancel-with-settlement", jobHandler.CancelJobWithSettlementPolicy)

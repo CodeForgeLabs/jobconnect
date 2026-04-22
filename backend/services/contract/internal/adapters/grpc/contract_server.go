@@ -809,7 +809,11 @@ func toStatus(err error) error {
 		return status.Error(codes.InvalidArgument, err.Error())
 	case strings.Contains(msg, "role") || strings.Contains(msg, "owner") || strings.Contains(msg, "eligible") || strings.Contains(msg, "cannot"):
 		return status.Error(codes.PermissionDenied, err.Error())
-	case strings.Contains(msg, "already exists") || strings.Contains(msg, "already has") || strings.Contains(msg, "acceptable state") || strings.Contains(msg, "revoke-able state"):
+	case strings.Contains(msg, "already exists") ||
+		strings.Contains(msg, "already has") ||
+		strings.Contains(msg, "acceptable state") ||
+		strings.Contains(msg, "revoke-able state") ||
+		strings.Contains(msg, "does not belong to"):
 		return status.Error(codes.FailedPrecondition, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())

@@ -382,22 +382,6 @@ func (h *JobHandler) ListSavedJobs(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"jobs": payload, "next_page_token": resp.GetNextPageToken()})
 }
 
-func (h *JobHandler) HireApplicant(c *gin.Context) {
-	var body struct {
-		ProposalID int64 `json:"proposal_id"`
-	}
-	if err := c.ShouldBindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	resp, err := h.client.HireApplicant(c.Request.Context(), &jobv1.HireApplicantRequest{ProposalId: body.ProposalID})
-	if err != nil {
-		writeGRPCError(c, err)
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"hired": resp.GetHired(), "job_id": resp.GetJobId(), "contract_id": resp.GetContractId()})
-}
-
 func (h *JobHandler) RejectAllApplicants(c *gin.Context) {
 	jobID, ok := parseInt64Param(c, "jobId")
 	if !ok {

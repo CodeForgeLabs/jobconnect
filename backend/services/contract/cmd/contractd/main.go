@@ -74,7 +74,7 @@ func main() {
 	jobClient := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn), jwtIssuer)
 	userPolicy := usergrpc.NewClient(userv1.NewUserServiceClient(userConn))
 
-	createUC := &application.CreateContract{Contracts: repo, Proposals: proposalClient, Actors: userPolicy, Clock: clockImpl}
+	createUC := &application.CreateContract{Contracts: repo, Proposals: proposalClient, Jobs: jobClient, Actors: userPolicy, Clock: clockImpl}
 	getUC := &application.GetContract{Contracts: repo}
 	listUC := &application.ListMyContracts{Contracts: repo}
 	getJobOfferStateUC := &application.GetJobOfferState{Contracts: repo}

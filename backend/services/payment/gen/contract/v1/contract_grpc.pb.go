@@ -22,8 +22,10 @@ const (
 	ContractService_CreateContract_FullMethodName        = "/contract.v1.ContractService/CreateContract"
 	ContractService_GetContract_FullMethodName           = "/contract.v1.ContractService/GetContract"
 	ContractService_ListMyContracts_FullMethodName       = "/contract.v1.ContractService/ListMyContracts"
+	ContractService_GetJobOfferState_FullMethodName      = "/contract.v1.ContractService/GetJobOfferState"
 	ContractService_AcceptContract_FullMethodName        = "/contract.v1.ContractService/AcceptContract"
 	ContractService_DeclineContract_FullMethodName       = "/contract.v1.ContractService/DeclineContract"
+	ContractService_RevokeContractOffer_FullMethodName   = "/contract.v1.ContractService/RevokeContractOffer"
 	ContractService_UpdateMilestoneStatus_FullMethodName = "/contract.v1.ContractService/UpdateMilestoneStatus"
 	ContractService_LogHourlyWork_FullMethodName         = "/contract.v1.ContractService/LogHourlyWork"
 	ContractService_ListHourlyLogs_FullMethodName        = "/contract.v1.ContractService/ListHourlyLogs"
@@ -41,11 +43,16 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ContractServiceClient interface {
+	// Sends or resends an offer for a proposal. Opening the offer page is UI-only;
+	// this RPC is the first backend write in the hire flow.
 	CreateContract(ctx context.Context, in *CreateContractRequest, opts ...grpc.CallOption) (*CreateContractResponse, error)
 	GetContract(ctx context.Context, in *GetContractRequest, opts ...grpc.CallOption) (*GetContractResponse, error)
 	ListMyContracts(ctx context.Context, in *ListMyContractsRequest, opts ...grpc.CallOption) (*ListMyContractsResponse, error)
+	GetJobOfferState(ctx context.Context, in *GetJobOfferStateRequest, opts ...grpc.CallOption) (*GetJobOfferStateResponse, error)
+	// Accepting the offer activates the contract and finalizes the hire.
 	AcceptContract(ctx context.Context, in *AcceptContractRequest, opts ...grpc.CallOption) (*AcceptContractResponse, error)
 	DeclineContract(ctx context.Context, in *DeclineContractRequest, opts ...grpc.CallOption) (*DeclineContractResponse, error)
+	RevokeContractOffer(ctx context.Context, in *RevokeContractOfferRequest, opts ...grpc.CallOption) (*RevokeContractOfferResponse, error)
 	UpdateMilestoneStatus(ctx context.Context, in *UpdateMilestoneStatusRequest, opts ...grpc.CallOption) (*UpdateMilestoneStatusResponse, error)
 	LogHourlyWork(ctx context.Context, in *LogHourlyWorkRequest, opts ...grpc.CallOption) (*LogHourlyWorkResponse, error)
 	ListHourlyLogs(ctx context.Context, in *ListHourlyLogsRequest, opts ...grpc.CallOption) (*ListHourlyLogsResponse, error)
@@ -97,6 +104,16 @@ func (c *contractServiceClient) ListMyContracts(ctx context.Context, in *ListMyC
 	return out, nil
 }
 
+func (c *contractServiceClient) GetJobOfferState(ctx context.Context, in *GetJobOfferStateRequest, opts ...grpc.CallOption) (*GetJobOfferStateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetJobOfferStateResponse)
+	err := c.cc.Invoke(ctx, ContractService_GetJobOfferState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contractServiceClient) AcceptContract(ctx context.Context, in *AcceptContractRequest, opts ...grpc.CallOption) (*AcceptContractResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AcceptContractResponse)
@@ -111,6 +128,16 @@ func (c *contractServiceClient) DeclineContract(ctx context.Context, in *Decline
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeclineContractResponse)
 	err := c.cc.Invoke(ctx, ContractService_DeclineContract_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) RevokeContractOffer(ctx context.Context, in *RevokeContractOfferRequest, opts ...grpc.CallOption) (*RevokeContractOfferResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevokeContractOfferResponse)
+	err := c.cc.Invoke(ctx, ContractService_RevokeContractOffer_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -231,11 +258,16 @@ func (c *contractServiceClient) GetStatusHistory(ctx context.Context, in *GetSta
 // All implementations must embed UnimplementedContractServiceServer
 // for forward compatibility.
 type ContractServiceServer interface {
+	// Sends or resends an offer for a proposal. Opening the offer page is UI-only;
+	// this RPC is the first backend write in the hire flow.
 	CreateContract(context.Context, *CreateContractRequest) (*CreateContractResponse, error)
 	GetContract(context.Context, *GetContractRequest) (*GetContractResponse, error)
 	ListMyContracts(context.Context, *ListMyContractsRequest) (*ListMyContractsResponse, error)
+	GetJobOfferState(context.Context, *GetJobOfferStateRequest) (*GetJobOfferStateResponse, error)
+	// Accepting the offer activates the contract and finalizes the hire.
 	AcceptContract(context.Context, *AcceptContractRequest) (*AcceptContractResponse, error)
 	DeclineContract(context.Context, *DeclineContractRequest) (*DeclineContractResponse, error)
+	RevokeContractOffer(context.Context, *RevokeContractOfferRequest) (*RevokeContractOfferResponse, error)
 	UpdateMilestoneStatus(context.Context, *UpdateMilestoneStatusRequest) (*UpdateMilestoneStatusResponse, error)
 	LogHourlyWork(context.Context, *LogHourlyWorkRequest) (*LogHourlyWorkResponse, error)
 	ListHourlyLogs(context.Context, *ListHourlyLogsRequest) (*ListHourlyLogsResponse, error)
@@ -266,11 +298,17 @@ func (UnimplementedContractServiceServer) GetContract(context.Context, *GetContr
 func (UnimplementedContractServiceServer) ListMyContracts(context.Context, *ListMyContractsRequest) (*ListMyContractsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyContracts not implemented")
 }
+func (UnimplementedContractServiceServer) GetJobOfferState(context.Context, *GetJobOfferStateRequest) (*GetJobOfferStateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetJobOfferState not implemented")
+}
 func (UnimplementedContractServiceServer) AcceptContract(context.Context, *AcceptContractRequest) (*AcceptContractResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AcceptContract not implemented")
 }
 func (UnimplementedContractServiceServer) DeclineContract(context.Context, *DeclineContractRequest) (*DeclineContractResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeclineContract not implemented")
+}
+func (UnimplementedContractServiceServer) RevokeContractOffer(context.Context, *RevokeContractOfferRequest) (*RevokeContractOfferResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RevokeContractOffer not implemented")
 }
 func (UnimplementedContractServiceServer) UpdateMilestoneStatus(context.Context, *UpdateMilestoneStatusRequest) (*UpdateMilestoneStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateMilestoneStatus not implemented")
@@ -380,6 +418,24 @@ func _ContractService_ListMyContracts_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ContractService_GetJobOfferState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJobOfferStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).GetJobOfferState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_GetJobOfferState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).GetJobOfferState(ctx, req.(*GetJobOfferStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ContractService_AcceptContract_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AcceptContractRequest)
 	if err := dec(in); err != nil {
@@ -412,6 +468,24 @@ func _ContractService_DeclineContract_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ContractServiceServer).DeclineContract(ctx, req.(*DeclineContractRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_RevokeContractOffer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeContractOfferRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).RevokeContractOffer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_RevokeContractOffer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).RevokeContractOffer(ctx, req.(*RevokeContractOfferRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -634,12 +708,20 @@ var ContractService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ContractService_ListMyContracts_Handler,
 		},
 		{
+			MethodName: "GetJobOfferState",
+			Handler:    _ContractService_GetJobOfferState_Handler,
+		},
+		{
 			MethodName: "AcceptContract",
 			Handler:    _ContractService_AcceptContract_Handler,
 		},
 		{
 			MethodName: "DeclineContract",
 			Handler:    _ContractService_DeclineContract_Handler,
+		},
+		{
+			MethodName: "RevokeContractOffer",
+			Handler:    _ContractService_RevokeContractOffer_Handler,
 		},
 		{
 			MethodName: "UpdateMilestoneStatus",

@@ -61,8 +61,15 @@ func (uc *AcceptContract) Execute(ctx context.Context, in AcceptContractInput) (
 	if updated.JobID > 0 && uc.Jobs != nil {
 		err = uc.Jobs.SetInProgress(ctx, updated.JobID, updated.ClientID)
 		if err != nil {
-			_ = uc.Contracts.SetStatusForFreelancer(ctx, in.ContractID, in.FreelancerID, domain.StatusPendingAcceptance, uc.Clock.Now())
-			return AcceptContractOutput{}, fmt.Errorf("sync job status: %w", err)
+			revertErr := uc.Contracts.SetStatusForFreelancer(ctx, in.ContractID, in.FreelancerID, domain.StatusPendingAcceptance, uc.Clock.Now())
+			_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
+				ContractID: in.ContractID,
+				Status:     domain.StatusPendingAcceptance,
+				Reason:     "accept compensation",
+				ActorID:    in.FreelancerID,
+				CreatedAt:  uc.Clock.Now(),
+			})
+			return AcceptContractOutput{}, wrapCompensationError(fmt.Errorf("sync job status: %w", err), revertErr, "revert contract activation")
 		}
 	}
 	_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{

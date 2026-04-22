@@ -49,7 +49,6 @@ type TransferResult struct {
 type VerifyResult struct {
 	Verified    bool
 	AmountMinor int64
-	Currency    string
 	ExternalRef string
 }
 
@@ -70,21 +69,19 @@ type PaymentGateway interface {
 
 // CheckoutInput contains the data needed to start a checkout session.
 type CheckoutInput struct {
-	AmountMinor   int64
-	Currency      string
-	TxRef         string // our idempotency key
-	ReturnURL     string
-	CallbackURL   string
-	Email         string
-	FirstName     string
-	LastName      string
-	PhoneNumber   string
+	AmountMinor int64
+	TxRef       string // our idempotency key
+	ReturnURL   string
+	CallbackURL string
+	Email       string
+	FirstName   string
+	LastName    string
+	PhoneNumber string
 }
 
 // TransferInput contains the data needed for a bank transfer payout.
 type TransferInput struct {
 	AmountMinor       int64
-	Currency          string
 	BankCode          string
 	AccountNumber     string
 	AccountHolderName string
@@ -178,5 +175,4 @@ type BalanceInfo struct {
 	AvailableMinor int64
 	HeldMinor      int64
 	TotalMinor     int64
-	Currency       string
 }

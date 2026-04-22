@@ -6,7 +6,7 @@
 - Withdraw proposal
 - View proposal status
 - Client view/list proposals
-- Client shortlist/reject/hire transitions
+- Client shortlist/reject transitions and contract-driven hire updates
 - Filter/sort proposal lists
 
 ### Planned runtime dependencies

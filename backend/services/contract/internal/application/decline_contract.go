@@ -48,8 +48,15 @@ func (uc *DeclineContract) Execute(ctx context.Context, in DeclineContractInput)
 	}
 	if current.ProposalID > 0 {
 		if err := uc.Proposals.ReleaseHired(ctx, current.ProposalID, current.ClientID, in.Reason); err != nil {
-			_ = uc.Contracts.SetStatusForFreelancer(ctx, in.ContractID, in.FreelancerID, domain.StatusPendingAcceptance, uc.Clock.Now())
-			return DeclineContractOutput{}, fmt.Errorf("sync proposal status: %w", err)
+			revertErr := uc.Contracts.SetStatusForFreelancer(ctx, in.ContractID, in.FreelancerID, domain.StatusPendingAcceptance, uc.Clock.Now())
+			_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
+				ContractID: in.ContractID,
+				Status:     domain.StatusPendingAcceptance,
+				Reason:     "decline compensation",
+				ActorID:    in.FreelancerID,
+				CreatedAt:  uc.Clock.Now(),
+			})
+			return DeclineContractOutput{}, wrapCompensationError(fmt.Errorf("sync proposal status: %w", err), revertErr, "revert contract decline")
 		}
 	}
 	_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
