@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"jobconnect/payment/internal/domain"
 )
@@ -80,9 +81,8 @@ func (uc *VerifyDeposit) Execute(ctx context.Context, sessionID int64) (domain.P
 			return session, fmt.Errorf("wallet hold: %w", err)
 		}
 
-		// 3. Notify the contract service.
-		if err := uc.Contract.UpdateMilestoneStatus(ctx, 0, 0, "FUNDED"); err != nil {
-			return session, fmt.Errorf("contract update: %w", err)
+		if strings.TrimSpace(session.ReferenceID) == "" || !strings.Contains(session.ReferenceID, ":") {
+			return session, fmt.Errorf("milestone reference_id must be <contract_id>:<milestone_id>")
 		}
 	}
 

@@ -10,7 +10,7 @@ require (
 	google.golang.org/protobuf v1.36.11
 	jobconnect/contract v0.0.0-00010101000000-000000000000
 	jobconnect/verification v0.0.0-00010101000000-000000000000
-	jobconnect/wallet v0.0.0-00010101000000-000000000000
+	jobconnect/wallet v0.0.0
 )
 
 require (
