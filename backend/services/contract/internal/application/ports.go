@@ -25,9 +25,12 @@ type ContractRepository interface {
 	ReviewHourlyLogForClient(ctx context.Context, hourlyLogID int64, clientID uuid.UUID, status string, note string, at time.Time) error
 	GetHourlyLogForActor(ctx context.Context, hourlyLogID int64, actorID uuid.UUID) (domain.HourlyLog, error)
 	CreateAmendmentForActor(ctx context.Context, a domain.Amendment) (int64, error)
-	RespondAmendmentForActor(ctx context.Context, amendmentID int64, actorID uuid.UUID, status string, at time.Time) error
+	RespondAmendmentForActor(ctx context.Context, amendmentID int64, actorID uuid.UUID, status string, responseNote string, at time.Time) error
+	RespondAmendmentAndApplyForActor(ctx context.Context, amendmentID int64, actorID uuid.UUID, responseNote string, at time.Time) error
 	GetAmendmentForActor(ctx context.Context, amendmentID int64, actorID uuid.UUID) (domain.Amendment, error)
 	ListAmendmentsForActor(ctx context.Context, contractID int64, actorID uuid.UUID, limit, offset int) ([]domain.Amendment, error)
+	ExpirePendingAmendmentsForActor(ctx context.Context, contractID int64, actorID uuid.UUID, at time.Time) error
+	ExpireAmendmentForActor(ctx context.Context, amendmentID int64, actorID uuid.UUID, at time.Time) (bool, error)
 	AppendStatusHistory(ctx context.Context, entry domain.StatusHistoryEntry) error
 	ListStatusHistoryForActor(ctx context.Context, contractID int64, actorID uuid.UUID, limit, offset int) ([]domain.StatusHistoryEntry, error)
 }
@@ -66,6 +69,23 @@ type JobStatusSync interface {
 type ActorPolicy interface {
 	EnsureClientCanHire(ctx context.Context, userID uuid.UUID) error
 	EnsureFreelancerCanWork(ctx context.Context, userID uuid.UUID) error
+}
+
+type MilestoneApprovedSettlementCommand struct {
+	EventID      string
+	ContractID   int64
+	MilestoneID  int64
+	ReferenceID  string
+	AmountMinor  int64
+	FreelancerID string
+}
+
+type MilestoneSettlementDispatcher interface {
+	DispatchMilestoneApproved(ctx context.Context, cmd MilestoneApprovedSettlementCommand) error
+}
+
+type DisputeReader interface {
+	HasOpenDispute(ctx context.Context, referenceType, referenceID string) (bool, error)
 }
 
 type Clock interface {

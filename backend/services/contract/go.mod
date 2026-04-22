@@ -6,16 +6,22 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.8.0
-	google.golang.org/grpc v1.79.1
+	google.golang.org/grpc v1.79.2
 	google.golang.org/protobuf v1.36.11
 	jobconnect/job v0.0.0
 	jobconnect/proposal v0.0.0
-	jobconnect/user v0.0.0
+	jobconnect/wallet v0.0.0
 )
 
 replace jobconnect/job => ../job
+
 replace jobconnect/proposal => ../proposal
+
+replace jobconnect/dispute => ../dispute
+
 replace jobconnect/user => ../user
+
+replace jobconnect/wallet => ../wallet
 
 require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect

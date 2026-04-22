@@ -17,27 +17,27 @@ import (
 type ContractServer struct {
 	contractv1.UnimplementedContractServiceServer
 
-	CreateUC                *application.CreateContract
-	GetUC                   *application.GetContract
-	ListUC                  *application.ListMyContracts
-	GetJobOfferStateUC      *application.GetJobOfferState
-	AcceptUC                *application.AcceptContract
-	DeclineUC               *application.DeclineContract
-	RevokeUC                *application.RevokeContractOffer
-	SubmitMilestoneWorkUC   *application.SubmitMilestoneWork
+	CreateUC                  *application.CreateContract
+	GetUC                     *application.GetContract
+	ListUC                    *application.ListMyContracts
+	GetJobOfferStateUC        *application.GetJobOfferState
+	AcceptUC                  *application.AcceptContract
+	DeclineUC                 *application.DeclineContract
+	RevokeUC                  *application.RevokeContractOffer
+	SubmitMilestoneWorkUC     *application.SubmitMilestoneWork
 	RequestMilestoneChangesUC *application.RequestMilestoneChanges
 	ApproveMilestoneUC        *application.ApproveMilestoneSubmission
-	UpdateMilestoneStatusUC *application.UpdateMilestoneStatus
-	LogHourlyWorkUC         *application.LogHourlyWork
-	ListHourlyLogsUC        *application.ListHourlyLogs
-	ReviewHourlyLogUC       *application.ReviewHourlyLog
-	ProposeAmendmentUC      *application.ProposeAmendment
-	RespondAmendmentUC      *application.RespondAmendment
-	ListAmendmentsUC        *application.ListAmendments
-	PauseUC                 *application.PauseContract
-	ResumeUC                *application.ResumeContract
-	EndUC                   *application.EndContract
-	GetStatusHistoryUC      *application.GetStatusHistory
+	UpdateMilestoneStatusUC   *application.UpdateMilestoneStatus
+	LogHourlyWorkUC           *application.LogHourlyWork
+	ListHourlyLogsUC          *application.ListHourlyLogs
+	ReviewHourlyLogUC         *application.ReviewHourlyLog
+	ProposeAmendmentUC        *application.ProposeAmendment
+	RespondAmendmentUC        *application.RespondAmendment
+	ListAmendmentsUC          *application.ListAmendments
+	PauseUC                   *application.PauseContract
+	ResumeUC                  *application.ResumeContract
+	EndUC                     *application.EndContract
+	GetStatusHistoryUC        *application.GetStatusHistory
 
 	TokenParser TokenParser
 }
@@ -67,28 +67,28 @@ func NewContractServer(
 	tokenParser TokenParser,
 ) *ContractServer {
 	return &ContractServer{
-		CreateUC:                create,
-		GetUC:                   get,
-		ListUC:                  list,
-		GetJobOfferStateUC:      getJobOfferState,
-		AcceptUC:                accept,
-		DeclineUC:               decline,
-		RevokeUC:                revoke,
-		SubmitMilestoneWorkUC:   submitMilestoneWork,
+		CreateUC:                  create,
+		GetUC:                     get,
+		ListUC:                    list,
+		GetJobOfferStateUC:        getJobOfferState,
+		AcceptUC:                  accept,
+		DeclineUC:                 decline,
+		RevokeUC:                  revoke,
+		SubmitMilestoneWorkUC:     submitMilestoneWork,
 		RequestMilestoneChangesUC: requestMilestoneChanges,
 		ApproveMilestoneUC:        approveMilestone,
-		UpdateMilestoneStatusUC: updateMilestoneStatus,
-		LogHourlyWorkUC:         logHourlyWork,
-		ListHourlyLogsUC:        listHourlyLogs,
-		ReviewHourlyLogUC:       reviewHourlyLog,
-		ProposeAmendmentUC:      proposeAmendment,
-		RespondAmendmentUC:      respondAmendment,
-		ListAmendmentsUC:        listAmendments,
-		PauseUC:                 pause,
-		ResumeUC:                resume,
-		EndUC:                   end,
-		GetStatusHistoryUC:      getStatusHistory,
-		TokenParser:             tokenParser,
+		UpdateMilestoneStatusUC:   updateMilestoneStatus,
+		LogHourlyWorkUC:           logHourlyWork,
+		ListHourlyLogsUC:          listHourlyLogs,
+		ReviewHourlyLogUC:         reviewHourlyLog,
+		ProposeAmendmentUC:        proposeAmendment,
+		RespondAmendmentUC:        respondAmendment,
+		ListAmendmentsUC:          listAmendments,
+		PauseUC:                   pause,
+		ResumeUC:                  resume,
+		EndUC:                     end,
+		GetStatusHistoryUC:        getStatusHistory,
+		TokenParser:               tokenParser,
 	}
 }
 
@@ -955,6 +955,7 @@ func toStatus(err error) error {
 		strings.Contains(msg, "already has") ||
 		strings.Contains(msg, "can only") ||
 		strings.Contains(msg, "expired") ||
+		strings.Contains(msg, "open dispute exists") ||
 		strings.Contains(msg, "acceptable state") ||
 		strings.Contains(msg, "revoke-able state") ||
 		strings.Contains(msg, "does not belong to"):

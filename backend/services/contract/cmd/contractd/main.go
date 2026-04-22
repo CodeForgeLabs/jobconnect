@@ -17,13 +17,17 @@ import (
 	"jobconnect/contract/internal/config"
 	"jobconnect/contract/internal/infrastructure/clock"
 	"jobconnect/contract/internal/infrastructure/db"
+	"jobconnect/contract/internal/infrastructure/disputegrpc"
 	"jobconnect/contract/internal/infrastructure/jobgrpc"
 	"jobconnect/contract/internal/infrastructure/proposalgrpc"
 	"jobconnect/contract/internal/infrastructure/tokens"
 	"jobconnect/contract/internal/infrastructure/usergrpc"
+	"jobconnect/contract/internal/infrastructure/walletgrpc"
 
+	disputev1 "jobconnect/contract/gen/dispute/v1"
 	jobv1 "jobconnect/job/gen/job/v1"
 	proposalv1 "jobconnect/proposal/gen/proposal/v1"
+	walletv1 "jobconnect/contract/gen/wallet/v1"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -66,6 +70,18 @@ func main() {
 	}
 	defer userConn.Close()
 
+	walletConn, err := grpc.NewClient(cfg.WalletServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("wallet service dial: %v", err)
+	}
+	defer walletConn.Close()
+
+	disputeConn, err := grpc.NewClient(cfg.DisputeServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("dispute service dial: %v", err)
+	}
+	defer disputeConn.Close()
+
 	repo := db.NewContractRepo(pool)
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
@@ -73,6 +89,8 @@ func main() {
 	proposalClient := proposalgrpc.NewProposalClient(proposalv1.NewProposalServiceClient(proposalConn), jwtIssuer)
 	jobClient := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn), jwtIssuer)
 	userPolicy := usergrpc.NewClient(userv1.NewUserServiceClient(userConn))
+	settlementDispatcher := walletgrpc.NewSettlementDispatcher(walletv1.NewWalletServiceClient(walletConn), jwtIssuer)
+	disputeClient := disputegrpc.NewClient(disputev1.NewDisputeServiceClient(disputeConn), jwtIssuer)
 
 	createUC := &application.CreateContract{Contracts: repo, Proposals: proposalClient, Jobs: jobClient, Actors: userPolicy, Clock: clockImpl}
 	getUC := &application.GetContract{Contracts: repo}
@@ -84,7 +102,11 @@ func main() {
 	updateMilestoneStatusUC := &application.UpdateMilestoneStatus{Contracts: repo, Clock: clockImpl}
 	submitMilestoneWorkUC := &application.SubmitMilestoneWork{UpdateMilestoneStatus: updateMilestoneStatusUC}
 	requestMilestoneChangesUC := &application.RequestMilestoneChanges{UpdateMilestoneStatus: updateMilestoneStatusUC}
-	approveMilestoneSubmissionUC := &application.ApproveMilestoneSubmission{UpdateMilestoneStatus: updateMilestoneStatusUC}
+	approveMilestoneSubmissionUC := &application.ApproveMilestoneSubmission{
+		UpdateMilestoneStatus: updateMilestoneStatusUC,
+		Settlement:            settlementDispatcher,
+		Disputes:              disputeClient,
+	}
 	logHourlyWorkUC := &application.LogHourlyWork{Contracts: repo, Clock: clockImpl}
 	listHourlyLogsUC := &application.ListHourlyLogs{Contracts: repo}
 	reviewHourlyLogUC := &application.ReviewHourlyLog{Contracts: repo, Clock: clockImpl}
