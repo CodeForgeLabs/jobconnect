@@ -364,3 +364,4 @@ func TestContractBootstrap_BlocksWhenProposalIsNotEligible(t *testing.T) {
 		t.Fatalf("expected proposal_not_eligible reason, got %#v", offerState)
 	}
 }
+
