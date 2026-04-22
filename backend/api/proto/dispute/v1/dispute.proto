@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package dispute.v1;
+
+option go_package = "jobconnect/dispute/gen/dispute/v1;disputev1";
+
+service DisputeService {
+  rpc OpenDispute(OpenDisputeRequest) returns (OpenDisputeResponse);
+  rpc GetDispute(GetDisputeRequest) returns (GetDisputeResponse);
+  rpc ListDisputes(ListDisputesRequest) returns (ListDisputesResponse);
+  rpc ResolveDispute(ResolveDisputeRequest) returns (ResolveDisputeResponse);
+}
+
+enum DisputeStatus {
+  DISPUTE_STATUS_UNSPECIFIED = 0;
+  DISPUTE_STATUS_OPEN = 1;
+  DISPUTE_STATUS_RESOLVED = 2;
+}
+
+enum DisputeDecision {
+  DISPUTE_DECISION_UNSPECIFIED = 0;
+  DISPUTE_DECISION_RELEASE = 1;
+  DISPUTE_DECISION_REFUND = 2;
+}
+
+message Dispute {
+  int64 id = 1;
+  string reference_type = 2;
+  string reference_id = 3;
+  string opened_by = 4;
+  string reason = 5;
+  DisputeStatus status = 6;
+  DisputeDecision decision = 7;
+  string resolution_note = 8;
+  string resolved_by = 9;
+  int64 created_at_unix_seconds = 10;
+  int64 resolved_at_unix_seconds = 11;
+}
+
+message OpenDisputeRequest {
+  string reference_type = 1;
+  string reference_id = 2;
+  string opened_by = 3;
+  string reason = 4;
+}
+
+message OpenDisputeResponse {
+  Dispute dispute = 1;
+}
+
+message GetDisputeRequest {
+  int64 dispute_id = 1;
+}
+
+message GetDisputeResponse {
+  Dispute dispute = 1;
+}
+
+message ListDisputesRequest {
+  string reference_type = 1;
+  string reference_id = 2;
+  DisputeStatus status = 3;
+  int32 page_size = 4;
+  string page_token = 5;
+}
+
+message ListDisputesResponse {
+  repeated Dispute disputes = 1;
+  string next_page_token = 2;
+}
+
+message ResolveDisputeRequest {
+  int64 dispute_id = 1;
+  DisputeDecision decision = 2;
+  string note = 3;
+}
+
+message ResolveDisputeResponse {
+  Dispute dispute = 1;
+}
+
