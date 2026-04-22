@@ -40,6 +40,22 @@ func (r *ContractRepo) SetStatusForClient(ctx context.Context, contractID int64,
 		`, contractID, clientID, status, at)
 		err = execErr
 		resTag = res.RowsAffected()
+	case domain.StatusRevoked:
+		res, execErr := r.pool.Exec(ctx, `
+			update contracts
+			set status = $3, updated_at = $4, revoked_at = $4
+			where id = $1 and client_id = $2
+		`, contractID, clientID, status, at)
+		err = execErr
+		resTag = res.RowsAffected()
+	case domain.StatusPendingAcceptance:
+		res, execErr := r.pool.Exec(ctx, `
+			update contracts
+			set status = $3, updated_at = $4, activated_at = null, declined_at = null, revoked_at = null
+			where id = $1 and client_id = $2
+		`, contractID, clientID, status, at)
+		err = execErr
+		resTag = res.RowsAffected()
 	default:
 		res, execErr := r.pool.Exec(ctx, `
 			update contracts

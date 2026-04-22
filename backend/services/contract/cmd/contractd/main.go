@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	userv1 "jobconnect/contract/gen/user"
 	grpcadapter "jobconnect/contract/internal/adapters/grpc"
 	"jobconnect/contract/internal/application"
 	"jobconnect/contract/internal/config"
@@ -19,6 +20,7 @@ import (
 	"jobconnect/contract/internal/infrastructure/jobgrpc"
 	"jobconnect/contract/internal/infrastructure/proposalgrpc"
 	"jobconnect/contract/internal/infrastructure/tokens"
+	"jobconnect/contract/internal/infrastructure/usergrpc"
 
 	jobv1 "jobconnect/job/gen/job/v1"
 	proposalv1 "jobconnect/proposal/gen/proposal/v1"
@@ -58,18 +60,27 @@ func main() {
 	}
 	defer jobConn.Close()
 
+	userConn, err := grpc.NewClient(cfg.UserServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("user service dial: %v", err)
+	}
+	defer userConn.Close()
+
 	repo := db.NewContractRepo(pool)
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
 	jwtIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
 	proposalClient := proposalgrpc.NewProposalClient(proposalv1.NewProposalServiceClient(proposalConn), jwtIssuer)
 	jobClient := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn), jwtIssuer)
+	userPolicy := usergrpc.NewClient(userv1.NewUserServiceClient(userConn))
 
-	createUC := &application.CreateContract{Contracts: repo, Clock: clockImpl}
+	createUC := &application.CreateContract{Contracts: repo, Proposals: proposalClient, Actors: userPolicy, Clock: clockImpl}
 	getUC := &application.GetContract{Contracts: repo}
 	listUC := &application.ListMyContracts{Contracts: repo}
-	acceptUC := &application.AcceptContract{Contracts: repo, Proposals: proposalClient, Jobs: jobClient, Clock: clockImpl}
-	declineUC := &application.DeclineContract{Contracts: repo, Clock: clockImpl}
+	getJobOfferStateUC := &application.GetJobOfferState{Contracts: repo}
+	acceptUC := &application.AcceptContract{Contracts: repo, Proposals: proposalClient, Jobs: jobClient, Actors: userPolicy, Clock: clockImpl}
+	declineUC := &application.DeclineContract{Contracts: repo, Proposals: proposalClient, Clock: clockImpl}
+	revokeUC := &application.RevokeContractOffer{Contracts: repo, Proposals: proposalClient, Actors: userPolicy, Clock: clockImpl}
 	updateMilestoneStatusUC := &application.UpdateMilestoneStatus{Contracts: repo, Clock: clockImpl}
 	logHourlyWorkUC := &application.LogHourlyWork{Contracts: repo, Clock: clockImpl}
 	listHourlyLogsUC := &application.ListHourlyLogs{Contracts: repo}
@@ -86,8 +97,10 @@ func main() {
 		createUC,
 		getUC,
 		listUC,
+		getJobOfferStateUC,
 		acceptUC,
 		declineUC,
+		revokeUC,
 		updateMilestoneStatusUC,
 		logHourlyWorkUC,
 		listHourlyLogsUC,

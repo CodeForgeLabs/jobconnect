@@ -15,6 +15,7 @@ const (
 	StatusPendingAcceptance = "pending_acceptance"
 	StatusActive            = "active"
 	StatusDeclined          = "declined"
+	StatusRevoked           = "revoked"
 	StatusPaused            = "paused"
 	StatusEnded             = "ended"
 
@@ -38,7 +39,6 @@ type Milestone struct {
 	Title          string
 	Description    string
 	Amount         float64
-	Currency       string
 	DueAt          *time.Time
 	Status         string
 	SubmissionNote string
@@ -61,7 +61,6 @@ type Contract struct {
 
 	Title           string
 	Description     string
-	Currency        string
 	HourlyRate      float64
 	FixedTotal      float64
 	WeeklyHourLimit int32
@@ -72,8 +71,17 @@ type Contract struct {
 	UpdatedAt   time.Time
 	ActivatedAt *time.Time
 	DeclinedAt  *time.Time
+	RevokedAt   *time.Time
 	PausedAt    *time.Time
 	EndedAt     *time.Time
+}
+
+type JobOfferState struct {
+	JobID             int64
+	HasPendingOffer   bool
+	PendingContractID int64
+	HasActiveContract bool
+	ActiveContractID  int64
 }
 
 type HourlyLog struct {
@@ -125,7 +133,7 @@ func ValidateType(v string) error {
 func ValidateStatus(v string) error {
 	s := strings.ToLower(strings.TrimSpace(v))
 	switch s {
-	case StatusPendingAcceptance, StatusActive, StatusDeclined, StatusPaused, StatusEnded:
+	case StatusPendingAcceptance, StatusActive, StatusDeclined, StatusRevoked, StatusPaused, StatusEnded:
 		return nil
 	default:
 		return fmt.Errorf("invalid contract_status")
@@ -166,6 +174,10 @@ func CanAccept(current string) bool {
 }
 
 func CanDecline(current string) bool {
+	return strings.EqualFold(strings.TrimSpace(current), StatusPendingAcceptance)
+}
+
+func CanRevoke(current string) bool {
 	return strings.EqualFold(strings.TrimSpace(current), StatusPendingAcceptance)
 }
 

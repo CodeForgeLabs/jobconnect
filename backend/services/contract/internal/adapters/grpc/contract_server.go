@@ -20,8 +20,10 @@ type ContractServer struct {
 	CreateUC                *application.CreateContract
 	GetUC                   *application.GetContract
 	ListUC                  *application.ListMyContracts
+	GetJobOfferStateUC      *application.GetJobOfferState
 	AcceptUC                *application.AcceptContract
 	DeclineUC               *application.DeclineContract
+	RevokeUC                *application.RevokeContractOffer
 	UpdateMilestoneStatusUC *application.UpdateMilestoneStatus
 	LogHourlyWorkUC         *application.LogHourlyWork
 	ListHourlyLogsUC        *application.ListHourlyLogs
@@ -41,8 +43,10 @@ func NewContractServer(
 	create *application.CreateContract,
 	get *application.GetContract,
 	list *application.ListMyContracts,
+	getJobOfferState *application.GetJobOfferState,
 	accept *application.AcceptContract,
 	decline *application.DeclineContract,
+	revoke *application.RevokeContractOffer,
 	updateMilestoneStatus *application.UpdateMilestoneStatus,
 	logHourlyWork *application.LogHourlyWork,
 	listHourlyLogs *application.ListHourlyLogs,
@@ -60,8 +64,10 @@ func NewContractServer(
 		CreateUC:                create,
 		GetUC:                   get,
 		ListUC:                  list,
+		GetJobOfferStateUC:      getJobOfferState,
 		AcceptUC:                accept,
 		DeclineUC:               decline,
+		RevokeUC:                revoke,
 		UpdateMilestoneStatusUC: updateMilestoneStatus,
 		LogHourlyWorkUC:         logHourlyWork,
 		ListHourlyLogsUC:        listHourlyLogs,
@@ -152,6 +158,37 @@ func (s *ContractServer) ListMyContracts(ctx context.Context, req *contractv1.Li
 	return &contractv1.ListMyContractsResponse{Contracts: items, NextPageToken: out.NextPageToken}, nil
 }
 
+func (s *ContractServer) GetJobOfferState(ctx context.Context, req *contractv1.GetJobOfferStateRequest) (*contractv1.GetJobOfferStateResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if err := requireInternalCaller(ctx, "job-service"); err != nil {
+		return nil, err
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.GetJobOfferStateUC.Execute(ctx, application.GetJobOfferStateInput{
+		JobID:     req.GetJobId(),
+		ClientID:  callerID,
+		ActorRole: role,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &contractv1.GetJobOfferStateResponse{
+		JobId:             out.State.JobID,
+		HasPendingOffer:   out.State.HasPendingOffer,
+		PendingContractId: out.State.PendingContractID,
+		HasActiveContract: out.State.HasActiveContract,
+		ActiveContractId:  out.State.ActiveContractID,
+	}, nil
+}
+
 func (s *ContractServer) AcceptContract(ctx context.Context, req *contractv1.AcceptContractRequest) (*contractv1.AcceptContractResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -186,6 +223,28 @@ func (s *ContractServer) DeclineContract(ctx context.Context, req *contractv1.De
 		return nil, toStatus(err)
 	}
 	return &contractv1.DeclineContractResponse{Contract: toProtoContract(out.Contract)}, nil
+}
+
+func (s *ContractServer) RevokeContractOffer(ctx context.Context, req *contractv1.RevokeContractOfferRequest) (*contractv1.RevokeContractOfferResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireClientRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.RevokeUC.Execute(ctx, application.RevokeContractOfferInput{
+		ContractID: req.GetContractId(),
+		ClientID:   callerID,
+		Reason:     req.GetReason(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &contractv1.RevokeContractOfferResponse{Contract: toProtoContract(out.Contract)}, nil
 }
 
 func (s *ContractServer) UpdateMilestoneStatus(ctx context.Context, req *contractv1.UpdateMilestoneStatusRequest) (*contractv1.UpdateMilestoneStatusResponse, error) {
@@ -468,6 +527,8 @@ func fromProtoStatus(v contractv1.ContractStatus) string {
 		return domain.StatusActive
 	case contractv1.ContractStatus_CONTRACT_STATUS_DECLINED:
 		return domain.StatusDeclined
+	case contractv1.ContractStatus_CONTRACT_STATUS_REVOKED:
+		return domain.StatusRevoked
 	case contractv1.ContractStatus_CONTRACT_STATUS_PAUSED:
 		return domain.StatusPaused
 	case contractv1.ContractStatus_CONTRACT_STATUS_ENDED:
@@ -485,6 +546,8 @@ func toProtoStatus(v string) contractv1.ContractStatus {
 		return contractv1.ContractStatus_CONTRACT_STATUS_ACTIVE
 	case domain.StatusDeclined:
 		return contractv1.ContractStatus_CONTRACT_STATUS_DECLINED
+	case domain.StatusRevoked:
+		return contractv1.ContractStatus_CONTRACT_STATUS_REVOKED
 	case domain.StatusPaused:
 		return contractv1.ContractStatus_CONTRACT_STATUS_PAUSED
 	case domain.StatusEnded:
@@ -669,6 +732,9 @@ func toProtoContract(in domain.Contract) *contractv1.Contract {
 	if in.DeclinedAt != nil {
 		out.DeclinedAtUnixSeconds = in.DeclinedAt.Unix()
 	}
+	if in.RevokedAt != nil {
+		out.RevokedAtUnixSeconds = in.RevokedAt.Unix()
+	}
 	if in.PausedAt != nil {
 		out.PausedAtUnixSeconds = in.PausedAt.Unix()
 	}
@@ -741,8 +807,10 @@ func toStatus(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case strings.Contains(msg, "required"), strings.Contains(msg, "invalid"), strings.Contains(msg, "too long"), strings.Contains(msg, "must"):
 		return status.Error(codes.InvalidArgument, err.Error())
-	case strings.Contains(msg, "role") || strings.Contains(msg, "owner"):
+	case strings.Contains(msg, "role") || strings.Contains(msg, "owner") || strings.Contains(msg, "eligible") || strings.Contains(msg, "cannot"):
 		return status.Error(codes.PermissionDenied, err.Error())
+	case strings.Contains(msg, "already exists") || strings.Contains(msg, "already has") || strings.Contains(msg, "acceptable state") || strings.Contains(msg, "revoke-able state"):
+		return status.Error(codes.FailedPrecondition, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}

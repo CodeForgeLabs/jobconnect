@@ -11,6 +11,7 @@ import (
 
 type DeclineContract struct {
 	Contracts ContractRepository
+	Proposals ProposalSync
 	Clock     Clock
 }
 
@@ -25,7 +26,7 @@ type DeclineContractOutput struct {
 }
 
 func (uc *DeclineContract) Execute(ctx context.Context, in DeclineContractInput) (DeclineContractOutput, error) {
-	if uc.Contracts == nil || uc.Clock == nil {
+	if uc.Contracts == nil || uc.Clock == nil || uc.Proposals == nil {
 		return DeclineContractOutput{}, fmt.Errorf("decline contract dependencies are not configured")
 	}
 	if in.ContractID <= 0 {
@@ -44,6 +45,12 @@ func (uc *DeclineContract) Execute(ctx context.Context, in DeclineContractInput)
 	now := uc.Clock.Now()
 	if err := uc.Contracts.SetStatusForFreelancer(ctx, in.ContractID, in.FreelancerID, domain.StatusDeclined, now); err != nil {
 		return DeclineContractOutput{}, err
+	}
+	if current.ProposalID > 0 {
+		if err := uc.Proposals.ReleaseHired(ctx, current.ProposalID, current.ClientID, in.Reason); err != nil {
+			_ = uc.Contracts.SetStatusForFreelancer(ctx, in.ContractID, in.FreelancerID, domain.StatusPendingAcceptance, uc.Clock.Now())
+			return DeclineContractOutput{}, fmt.Errorf("sync proposal status: %w", err)
+		}
 	}
 	_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
 		ContractID: in.ContractID,

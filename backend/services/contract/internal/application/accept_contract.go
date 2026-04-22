@@ -11,8 +11,9 @@ import (
 
 type AcceptContract struct {
 	Contracts ContractRepository
-	Proposals ProposalStatusSync
+	Proposals ProposalSync
 	Jobs      JobStatusSync
+	Actors    ActorPolicy
 	Clock     Clock
 }
 
@@ -26,7 +27,7 @@ type AcceptContractOutput struct {
 }
 
 func (uc *AcceptContract) Execute(ctx context.Context, in AcceptContractInput) (AcceptContractOutput, error) {
-	if uc.Contracts == nil || uc.Clock == nil {
+	if uc.Contracts == nil || uc.Clock == nil || uc.Actors == nil {
 		return AcceptContractOutput{}, fmt.Errorf("accept contract dependencies are not configured")
 	}
 	if in.ContractID <= 0 {
@@ -42,6 +43,12 @@ func (uc *AcceptContract) Execute(ctx context.Context, in AcceptContractInput) (
 	if !domain.CanAccept(current.Status) {
 		return AcceptContractOutput{}, fmt.Errorf("contract is not in an acceptable state")
 	}
+	if err := uc.Actors.EnsureFreelancerCanWork(ctx, in.FreelancerID); err != nil {
+		return AcceptContractOutput{}, err
+	}
+	if err := uc.Actors.EnsureClientCanHire(ctx, current.ClientID); err != nil {
+		return AcceptContractOutput{}, err
+	}
 	activatedAt := uc.Clock.Now()
 	if err := uc.Contracts.SetStatusForFreelancer(ctx, in.ContractID, in.FreelancerID, domain.StatusActive, activatedAt); err != nil {
 		return AcceptContractOutput{}, err
@@ -51,13 +58,6 @@ func (uc *AcceptContract) Execute(ctx context.Context, in AcceptContractInput) (
 		return AcceptContractOutput{}, err
 	}
 
-	if updated.ProposalID > 0 && uc.Proposals != nil {
-		err = uc.Proposals.SetHired(ctx, updated.ProposalID, updated.ClientID, "contract accepted")
-		if err != nil {
-			_ = uc.Contracts.SetStatusForFreelancer(ctx, in.ContractID, in.FreelancerID, domain.StatusPendingAcceptance, uc.Clock.Now())
-			return AcceptContractOutput{}, fmt.Errorf("sync proposal status: %w", err)
-		}
-	}
 	if updated.JobID > 0 && uc.Jobs != nil {
 		err = uc.Jobs.SetInProgress(ctx, updated.JobID, updated.ClientID)
 		if err != nil {

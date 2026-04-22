@@ -10,6 +10,7 @@ type Config struct {
 	PostgresURL         string
 	ProposalServiceAddr string
 	JobServiceAddr      string
+	UserServiceAddr     string
 	JWTSecret           []byte
 }
 
@@ -19,6 +20,7 @@ func LoadFromEnv() (Config, error) {
 		PostgresURL:         os.Getenv("CONTRACT_POSTGRES_URL"),
 		ProposalServiceAddr: os.Getenv("PROPOSAL_SERVICE_GRPC_ADDR"),
 		JobServiceAddr:      os.Getenv("JOB_SERVICE_GRPC_ADDR"),
+		UserServiceAddr:     os.Getenv("USER_SERVICE_GRPC_ADDR"),
 	}
 	if cfg.PostgresURL == "" {
 		return Config{}, fmt.Errorf("CONTRACT_POSTGRES_URL is required")
@@ -28,6 +30,9 @@ func LoadFromEnv() (Config, error) {
 	}
 	if cfg.JobServiceAddr == "" {
 		return Config{}, fmt.Errorf("JOB_SERVICE_GRPC_ADDR is required")
+	}
+	if cfg.UserServiceAddr == "" {
+		return Config{}, fmt.Errorf("USER_SERVICE_GRPC_ADDR is required")
 	}
 	secret := os.Getenv("AUTH_JWT_SECRET")
 	if secret == "" {

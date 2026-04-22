@@ -8,9 +8,11 @@ service ContractService {
   rpc CreateContract(CreateContractRequest) returns (CreateContractResponse);
   rpc GetContract(GetContractRequest) returns (GetContractResponse);
   rpc ListMyContracts(ListMyContractsRequest) returns (ListMyContractsResponse);
+  rpc GetJobOfferState(GetJobOfferStateRequest) returns (GetJobOfferStateResponse);
 
   rpc AcceptContract(AcceptContractRequest) returns (AcceptContractResponse);
   rpc DeclineContract(DeclineContractRequest) returns (DeclineContractResponse);
+  rpc RevokeContractOffer(RevokeContractOfferRequest) returns (RevokeContractOfferResponse);
 
   rpc UpdateMilestoneStatus(UpdateMilestoneStatusRequest) returns (UpdateMilestoneStatusResponse);
 
@@ -40,8 +42,9 @@ enum ContractStatus {
   CONTRACT_STATUS_PENDING_ACCEPTANCE = 1;
   CONTRACT_STATUS_ACTIVE = 2;
   CONTRACT_STATUS_DECLINED = 3;
-  CONTRACT_STATUS_PAUSED = 4;
-  CONTRACT_STATUS_ENDED = 5;
+  CONTRACT_STATUS_REVOKED = 4;
+  CONTRACT_STATUS_PAUSED = 5;
+  CONTRACT_STATUS_ENDED = 6;
 }
 
 enum MilestoneStatus {
@@ -69,8 +72,6 @@ enum AmendmentStatus {
 }
 
 message Milestone {
-  reserved 5;
-  reserved "currency";
   int64 id = 1;
   string title = 2;
   string description = 3;
@@ -144,8 +145,9 @@ message Contract {
   int64 updated_at_unix_seconds = 16;
   int64 activated_at_unix_seconds = 17;
   int64 declined_at_unix_seconds = 18;
-  int64 paused_at_unix_seconds = 19;
-  int64 ended_at_unix_seconds = 20;
+  int64 revoked_at_unix_seconds = 19;
+  int64 paused_at_unix_seconds = 20;
+  int64 ended_at_unix_seconds = 21;
 }
 
 message CreateContractRequest {
@@ -186,6 +188,18 @@ message ListMyContractsResponse {
   string next_page_token = 2;
 }
 
+message GetJobOfferStateRequest {
+  int64 job_id = 1;
+}
+
+message GetJobOfferStateResponse {
+  int64 job_id = 1;
+  bool has_pending_offer = 2;
+  int64 pending_contract_id = 3;
+  bool has_active_contract = 4;
+  int64 active_contract_id = 5;
+}
+
 message AcceptContractRequest {
   int64 contract_id = 1;
 }
@@ -200,6 +214,15 @@ message DeclineContractRequest {
 }
 
 message DeclineContractResponse {
+  Contract contract = 1;
+}
+
+message RevokeContractOfferRequest {
+  int64 contract_id = 1;
+  string reason = 2;
+}
+
+message RevokeContractOfferResponse {
   Contract contract = 1;
 }
 

@@ -10,10 +10,12 @@ require (
 	google.golang.org/protobuf v1.36.11
 	jobconnect/job v0.0.0
 	jobconnect/proposal v0.0.0
+	jobconnect/user v0.0.0
 )
 
 replace jobconnect/job => ../job
 replace jobconnect/proposal => ../proposal
+replace jobconnect/user => ../user
 
 require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
