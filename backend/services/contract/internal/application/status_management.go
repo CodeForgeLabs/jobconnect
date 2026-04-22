@@ -55,16 +55,23 @@ func (uc *PauseContract) Execute(ctx context.Context, in PauseContractInput) (Pa
 	if in.ContractID <= 0 || in.ClientID == uuid.Nil {
 		return PauseContractOutput{}, fmt.Errorf("contract_id and client_id are required")
 	}
-	now := uc.Clock.Now()
-	if err := uc.Contracts.SetStatusForClient(ctx, in.ContractID, in.ClientID, domain.StatusPaused, now); err != nil {
-		return PauseContractOutput{}, err
-	}
-	_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{ContractID: in.ContractID, Status: domain.StatusPaused, Reason: strings.TrimSpace(in.Reason), ActorID: in.ClientID, CreatedAt: now})
-	c, err := uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ClientID)
-	if err != nil {
-		return PauseContractOutput{}, err
-	}
-	return PauseContractOutput{Contract: c}, nil
+	       c, err := uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ClientID)
+	       if err != nil {
+		       return PauseContractOutput{}, err
+	       }
+	       if c.Status != domain.StatusActive {
+		       return PauseContractOutput{}, fmt.Errorf("can only pause from active status")
+	       }
+	       now := uc.Clock.Now()
+	       if err := uc.Contracts.SetStatusForClient(ctx, in.ContractID, in.ClientID, domain.StatusPaused, now); err != nil {
+		       return PauseContractOutput{}, err
+	       }
+	       _ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{ContractID: in.ContractID, Status: domain.StatusPaused, Reason: strings.TrimSpace(in.Reason), ActorID: in.ClientID, CreatedAt: now})
+	       c, err = uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ClientID)
+	       if err != nil {
+		       return PauseContractOutput{}, err
+	       }
+	       return PauseContractOutput{Contract: c}, nil
 }
 
 func (uc *ResumeContract) Execute(ctx context.Context, in ResumeContractInput) (ResumeContractOutput, error) {
@@ -74,16 +81,23 @@ func (uc *ResumeContract) Execute(ctx context.Context, in ResumeContractInput) (
 	if in.ContractID <= 0 || in.ClientID == uuid.Nil {
 		return ResumeContractOutput{}, fmt.Errorf("contract_id and client_id are required")
 	}
-	now := uc.Clock.Now()
-	if err := uc.Contracts.SetStatusForClient(ctx, in.ContractID, in.ClientID, domain.StatusActive, now); err != nil {
-		return ResumeContractOutput{}, err
-	}
-	_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{ContractID: in.ContractID, Status: domain.StatusActive, Reason: strings.TrimSpace(in.Reason), ActorID: in.ClientID, CreatedAt: now})
-	c, err := uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ClientID)
-	if err != nil {
-		return ResumeContractOutput{}, err
-	}
-	return ResumeContractOutput{Contract: c}, nil
+	       c, err := uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ClientID)
+	       if err != nil {
+		       return ResumeContractOutput{}, err
+	       }
+	       if c.Status != domain.StatusPaused {
+		       return ResumeContractOutput{}, fmt.Errorf("can only resume from paused status")
+	       }
+	       now := uc.Clock.Now()
+	       if err := uc.Contracts.SetStatusForClient(ctx, in.ContractID, in.ClientID, domain.StatusActive, now); err != nil {
+		       return ResumeContractOutput{}, err
+	       }
+	       _ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{ContractID: in.ContractID, Status: domain.StatusActive, Reason: strings.TrimSpace(in.Reason), ActorID: in.ClientID, CreatedAt: now})
+	       c, err = uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ClientID)
+	       if err != nil {
+		       return ResumeContractOutput{}, err
+	       }
+	       return ResumeContractOutput{Contract: c}, nil
 }
 
 func (uc *EndContract) Execute(ctx context.Context, in EndContractInput) (EndContractOutput, error) {
@@ -93,16 +107,23 @@ func (uc *EndContract) Execute(ctx context.Context, in EndContractInput) (EndCon
 	if in.ContractID <= 0 || in.ClientID == uuid.Nil {
 		return EndContractOutput{}, fmt.Errorf("contract_id and client_id are required")
 	}
-	now := uc.Clock.Now()
-	if err := uc.Contracts.SetStatusForClient(ctx, in.ContractID, in.ClientID, domain.StatusEnded, now); err != nil {
-		return EndContractOutput{}, err
-	}
-	_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{ContractID: in.ContractID, Status: domain.StatusEnded, Reason: strings.TrimSpace(in.Reason), ActorID: in.ClientID, CreatedAt: now})
-	c, err := uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ClientID)
-	if err != nil {
-		return EndContractOutput{}, err
-	}
-	return EndContractOutput{Contract: c}, nil
+	       c, err := uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ClientID)
+	       if err != nil {
+		       return EndContractOutput{}, err
+	       }
+	       if c.Status != domain.StatusActive && c.Status != domain.StatusPaused {
+		       return EndContractOutput{}, fmt.Errorf("can only end from active or paused status")
+	       }
+	       now := uc.Clock.Now()
+	       if err := uc.Contracts.SetStatusForClient(ctx, in.ContractID, in.ClientID, domain.StatusEnded, now); err != nil {
+		       return EndContractOutput{}, err
+	       }
+	       _ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{ContractID: in.ContractID, Status: domain.StatusEnded, Reason: strings.TrimSpace(in.Reason), ActorID: in.ClientID, CreatedAt: now})
+	       c, err = uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ClientID)
+	       if err != nil {
+		       return EndContractOutput{}, err
+	       }
+	       return EndContractOutput{Contract: c}, nil
 }
 
 type GetStatusHistory struct {
