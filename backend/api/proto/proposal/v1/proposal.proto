@@ -20,6 +20,7 @@ service ProposalService {
   rpc GetProposalAttachmentDownloadUrl(GetProposalAttachmentDownloadUrlRequest) returns (GetProposalAttachmentDownloadUrlResponse);
   rpc SetProposalStatus(SetProposalStatusRequest) returns (SetProposalStatusResponse);
   rpc InternalHireProposal(InternalHireProposalRequest) returns (InternalHireProposalResponse);
+  rpc InternalReleaseHiredProposal(InternalReleaseHiredProposalRequest) returns (InternalReleaseHiredProposalResponse);
 }
 
 enum ProposalStatus {
@@ -210,6 +211,16 @@ message InternalHireProposalRequest {
 message InternalHireProposalResponse {
   Proposal proposal = 1;
   bool reused_idempotent_result = 2;
+}
+
+message InternalReleaseHiredProposalRequest {
+  int64 proposal_id = 1;
+  string client_id = 2;
+  string reason = 3;
+}
+
+message InternalReleaseHiredProposalResponse {
+  Proposal proposal = 1;
 }
 
 message GetProposalAttachmentUploadUrlRequest {

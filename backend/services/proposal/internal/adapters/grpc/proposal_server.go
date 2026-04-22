@@ -31,6 +31,7 @@ type ProposalServer struct {
 	CountInboxUC            *application.CountClientProposalInbox
 	SetStatusUC             *application.SetProposalStatus
 	InternalHireUC          *application.InternalHireProposal
+	ReleaseHiredUC          *application.ReleaseHiredProposal
 
 	TokenParser TokenParser
 }
@@ -51,6 +52,7 @@ func NewProposalServer(
 	countInbox *application.CountClientProposalInbox,
 	setStatus *application.SetProposalStatus,
 	internalHire *application.InternalHireProposal,
+	releaseHired *application.ReleaseHiredProposal,
 	tokenParser TokenParser,
 ) *ProposalServer {
 	return &ProposalServer{
@@ -69,6 +71,7 @@ func NewProposalServer(
 		CountInboxUC:            countInbox,
 		SetStatusUC:             setStatus,
 		InternalHireUC:          internalHire,
+		ReleaseHiredUC:          releaseHired,
 		TokenParser:             tokenParser,
 	}
 }
@@ -546,6 +549,33 @@ func (s *ProposalServer) InternalHireProposal(ctx context.Context, req *proposal
 		Proposal:               toProtoProposal(out.Proposal),
 		ReusedIdempotentResult: out.ReusedIdempotentResult,
 	}, nil
+}
+
+func (s *ProposalServer) InternalReleaseHiredProposal(ctx context.Context, req *proposalv1.InternalReleaseHiredProposalRequest) (*proposalv1.InternalReleaseHiredProposalResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if err := requireInternalCaller(ctx, "job-service", "contract-service"); err != nil {
+		return nil, err
+	}
+	if s.ReleaseHiredUC == nil {
+		return nil, status.Error(codes.Internal, "release hired use case is not configured")
+	}
+
+	clientID, err := uuid.Parse(strings.TrimSpace(req.GetClientId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid client_id")
+	}
+
+	out, err := s.ReleaseHiredUC.Execute(ctx, application.ReleaseHiredProposalInput{
+		ProposalID: req.GetProposalId(),
+		ClientID:   clientID,
+		Reason:     req.GetReason(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &proposalv1.InternalReleaseHiredProposalResponse{Proposal: toProtoProposal(out.Proposal)}, nil
 }
 
 func fromProtoClientDecision(v proposalv1.ClientDecision) (string, bool) {

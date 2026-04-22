@@ -320,6 +320,7 @@ func buildServer(repo *fakeProposalRepo, jobs *fakeJobReader, connects *fakeConn
 		&application.CountClientProposalInbox{Proposals: repo},
 		&application.SetProposalStatus{Proposals: repo, Clock: clk},
 		&application.InternalHireProposal{Proposals: repo, Clock: clk},
+		&application.ReleaseHiredProposal{Proposals: repo, Clock: clk},
 		fakeTokenParser{},
 	)
 }
@@ -746,6 +747,46 @@ func TestProposalServer_RPCs(t *testing.T) {
 		}
 	})
 
+	t.Run("InternalReleaseHiredProposal accepts contract service caller", func(t *testing.T) {
+		repo := &fakeProposalRepo{}
+		call := 0
+		repo.getByIDForClientFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID) (domain.Proposal, error) {
+			call++
+			if call == 1 {
+				return makeProposal(1460, domain.StatusHired), nil
+			}
+			return makeProposal(1460, domain.StatusShortlisted), nil
+		}
+		repo.revertHireFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error {
+			if proposalID != 1460 {
+				t.Fatalf("unexpected proposal id: %d", proposalID)
+			}
+			if clientID != testClientID {
+				t.Fatalf("unexpected client id: %s", clientID)
+			}
+			if reason != "offer revoked" {
+				t.Fatalf("unexpected reason: %q", reason)
+			}
+			return nil
+		}
+
+		srv := buildServer(repo, nil, nil, nil, nil, nil)
+
+		internalMD := metadata.Pairs("authorization", "Bearer client-token", "x-jobconnect-internal", "contract-service")
+		internalCtx := metadata.NewIncomingContext(context.Background(), internalMD)
+		resp, err := srv.InternalReleaseHiredProposal(internalCtx, &proposalv1.InternalReleaseHiredProposalRequest{
+			ProposalId: 1460,
+			ClientId:   testClientID.String(),
+			Reason:     "offer revoked",
+		})
+		if err != nil {
+			t.Fatalf("InternalReleaseHiredProposal error: %v", err)
+		}
+		if got := resp.GetProposal().GetStatus(); got != proposalv1.ProposalStatus_PROPOSAL_STATUS_SHORTLISTED {
+			t.Fatalf("expected shortlisted status, got %v", got)
+		}
+	})
+
 	t.Run("all RPCs reject nil request", func(t *testing.T) {
 		repo := &fakeProposalRepo{}
 		srv := buildServer(repo, nil, nil, nil, nil, nil)
@@ -766,6 +807,7 @@ func TestProposalServer_RPCs(t *testing.T) {
 			{name: "CountProposalsByJob", fn: func() error { _, err := srv.CountProposalsByJob(authCtx("client-token"), nil); return err }},
 			{name: "CountClientProposalInbox", fn: func() error { _, err := srv.CountClientProposalInbox(authCtx("client-token"), nil); return err }},
 			{name: "InternalHireProposal", fn: func() error { _, err := srv.InternalHireProposal(authCtx("client-token"), nil); return err }},
+			{name: "InternalReleaseHiredProposal", fn: func() error { _, err := srv.InternalReleaseHiredProposal(authCtx("client-token"), nil); return err }},
 			{name: "GetProposalAttachmentUploadUrl", fn: func() error {
 				_, err := srv.GetProposalAttachmentUploadUrl(authCtx("freelancer-token"), nil)
 				return err
