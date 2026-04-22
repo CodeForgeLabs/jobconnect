@@ -1249,6 +1249,10 @@ func toStatus(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case strings.Contains(msg, "required"), strings.Contains(msg, "invalid"), strings.Contains(msg, "too long"), strings.Contains(msg, "must"):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case strings.Contains(msg, "eligible") || strings.Contains(msg, "cannot"):
+		return status.Error(codes.PermissionDenied, err.Error())
+	case strings.Contains(msg, "already has") || strings.Contains(msg, "before reopening"):
+		return status.Error(codes.FailedPrecondition, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}

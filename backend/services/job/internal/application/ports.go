@@ -88,16 +88,16 @@ type Proposal struct {
 	Status        string
 }
 
-type ContractCreator interface {
-	CreateFromProposal(ctx context.Context, in CreateContractFromProposalInput) (int64, error)
+type ContractState struct {
+	JobID             int64
+	HasPendingOffer   bool
+	PendingContractID int64
+	HasActiveContract bool
+	ActiveContractID  int64
 }
 
-type CreateContractFromProposalInput struct {
-	FreelancerID string
-	JobID        int64
-	ProposalID   int64
-	BidType      string
-	BidAmount    float64
+type ContractClient interface {
+	GetJobOfferState(ctx context.Context, jobID int64, clientID uuid.UUID) (ContractState, error)
 }
 
 type ProposalClient interface {
@@ -105,6 +105,12 @@ type ProposalClient interface {
 	GetProposal(ctx context.Context, proposalID int64) (Proposal, error)
 	SetProposalStatus(ctx context.Context, proposalID int64, status string, reason string) error
 	InternalHireProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string) error
+	ReleaseHiredProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error
+}
+
+type ActorPolicy interface {
+	EnsureClientCanHire(ctx context.Context, userID uuid.UUID) error
+	EnsureFreelancerCanWork(ctx context.Context, userID uuid.UUID) error
 }
 
 type Clock interface {

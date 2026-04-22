@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -35,6 +36,10 @@ func (c *fakeConnectsClient) RefundConnects(ctx context.Context, userID string, 
 type fakeProposalClient struct {
 	proposalsByJob []Proposal
 	listCalls      []int64
+	getProposalFn  func(ctx context.Context, proposalID int64) (Proposal, error)
+	setStatusFn    func(ctx context.Context, proposalID int64, status string, reason string) error
+	internalHireFn func(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string) error
+	releaseHireFn  func(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error
 }
 
 func (p *fakeProposalClient) ListProposalsByJob(ctx context.Context, jobID int64) ([]Proposal, error) {
@@ -43,15 +48,46 @@ func (p *fakeProposalClient) ListProposalsByJob(ctx context.Context, jobID int64
 }
 
 func (p *fakeProposalClient) GetProposal(ctx context.Context, proposalID int64) (Proposal, error) {
+	if p.getProposalFn != nil {
+		return p.getProposalFn(ctx, proposalID)
+	}
 	return Proposal{}, nil
 }
 
 func (p *fakeProposalClient) SetProposalStatus(ctx context.Context, proposalID int64, status string, reason string) error {
+	if p.setStatusFn != nil {
+		return p.setStatusFn(ctx, proposalID, status, reason)
+	}
 	return nil
 }
 
-func (p *fakeProposalClient) HireProposal(ctx context.Context, proposalID int64, reason string) error {
+func (p *fakeProposalClient) ReleaseHiredProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
+	if p.releaseHireFn != nil {
+		return p.releaseHireFn(ctx, proposalID, clientID, reason)
+	}
 	return nil
+}
+
+type fakeContractClient struct {
+	state ContractState
+	err   error
+}
+
+func (c *fakeContractClient) GetJobOfferState(ctx context.Context, jobID int64, clientID uuid.UUID) (ContractState, error) {
+	return c.state, c.err
+}
+
+type fakeActorPolicy struct {
+	clientErr     error
+	freelancerErr error
+}
+
+func (p *fakeActorPolicy) EnsureClientCanHire(ctx context.Context, userID uuid.UUID) error {
+	return p.clientErr
+}
+
+func (p *fakeActorPolicy) EnsureFreelancerCanWork(ctx context.Context, userID uuid.UUID) error {
+	return p.freelancerErr
 }
 
 type fakeJobRepo struct {
@@ -342,7 +378,6 @@ func TestCreateJob_Execute_HappyPath(t *testing.T) {
 			BudgetFixed: 500,
 			BudgetMin:   500,
 			BudgetMax:   500,
-			Currency:    "USD",
 			Status:      domain.JobStatusOpen,
 		},
 	}
@@ -355,7 +390,6 @@ func TestCreateJob_Execute_HappyPath(t *testing.T) {
 		RequiredSkills: []string{"go", "grpc"},
 		JobType:        " Fixed ",
 		BudgetFixed:    500,
-		Currency:       "usd",
 		Deadline:       &deadline,
 	})
 	if err != nil {
@@ -369,9 +403,6 @@ func TestCreateJob_Execute_HappyPath(t *testing.T) {
 	}
 	if repo.lastCreateJob.JobType != domain.JobTypeFixed {
 		t.Fatalf("expected job type %q, got %q", domain.JobTypeFixed, repo.lastCreateJob.JobType)
-	}
-	if repo.lastCreateJob.Currency != "USD" {
-		t.Fatalf("expected uppercased currency, got %q", repo.lastCreateJob.Currency)
 	}
 	if repo.lastCreateJob.Status != domain.JobStatusOpen {
 		t.Fatalf("expected open status, got %q", repo.lastCreateJob.Status)
@@ -402,7 +433,6 @@ func TestCreateJob_Execute_ValidationError(t *testing.T) {
 		Title:       "Need support",
 		Description: "Support needed",
 		JobType:     domain.JobTypeHourly,
-		Currency:    "USD",
 	})
 	if err == nil {
 		t.Fatal("expected validation error")
@@ -554,5 +584,108 @@ func TestSearchJobs_Execute_UsesFilters(t *testing.T) {
 	}
 	if len(out.Jobs) != 1 || out.Jobs[0].ID != 7 {
 		t.Fatalf("unexpected output jobs: %+v", out.Jobs)
+	}
+}
+
+func TestHireApplicant_Execute_ReservesProposalWithoutContractCreation(t *testing.T) {
+	clientID := uuid.New()
+	freelancerID := uuid.New()
+	repo := &fakeJobRepo{
+		getByIDForClientJob: domain.Job{ID: 12, ClientID: clientID, Status: domain.JobStatusOpen},
+	}
+	proposals := &fakeProposalClient{
+		getProposalFn: func(ctx context.Context, proposalID int64) (Proposal, error) {
+			return Proposal{
+				ID:           proposalID,
+				JobID:        12,
+				ClientID:     clientID.String(),
+				FreelancerID: freelancerID.String(),
+				Status:       ApplicantStageSent,
+			}, nil
+		},
+		internalHireFn: func(ctx context.Context, proposalID int64, gotClientID uuid.UUID, requestID string, reason string) error {
+			if proposalID != 88 {
+				t.Fatalf("unexpected proposal id: %d", proposalID)
+			}
+			if gotClientID != clientID {
+				t.Fatalf("unexpected client id: %s", gotClientID)
+			}
+			if requestID == "" {
+				t.Fatal("expected request id to be populated")
+			}
+			return nil
+		},
+	}
+	contracts := &fakeContractClient{}
+	policy := &fakeActorPolicy{}
+
+	uc := &HireApplicant{Jobs: repo, Proposals: proposals, Contracts: contracts, Actors: policy, Clock: fixedClock{now: time.Now().UTC()}}
+	out, err := uc.Execute(context.Background(), HireApplicantInput{ProposalID: 88, ClientID: clientID})
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+	if !out.Hired || out.JobID != 12 || out.ContractID != 0 {
+		t.Fatalf("unexpected output: %+v", out)
+	}
+}
+
+func TestHireApplicant_Execute_BlocksWhenOfferAlreadyExists(t *testing.T) {
+	clientID := uuid.New()
+	freelancerID := uuid.New()
+	repo := &fakeJobRepo{
+		getByIDForClientJob: domain.Job{ID: 12, ClientID: clientID, Status: domain.JobStatusOpen},
+	}
+	proposals := &fakeProposalClient{
+		getProposalFn: func(ctx context.Context, proposalID int64) (Proposal, error) {
+			return Proposal{
+				ID:           proposalID,
+				JobID:        12,
+				ClientID:     clientID.String(),
+				FreelancerID: freelancerID.String(),
+				Status:       ApplicantStageShortlisted,
+			}, nil
+		},
+	}
+	contracts := &fakeContractClient{state: ContractState{JobID: 12, HasPendingOffer: true, PendingContractID: 700}}
+	policy := &fakeActorPolicy{}
+
+	uc := &HireApplicant{Jobs: repo, Proposals: proposals, Contracts: contracts, Actors: policy, Clock: fixedClock{now: time.Now().UTC()}}
+	_, err := uc.Execute(context.Background(), HireApplicantInput{ProposalID: 88, ClientID: clientID})
+	if err == nil || !strings.Contains(err.Error(), "active offer or contract") {
+		t.Fatalf("expected offer conflict, got %v", err)
+	}
+}
+
+func TestReopenHiringForJob_Execute_ReleasesReservedApplicantWhenNoOfferExists(t *testing.T) {
+	clientID := uuid.New()
+	repo := &fakeJobRepo{
+		getByIDForClientJob: domain.Job{ID: 12, ClientID: clientID, Status: domain.JobStatusOpen},
+	}
+	releasedProposalID := int64(0)
+	proposals := &fakeProposalClient{
+		proposalsByJob: []Proposal{
+			{ID: 91, JobID: 12, ClientID: clientID.String(), Status: ApplicantStageHired},
+			{ID: 92, JobID: 12, ClientID: clientID.String(), Status: ApplicantStageSent},
+		},
+		releaseHireFn: func(ctx context.Context, proposalID int64, gotClientID uuid.UUID, reason string) error {
+			releasedProposalID = proposalID
+			if gotClientID != clientID {
+				t.Fatalf("unexpected client id: %s", gotClientID)
+			}
+			if reason != "hiring reopened" {
+				t.Fatalf("unexpected reason: %q", reason)
+			}
+			return nil
+		},
+	}
+	contracts := &fakeContractClient{state: ContractState{JobID: 12}}
+
+	uc := &ReopenHiringForJob{Jobs: repo, Proposals: proposals, Contracts: contracts, Clock: fixedClock{now: time.Now().UTC()}}
+	out, err := uc.Execute(context.Background(), ReopenHiringForJobInput{JobID: 12, ClientID: clientID})
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+	if out.Job.ID != 12 || releasedProposalID != 91 {
+		t.Fatalf("unexpected result: %+v released=%d", out.Job, releasedProposalID)
 	}
 }

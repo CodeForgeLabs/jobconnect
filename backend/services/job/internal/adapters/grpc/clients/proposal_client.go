@@ -114,6 +114,20 @@ func (c *ProposalClient) InternalHireProposal(ctx context.Context, proposalID in
 	return nil
 }
 
+func (c *ProposalClient) ReleaseHiredProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
+	forwardCtx := forwardAuthorization(ctx)
+	forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal", "job-service")
+	_, err := c.client.InternalReleaseHiredProposal(forwardCtx, &proposalv1.InternalReleaseHiredProposalRequest{
+		ProposalId: proposalID,
+		ClientId:   clientID.String(),
+		Reason:     reason,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to release hired proposal: %w", err)
+	}
+	return nil
+}
+
 func proposalStatusToApplicantStage(in proposalv1.ProposalStatus) string {
 	switch in {
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_SHORTLISTED:
