@@ -5,8 +5,6 @@ package contract.v1;
 option go_package = "jobconnect/contract/gen/contract/v1;contractv1";
 
 service ContractService {
-  // Sends or resends an offer for a proposal. Opening the offer page is UI-only;
-  // this RPC is the first backend write in the hire flow.
   rpc CreateContract(CreateContractRequest) returns (CreateContractResponse);
   rpc GetContract(GetContractRequest) returns (GetContractResponse);
   rpc ListMyContracts(ListMyContractsRequest) returns (ListMyContractsResponse);
@@ -126,8 +124,6 @@ message StatusHistoryEntry {
 }
 
 message Contract {
-  reserved 10;
-  reserved "currency";
   int64 id = 1;
   string client_id = 2;
   string freelancer_id = 3;
@@ -154,8 +150,6 @@ message Contract {
 }
 
 message CreateContractRequest {
-  reserved 7;
-  reserved "currency";
   string freelancer_id = 1;
   int64 job_id = 2;
   int64 proposal_id = 3;
