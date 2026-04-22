@@ -70,8 +70,14 @@ func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.Prop
 
 func registerContractRoutes(api *gin.RouterGroup, contractHandler *handlers.ContractHandler, jwtParser *auth.JWTParser) {
 	contractRoutes := api.Group("/contracts")
-	contractRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("client"))
+	contractRoutes.Use(middleware.RequireAuth(jwtParser))
 	contractRoutes.GET("/bootstrap", contractHandler.Bootstrap)
+	contractRoutes.POST("", middleware.RequireRoles("client"), contractHandler.CreateContract)
+	contractRoutes.GET("", contractHandler.ListMyContracts)
+	contractRoutes.GET("/:contractId", contractHandler.GetContract)
+	contractRoutes.POST("/:contractId/accept", middleware.RequireRoles("freelancer"), contractHandler.AcceptContract)
+	contractRoutes.POST("/:contractId/decline", middleware.RequireRoles("freelancer"), contractHandler.DeclineContract)
+	contractRoutes.POST("/:contractId/revoke", middleware.RequireRoles("client"), contractHandler.RevokeContractOffer)
 }
 
 func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jwtParser *auth.JWTParser) {

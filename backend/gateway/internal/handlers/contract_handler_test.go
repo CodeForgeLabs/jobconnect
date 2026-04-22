@@ -281,3 +281,60 @@ func TestContractBootstrap_MissingJobID_ReturnsBadRequest(t *testing.T) {
 		t.Fatalf("expected status %d, got %d", http.StatusBadRequest, rec.Code)
 	}
 }
+
+func TestContractBootstrap_BlocksWhenAnotherOfferExistsOnJob(t *testing.T) {
+	proposalClient := &contractHandlerProposalStub{}
+	jobClient := &contractHandlerJobStub{}
+	contractClient := &contractHandlerContractStub{contracts: []*contractv1.Contract{
+		{Id: 77, JobId: 21, ProposalId: 44, ClientId: "client-1", FreelancerId: "freelancer-1", Status: contractv1.ContractStatus_CONTRACT_STATUS_PENDING_ACCEPTANCE},
+		{Id: 78, JobId: 21, ProposalId: 45, ClientId: "client-1", FreelancerId: "freelancer-2", Status: contractv1.ContractStatus_CONTRACT_STATUS_PENDING_ACCEPTANCE},
+	}}
+	h := NewContractHandler(contractClient, jobClient, proposalClient)
+
+	ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/contracts/bootstrap?job_id=21&proposal_id=46")
+	h.Bootstrap(ctx)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+
+	var body map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+	offerState := body["offer_state"].(map[string]any)
+	if canOpen, ok := offerState["can_open_offer_form"].(bool); !ok || canOpen {
+		t.Fatalf("expected bootstrap to block opening the form, got %#v", offerState)
+	}
+	if reason, _ := offerState["blocking_reason"].(string); reason != "pending_offer_exists" {
+		t.Fatalf("expected pending_offer_exists reason, got %#v", offerState)
+	}
+}
+
+func TestContractBootstrap_BlocksWhenSameProposalAlreadyHasOffer(t *testing.T) {
+	proposalClient := &contractHandlerProposalStub{}
+	jobClient := &contractHandlerJobStub{}
+	contractClient := &contractHandlerContractStub{contracts: []*contractv1.Contract{
+		{Id: 77, JobId: 21, ProposalId: 44, ClientId: "client-1", FreelancerId: "freelancer-1", Status: contractv1.ContractStatus_CONTRACT_STATUS_PENDING_ACCEPTANCE},
+	}}
+	h := NewContractHandler(contractClient, jobClient, proposalClient)
+
+	ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/contracts/bootstrap?job_id=21&proposal_id=44")
+	h.Bootstrap(ctx)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+
+	var body map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+	offerState := body["offer_state"].(map[string]any)
+	if canOpen, ok := offerState["can_open_offer_form"].(bool); !ok || canOpen {
+		t.Fatalf("expected bootstrap to block opening the form, got %#v", offerState)
+	}
+	if reason, _ := offerState["blocking_reason"].(string); reason != "offer_already_sent" {
+		t.Fatalf("expected offer_already_sent reason, got %#v", offerState)
+	}
+}

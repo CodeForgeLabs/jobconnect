@@ -26,13 +26,22 @@ type contractListReader interface {
 	ListMyContracts(ctx context.Context, in *contractv1.ListMyContractsRequest, opts ...grpc.CallOption) (*contractv1.ListMyContractsResponse, error)
 }
 
+type contractCreateReader interface {
+	CreateContract(ctx context.Context, in *contractv1.CreateContractRequest, opts ...grpc.CallOption) (*contractv1.CreateContractResponse, error)
+	GetContract(ctx context.Context, in *contractv1.GetContractRequest, opts ...grpc.CallOption) (*contractv1.GetContractResponse, error)
+	ListMyContracts(ctx context.Context, in *contractv1.ListMyContractsRequest, opts ...grpc.CallOption) (*contractv1.ListMyContractsResponse, error)
+	AcceptContract(ctx context.Context, in *contractv1.AcceptContractRequest, opts ...grpc.CallOption) (*contractv1.AcceptContractResponse, error)
+	DeclineContract(ctx context.Context, in *contractv1.DeclineContractRequest, opts ...grpc.CallOption) (*contractv1.DeclineContractResponse, error)
+	RevokeContractOffer(ctx context.Context, in *contractv1.RevokeContractOfferRequest, opts ...grpc.CallOption) (*contractv1.RevokeContractOfferResponse, error)
+}
+
 type ContractHandler struct {
-	contractClient contractListReader
+	contractClient contractCreateReader
 	jobClient      contractJobReader
 	proposalClient contractProposalReader
 }
 
-func NewContractHandler(contractClient contractListReader, jobClient contractJobReader, proposalClient contractProposalReader) *ContractHandler {
+func NewContractHandler(contractClient contractCreateReader, jobClient contractJobReader, proposalClient contractProposalReader) *ContractHandler {
 	return &ContractHandler{contractClient: contractClient, jobClient: jobClient, proposalClient: proposalClient}
 }
 
@@ -89,20 +98,60 @@ func (h *ContractHandler) Bootstrap(c *gin.Context) {
 	}
 
 	var matchedContract *contractv1.Contract
+	var blockingContract *contractv1.Contract
+	canOpenOfferForm := true
+	blockingReason := ""
+	var pendingOfferOnJob bool
+	var activeContractOnJob bool
 	for _, item := range contractsResp.GetContracts() {
+		if item.GetJobId() != jobID {
+			continue
+		}
+		if item.GetStatus() == contractv1.ContractStatus_CONTRACT_STATUS_ACTIVE {
+			activeContractOnJob = true
+			if blockingContract == nil {
+				blockingContract = item
+			}
+		}
+		if item.GetStatus() == contractv1.ContractStatus_CONTRACT_STATUS_PENDING_ACCEPTANCE {
+			pendingOfferOnJob = true
+			if blockingContract == nil {
+				blockingContract = item
+			}
+		}
 		if item.GetProposalId() == proposalID && item.GetJobId() == jobID {
 			matchedContract = item
-			break
 		}
 	}
 
+	switch {
+	case !jobSummary.GetIsOpen():
+		canOpenOfferForm = false
+		blockingReason = "job_not_open"
+	case activeContractOnJob:
+		canOpenOfferForm = false
+		blockingReason = "active_contract_exists"
+	case matchedContract != nil && matchedContract.GetStatus() == contractv1.ContractStatus_CONTRACT_STATUS_PENDING_ACCEPTANCE:
+		canOpenOfferForm = false
+		blockingReason = "offer_already_sent"
+	case pendingOfferOnJob:
+		canOpenOfferForm = false
+		blockingReason = "pending_offer_exists"
+	}
+
 	offerState := gin.H{
-		"has_offer":           matchedContract != nil,
-		"has_pending_offer":   proposal.GetStatus() == proposalv1.ProposalStatus_PROPOSAL_STATUS_OFFER_SENT || (matchedContract != nil && matchedContract.GetStatus() == contractv1.ContractStatus_CONTRACT_STATUS_PENDING_ACCEPTANCE),
-		"has_active_contract": proposal.GetStatus() == proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED || (matchedContract != nil && matchedContract.GetStatus() == contractv1.ContractStatus_CONTRACT_STATUS_ACTIVE),
-		"proposal_status":     proposal.GetStatus().String(),
-		"job_status":          jobSummary.GetStatus().String(),
-		"job_is_open":         jobSummary.GetIsOpen(),
+		"has_offer":            matchedContract != nil,
+		"has_pending_offer":    proposal.GetStatus() == proposalv1.ProposalStatus_PROPOSAL_STATUS_OFFER_SENT || (matchedContract != nil && matchedContract.GetStatus() == contractv1.ContractStatus_CONTRACT_STATUS_PENDING_ACCEPTANCE) || pendingOfferOnJob,
+		"has_active_contract":  proposal.GetStatus() == proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED || activeContractOnJob,
+		"proposal_status":      proposal.GetStatus().String(),
+		"job_status":           jobSummary.GetStatus().String(),
+		"job_is_open":          jobSummary.GetIsOpen(),
+		"can_open_offer_form":  canOpenOfferForm,
+		"blocking_reason":      blockingReason,
+		"blocking_contract_id": int64(0),
+	}
+	if blockingContract != nil {
+		offerState["blocking_contract_id"] = blockingContract.GetId()
 	}
 
 	proposalPayload, err := protoToAny(proposal)
@@ -131,6 +180,123 @@ func (h *ContractHandler) Bootstrap(c *gin.Context) {
 		"offer_state": offerState,
 		"contract":    contractPayload,
 	})
+}
+
+func mapContractStatus(v string) contractv1.ContractStatus {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "pending_acceptance":
+		return contractv1.ContractStatus_CONTRACT_STATUS_PENDING_ACCEPTANCE
+	case "active":
+		return contractv1.ContractStatus_CONTRACT_STATUS_ACTIVE
+	case "declined":
+		return contractv1.ContractStatus_CONTRACT_STATUS_DECLINED
+	case "revoked":
+		return contractv1.ContractStatus_CONTRACT_STATUS_REVOKED
+	case "paused":
+		return contractv1.ContractStatus_CONTRACT_STATUS_PAUSED
+	case "ended":
+		return contractv1.ContractStatus_CONTRACT_STATUS_ENDED
+	default:
+		return contractv1.ContractStatus_CONTRACT_STATUS_UNSPECIFIED
+	}
+}
+
+func (h *ContractHandler) CreateContract(c *gin.Context) {
+	var req contractv1.CreateContractRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.CreateContract(withAuthContext(c), &req)
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
+func (h *ContractHandler) GetContract(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.GetContract(withAuthContext(c), &contractv1.GetContractRequest{ContractId: contractID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
+func (h *ContractHandler) ListMyContracts(c *gin.Context) {
+	resp, err := h.contractClient.ListMyContracts(withAuthContext(c), &contractv1.ListMyContractsRequest{
+		Status:    mapContractStatus(strings.TrimSpace(c.Query("status"))),
+		PageSize:  int32(parseIntQuery(c, "page_size", 20)),
+		PageToken: strings.TrimSpace(c.Query("page_token")),
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	payload, convErr := protoSliceToAny(resp.GetContracts())
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"contracts": payload, "next_page_token": resp.GetNextPageToken()})
+}
+
+func (h *ContractHandler) AcceptContract(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.AcceptContract(withAuthContext(c), &contractv1.AcceptContractRequest{ContractId: contractID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
+func (h *ContractHandler) DeclineContract(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Reason string `json:"reason"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.DeclineContract(withAuthContext(c), &contractv1.DeclineContractRequest{ContractId: contractID, Reason: body.Reason})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
+func (h *ContractHandler) RevokeContractOffer(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Reason string `json:"reason"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.RevokeContractOffer(withAuthContext(c), &contractv1.RevokeContractOfferRequest{ContractId: contractID, Reason: body.Reason})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
 func parseBootstrapID(c *gin.Context, key string) (int64, bool) {

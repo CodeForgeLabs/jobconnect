@@ -216,6 +216,47 @@ func TestProposalDecisionRouteIsCanonicalAndApplicantStageRouteIsRemoved(t *test
 	}
 }
 
+func TestContractRoutesExposeLifecycleAndBootstrap(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	cfg := config.Config{JWTSecret: []byte("test-secret")}
+
+	engine := New(
+		cfg,
+		&handlers.AuthHandler{},
+		&handlers.VerificationHandler{},
+		&handlers.UserHandler{},
+		&handlers.JobHandler{},
+		&handlers.ProposalHandler{},
+		&handlers.ContractHandler{},
+		&handlers.RecommendationHandler{},
+		&handlers.ChatHandler{},
+	)
+
+	want := map[string]bool{
+		"GET /api/v1/contracts/bootstrap":            false,
+		"POST /api/v1/contracts":                     false,
+		"GET /api/v1/contracts":                      false,
+		"GET /api/v1/contracts/:contractId":          false,
+		"POST /api/v1/contracts/:contractId/accept":  false,
+		"POST /api/v1/contracts/:contractId/decline": false,
+		"POST /api/v1/contracts/:contractId/revoke":  false,
+	}
+
+	for _, route := range engine.Routes() {
+		key := route.Method + " " + route.Path
+		if _, ok := want[key]; ok {
+			want[key] = true
+		}
+	}
+
+	for key, found := range want {
+		if !found {
+			t.Fatalf("expected route to be registered: %s", key)
+		}
+	}
+}
+
 func signTestAccessToken(t *testing.T, secret []byte, userID string, role string) string {
 	t.Helper()
 	claims := &auth.AccessClaims{UserID: userID, Role: role}
