@@ -17,6 +17,7 @@ type WalletRepository interface {
 	CreditInternal(ctx context.Context, in CreditInput) (MutationResult, error)
 	DebitInternal(ctx context.Context, in DebitInput) (MutationResult, error)
 	PlaceHold(ctx context.Context, in PlaceHoldInput) (HoldMutationResult, error)
+	GetHoldByReference(ctx context.Context, referenceType, referenceID string) (domain.Hold, error)
 	ReleaseHold(ctx context.Context, in ReleaseHoldInput) (HoldMutationResult, error)
 	CaptureHold(ctx context.Context, in CaptureHoldInput) (HoldMutationResult, error)
 	ListLedgerEntries(ctx context.Context, walletID int64, limit, offset int) ([]domain.LedgerEntry, error)

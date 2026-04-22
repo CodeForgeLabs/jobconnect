@@ -13,6 +13,7 @@ service WalletService {
   rpc DebitWalletInternal(DebitWalletInternalRequest) returns (DebitWalletInternalResponse);
 
   rpc PlaceHold(PlaceHoldRequest) returns (PlaceHoldResponse);
+  rpc GetHoldByReference(GetHoldByReferenceRequest) returns (GetHoldByReferenceResponse);
   rpc ReleaseHold(ReleaseHoldRequest) returns (ReleaseHoldResponse);
   rpc CaptureHold(CaptureHoldRequest) returns (CaptureHoldResponse);
 
@@ -159,6 +160,15 @@ message PlaceHoldResponse {
   Wallet wallet = 1;
   Hold hold = 2;
   LedgerEntry transaction = 3;
+}
+
+message GetHoldByReferenceRequest {
+  string reference_type = 1;
+  string reference_id = 2;
+}
+
+message GetHoldByReferenceResponse {
+  Hold hold = 1;
 }
 
 message ReleaseHoldRequest {

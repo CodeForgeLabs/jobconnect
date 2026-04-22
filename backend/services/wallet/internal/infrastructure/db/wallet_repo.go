@@ -232,10 +232,11 @@ func (r *WalletRepo) PlaceHold(ctx context.Context, in application.PlaceHoldInpu
 	}
 
 	hold, err := insertHold(ctx, tx, holdInsertInput{
-		WalletID:    wallet.ID,
-		ReferenceID: strings.TrimSpace(in.ReferenceID),
-		AmountMinor: in.AmountMinor,
-		ExpiresAt:   in.ExpiresAt,
+		WalletID:      wallet.ID,
+		ReferenceType: strings.TrimSpace(in.ReferenceType),
+		ReferenceID:   strings.TrimSpace(in.ReferenceID),
+		AmountMinor:   in.AmountMinor,
+		ExpiresAt:     in.ExpiresAt,
 	})
 	if err != nil {
 		if isUniqueViolation(err) {
@@ -448,6 +449,37 @@ func (r *WalletRepo) ListLedgerEntries(ctx context.Context, walletID int64, limi
 		return nil, rows.Err()
 	}
 	return result, nil
+}
+
+func (r *WalletRepo) GetHoldByReference(ctx context.Context, referenceType, referenceID string) (domain.Hold, error) {
+	const q = `
+		SELECT id, wallet_id, reference_type, reference_id, amount_minor, captured_minor, status,
+		       expires_at, created_at, updated_at
+		FROM wallet_holds
+		WHERE reference_type = $1 AND reference_id = $2
+		ORDER BY id DESC
+		LIMIT 1
+	`
+	var hold domain.Hold
+	err := r.pool.QueryRow(ctx, q, strings.TrimSpace(referenceType), strings.TrimSpace(referenceID)).Scan(
+		&hold.ID,
+		&hold.WalletID,
+		&hold.ReferenceType,
+		&hold.ReferenceID,
+		&hold.AmountMinor,
+		&hold.CapturedMinor,
+		&hold.Status,
+		&hold.ExpiresAt,
+		&hold.CreatedAt,
+		&hold.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.Hold{}, fmt.Errorf("%w: hold not found", domain.ErrNotFound)
+	}
+	if err != nil {
+		return domain.Hold{}, err
+	}
+	return hold, nil
 }
 
 func getWalletForUpdate(ctx context.Context, tx pgx.Tx, walletID int64) (domain.WalletAccount, error) {

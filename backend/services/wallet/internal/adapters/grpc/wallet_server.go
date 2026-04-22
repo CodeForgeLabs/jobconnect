@@ -24,6 +24,7 @@ type WalletServer struct {
 	CreditWalletInternalUC *application.CreditWalletInternal
 	DebitWalletInternalUC  *application.DebitWalletInternal
 	PlaceHoldUC            *application.PlaceHold
+	GetHoldByReferenceUC   *application.GetHoldByReference
 	ReleaseHoldUC          *application.ReleaseHold
 	CaptureHoldUC          *application.CaptureHold
 	ListTransactionsUC     *application.ListTransactions
@@ -38,6 +39,7 @@ func NewWalletServer(
 	creditWalletInternal *application.CreditWalletInternal,
 	debitWalletInternal *application.DebitWalletInternal,
 	placeHold *application.PlaceHold,
+	getHoldByReference *application.GetHoldByReference,
 	releaseHold *application.ReleaseHold,
 	captureHold *application.CaptureHold,
 	listTransactions *application.ListTransactions,
@@ -50,6 +52,7 @@ func NewWalletServer(
 		CreditWalletInternalUC: creditWalletInternal,
 		DebitWalletInternalUC:  debitWalletInternal,
 		PlaceHoldUC:            placeHold,
+		GetHoldByReferenceUC:   getHoldByReference,
 		ReleaseHoldUC:          releaseHold,
 		CaptureHoldUC:          captureHold,
 		ListTransactionsUC:     listTransactions,
@@ -214,6 +217,27 @@ func (s *WalletServer) PlaceHold(ctx context.Context, req *walletv1.PlaceHoldReq
 		return nil, toStatus(err)
 	}
 	return &walletv1.PlaceHoldResponse{Wallet: toProtoWallet(out.Result.Wallet), Hold: toProtoHold(out.Result.Hold), Transaction: toProtoEntry(out.Result.Entry)}, nil
+}
+
+func (s *WalletServer) GetHoldByReference(ctx context.Context, req *walletv1.GetHoldByReferenceRequest) (*walletv1.GetHoldByReferenceResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	_, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	if err := requireInternalRole(role); err != nil {
+		return nil, err
+	}
+	out, err := s.GetHoldByReferenceUC.Execute(ctx, application.GetHoldByReferenceInput{
+		ReferenceType: req.GetReferenceType(),
+		ReferenceID:   req.GetReferenceId(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &walletv1.GetHoldByReferenceResponse{Hold: toProtoHold(out.Hold)}, nil
 }
 
 func (s *WalletServer) ReleaseHold(ctx context.Context, req *walletv1.ReleaseHoldRequest) (*walletv1.ReleaseHoldResponse, error) {

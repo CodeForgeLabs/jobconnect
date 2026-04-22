@@ -25,6 +25,7 @@ const (
 	WalletService_CreditWalletInternal_FullMethodName = "/wallet.v1.WalletService/CreditWalletInternal"
 	WalletService_DebitWalletInternal_FullMethodName  = "/wallet.v1.WalletService/DebitWalletInternal"
 	WalletService_PlaceHold_FullMethodName            = "/wallet.v1.WalletService/PlaceHold"
+	WalletService_GetHoldByReference_FullMethodName   = "/wallet.v1.WalletService/GetHoldByReference"
 	WalletService_ReleaseHold_FullMethodName          = "/wallet.v1.WalletService/ReleaseHold"
 	WalletService_CaptureHold_FullMethodName          = "/wallet.v1.WalletService/CaptureHold"
 	WalletService_ListTransactions_FullMethodName     = "/wallet.v1.WalletService/ListTransactions"
@@ -40,6 +41,7 @@ type WalletServiceClient interface {
 	CreditWalletInternal(ctx context.Context, in *CreditWalletInternalRequest, opts ...grpc.CallOption) (*CreditWalletInternalResponse, error)
 	DebitWalletInternal(ctx context.Context, in *DebitWalletInternalRequest, opts ...grpc.CallOption) (*DebitWalletInternalResponse, error)
 	PlaceHold(ctx context.Context, in *PlaceHoldRequest, opts ...grpc.CallOption) (*PlaceHoldResponse, error)
+	GetHoldByReference(ctx context.Context, in *GetHoldByReferenceRequest, opts ...grpc.CallOption) (*GetHoldByReferenceResponse, error)
 	ReleaseHold(ctx context.Context, in *ReleaseHoldRequest, opts ...grpc.CallOption) (*ReleaseHoldResponse, error)
 	CaptureHold(ctx context.Context, in *CaptureHoldRequest, opts ...grpc.CallOption) (*CaptureHoldResponse, error)
 	ListTransactions(ctx context.Context, in *ListTransactionsRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
@@ -113,6 +115,16 @@ func (c *walletServiceClient) PlaceHold(ctx context.Context, in *PlaceHoldReques
 	return out, nil
 }
 
+func (c *walletServiceClient) GetHoldByReference(ctx context.Context, in *GetHoldByReferenceRequest, opts ...grpc.CallOption) (*GetHoldByReferenceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetHoldByReferenceResponse)
+	err := c.cc.Invoke(ctx, WalletService_GetHoldByReference_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *walletServiceClient) ReleaseHold(ctx context.Context, in *ReleaseHoldRequest, opts ...grpc.CallOption) (*ReleaseHoldResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ReleaseHoldResponse)
@@ -153,6 +165,7 @@ type WalletServiceServer interface {
 	CreditWalletInternal(context.Context, *CreditWalletInternalRequest) (*CreditWalletInternalResponse, error)
 	DebitWalletInternal(context.Context, *DebitWalletInternalRequest) (*DebitWalletInternalResponse, error)
 	PlaceHold(context.Context, *PlaceHoldRequest) (*PlaceHoldResponse, error)
+	GetHoldByReference(context.Context, *GetHoldByReferenceRequest) (*GetHoldByReferenceResponse, error)
 	ReleaseHold(context.Context, *ReleaseHoldRequest) (*ReleaseHoldResponse, error)
 	CaptureHold(context.Context, *CaptureHoldRequest) (*CaptureHoldResponse, error)
 	ListTransactions(context.Context, *ListTransactionsRequest) (*ListTransactionsResponse, error)
@@ -183,6 +196,9 @@ func (UnimplementedWalletServiceServer) DebitWalletInternal(context.Context, *De
 }
 func (UnimplementedWalletServiceServer) PlaceHold(context.Context, *PlaceHoldRequest) (*PlaceHoldResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PlaceHold not implemented")
+}
+func (UnimplementedWalletServiceServer) GetHoldByReference(context.Context, *GetHoldByReferenceRequest) (*GetHoldByReferenceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetHoldByReference not implemented")
 }
 func (UnimplementedWalletServiceServer) ReleaseHold(context.Context, *ReleaseHoldRequest) (*ReleaseHoldResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReleaseHold not implemented")
@@ -322,6 +338,24 @@ func _WalletService_PlaceHold_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WalletService_GetHoldByReference_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHoldByReferenceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WalletServiceServer).GetHoldByReference(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WalletService_GetHoldByReference_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WalletServiceServer).GetHoldByReference(ctx, req.(*GetHoldByReferenceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _WalletService_ReleaseHold_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReleaseHoldRequest)
 	if err := dec(in); err != nil {
@@ -406,6 +440,10 @@ var WalletService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PlaceHold",
 			Handler:    _WalletService_PlaceHold_Handler,
+		},
+		{
+			MethodName: "GetHoldByReference",
+			Handler:    _WalletService_GetHoldByReference_Handler,
 		},
 		{
 			MethodName: "ReleaseHold",
