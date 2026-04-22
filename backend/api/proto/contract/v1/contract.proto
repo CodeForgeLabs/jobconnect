@@ -15,18 +15,31 @@ service ContractService {
   rpc DeclineContract(DeclineContractRequest) returns (DeclineContractResponse);
   rpc RevokeContractOffer(RevokeContractOfferRequest) returns (RevokeContractOfferResponse);
 
+  // Freelancer submits completed work artifacts for a milestone.
+  rpc SubmitMilestoneWork(SubmitMilestoneWorkRequest) returns (SubmitMilestoneWorkResponse);
+  // Client requests revisions on a submitted milestone.
+  rpc RequestMilestoneChanges(RequestMilestoneChangesRequest) returns (RequestMilestoneChangesResponse);
+  // Client approves a submitted milestone and triggers settlement orchestration.
+  rpc ApproveMilestoneSubmission(ApproveMilestoneSubmissionRequest) returns (ApproveMilestoneSubmissionResponse);
+
   rpc UpdateMilestoneStatus(UpdateMilestoneStatusRequest) returns (UpdateMilestoneStatusResponse);
 
   rpc LogHourlyWork(LogHourlyWorkRequest) returns (LogHourlyWorkResponse);
   rpc ListHourlyLogs(ListHourlyLogsRequest) returns (ListHourlyLogsResponse);
   rpc ReviewHourlyLog(ReviewHourlyLogRequest) returns (ReviewHourlyLogResponse);
 
+  // Propose an amendment to the contract. Only allowed when contract is ACTIVE or PAUSED. Either party may propose.
   rpc ProposeAmendment(ProposeAmendmentRequest) returns (ProposeAmendmentResponse);
+  // Respond to an amendment. Only the counterparty (not proposer) may respond, only when amendment is PENDING, only ACCEPT/REJECT allowed, and only when contract is ACTIVE or PAUSED.
   rpc RespondAmendment(RespondAmendmentRequest) returns (RespondAmendmentResponse);
+  // List all amendments for a contract. Both parties may read.
   rpc ListAmendments(ListAmendmentsRequest) returns (ListAmendmentsResponse);
 
+  // Pause the contract. Client-only. Only allowed from ACTIVE state.
   rpc PauseContract(PauseContractRequest) returns (PauseContractResponse);
+  // Resume the contract. Client-only. Only allowed from PAUSED state.
   rpc ResumeContract(ResumeContractRequest) returns (ResumeContractResponse);
+  // End the contract. Client-only. Only allowed from ACTIVE or PAUSED state. Once ended, terminal.
   rpc EndContract(EndContractRequest) returns (EndContractResponse);
 
   rpc GetStatusHistory(GetStatusHistoryRequest) returns (GetStatusHistoryResponse);
@@ -55,6 +68,7 @@ enum MilestoneStatus {
   MILESTONE_STATUS_CHANGES_REQUESTED = 3;
   MILESTONE_STATUS_APPROVED = 4;
   MILESTONE_STATUS_FUNDED = 5;
+  MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT = 6;
 }
 
 enum HourlyLogStatus {
@@ -107,11 +121,38 @@ message Amendment {
   int64 contract_id = 2;
   string proposed_by = 3;
   string summary = 4;
-  string payload_json = 5;
+  AmendmentPayload payload = 5;
   AmendmentStatus status = 6;
   int64 expires_at_unix_seconds = 7;
   int64 responded_at_unix_seconds = 8;
   int64 created_at_unix_seconds = 9;
+  string responded_by = 10;
+  string response_note = 11;
+}
+
+message CompensationChange {
+  double new_hourly_rate = 1;
+  double new_fixed_total = 2;
+}
+
+message MilestonesChange {
+  repeated Milestone milestones = 1;
+}
+
+message WeeklyLimitChange {
+  int32 new_weekly_hour_limit = 1;
+}
+
+message ScopeChange {
+  string new_title = 1;
+  string new_description = 2;
+}
+
+message AmendmentPayload {
+  CompensationChange compensation_change = 1;
+  MilestonesChange milestones_change = 2;
+  WeeklyLimitChange weekly_limit_change = 3;
+  ScopeChange scope_change = 4;
 }
 
 message StatusHistoryEntry {
@@ -223,6 +264,36 @@ message RevokeContractOfferResponse {
   Contract contract = 1;
 }
 
+message SubmitMilestoneWorkRequest {
+  int64 contract_id = 1;
+  int64 milestone_id = 2;
+  string note = 3;
+  repeated string attachments = 4;
+}
+
+message SubmitMilestoneWorkResponse {
+  Contract contract = 1;
+}
+
+message RequestMilestoneChangesRequest {
+  int64 contract_id = 1;
+  int64 milestone_id = 2;
+  string note = 3;
+}
+
+message RequestMilestoneChangesResponse {
+  Contract contract = 1;
+}
+
+message ApproveMilestoneSubmissionRequest {
+  int64 contract_id = 1;
+  int64 milestone_id = 2;
+}
+
+message ApproveMilestoneSubmissionResponse {
+  Contract contract = 1;
+}
+
 message UpdateMilestoneStatusRequest {
   int64 contract_id = 1;
   int64 milestone_id = 2;
@@ -271,7 +342,7 @@ message ReviewHourlyLogResponse {
 message ProposeAmendmentRequest {
   int64 contract_id = 1;
   string summary = 2;
-  string payload_json = 3;
+  AmendmentPayload payload = 3;
   int64 expires_at_unix_seconds = 4;
 }
 
@@ -282,6 +353,7 @@ message ProposeAmendmentResponse {
 message RespondAmendmentRequest {
   int64 amendment_id = 1;
   AmendmentStatus status = 2;
+  string response_note = 3;
 }
 
 message RespondAmendmentResponse {
