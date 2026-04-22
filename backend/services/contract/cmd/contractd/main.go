@@ -82,12 +82,15 @@ func main() {
 	declineUC := &application.DeclineContract{Contracts: repo, Proposals: proposalClient, Clock: clockImpl}
 	revokeUC := &application.RevokeContractOffer{Contracts: repo, Proposals: proposalClient, Actors: userPolicy, Clock: clockImpl}
 	updateMilestoneStatusUC := &application.UpdateMilestoneStatus{Contracts: repo, Clock: clockImpl}
+	submitMilestoneWorkUC := &application.SubmitMilestoneWork{UpdateMilestoneStatus: updateMilestoneStatusUC}
+	requestMilestoneChangesUC := &application.RequestMilestoneChanges{UpdateMilestoneStatus: updateMilestoneStatusUC}
+	approveMilestoneSubmissionUC := &application.ApproveMilestoneSubmission{UpdateMilestoneStatus: updateMilestoneStatusUC}
 	logHourlyWorkUC := &application.LogHourlyWork{Contracts: repo, Clock: clockImpl}
 	listHourlyLogsUC := &application.ListHourlyLogs{Contracts: repo}
 	reviewHourlyLogUC := &application.ReviewHourlyLog{Contracts: repo, Clock: clockImpl}
 	proposeAmendmentUC := &application.ProposeAmendment{Contracts: repo, Clock: clockImpl}
 	respondAmendmentUC := &application.RespondAmendment{Contracts: repo, Clock: clockImpl}
-	listAmendmentsUC := &application.ListAmendments{Contracts: repo}
+	listAmendmentsUC := &application.ListAmendments{Contracts: repo, Clock: clockImpl}
 	pauseUC := &application.PauseContract{Contracts: repo, Clock: clockImpl}
 	resumeUC := &application.ResumeContract{Contracts: repo, Clock: clockImpl}
 	endUC := &application.EndContract{Contracts: repo, Clock: clockImpl}
@@ -101,6 +104,9 @@ func main() {
 		acceptUC,
 		declineUC,
 		revokeUC,
+		submitMilestoneWorkUC,
+		requestMilestoneChangesUC,
+		approveMilestoneSubmissionUC,
 		updateMilestoneStatusUC,
 		logHourlyWorkUC,
 		listHourlyLogsUC,

@@ -45,14 +45,18 @@ func (uc *UpdateMilestoneStatus) Execute(ctx context.Context, in UpdateMilestone
 		return UpdateMilestoneStatusOutput{}, err
 	}
 	role := strings.ToLower(strings.TrimSpace(in.ActorRole))
-	if role != "client" && role != "freelancer" {
-		return UpdateMilestoneStatusOutput{}, fmt.Errorf("client or freelancer role required")
+	isInternal := role == "service" || role == "system" || role == "internal"
+	if role != "client" && role != "freelancer" && !isInternal {
+		return UpdateMilestoneStatusOutput{}, fmt.Errorf("client, freelancer, or internal role required")
 	}
 	if role == "freelancer" && status != domain.MilestoneStatusSubmitted {
 		return UpdateMilestoneStatusOutput{}, fmt.Errorf("freelancer can only submit milestones")
 	}
 	if role == "client" && status != domain.MilestoneStatusApproved && status != domain.MilestoneStatusChangesRequested {
 		return UpdateMilestoneStatusOutput{}, fmt.Errorf("client can only approve or request changes")
+	}
+	if isInternal && status != domain.MilestoneStatusFunded && status != domain.MilestoneStatusApprovedPendingSettlement {
+		return UpdateMilestoneStatusOutput{}, fmt.Errorf("internal role can only set funded or approved_pending_settlement")
 	}
 
 	current, err := uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ActorID)
@@ -85,7 +89,7 @@ func (uc *UpdateMilestoneStatus) Execute(ctx context.Context, in UpdateMilestone
 				current.Milestones[i].SubmittedAt = &submittedAt
 				current.Milestones[i].ReviewNote = ""
 				current.Milestones[i].ReviewedAt = nil
-			} else {
+			} else if role == "client" {
 				if curr != domain.MilestoneStatusSubmitted {
 					return UpdateMilestoneStatusOutput{}, fmt.Errorf("client can only review submitted milestones")
 				}
@@ -98,6 +102,17 @@ func (uc *UpdateMilestoneStatus) Execute(ctx context.Context, in UpdateMilestone
 				current.Milestones[i].ReviewedAt = &reviewedAt
 				if status == domain.MilestoneStatusChangesRequested {
 					current.Milestones[i].RevisionCount++
+				}
+			} else {
+				switch status {
+				case domain.MilestoneStatusApprovedPendingSettlement:
+					if curr != domain.MilestoneStatusApproved {
+						return UpdateMilestoneStatusOutput{}, fmt.Errorf("approved_pending_settlement can only be set from approved")
+					}
+				case domain.MilestoneStatusFunded:
+					if curr != domain.MilestoneStatusApproved && curr != domain.MilestoneStatusApprovedPendingSettlement {
+						return UpdateMilestoneStatusOutput{}, fmt.Errorf("funded can only be set from approved or approved_pending_settlement")
+					}
 				}
 			}
 			current.Milestones[i].Status = status

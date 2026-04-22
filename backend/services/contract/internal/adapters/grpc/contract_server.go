@@ -24,6 +24,9 @@ type ContractServer struct {
 	AcceptUC                *application.AcceptContract
 	DeclineUC               *application.DeclineContract
 	RevokeUC                *application.RevokeContractOffer
+	SubmitMilestoneWorkUC   *application.SubmitMilestoneWork
+	RequestMilestoneChangesUC *application.RequestMilestoneChanges
+	ApproveMilestoneUC        *application.ApproveMilestoneSubmission
 	UpdateMilestoneStatusUC *application.UpdateMilestoneStatus
 	LogHourlyWorkUC         *application.LogHourlyWork
 	ListHourlyLogsUC        *application.ListHourlyLogs
@@ -47,6 +50,9 @@ func NewContractServer(
 	accept *application.AcceptContract,
 	decline *application.DeclineContract,
 	revoke *application.RevokeContractOffer,
+	submitMilestoneWork *application.SubmitMilestoneWork,
+	requestMilestoneChanges *application.RequestMilestoneChanges,
+	approveMilestone *application.ApproveMilestoneSubmission,
 	updateMilestoneStatus *application.UpdateMilestoneStatus,
 	logHourlyWork *application.LogHourlyWork,
 	listHourlyLogs *application.ListHourlyLogs,
@@ -68,6 +74,9 @@ func NewContractServer(
 		AcceptUC:                accept,
 		DeclineUC:               decline,
 		RevokeUC:                revoke,
+		SubmitMilestoneWorkUC:   submitMilestoneWork,
+		RequestMilestoneChangesUC: requestMilestoneChanges,
+		ApproveMilestoneUC:        approveMilestone,
 		UpdateMilestoneStatusUC: updateMilestoneStatus,
 		LogHourlyWorkUC:         logHourlyWork,
 		ListHourlyLogsUC:        listHourlyLogs,
@@ -247,6 +256,69 @@ func (s *ContractServer) RevokeContractOffer(ctx context.Context, req *contractv
 	return &contractv1.RevokeContractOfferResponse{Contract: toProtoContract(out.Contract)}, nil
 }
 
+func (s *ContractServer) SubmitMilestoneWork(ctx context.Context, req *contractv1.SubmitMilestoneWorkRequest) (*contractv1.SubmitMilestoneWorkResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	out, err := s.SubmitMilestoneWorkUC.Execute(ctx, application.SubmitMilestoneWorkInput{
+		ContractID:  req.GetContractId(),
+		MilestoneID: req.GetMilestoneId(),
+		ActorID:     callerID,
+		ActorRole:   role,
+		Note:        req.GetNote(),
+		Attachments: req.GetAttachments(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &contractv1.SubmitMilestoneWorkResponse{Contract: toProtoContract(out.Contract)}, nil
+}
+
+func (s *ContractServer) RequestMilestoneChanges(ctx context.Context, req *contractv1.RequestMilestoneChangesRequest) (*contractv1.RequestMilestoneChangesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	out, err := s.RequestMilestoneChangesUC.Execute(ctx, application.RequestMilestoneChangesInput{
+		ContractID:  req.GetContractId(),
+		MilestoneID: req.GetMilestoneId(),
+		ActorID:     callerID,
+		ActorRole:   role,
+		Note:        req.GetNote(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &contractv1.RequestMilestoneChangesResponse{Contract: toProtoContract(out.Contract)}, nil
+}
+
+func (s *ContractServer) ApproveMilestoneSubmission(ctx context.Context, req *contractv1.ApproveMilestoneSubmissionRequest) (*contractv1.ApproveMilestoneSubmissionResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	callerID, role, err := callerFromContext(ctx, s.TokenParser)
+	if err != nil {
+		return nil, err
+	}
+	out, err := s.ApproveMilestoneUC.Execute(ctx, application.ApproveMilestoneSubmissionInput{
+		ContractID:  req.GetContractId(),
+		MilestoneID: req.GetMilestoneId(),
+		ActorID:     callerID,
+		ActorRole:   role,
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &contractv1.ApproveMilestoneSubmissionResponse{Contract: toProtoContract(out.Contract)}, nil
+}
+
 func (s *ContractServer) UpdateMilestoneStatus(ctx context.Context, req *contractv1.UpdateMilestoneStatusRequest) (*contractv1.UpdateMilestoneStatusResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -360,11 +432,11 @@ func (s *ContractServer) ProposeAmendment(ctx context.Context, req *contractv1.P
 		expiresAt = &t
 	}
 	out, err := s.ProposeAmendmentUC.Execute(ctx, application.ProposeAmendmentInput{
-		ContractID:  req.GetContractId(),
-		ActorID:     callerID,
-		Summary:     req.GetSummary(),
-		PayloadJSON: req.GetPayloadJson(),
-		ExpiresAt:   expiresAt,
+		ContractID: req.GetContractId(),
+		ActorID:    callerID,
+		Summary:    req.GetSummary(),
+		Payload:    fromProtoAmendmentPayload(req.GetPayload()),
+		ExpiresAt:  expiresAt,
 	})
 	if err != nil {
 		return nil, toStatus(err)
@@ -385,9 +457,10 @@ func (s *ContractServer) RespondAmendment(ctx context.Context, req *contractv1.R
 		return nil, status.Error(codes.PermissionDenied, "client or freelancer role required")
 	}
 	out, err := s.RespondAmendmentUC.Execute(ctx, application.RespondAmendmentInput{
-		AmendmentID: req.GetAmendmentId(),
-		ActorID:     callerID,
-		Status:      fromProtoAmendmentStatus(req.GetStatus()),
+		AmendmentID:  req.GetAmendmentId(),
+		ActorID:      callerID,
+		Status:       fromProtoAmendmentStatus(req.GetStatus()),
+		ResponseNote: req.GetResponseNote(),
 	})
 	if err != nil {
 		return nil, toStatus(err)
@@ -567,6 +640,10 @@ func fromProtoMilestoneStatus(v contractv1.MilestoneStatus) string {
 		return domain.MilestoneStatusChangesRequested
 	case contractv1.MilestoneStatus_MILESTONE_STATUS_APPROVED:
 		return domain.MilestoneStatusApproved
+	case contractv1.MilestoneStatus_MILESTONE_STATUS_FUNDED:
+		return domain.MilestoneStatusFunded
+	case contractv1.MilestoneStatus_MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT:
+		return domain.MilestoneStatusApprovedPendingSettlement
 	default:
 		return ""
 	}
@@ -582,6 +659,10 @@ func toProtoMilestoneStatus(v string) contractv1.MilestoneStatus {
 		return contractv1.MilestoneStatus_MILESTONE_STATUS_CHANGES_REQUESTED
 	case domain.MilestoneStatusApproved:
 		return contractv1.MilestoneStatus_MILESTONE_STATUS_APPROVED
+	case domain.MilestoneStatusFunded:
+		return contractv1.MilestoneStatus_MILESTONE_STATUS_FUNDED
+	case domain.MilestoneStatusApprovedPendingSettlement:
+		return contractv1.MilestoneStatus_MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT
 	default:
 		return contractv1.MilestoneStatus_MILESTONE_STATUS_UNSPECIFIED
 	}
@@ -770,15 +851,76 @@ func toProtoAmendment(in domain.Amendment) *contractv1.Amendment {
 		ContractId:           in.ContractID,
 		ProposedBy:           in.ProposedBy.String(),
 		Summary:              in.Summary,
-		PayloadJson:          in.PayloadJSON,
+		Payload:              toProtoAmendmentPayload(in.Payload),
 		Status:               toProtoAmendmentStatus(in.Status),
 		CreatedAtUnixSeconds: in.CreatedAt.Unix(),
+		ResponseNote:         in.ResponseNote,
 	}
 	if in.ExpiresAt != nil {
 		out.ExpiresAtUnixSeconds = in.ExpiresAt.Unix()
 	}
 	if in.RespondedAt != nil {
 		out.RespondedAtUnixSeconds = in.RespondedAt.Unix()
+	}
+	if in.RespondedBy != nil {
+		out.RespondedBy = in.RespondedBy.String()
+	}
+	return out
+}
+
+func fromProtoAmendmentPayload(in *contractv1.AmendmentPayload) domain.AmendmentPayload {
+	if in == nil {
+		return domain.AmendmentPayload{}
+	}
+	out := domain.AmendmentPayload{}
+	if in.GetCompensationChange() != nil {
+		out.CompensationChange = &domain.CompensationChange{
+			NewHourlyRate: in.GetCompensationChange().GetNewHourlyRate(),
+			NewFixedTotal: in.GetCompensationChange().GetNewFixedTotal(),
+		}
+	}
+	if in.GetMilestonesChange() != nil {
+		out.MilestonesChange = &domain.MilestonesChange{
+			Milestones: fromProtoMilestones(in.GetMilestonesChange().GetMilestones()),
+		}
+	}
+	if in.GetWeeklyLimitChange() != nil {
+		out.WeeklyLimitChange = &domain.WeeklyLimitChange{
+			NewWeeklyHourLimit: in.GetWeeklyLimitChange().GetNewWeeklyHourLimit(),
+		}
+	}
+	if in.GetScopeChange() != nil {
+		out.ScopeChange = &domain.ScopeChange{
+			NewTitle:       in.GetScopeChange().GetNewTitle(),
+			NewDescription: in.GetScopeChange().GetNewDescription(),
+		}
+	}
+	return out
+}
+
+func toProtoAmendmentPayload(in domain.AmendmentPayload) *contractv1.AmendmentPayload {
+	out := &contractv1.AmendmentPayload{}
+	if in.CompensationChange != nil {
+		out.CompensationChange = &contractv1.CompensationChange{
+			NewHourlyRate: in.CompensationChange.NewHourlyRate,
+			NewFixedTotal: in.CompensationChange.NewFixedTotal,
+		}
+	}
+	if in.MilestonesChange != nil {
+		out.MilestonesChange = &contractv1.MilestonesChange{
+			Milestones: toProtoMilestones(in.MilestonesChange.Milestones),
+		}
+	}
+	if in.WeeklyLimitChange != nil {
+		out.WeeklyLimitChange = &contractv1.WeeklyLimitChange{
+			NewWeeklyHourLimit: in.WeeklyLimitChange.NewWeeklyHourLimit,
+		}
+	}
+	if in.ScopeChange != nil {
+		out.ScopeChange = &contractv1.ScopeChange{
+			NewTitle:       in.ScopeChange.NewTitle,
+			NewDescription: in.ScopeChange.NewDescription,
+		}
 	}
 	return out
 }
@@ -811,6 +953,8 @@ func toStatus(err error) error {
 		return status.Error(codes.PermissionDenied, err.Error())
 	case strings.Contains(msg, "already exists") ||
 		strings.Contains(msg, "already has") ||
+		strings.Contains(msg, "can only") ||
+		strings.Contains(msg, "expired") ||
 		strings.Contains(msg, "acceptable state") ||
 		strings.Contains(msg, "revoke-able state") ||
 		strings.Contains(msg, "does not belong to"):

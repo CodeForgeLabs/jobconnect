@@ -23,6 +23,8 @@ const (
 	MilestoneStatusSubmitted        = "submitted"
 	MilestoneStatusChangesRequested = "changes_requested"
 	MilestoneStatusApproved         = "approved"
+	MilestoneStatusApprovedPendingSettlement = "approved_pending_settlement"
+	MilestoneStatusFunded                   = "funded"
 
 	HourlyLogStatusPending  = "pending"
 	HourlyLogStatusApproved = "approved"
@@ -100,15 +102,42 @@ type HourlyLog struct {
 }
 
 type Amendment struct {
-	ID          int64
-	ContractID  int64
-	ProposedBy  uuid.UUID
-	Summary     string
-	PayloadJSON string
-	Status      string
-	ExpiresAt   *time.Time
-	RespondedAt *time.Time
-	CreatedAt   time.Time
+	ID           int64
+	ContractID   int64
+	ProposedBy   uuid.UUID
+	Summary      string
+	Payload      AmendmentPayload
+	Status       string
+	ExpiresAt    *time.Time
+	RespondedAt  *time.Time
+	CreatedAt    time.Time
+	RespondedBy  *uuid.UUID
+	ResponseNote string
+}
+
+type CompensationChange struct {
+	NewHourlyRate float64
+	NewFixedTotal float64
+}
+
+type MilestonesChange struct {
+	Milestones []Milestone
+}
+
+type WeeklyLimitChange struct {
+	NewWeeklyHourLimit int32
+}
+
+type ScopeChange struct {
+	NewTitle       string
+	NewDescription string
+}
+
+type AmendmentPayload struct {
+	CompensationChange *CompensationChange
+	MilestonesChange   *MilestonesChange
+	WeeklyLimitChange  *WeeklyLimitChange
+	ScopeChange        *ScopeChange
 }
 
 type StatusHistoryEntry struct {
@@ -184,7 +213,7 @@ func CanRevoke(current string) bool {
 func ValidateMilestoneStatus(v string) error {
 	s := strings.ToLower(strings.TrimSpace(v))
 	switch s {
-	case MilestoneStatusPending, MilestoneStatusSubmitted, MilestoneStatusChangesRequested, MilestoneStatusApproved:
+	case MilestoneStatusPending, MilestoneStatusSubmitted, MilestoneStatusChangesRequested, MilestoneStatusApproved, MilestoneStatusApprovedPendingSettlement, MilestoneStatusFunded:
 		return nil
 	default:
 		return fmt.Errorf("invalid milestone_status")
