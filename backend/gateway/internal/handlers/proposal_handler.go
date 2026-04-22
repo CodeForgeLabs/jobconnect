@@ -266,8 +266,12 @@ func mapProposalStatus(v string) proposalv1.ProposalStatus {
 	switch strings.ToLower(strings.TrimSpace(v)) {
 	case "sent":
 		return proposalv1.ProposalStatus_PROPOSAL_STATUS_SENT
+	case "shortlist":
+		fallthrough
 	case "shortlisted":
 		return proposalv1.ProposalStatus_PROPOSAL_STATUS_SHORTLISTED
+	case "reject":
+		fallthrough
 	case "rejected":
 		return proposalv1.ProposalStatus_PROPOSAL_STATUS_REJECTED
 	case "hired":
@@ -281,8 +285,12 @@ func mapProposalStatus(v string) proposalv1.ProposalStatus {
 
 func mapClientDecision(v string) proposalv1.ClientDecision {
 	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "shortlist":
+		fallthrough
 	case "shortlisted":
 		return proposalv1.ClientDecision_CLIENT_DECISION_SHORTLISTED
+	case "reject":
+		fallthrough
 	case "rejected":
 		return proposalv1.ClientDecision_CLIENT_DECISION_REJECTED
 	default:

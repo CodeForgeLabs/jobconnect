@@ -600,8 +600,12 @@ func mapCloseReason(in string) jobv1.CloseReason {
 
 func mapApplicantStage(in string) jobv1.ApplicantStage {
 	switch strings.ToLower(strings.TrimSpace(in)) {
+	case "shortlist":
+		fallthrough
 	case "shortlisted":
 		return jobv1.ApplicantStage_APPLICANT_STAGE_SHORTLISTED
+	case "reject":
+		fallthrough
 	case "rejected":
 		return jobv1.ApplicantStage_APPLICANT_STAGE_REJECTED
 	case "hired":
