@@ -123,17 +123,26 @@ func (r *createContractRepoStub) ListStatusHistoryForActor(_ context.Context, _ 
 }
 
 type proposalSyncStub struct {
-	proposal       ProposalSummary
-	setHiredCalls  []int64
-	setHiredReason []string
-	setHiredErr    error
-	releaseCalls   []int64
-	releaseReason  []string
-	releaseErr     error
+	proposal        ProposalSummary
+	markOfferCalls  []int64
+	markOfferErr    error
+	markOfferReason []string
+	setHiredCalls   []int64
+	setHiredReason  []string
+	setHiredErr     error
+	releaseCalls    []int64
+	releaseReason   []string
+	releaseErr      error
 }
 
 func (p *proposalSyncStub) GetProposal(_ context.Context, _ int64, _ uuid.UUID) (ProposalSummary, error) {
 	return p.proposal, nil
+}
+
+func (p *proposalSyncStub) MarkOfferSent(_ context.Context, proposalID int64, _ uuid.UUID, reason string) error {
+	p.markOfferCalls = append(p.markOfferCalls, proposalID)
+	p.markOfferReason = append(p.markOfferReason, reason)
+	return p.markOfferErr
 }
 
 func (p *proposalSyncStub) SetHired(_ context.Context, proposalID int64, _ uuid.UUID, reason string) error {
@@ -142,7 +151,7 @@ func (p *proposalSyncStub) SetHired(_ context.Context, proposalID int64, _ uuid.
 	return p.setHiredErr
 }
 
-func (p *proposalSyncStub) ReleaseHired(_ context.Context, proposalID int64, _ uuid.UUID, reason string) error {
+func (p *proposalSyncStub) ReleaseOffer(_ context.Context, proposalID int64, _ uuid.UUID, reason string) error {
 	p.releaseCalls = append(p.releaseCalls, proposalID)
 	p.releaseReason = append(p.releaseReason, reason)
 	return p.releaseErr
@@ -150,7 +159,7 @@ func (p *proposalSyncStub) ReleaseHired(_ context.Context, proposalID int64, _ u
 
 type actorPolicyStub struct{}
 
-func (a *actorPolicyStub) EnsureClientCanHire(context.Context, uuid.UUID) error    { return nil }
+func (a *actorPolicyStub) EnsureClientCanHire(context.Context, uuid.UUID) error     { return nil }
 func (a *actorPolicyStub) EnsureFreelancerCanWork(context.Context, uuid.UUID) error { return nil }
 
 type jobReaderStub struct {
@@ -205,8 +214,8 @@ func TestCreateContract_Execute_SendsOfferFromShortlistedProposal(t *testing.T) 
 	if len(repo.created) != 1 {
 		t.Fatalf("expected one contract create, got %d", len(repo.created))
 	}
-	if len(proposals.setHiredCalls) != 1 || proposals.setHiredCalls[0] != 8 {
-		t.Fatalf("expected proposal to be marked hired, got %+v", proposals.setHiredCalls)
+	if len(proposals.markOfferCalls) != 1 || proposals.markOfferCalls[0] != 8 {
+		t.Fatalf("expected proposal to be marked offer_sent, got %+v", proposals.markOfferCalls)
 	}
 	if len(repo.historyReasons) != 1 || repo.historyReasons[0] != "offer sent" {
 		t.Fatalf("unexpected history reasons: %+v", repo.historyReasons)
@@ -297,8 +306,8 @@ func TestCreateContract_Execute_ReopensRevokedOfferAndMarksProposalHired(t *test
 	if len(repo.updated) != 1 {
 		t.Fatalf("expected one offer update, got %d", len(repo.updated))
 	}
-	if len(proposals.setHiredCalls) != 1 || proposals.setHiredCalls[0] != 8 {
-		t.Fatalf("expected proposal to be marked hired on resend, got %+v", proposals.setHiredCalls)
+	if len(proposals.markOfferCalls) != 1 || proposals.markOfferCalls[0] != 8 {
+		t.Fatalf("expected proposal to be marked offer_sent on resend, got %+v", proposals.markOfferCalls)
 	}
 	if len(repo.historyReasons) != 1 || repo.historyReasons[0] != "offer resent" {
 		t.Fatalf("unexpected history reasons: %+v", repo.historyReasons)
@@ -327,7 +336,7 @@ func TestCreateContract_Execute_DoesNotPersistResendWhenProposalSyncFails(t *tes
 			FreelancerID: freelancerID.String(),
 			Status:       "shortlisted",
 		},
-		setHiredErr: fmt.Errorf("proposal service unavailable"),
+		markOfferErr: fmt.Errorf("proposal service unavailable"),
 	}
 	jobs := &jobReaderStub{summary: JobSummary{JobID: 21, ClientID: clientID.String(), IsOpen: true, Found: true}}
 	uc := &CreateContract{
@@ -403,8 +412,8 @@ func TestCreateContract_Execute_ReleasesProposalIfResendUpdateFailsAfterSync(t *
 	if err == nil {
 		t.Fatal("expected resend to fail when offer update fails")
 	}
-	if len(proposals.setHiredCalls) != 1 || proposals.setHiredCalls[0] != 8 {
-		t.Fatalf("expected proposal to be hired before update failure, got %+v", proposals.setHiredCalls)
+	if len(proposals.markOfferCalls) != 1 || proposals.markOfferCalls[0] != 8 {
+		t.Fatalf("expected proposal to be marked offer_sent before update failure, got %+v", proposals.markOfferCalls)
 	}
 	if len(proposals.releaseCalls) != 1 || proposals.releaseCalls[0] != 8 {
 		t.Fatalf("expected proposal hire release compensation, got %+v", proposals.releaseCalls)

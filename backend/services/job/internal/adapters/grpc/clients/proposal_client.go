@@ -119,6 +119,8 @@ func proposalStatusToApplicantStage(in proposalv1.ProposalStatus) string {
 		return application.ApplicantStageShortlisted
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_REJECTED:
 		return application.ApplicantStageRejected
+	case proposalv1.ProposalStatus_PROPOSAL_STATUS_OFFER_SENT:
+		return application.ApplicantStageOfferSent
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED:
 		return application.ApplicantStageHired
 	default:

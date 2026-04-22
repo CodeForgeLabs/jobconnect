@@ -41,6 +41,10 @@ func (uc *ReleaseHiredProposal) Execute(ctx context.Context, in ReleaseHiredProp
 		return ReleaseHiredProposalOutput{}, err
 	}
 	switch current.Status {
+	case domain.StatusOfferSent:
+		if err := uc.Proposals.SetStatus(ctx, in.ProposalID, in.ClientID, domain.StatusShortlisted, strings.TrimSpace(in.Reason), uc.Clock.Now()); err != nil {
+			return ReleaseHiredProposalOutput{}, err
+		}
 	case domain.StatusHired:
 		if err := uc.Proposals.RevertHire(ctx, in.ProposalID, in.ClientID, strings.TrimSpace(in.Reason), uc.Clock.Now()); err != nil {
 			return ReleaseHiredProposalOutput{}, err

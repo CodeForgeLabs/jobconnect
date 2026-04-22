@@ -28,6 +28,40 @@ func NewProposalClient(client proposalv1.ProposalServiceClient, issuer tokenIssu
 	return &ProposalClient{client: client, issuer: issuer}
 }
 
+func (c *ProposalClient) MarkOfferSent(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
+	if c.client == nil || c.issuer == nil {
+		return fmt.Errorf("proposal client dependencies are not configured")
+	}
+	if proposalID <= 0 {
+		return fmt.Errorf("proposal_id is required")
+	}
+	if clientID == uuid.Nil {
+		return fmt.Errorf("client_id is required")
+	}
+
+	token, err := c.issuer.IssueAccessToken(clientID, "client", 2*time.Minute)
+	if err != nil {
+		return err
+	}
+	ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
+	ctx = metadata.AppendToOutgoingContext(ctx, "x-jobconnect-internal", "contract-service")
+
+	_, err = c.client.InternalMarkProposalOfferSent(ctx, &proposalv1.InternalMarkProposalOfferSentRequest{
+		ProposalId: proposalID,
+		ClientId:   clientID.String(),
+		Note:       strings.TrimSpace(reason),
+	})
+	if err != nil {
+		if st, ok := status.FromError(err); ok {
+			if st.Code() == codes.NotFound || st.Code() == codes.InvalidArgument || st.Code() == codes.PermissionDenied {
+				return err
+			}
+		}
+		return fmt.Errorf("proposal service: %w", err)
+	}
+	return nil
+}
+
 func (c *ProposalClient) SetHired(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
 	if c.client == nil || c.issuer == nil {
 		return fmt.Errorf("proposal client dependencies are not configured")
@@ -100,7 +134,7 @@ func (c *ProposalClient) GetProposal(ctx context.Context, proposalID int64, clie
 	}, nil
 }
 
-func (c *ProposalClient) ReleaseHired(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
+func (c *ProposalClient) ReleaseOffer(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
 	if c.client == nil || c.issuer == nil {
 		return fmt.Errorf("proposal client dependencies are not configured")
 	}
@@ -139,6 +173,8 @@ func proposalStatus(v proposalv1.ProposalStatus) string {
 		return "shortlisted"
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_REJECTED:
 		return "rejected"
+	case proposalv1.ProposalStatus_PROPOSAL_STATUS_OFFER_SENT:
+		return "offer_sent"
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED:
 		return "hired"
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_WITHDRAWN:

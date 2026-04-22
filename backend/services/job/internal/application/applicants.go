@@ -13,6 +13,7 @@ const (
 	ApplicantStageSent        = "sent"
 	ApplicantStageShortlisted = "shortlisted"
 	ApplicantStageRejected    = "rejected"
+	ApplicantStageOfferSent   = "offer_sent"
 	ApplicantStageHired       = "hired"
 )
 

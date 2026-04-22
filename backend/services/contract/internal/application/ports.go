@@ -42,8 +42,9 @@ type ProposalSummary struct {
 
 type ProposalSync interface {
 	GetProposal(ctx context.Context, proposalID int64, clientID uuid.UUID) (ProposalSummary, error)
+	MarkOfferSent(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error
 	SetHired(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error
-	ReleaseHired(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error
+	ReleaseOffer(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error
 }
 
 type JobSummary struct {

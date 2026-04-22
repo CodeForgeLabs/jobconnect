@@ -237,6 +237,7 @@ const (
 	ApplicantStage_APPLICANT_STAGE_SHORTLISTED ApplicantStage = 2
 	ApplicantStage_APPLICANT_STAGE_REJECTED    ApplicantStage = 3
 	ApplicantStage_APPLICANT_STAGE_HIRED       ApplicantStage = 4
+	ApplicantStage_APPLICANT_STAGE_OFFER_SENT  ApplicantStage = 5
 )
 
 // Enum value maps for ApplicantStage.
@@ -247,6 +248,7 @@ var (
 		2: "APPLICANT_STAGE_SHORTLISTED",
 		3: "APPLICANT_STAGE_REJECTED",
 		4: "APPLICANT_STAGE_HIRED",
+		5: "APPLICANT_STAGE_OFFER_SENT",
 	}
 	ApplicantStage_value = map[string]int32{
 		"APPLICANT_STAGE_UNSPECIFIED": 0,
@@ -254,6 +256,7 @@ var (
 		"APPLICANT_STAGE_SHORTLISTED": 2,
 		"APPLICANT_STAGE_REJECTED":    3,
 		"APPLICANT_STAGE_HIRED":       4,
+		"APPLICANT_STAGE_OFFER_SENT":  5,
 	}
 )
 
@@ -4912,13 +4915,14 @@ const file_job_v1_job_proto_rawDesc = "" +
 	"\x16VISIBILITY_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11VISIBILITY_PUBLIC\x10\x01\x12\x16\n" +
 	"\x12VISIBILITY_PRIVATE\x10\x02\x12\x1a\n" +
-	"\x16VISIBILITY_INVITE_ONLY\x10\x03*\xa5\x01\n" +
+	"\x16VISIBILITY_INVITE_ONLY\x10\x03*\xc5\x01\n" +
 	"\x0eApplicantStage\x12\x1f\n" +
 	"\x1bAPPLICANT_STAGE_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14APPLICANT_STAGE_SENT\x10\x01\x12\x1f\n" +
 	"\x1bAPPLICANT_STAGE_SHORTLISTED\x10\x02\x12\x1c\n" +
 	"\x18APPLICANT_STAGE_REJECTED\x10\x03\x12\x19\n" +
-	"\x15APPLICANT_STAGE_HIRED\x10\x04*\x88\x01\n" +
+	"\x15APPLICANT_STAGE_HIRED\x10\x04\x12\x1e\n" +
+	"\x1aAPPLICANT_STAGE_OFFER_SENT\x10\x05*\x88\x01\n" +
 	"\x14InviteResponseStatus\x12&\n" +
 	"\"INVITE_RESPONSE_STATUS_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fINVITE_RESPONSE_STATUS_ACCEPTED\x10\x01\x12#\n" +

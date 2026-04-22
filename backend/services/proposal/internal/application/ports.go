@@ -20,6 +20,7 @@ type ProposalRepository interface {
 	UpdateEditable(ctx context.Context, proposalID int64, freelancerID uuid.UUID, coverLetter string, bidAmount float64, estimatedDays int32, attachments []domain.Attachment, updatedAt time.Time) error
 	Withdraw(ctx context.Context, proposalID int64, freelancerID uuid.UUID, reason string, at time.Time) error
 	SetStatus(ctx context.Context, proposalID int64, clientID uuid.UUID, status string, reason string, at time.Time) error
+	MarkOfferSent(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) (domain.Proposal, error)
 	RevertHire(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error
 	HireWithRequestID(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error)
 	HasHiredProposalForJob(ctx context.Context, jobID int64) (bool, error)

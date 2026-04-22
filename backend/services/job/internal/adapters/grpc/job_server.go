@@ -1139,6 +1139,8 @@ func applicantStageFromEnum(in jobv1.ApplicantStage) (string, error) {
 		return application.ApplicantStageShortlisted, nil
 	case jobv1.ApplicantStage_APPLICANT_STAGE_REJECTED:
 		return application.ApplicantStageRejected, nil
+	case jobv1.ApplicantStage_APPLICANT_STAGE_OFFER_SENT:
+		return application.ApplicantStageOfferSent, nil
 	case jobv1.ApplicantStage_APPLICANT_STAGE_HIRED:
 		return application.ApplicantStageHired, nil
 	default:
@@ -1152,6 +1154,8 @@ func applicantStageToEnum(in string) jobv1.ApplicantStage {
 		return jobv1.ApplicantStage_APPLICANT_STAGE_SHORTLISTED
 	case application.ApplicantStageRejected:
 		return jobv1.ApplicantStage_APPLICANT_STAGE_REJECTED
+	case application.ApplicantStageOfferSent:
+		return jobv1.ApplicantStage_APPLICANT_STAGE_OFFER_SENT
 	case application.ApplicantStageHired:
 		return jobv1.ApplicantStage_APPLICANT_STAGE_HIRED
 	default:

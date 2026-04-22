@@ -76,7 +76,7 @@ func toStatusCounts(in map[string]int64) []StatusCount {
 	if len(in) == 0 {
 		return nil
 	}
-	statuses := []string{domain.StatusSent, domain.StatusShortlisted, domain.StatusRejected, domain.StatusHired, domain.StatusWithdrawn}
+	statuses := []string{domain.StatusSent, domain.StatusShortlisted, domain.StatusRejected, domain.StatusOfferSent, domain.StatusHired, domain.StatusWithdrawn}
 	out := make([]StatusCount, 0, len(in))
 	for _, s := range statuses {
 		if c, ok := in[s]; ok {

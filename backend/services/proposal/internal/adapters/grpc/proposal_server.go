@@ -30,6 +30,7 @@ type ProposalServer struct {
 	CountByJobUC            *application.CountProposalsByJob
 	CountInboxUC            *application.CountClientProposalInbox
 	SetStatusUC             *application.SetProposalStatus
+	InternalMarkOfferSentUC *application.InternalMarkProposalOfferSent
 	InternalHireUC          *application.InternalHireProposal
 	ReleaseHiredUC          *application.ReleaseHiredProposal
 
@@ -51,6 +52,7 @@ func NewProposalServer(
 	countByJob *application.CountProposalsByJob,
 	countInbox *application.CountClientProposalInbox,
 	setStatus *application.SetProposalStatus,
+	internalMarkOfferSent *application.InternalMarkProposalOfferSent,
 	internalHire *application.InternalHireProposal,
 	releaseHired *application.ReleaseHiredProposal,
 	tokenParser TokenParser,
@@ -70,6 +72,7 @@ func NewProposalServer(
 		CountByJobUC:            countByJob,
 		CountInboxUC:            countInbox,
 		SetStatusUC:             setStatus,
+		InternalMarkOfferSentUC: internalMarkOfferSent,
 		InternalHireUC:          internalHire,
 		ReleaseHiredUC:          releaseHired,
 		TokenParser:             tokenParser,
@@ -519,6 +522,33 @@ func (s *ProposalServer) SetProposalStatus(ctx context.Context, req *proposalv1.
 	return &proposalv1.SetProposalStatusResponse{Proposal: toProtoProposal(out.Proposal)}, nil
 }
 
+func (s *ProposalServer) InternalMarkProposalOfferSent(ctx context.Context, req *proposalv1.InternalMarkProposalOfferSentRequest) (*proposalv1.InternalMarkProposalOfferSentResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if err := requireInternalCaller(ctx, "contract-service"); err != nil {
+		return nil, err
+	}
+	if s.InternalMarkOfferSentUC == nil {
+		return nil, status.Error(codes.Internal, "internal mark offer sent use case is not configured")
+	}
+
+	clientID, err := uuid.Parse(strings.TrimSpace(req.GetClientId()))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid client_id")
+	}
+
+	out, err := s.InternalMarkOfferSentUC.Execute(ctx, application.InternalMarkProposalOfferSentInput{
+		ProposalID: req.GetProposalId(),
+		ClientID:   clientID,
+		Reason:     req.GetNote(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &proposalv1.InternalMarkProposalOfferSentResponse{Proposal: toProtoProposal(out.Proposal)}, nil
+}
+
 func (s *ProposalServer) InternalHireProposal(ctx context.Context, req *proposalv1.InternalHireProposalRequest) (*proposalv1.InternalHireProposalResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -619,6 +649,8 @@ func toProtoStatus(v string) proposalv1.ProposalStatus {
 		return proposalv1.ProposalStatus_PROPOSAL_STATUS_SHORTLISTED
 	case domain.StatusRejected:
 		return proposalv1.ProposalStatus_PROPOSAL_STATUS_REJECTED
+	case domain.StatusOfferSent:
+		return proposalv1.ProposalStatus_PROPOSAL_STATUS_OFFER_SENT
 	case domain.StatusHired:
 		return proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED
 	case domain.StatusWithdrawn:
@@ -636,6 +668,8 @@ func fromProtoStatus(v proposalv1.ProposalStatus) (string, bool) {
 		return domain.StatusShortlisted, true
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_REJECTED:
 		return domain.StatusRejected, true
+	case proposalv1.ProposalStatus_PROPOSAL_STATUS_OFFER_SENT:
+		return domain.StatusOfferSent, true
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED:
 		return domain.StatusHired, true
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_WITHDRAWN:
@@ -682,6 +716,9 @@ func toProtoProposal(in domain.Proposal) *proposalv1.Proposal {
 	}
 	if in.RejectedAt != nil {
 		out.RejectedAtUnixSeconds = in.RejectedAt.Unix()
+	}
+	if in.OfferSentAt != nil {
+		out.OfferSentAtUnixSeconds = in.OfferSentAt.Unix()
 	}
 	if in.HiredAt != nil {
 		out.HiredAtUnixSeconds = in.HiredAt.Unix()

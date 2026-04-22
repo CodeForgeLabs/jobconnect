@@ -52,7 +52,7 @@ func (uc *RevokeContractOffer) Execute(ctx context.Context, in RevokeContractOff
 		return RevokeContractOfferOutput{}, err
 	}
 	if current.ProposalID > 0 {
-		if err := uc.Proposals.ReleaseHired(ctx, current.ProposalID, current.ClientID, in.Reason); err != nil {
+		if err := uc.Proposals.ReleaseOffer(ctx, current.ProposalID, current.ClientID, in.Reason); err != nil {
 			revertErr := uc.Contracts.SetStatusForClient(ctx, in.ContractID, in.ClientID, domain.StatusPendingAcceptance, uc.Clock.Now())
 			_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
 				ContractID: in.ContractID,

@@ -47,7 +47,7 @@ func (uc *DeclineContract) Execute(ctx context.Context, in DeclineContractInput)
 		return DeclineContractOutput{}, err
 	}
 	if current.ProposalID > 0 {
-		if err := uc.Proposals.ReleaseHired(ctx, current.ProposalID, current.ClientID, in.Reason); err != nil {
+		if err := uc.Proposals.ReleaseOffer(ctx, current.ProposalID, current.ClientID, in.Reason); err != nil {
 			revertErr := uc.Contracts.SetStatusForFreelancer(ctx, in.ContractID, in.FreelancerID, domain.StatusPendingAcceptance, uc.Clock.Now())
 			_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
 				ContractID: in.ContractID,
