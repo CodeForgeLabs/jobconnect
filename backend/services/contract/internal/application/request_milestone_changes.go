@@ -42,4 +42,3 @@ func (uc *RequestMilestoneChanges) Execute(ctx context.Context, in RequestMilest
 	}
 	return RequestMilestoneChangesOutput{Contract: out.Contract}, nil
 }
-

@@ -19,12 +19,12 @@ const (
 	StatusPaused            = "paused"
 	StatusEnded             = "ended"
 
-	MilestoneStatusPending          = "pending"
-	MilestoneStatusSubmitted        = "submitted"
-	MilestoneStatusChangesRequested = "changes_requested"
-	MilestoneStatusApproved         = "approved"
+	MilestoneStatusPending                   = "pending"
+	MilestoneStatusSubmitted                 = "submitted"
+	MilestoneStatusChangesRequested          = "changes_requested"
+	MilestoneStatusApproved                  = "approved"
 	MilestoneStatusApprovedPendingSettlement = "approved_pending_settlement"
-	MilestoneStatusFunded                   = "funded"
+	MilestoneStatusFunded                    = "funded"
 
 	HourlyLogStatusPending  = "pending"
 	HourlyLogStatusApproved = "approved"
