@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, contractHandler *handlers.ContractHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, contractHandler *handlers.ContractHandler, disputeHandler *handlers.DisputeHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -35,6 +35,7 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerJobRoutes(api, jobHandler, jwtParser)
 	registerProposalRoutes(api, proposalHandler, jwtParser)
 	registerContractRoutes(api, contractHandler, jwtParser)
+	registerDisputeRoutes(api, disputeHandler, jwtParser)
 	registerRecommendationRoutes(api, recommendationHandler, jwtParser)
 	registerChatRoutes(api, chatHandler, jwtParser)
 
@@ -78,6 +79,9 @@ func registerContractRoutes(api *gin.RouterGroup, contractHandler *handlers.Cont
 	contractRoutes.POST("/:contractId/accept", middleware.RequireRoles("freelancer"), contractHandler.AcceptContract)
 	contractRoutes.POST("/:contractId/decline", middleware.RequireRoles("freelancer"), contractHandler.DeclineContract)
 	contractRoutes.POST("/:contractId/revoke", middleware.RequireRoles("client"), contractHandler.RevokeContractOffer)
+	contractRoutes.POST("/:contractId/milestones/:milestoneId/submit", middleware.RequireRoles("freelancer"), contractHandler.SubmitMilestoneWork)
+	contractRoutes.POST("/:contractId/milestones/:milestoneId/request-changes", middleware.RequireRoles("client"), contractHandler.RequestMilestoneChanges)
+	contractRoutes.POST("/:contractId/milestones/:milestoneId/approve", middleware.RequireRoles("client"), contractHandler.ApproveMilestoneSubmission)
 
 	// Amendment endpoints
 	contractRoutes.POST("/:contractId/amendments", contractHandler.ProposeAmendment)
@@ -88,6 +92,15 @@ func registerContractRoutes(api *gin.RouterGroup, contractHandler *handlers.Cont
 	contractRoutes.POST("/:contractId/pause", contractHandler.PauseContract)
 	contractRoutes.POST("/:contractId/resume", contractHandler.ResumeContract)
 	contractRoutes.POST("/:contractId/end", contractHandler.EndContract)
+}
+
+func registerDisputeRoutes(api *gin.RouterGroup, disputeHandler *handlers.DisputeHandler, jwtParser *auth.JWTParser) {
+	disputeRoutes := api.Group("/disputes")
+	disputeRoutes.Use(middleware.RequireAuth(jwtParser))
+	disputeRoutes.POST("", disputeHandler.OpenDispute)
+	disputeRoutes.GET("", disputeHandler.ListDisputes)
+	disputeRoutes.GET("/:disputeId", disputeHandler.GetDispute)
+	disputeRoutes.POST("/:disputeId/resolve", middleware.RequireRoles("admin"), disputeHandler.ResolveDispute)
 }
 
 func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jwtParser *auth.JWTParser) {

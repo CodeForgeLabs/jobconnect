@@ -193,6 +193,15 @@ func (s *contractHandlerContractStub) DeclineContract(context.Context, *contract
 func (s *contractHandlerContractStub) RevokeContractOffer(context.Context, *contractv1.RevokeContractOfferRequest, ...grpc.CallOption) (*contractv1.RevokeContractOfferResponse, error) {
 	return nil, nil
 }
+func (s *contractHandlerContractStub) SubmitMilestoneWork(context.Context, *contractv1.SubmitMilestoneWorkRequest, ...grpc.CallOption) (*contractv1.SubmitMilestoneWorkResponse, error) {
+	return nil, nil
+}
+func (s *contractHandlerContractStub) RequestMilestoneChanges(context.Context, *contractv1.RequestMilestoneChangesRequest, ...grpc.CallOption) (*contractv1.RequestMilestoneChangesResponse, error) {
+	return nil, nil
+}
+func (s *contractHandlerContractStub) ApproveMilestoneSubmission(context.Context, *contractv1.ApproveMilestoneSubmissionRequest, ...grpc.CallOption) (*contractv1.ApproveMilestoneSubmissionResponse, error) {
+	return nil, nil
+}
 func (s *contractHandlerContractStub) UpdateMilestoneStatus(context.Context, *contractv1.UpdateMilestoneStatusRequest, ...grpc.CallOption) (*contractv1.UpdateMilestoneStatusResponse, error) {
 	return nil, nil
 }
@@ -364,4 +373,3 @@ func TestContractBootstrap_BlocksWhenProposalIsNotEligible(t *testing.T) {
 		t.Fatalf("expected proposal_not_eligible reason, got %#v", offerState)
 	}
 }
-

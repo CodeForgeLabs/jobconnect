@@ -33,6 +33,15 @@ type contractCreateReader interface {
 	AcceptContract(ctx context.Context, in *contractv1.AcceptContractRequest, opts ...grpc.CallOption) (*contractv1.AcceptContractResponse, error)
 	DeclineContract(ctx context.Context, in *contractv1.DeclineContractRequest, opts ...grpc.CallOption) (*contractv1.DeclineContractResponse, error)
 	RevokeContractOffer(ctx context.Context, in *contractv1.RevokeContractOfferRequest, opts ...grpc.CallOption) (*contractv1.RevokeContractOfferResponse, error)
+	SubmitMilestoneWork(ctx context.Context, in *contractv1.SubmitMilestoneWorkRequest, opts ...grpc.CallOption) (*contractv1.SubmitMilestoneWorkResponse, error)
+	RequestMilestoneChanges(ctx context.Context, in *contractv1.RequestMilestoneChangesRequest, opts ...grpc.CallOption) (*contractv1.RequestMilestoneChangesResponse, error)
+	ApproveMilestoneSubmission(ctx context.Context, in *contractv1.ApproveMilestoneSubmissionRequest, opts ...grpc.CallOption) (*contractv1.ApproveMilestoneSubmissionResponse, error)
+	ProposeAmendment(ctx context.Context, in *contractv1.ProposeAmendmentRequest, opts ...grpc.CallOption) (*contractv1.ProposeAmendmentResponse, error)
+	RespondAmendment(ctx context.Context, in *contractv1.RespondAmendmentRequest, opts ...grpc.CallOption) (*contractv1.RespondAmendmentResponse, error)
+	ListAmendments(ctx context.Context, in *contractv1.ListAmendmentsRequest, opts ...grpc.CallOption) (*contractv1.ListAmendmentsResponse, error)
+	PauseContract(ctx context.Context, in *contractv1.PauseContractRequest, opts ...grpc.CallOption) (*contractv1.PauseContractResponse, error)
+	ResumeContract(ctx context.Context, in *contractv1.ResumeContractRequest, opts ...grpc.CallOption) (*contractv1.ResumeContractResponse, error)
+	EndContract(ctx context.Context, in *contractv1.EndContractRequest, opts ...grpc.CallOption) (*contractv1.EndContractResponse, error)
 }
 
 type ContractHandler struct {
@@ -317,24 +326,102 @@ func (h *ContractHandler) RevokeContractOffer(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+func (h *ContractHandler) SubmitMilestoneWork(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	milestoneID, ok := parseInt64Param(c, "milestoneId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Note        string   `json:"note"`
+		Attachments []string `json:"attachments"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.SubmitMilestoneWork(withAuthContext(c), &contractv1.SubmitMilestoneWorkRequest{
+		ContractId:  contractID,
+		MilestoneId: milestoneID,
+		Note:        body.Note,
+		Attachments: body.Attachments,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
+func (h *ContractHandler) RequestMilestoneChanges(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	milestoneID, ok := parseInt64Param(c, "milestoneId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Note string `json:"note"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.RequestMilestoneChanges(withAuthContext(c), &contractv1.RequestMilestoneChangesRequest{
+		ContractId:  contractID,
+		MilestoneId: milestoneID,
+		Note:        body.Note,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
+func (h *ContractHandler) ApproveMilestoneSubmission(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	milestoneID, ok := parseInt64Param(c, "milestoneId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.ApproveMilestoneSubmission(withAuthContext(c), &contractv1.ApproveMilestoneSubmissionRequest{
+		ContractId:  contractID,
+		MilestoneId: milestoneID,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
 func (h *ContractHandler) ProposeAmendment(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
 		return
 	}
 	var body struct {
-		Summary     string `json:"summary"`
-		PayloadJSON string `json:"payload_json"`
-		ExpiresAt   int64  `json:"expires_at_unix_seconds"`
+		Summary   string                       `json:"summary"`
+		Payload   *contractv1.AmendmentPayload `json:"payload"`
+		ExpiresAt int64                        `json:"expires_at_unix_seconds"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	resp, err := h.contractClient.ProposeAmendment(withAuthContext(c), &contractv1.ProposeAmendmentRequest{
-		ContractId:        contractID,
-		Summary:           body.Summary,
-		PayloadJson:       body.PayloadJSON,
+		ContractId:           contractID,
+		Summary:              body.Summary,
+		Payload:              body.Payload,
 		ExpiresAtUnixSeconds: body.ExpiresAt,
 	})
 	if err != nil {
@@ -345,23 +432,26 @@ func (h *ContractHandler) ProposeAmendment(c *gin.Context) {
 }
 
 func (h *ContractHandler) RespondAmendment(c *gin.Context) {
-	contractID, ok := parseInt64Param(c, "contractId")
+	_, ok := parseInt64Param(c, "contractId")
 	if !ok {
 		return
-	}	amendmentID, ok := parseInt64Param(c, "amendmentId")
+	}
+	amendmentID, ok := parseInt64Param(c, "amendmentId")
 	if !ok {
 		return
 	}
 	var body struct {
-		Status string `json:"status"`
+		Status       string `json:"status"`
+		ResponseNote string `json:"response_note"`
 	}
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	resp, err := h.contractClient.RespondAmendment(withAuthContext(c), &contractv1.RespondAmendmentRequest{
-		AmendmentId: amendmentID,
-		Status:     contractv1.AmendmentStatus(contractv1.AmendmentStatus_value[strings.ToUpper(body.Status)]),
+		AmendmentId:  amendmentID,
+		Status:       contractv1.AmendmentStatus(contractv1.AmendmentStatus_value[strings.ToUpper(body.Status)]),
+		ResponseNote: body.ResponseNote,
 	})
 	if err != nil {
 		writeGRPCError(c, err)
@@ -377,8 +467,8 @@ func (h *ContractHandler) ListAmendments(c *gin.Context) {
 	}
 	resp, err := h.contractClient.ListAmendments(withAuthContext(c), &contractv1.ListAmendmentsRequest{
 		ContractId: contractID,
-		PageSize:  int32(parseIntQuery(c, "page_size", 20)),
-		PageToken: strings.TrimSpace(c.Query("page_token")),
+		PageSize:   int32(parseIntQuery(c, "page_size", 20)),
+		PageToken:  strings.TrimSpace(c.Query("page_token")),
 	})
 	if err != nil {
 		writeGRPCError(c, err)
