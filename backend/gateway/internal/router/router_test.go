@@ -257,6 +257,36 @@ func TestContractRoutesExposeLifecycleAndBootstrap(t *testing.T) {
 	}
 }
 
+func TestContractBootstrapRouteRejectsFreelancerRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	secret := []byte("test-secret")
+	cfg := config.Config{JWTSecret: secret}
+
+	engine := New(
+		cfg,
+		&handlers.AuthHandler{},
+		&handlers.VerificationHandler{},
+		&handlers.UserHandler{},
+		&handlers.JobHandler{},
+		&handlers.ProposalHandler{},
+		&handlers.ContractHandler{},
+		&handlers.RecommendationHandler{},
+		&handlers.ChatHandler{},
+	)
+
+	freelancerToken := signTestAccessToken(t, secret, "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "freelancer")
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/contracts/bootstrap?job_id=21&proposal_id=44", nil)
+	req.Header.Set("Authorization", "Bearer "+freelancerToken)
+	rec := httptest.NewRecorder()
+
+	engine.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected %d for freelancer role, got %d", http.StatusForbidden, rec.Code)
+	}
+}
+
 func signTestAccessToken(t *testing.T, secret []byte, userID string, role string) string {
 	t.Helper()
 	claims := &auth.AccessClaims{UserID: userID, Role: role}

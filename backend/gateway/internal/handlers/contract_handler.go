@@ -101,6 +101,7 @@ func (h *ContractHandler) Bootstrap(c *gin.Context) {
 	var blockingContract *contractv1.Contract
 	canOpenOfferForm := true
 	blockingReason := ""
+	proposalBlockingReason, proposalBlocksOfferForm := bootstrapProposalBlockingReason(proposal.GetStatus())
 	var pendingOfferOnJob bool
 	var activeContractOnJob bool
 	for _, item := range contractsResp.GetContracts() {
@@ -137,6 +138,9 @@ func (h *ContractHandler) Bootstrap(c *gin.Context) {
 	case pendingOfferOnJob:
 		canOpenOfferForm = false
 		blockingReason = "pending_offer_exists"
+	case proposalBlocksOfferForm:
+		canOpenOfferForm = false
+		blockingReason = proposalBlockingReason
 	}
 
 	offerState := gin.H{
@@ -198,6 +202,20 @@ func mapContractStatus(v string) contractv1.ContractStatus {
 		return contractv1.ContractStatus_CONTRACT_STATUS_ENDED
 	default:
 		return contractv1.ContractStatus_CONTRACT_STATUS_UNSPECIFIED
+	}
+}
+
+func bootstrapProposalBlockingReason(status proposalv1.ProposalStatus) (string, bool) {
+	switch status {
+	case proposalv1.ProposalStatus_PROPOSAL_STATUS_SENT,
+		proposalv1.ProposalStatus_PROPOSAL_STATUS_SHORTLISTED:
+		return "", false
+	case proposalv1.ProposalStatus_PROPOSAL_STATUS_OFFER_SENT:
+		return "offer_already_sent", true
+	case proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED:
+		return "active_contract_exists", true
+	default:
+		return "proposal_not_eligible", true
 	}
 }
 

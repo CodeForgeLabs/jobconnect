@@ -338,3 +338,29 @@ func TestContractBootstrap_BlocksWhenSameProposalAlreadyHasOffer(t *testing.T) {
 		t.Fatalf("expected offer_already_sent reason, got %#v", offerState)
 	}
 }
+
+func TestContractBootstrap_BlocksWhenProposalIsNotEligible(t *testing.T) {
+	proposalClient := &contractHandlerProposalStub{response: &proposalv1.GetProposalResponse{Proposal: &proposalv1.Proposal{Id: 44, JobId: 21, ClientId: "client-1", FreelancerId: "freelancer-1", Status: proposalv1.ProposalStatus_PROPOSAL_STATUS_REJECTED}}}
+	jobClient := &contractHandlerJobStub{}
+	contractClient := &contractHandlerContractStub{}
+	h := NewContractHandler(contractClient, jobClient, proposalClient)
+
+	ctx, rec := newJSONTestContext(http.MethodGet, "/api/v1/contracts/bootstrap?job_id=21&proposal_id=44")
+	h.Bootstrap(ctx)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, rec.Code)
+	}
+
+	var body map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+	offerState := body["offer_state"].(map[string]any)
+	if canOpen, ok := offerState["can_open_offer_form"].(bool); !ok || canOpen {
+		t.Fatalf("expected bootstrap to block opening the form, got %#v", offerState)
+	}
+	if reason, _ := offerState["blocking_reason"].(string); reason != "proposal_not_eligible" {
+		t.Fatalf("expected proposal_not_eligible reason, got %#v", offerState)
+	}
+}
