@@ -27,6 +27,7 @@ func TestUserPortfolioUpdateRouteUsesPut(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -66,6 +67,7 @@ func TestUserRoutesDoNotExposePublicAdminInternalUserRoutes(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -98,6 +100,7 @@ func TestUserRoutes_DoNotExposeCreateProfileButExposeGetSinglePortfolioEndpoint(
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -131,6 +134,7 @@ func TestUserRoutesExposePortfolioMediaUploadURLRoute(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -157,6 +161,7 @@ func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -170,6 +175,44 @@ func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
 
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("expected %d for non-freelancer role, got %d", http.StatusForbidden, rec.Code)
+	}
+}
+
+func TestProposalDecisionRouteIsCanonicalAndApplicantStageRouteIsRemoved(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	cfg := config.Config{
+		JWTSecret: []byte("test-secret"),
+	}
+
+	engine := New(
+		cfg,
+		&handlers.AuthHandler{},
+		&handlers.VerificationHandler{},
+		&handlers.UserHandler{},
+		&handlers.JobHandler{},
+		&handlers.ProposalHandler{},
+		nil,
+		&handlers.RecommendationHandler{},
+		&handlers.ChatHandler{},
+	)
+
+	var hasProposalDecision bool
+	var hasApplicantStage bool
+	for _, route := range engine.Routes() {
+		if route.Method == http.MethodPost && route.Path == "/api/v1/proposals/:proposalId/decision" {
+			hasProposalDecision = true
+		}
+		if route.Method == http.MethodPost && route.Path == "/api/v1/jobs/applicants/:proposalId/stage" {
+			hasApplicantStage = true
+		}
+	}
+
+	if !hasProposalDecision {
+		t.Fatalf("expected POST /api/v1/proposals/:proposalId/decision to be registered")
+	}
+	if hasApplicantStage {
+		t.Fatalf("did not expect POST /api/v1/jobs/applicants/:proposalId/stage to be registered")
 	}
 }
 

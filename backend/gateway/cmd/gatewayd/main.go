@@ -63,6 +63,12 @@ func main() {
 	}
 	defer proposalConn.Close()
 
+	contractConn, err := grpc.NewClient(cfg.ContractServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("contract service dial: %v", err)
+	}
+	defer contractConn.Close()
+
 	recommendationConn, err := grpc.NewClient(cfg.RecommendationServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("recommendation service dial: %v", err)
@@ -79,6 +85,7 @@ func main() {
 	verificationClient := clients.NewVerificationClient(verificationConn)
 	jobClient := clients.NewJobClient(jobConn)
 	proposalClient := clients.NewProposalClient(proposalConn)
+	contractClient := clients.NewContractClient(contractConn)
 	recommendationClient := clients.NewRecommendationClient(recommendationConn)
 	chatClient := clients.NewChatClient(chatConn)
 	authHandler := handlers.NewAuthHandler(cfg, authClient)
@@ -86,9 +93,10 @@ func main() {
 	verificationHandler := handlers.NewVerificationHandler(verificationClient)
 	jobHandler := handlers.NewJobHandler(jobClient)
 	proposalHandler := handlers.NewProposalHandler(proposalClient)
+	contractHandler := handlers.NewContractHandler(contractClient, jobClient, proposalClient)
 	recommendationHandler := handlers.NewRecommendationHandler(recommendationClient)
 	chatHandler := handlers.NewChatHandler(chatClient)
-	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler, proposalHandler, recommendationHandler, chatHandler)
+	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler, proposalHandler, contractHandler, recommendationHandler, chatHandler)
 
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPListenAddr,

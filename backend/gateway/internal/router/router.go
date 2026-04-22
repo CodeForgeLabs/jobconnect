@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, contractHandler *handlers.ContractHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -34,6 +34,7 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerAdminVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
 	registerJobRoutes(api, jobHandler, jwtParser)
 	registerProposalRoutes(api, proposalHandler, jwtParser)
+	registerContractRoutes(api, contractHandler, jwtParser)
 	registerRecommendationRoutes(api, recommendationHandler, jwtParser)
 	registerChatRoutes(api, chatHandler, jwtParser)
 
@@ -67,6 +68,12 @@ func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.Prop
 	clientRoutes.POST("/:proposalId/decision", proposalHandler.SetProposalDecision)
 }
 
+func registerContractRoutes(api *gin.RouterGroup, contractHandler *handlers.ContractHandler, jwtParser *auth.JWTParser) {
+	contractRoutes := api.Group("/contracts")
+	contractRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("client"))
+	contractRoutes.GET("/bootstrap", contractHandler.Bootstrap)
+}
+
 func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jwtParser *auth.JWTParser) {
 	// Public discovery and detail endpoints.
 	publicJobs := api.Group("/jobs")
@@ -89,7 +96,6 @@ func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jw
 	clientJobs.POST("/:jobId/budget-range", jobHandler.SetJobBudgetRange)
 	clientJobs.POST("/:jobId/invite", jobHandler.InviteFreelancerToJob)
 	clientJobs.GET("/:jobId/applicants", jobHandler.ListJobApplicants)
-	clientJobs.POST("/applicants/:proposalId/stage", jobHandler.SetApplicantStage)
 	clientJobs.POST("/:jobId/reject-all", jobHandler.RejectAllApplicants)
 	clientJobs.POST("/:jobId/reopen-hiring", jobHandler.ReopenHiringForJob)
 	clientJobs.GET("/:jobId/stats", jobHandler.GetJobStats)
