@@ -1,6 +1,7 @@
 # Recommendation Service
 
-Phase 1 delivers job recommendations for freelancers.
+Phase 1 delivers job recommendations for freelancers. Phase 1b adds freelancer
+recommendations for clients.
 
 ## What It Does
 
@@ -14,7 +15,10 @@ Phase 1 delivers job recommendations for freelancers.
   - freshness
 - caches top recommendations in memory for a short TTL
 
-`GetRecommendedFreelancers` is intentionally left unimplemented in Phase 1.
+`GetRecommendedFreelancers` ranks discoverable freelancers for a client-owned
+job. The gateway forwards the caller's authorization metadata so downstream job
+ownership checks still apply, and freelancer recommendation cache entries are
+scoped to the caller.
 
 ## Runtime
 
@@ -42,6 +46,10 @@ Authenticated freelancer endpoint:
 
 - `GET /api/v1/recommendations/jobs?limit=10`
 
+Authenticated client endpoint:
+
+- `GET /api/v1/recommendations/jobs/{job_id}/freelancers?limit=10`
+
 Response body:
 
 ```json
@@ -51,6 +59,20 @@ Response body:
       "job_id": 101,
       "match_score": 0.92,
       "match_reason": "Matches your skills in Go, gRPC"
+    }
+  ]
+}
+```
+
+Freelancer recommendation response:
+
+```json
+{
+  "recommendations": [
+    {
+      "user_id": "freelancer-uuid",
+      "match_score": 0.88,
+      "match_reason": "Matches required skills: Go, PostgreSQL"
     }
   ]
 }

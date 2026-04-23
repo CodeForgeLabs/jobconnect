@@ -17,6 +17,11 @@ const (
 	publicVisibility = "public"
 	jobTypeFixed     = "fixed"
 	jobTypeHourly    = "hourly"
+
+	availabilityFullTime    = "AVAILABILITY_FULL_TIME"
+	availabilityPartTime    = "AVAILABILITY_PART_TIME"
+	availabilityAsNeeded    = "AVAILABILITY_AS_NEEDED"
+	availabilityUnavailable = "AVAILABILITY_UNAVAILABLE"
 )
 
 type ServiceConfig struct {
@@ -118,8 +123,233 @@ func (s *RecommendationService) GetRecommendedJobs(ctx context.Context, userID s
 	return limitRecommendations(recommendations, normalizedLimit), nil
 }
 
-func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, jobID int64, limit int32) ([]domain.FreelancerRecommendation, error) {
-	return nil, fmt.Errorf("freelancer recommendations are not implemented in phase 1")
+func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, jobID int64, limit int32, callerScope string) ([]domain.FreelancerRecommendation, error) {
+	if jobID <= 0 {
+		return nil, fmt.Errorf("job_id is required")
+	}
+
+	normalizedLimit := s.normalizeLimit(limit)
+	job, err := s.jobClient.GetJob(ctx, jobID)
+	if err != nil {
+		return nil, fmt.Errorf("fetch job: %w", err)
+	}
+	if job.ID == 0 {
+		return nil, fmt.Errorf("job %d not found", jobID)
+	}
+
+	cacheKey := freelancerCacheKey(jobID, callerScope)
+	if s.cache != nil {
+		if cached, ok := s.cache.GetRecommendedFreelancers(cacheKey); ok {
+			return limitFreelancerRecommendations(cached, normalizedLimit), nil
+		}
+	}
+
+	candidates, err := s.collectFreelancerCandidates(ctx, job)
+	if err != nil {
+		return nil, err
+	}
+	if len(candidates) == 0 {
+		return nil, nil
+	}
+
+	ranked := s.rankFreelancers(job, candidates)
+	recommendations := make([]domain.FreelancerRecommendation, 0, len(ranked))
+	for _, entry := range ranked {
+		recommendations = append(recommendations, entry.recommendation)
+	}
+
+	if s.cache != nil {
+		s.cache.SetRecommendedFreelancers(cacheKey, recommendations)
+	}
+	return limitFreelancerRecommendations(recommendations, normalizedLimit), nil
+}
+
+func freelancerCacheKey(jobID int64, callerScope string) string {
+	return fmt.Sprintf("freelancers:%d:%s", jobID, strings.TrimSpace(callerScope))
+}
+
+type scoredFreelancerRecommendation struct {
+	recommendation    domain.FreelancerRecommendation
+	score             float64
+	skillMatches      []string
+	semanticScore     float64
+	rateScore         float64
+	availabilityScore float64
+	ratingScore       float64
+}
+
+func (s *RecommendationService) collectFreelancerCandidates(ctx context.Context, job domain.JobData) ([]domain.FreelancerData, error) {
+	candidateMap := make(map[string]domain.FreelancerData)
+
+	topJobSkills := topSkills(job.RequiredSkills, s.cfg.MaxSkillQueries)
+	base, err := s.userClient.ListDiscoverableFreelancers(ctx, topJobSkills, s.cfg.CandidatePageSize)
+	if err != nil {
+		return nil, fmt.Errorf("list discoverable freelancers: %w", err)
+	}
+	for _, f := range base {
+		if f.ID == "" {
+			continue
+		}
+		candidateMap[f.ID] = f
+	}
+
+	if len(candidateMap) == 0 && len(topJobSkills) == 0 {
+		return nil, nil
+	}
+
+	candidates := make([]domain.FreelancerData, 0, len(candidateMap))
+	for _, f := range candidateMap {
+		if !isEligibleFreelancer(f, job) {
+			continue
+		}
+		candidates = append(candidates, f)
+	}
+	return candidates, nil
+}
+
+func isEligibleFreelancer(f domain.FreelancerData, job domain.JobData) bool {
+	if strings.EqualFold(strings.TrimSpace(f.Availability), availabilityUnavailable) {
+		return false
+	}
+	if strings.EqualFold(strings.TrimSpace(job.JobType), jobTypeHourly) {
+		if f.HourlyRate > 0 && job.HourlyRate > 0 && f.HourlyRate > job.HourlyRate*2 {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *RecommendationService) rankFreelancers(job domain.JobData, candidates []domain.FreelancerData) []scoredFreelancerRecommendation {
+	jobText := strings.Join([]string{
+		job.Title,
+		job.Description,
+		strings.Join(job.RequiredSkills, " "),
+	}, " ")
+	jobVector := buildTokenVector(jobText)
+
+	scored := make([]scoredFreelancerRecommendation, 0, len(candidates))
+	for _, f := range candidates {
+		profileText := strings.Join([]string{
+			f.Headline,
+			f.Bio,
+			strings.Join(f.Skills, " "),
+		}, " ")
+
+		skillMatches, skillOverlap := calculateSkillOverlap(f.Skills, job.RequiredSkills)
+		semanticScore := cosineSimilarity(jobVector, buildTokenVector(profileText))
+		rateScore := calculateFreelancerRateScore(f, job)
+		availabilityScore := calculateAvailabilityScore(f.Availability)
+		ratingScore := f.Rating / 5.0
+		if ratingScore < 0 {
+			ratingScore = 0
+		}
+		if ratingScore > 1 {
+			ratingScore = 1
+		}
+
+		score := 0.40*semanticScore +
+			0.30*skillOverlap +
+			0.15*rateScore +
+			0.05*availabilityScore +
+			0.10*ratingScore
+
+		if score <= 0 {
+			continue
+		}
+		if len(skillMatches) == 0 && semanticScore < 0.2 {
+			continue
+		}
+
+		scored = append(scored, scoredFreelancerRecommendation{
+			recommendation: domain.FreelancerRecommendation{
+				UserID:      f.ID,
+				MatchScore:  float32(math.Min(score, 0.999)),
+				MatchReason: buildFreelancerMatchReason(skillMatches, semanticScore, rateScore, ratingScore, f),
+			},
+			score:             score,
+			skillMatches:      skillMatches,
+			semanticScore:     semanticScore,
+			rateScore:         rateScore,
+			availabilityScore: availabilityScore,
+			ratingScore:       ratingScore,
+		})
+	}
+
+	sort.SliceStable(scored, func(i, j int) bool {
+		if math.Abs(scored[i].score-scored[j].score) > 0.0001 {
+			return scored[i].score > scored[j].score
+		}
+		return scored[i].recommendation.UserID < scored[j].recommendation.UserID
+	})
+	return scored
+}
+
+func calculateFreelancerRateScore(f domain.FreelancerData, job domain.JobData) float64 {
+	switch strings.TrimSpace(strings.ToLower(job.JobType)) {
+	case jobTypeHourly:
+		if f.HourlyRate <= 0 || job.HourlyRate <= 0 {
+			return 0.5
+		}
+		ratio := job.HourlyRate / f.HourlyRate
+		switch {
+		case ratio >= 1:
+			return 1
+		case ratio >= 0.85:
+			return 0.85
+		case ratio >= 0.7:
+			return 0.65
+		case ratio >= 0.5:
+			return 0.4
+		default:
+			return 0
+		}
+	case jobTypeFixed:
+		return 0.6
+	default:
+		return 0.5
+	}
+}
+
+func calculateAvailabilityScore(availability string) float64 {
+	switch strings.ToUpper(strings.TrimSpace(availability)) {
+	case availabilityFullTime:
+		return 1
+	case availabilityPartTime:
+		return 0.75
+	case availabilityAsNeeded:
+		return 0.5
+	case availabilityUnavailable:
+		return 0
+	default:
+		return 0.4
+	}
+}
+
+func buildFreelancerMatchReason(skillMatches []string, semanticScore, rateScore, ratingScore float64, f domain.FreelancerData) string {
+	if len(skillMatches) > 0 {
+		preview := skillMatches
+		if len(preview) > 3 {
+			preview = preview[:3]
+		}
+		return fmt.Sprintf("Matches required skills: %s", strings.Join(preview, ", "))
+	}
+	if ratingScore >= 0.8 && f.TotalReviews > 0 {
+		return fmt.Sprintf("Top-rated freelancer (%.1f avg, %d reviews)", f.Rating, f.TotalReviews)
+	}
+	if semanticScore >= 0.35 {
+		return "Strong profile match for this job"
+	}
+	if rateScore >= 0.85 {
+		return "Rate aligns with job budget"
+	}
+	return "Broad match based on profile and availability"
+}
+
+func limitFreelancerRecommendations(recommendations []domain.FreelancerRecommendation, limit int32) []domain.FreelancerRecommendation {
+	if int32(len(recommendations)) <= limit {
+		return recommendations
+	}
+	return recommendations[:limit]
 }
 
 func (s *RecommendationService) collectCandidates(ctx context.Context, user domain.UserData, preferences domain.WorkPreferences) ([]domain.JobData, error) {

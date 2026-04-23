@@ -42,8 +42,15 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 
 func registerRecommendationRoutes(api *gin.RouterGroup, recommendationHandler *handlers.RecommendationHandler, jwtParser *auth.JWTParser) {
 	recommendationRoutes := api.Group("/recommendations")
-	recommendationRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("freelancer"))
-	recommendationRoutes.GET("/jobs", recommendationHandler.GetRecommendedJobs)
+	recommendationRoutes.Use(middleware.RequireAuth(jwtParser))
+
+	freelancerRecommendationRoutes := recommendationRoutes.Group("")
+	freelancerRecommendationRoutes.Use(middleware.RequireRoles("freelancer"))
+	freelancerRecommendationRoutes.GET("/jobs", recommendationHandler.GetRecommendedJobs)
+
+	clientRecommendationRoutes := recommendationRoutes.Group("")
+	clientRecommendationRoutes.Use(middleware.RequireRoles("client"))
+	clientRecommendationRoutes.GET("/jobs/:jobId/freelancers", recommendationHandler.GetRecommendedFreelancers)
 }
 
 func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.ProposalHandler, jwtParser *auth.JWTParser) {

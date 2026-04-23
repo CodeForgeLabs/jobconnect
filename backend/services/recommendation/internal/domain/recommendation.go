@@ -39,6 +39,20 @@ type UserData struct {
 	CanApplyJobs bool
 }
 
+// FreelancerData is the candidate pool for freelancer recommendations.
+type FreelancerData struct {
+	ID           string
+	Headline     string
+	Bio          string
+	Skills       []string
+	HourlyRate   float64
+	Availability string
+	Rating       float64
+	TotalReviews uint32
+	Location     string
+	LastActiveAt *time.Time
+}
+
 type WorkPreferences struct {
 	PreferredProjectLength string
 	MinBudgetUSD           float64
