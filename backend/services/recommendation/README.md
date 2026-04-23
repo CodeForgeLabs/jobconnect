@@ -105,3 +105,22 @@ Freelancer recommendation response:
   ]
 }
 ```
+
+## Roadmap
+
+### Phase 4 — Local Semantic Matching (planned)
+
+Full plan lives in `implementation_plan.md`. Summary:
+
+- Replace token-cosine semantic scoring with `sentence-transformers/all-MiniLM-L6-v2` (22 MB, 384-dim). Runs fully locally on CPU; no external API, no new microservice.
+- Python worker shipped inside the recommendation container. Go binary supervises it and talks over a Unix socket through an `Embedder` port. Swap the model (or later migrate to pure-Go ONNX) without touching the ranker.
+- Vectors stored in a new recommendation-owned Postgres database using pgvector (Postgres extension, not a separate service) with an HNSW cosine-distance index.
+- Embeddings are computed lazily on first read and deduped by `sha256(normalized_text)` so trivial edits do not trigger re-embedding.
+- Vector search replaces the broad skill-based candidate pull; existing hard filters (visibility, availability, rate) still run on hydrated data. Token-cosine remains as the graceful-degradation path when the embedder or vector store is unavailable.
+
+**Prerequisite:** Phase 3b metrics export must ship first so that Phase 4 quality and latency changes are measurable.
+
+### Deferred
+- Phase 3d — Kafka-driven refresh (re-embed + cache invalidation on upstream changes).
+- Phase 3e — Background precomputation worker for active users and active jobs.
+- Collaborative filtering ("users who applied for X also applied for Y") — needs an interaction event stream; revisit after Kafka.

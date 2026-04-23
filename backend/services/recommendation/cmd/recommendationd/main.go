@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	"context"
+	"errors"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -19,7 +21,9 @@ import (
 	"jobconnect/recommendation/internal/application"
 	"jobconnect/recommendation/internal/config"
 	"jobconnect/recommendation/internal/infrastructure/cache"
+	embedderpython "jobconnect/recommendation/internal/infrastructure/embedder/python"
 	"jobconnect/recommendation/internal/infrastructure/jobgrpc"
+	"jobconnect/recommendation/internal/infrastructure/metrics"
 	"jobconnect/recommendation/internal/infrastructure/reviewgrpc"
 	"jobconnect/recommendation/internal/infrastructure/usergrpc"
 )
@@ -55,14 +59,21 @@ func main() {
 	}
 	defer reviewConn.Close()
 
-	recommendationCache, closeCache := buildRecommendationCache(cfg)
+	recorder := metrics.NewPrometheusRecorder()
+
+	recommendationCache, closeCache := buildRecommendationCache(cfg, recorder)
 	defer closeCache()
+
+	embedder, closeEmbedder := buildEmbedder(ctx, cfg)
+	defer closeEmbedder()
 
 	app := application.NewRecommendationService(
 		jobgrpc.NewClient(jobConn),
 		usergrpc.NewClient(userConn),
 		reviewgrpc.NewClient(reviewConn),
 		recommendationCache,
+		recorder,
+		embedder,
 		application.ServiceConfig{
 			DefaultLimit:      cfg.DefaultRecommendationLimit,
 			MaxLimit:          cfg.MaxRecommendationLimit,
@@ -71,6 +82,9 @@ func main() {
 			MaxSkillQueries:   cfg.MaxSkillQueries,
 		},
 	)
+
+	metricsServer := startMetricsServer(cfg.MetricsListenAddr, recorder)
+	defer shutdownMetricsServer(metricsServer)
 
 	server := adaptergrpc.NewServer(app)
 	grpcServer := grpc.NewServer()
@@ -100,7 +114,7 @@ func main() {
 	gracefulStop(grpcServer)
 }
 
-func buildRecommendationCache(cfg config.Config) (application.RecommendationCache, func()) {
+func buildRecommendationCache(cfg config.Config, recorder cache.MetricsRecorder) (application.RecommendationCache, func()) {
 	switch cfg.RecommendationCacheBackend {
 	case "redis":
 		redisCache := cache.NewRedisCache(cache.RedisConfig{
@@ -108,6 +122,7 @@ func buildRecommendationCache(cfg config.Config) (application.RecommendationCach
 			Password: cfg.RecommendationRedisPassword,
 			DB:       cfg.RecommendationRedisDB,
 			TTL:      cfg.RecommendationCacheTTL,
+			Metrics:  recorder,
 		})
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
@@ -123,6 +138,58 @@ func buildRecommendationCache(cfg config.Config) (application.RecommendationCach
 	default:
 		log.Printf("recommendation cache backend: memory ttl=%s", cfg.RecommendationCacheTTL)
 		return cache.NewMemoryCache(cfg.RecommendationCacheTTL), func() {}
+	}
+}
+
+func buildEmbedder(ctx context.Context, cfg config.Config) (application.Embedder, func()) {
+	switch cfg.EmbedderBackend {
+	case "python":
+		client := embedderpython.New(embedderpython.Config{
+			PythonPath:       cfg.EmbedderPythonPath,
+			WorkerScript:     cfg.EmbedderWorkerScript,
+			ModelName:        cfg.EmbedderModel,
+			SocketPath:       cfg.EmbedderSocketPath,
+			BatchSize:        cfg.EmbedderBatchSize,
+			OperationTimeout: cfg.EmbedderOperationTimeout,
+			StartupTimeout:   cfg.EmbedderStartupTimeout,
+		}, nil)
+		if err := client.Start(ctx); err != nil {
+			log.Printf("recommendation embedder: start failed, ranking will use token cosine fallback: %v", err)
+			return nil, func() { _ = client.Close() }
+		}
+		log.Printf("recommendation embedder backend: python model=%s socket=%s", cfg.EmbedderModel, cfg.EmbedderSocketPath)
+		return client, func() { _ = client.Close() }
+	default:
+		log.Printf("recommendation embedder backend: noop (semantic ranking disabled)")
+		return nil, func() {}
+	}
+}
+
+func startMetricsServer(addr string, recorder *metrics.PrometheusRecorder) *http.Server {
+	if strings.TrimSpace(addr) == "" {
+		log.Printf("recommendation metrics: disabled")
+		return nil
+	}
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", recorder.Handler())
+	srv := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
+	go func() {
+		log.Printf("recommendation metrics listening on %s/metrics", addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Printf("metrics server: %v", err)
+		}
+	}()
+	return srv
+}
+
+func shutdownMetricsServer(srv *http.Server) {
+	if srv == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("metrics server shutdown: %v", err)
 	}
 }
 

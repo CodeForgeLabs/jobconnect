@@ -205,6 +205,8 @@ func TestGetRecommendedJobsRanksSkillAndSemanticMatchFirst(t *testing.T) {
 		},
 		nil,
 		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -263,6 +265,8 @@ func TestGetRecommendedJobsFiltersBudgetMismatch(t *testing.T) {
 		},
 		nil,
 		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -316,6 +320,8 @@ func TestGetRecommendedJobsUsesClientTrustInRanking(t *testing.T) {
 		},
 		reviews,
 		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -365,6 +371,8 @@ func TestGetRecommendedJobsTreatsNoReviewsAsNeutral(t *testing.T) {
 		},
 		&fakeReviewClient{summaries: map[string]domain.RatingSummary{}},
 		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -406,6 +414,8 @@ func TestGetRecommendedJobsDegradesWhenReviewLookupFails(t *testing.T) {
 		},
 		&fakeReviewClient{err: errors.New("review unavailable")},
 		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -432,6 +442,8 @@ func TestGetRecommendedJobsUsesCacheWhenWarm(t *testing.T) {
 		&fakeUserClient{},
 		nil,
 		cache,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 1, MaxLimit: 2, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -455,7 +467,7 @@ func newFreelancerTestConfig() ServiceConfig {
 }
 
 func TestGetRecommendedFreelancersRejectsInvalidJobID(t *testing.T) {
-	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, nil, nil, nil, newFreelancerTestConfig())
 	if _, err := svc.GetRecommendedFreelancers(context.Background(), 0, 5, "caller-a"); err == nil {
 		t.Fatal("expected error for zero job id")
 	}
@@ -466,7 +478,7 @@ func TestGetRecommendedFreelancersRejectsInvalidJobID(t *testing.T) {
 
 func TestGetRecommendedFreelancersJobFetchError(t *testing.T) {
 	job := &fakeJobClient{getJobErr: errors.New("boom")}
-	svc := NewRecommendationService(job, &fakeUserClient{}, nil, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, &fakeUserClient{}, nil, nil, nil, nil, newFreelancerTestConfig())
 	if _, err := svc.GetRecommendedFreelancers(context.Background(), 7, 5, "caller-a"); err == nil {
 		t.Fatal("expected propagated fetch error")
 	}
@@ -474,7 +486,7 @@ func TestGetRecommendedFreelancersJobFetchError(t *testing.T) {
 
 func TestGetRecommendedFreelancersJobNotFound(t *testing.T) {
 	job := &fakeJobClient{jobsByID: map[int64]domain.JobData{}}
-	svc := NewRecommendationService(job, &fakeUserClient{}, nil, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, &fakeUserClient{}, nil, nil, nil, nil, newFreelancerTestConfig())
 	if _, err := svc.GetRecommendedFreelancers(context.Background(), 42, 5, "caller-a"); err == nil {
 		t.Fatal("expected not-found error for missing job")
 	}
@@ -536,7 +548,7 @@ func TestGetRecommendedFreelancersRanksAndFilters(t *testing.T) {
 		discoverable: []domain.FreelancerData{strongMatch, weakMatch, unavailable, rateMismatch},
 	}
 	cache := &fakeCache{}
-	svc := NewRecommendationService(job, user, nil, cache, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, nil, cache, nil, nil, newFreelancerTestConfig())
 
 	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a")
 	if err != nil {
@@ -608,7 +620,7 @@ func TestGetRecommendedFreelancersUsesFreelancerTrustInRanking(t *testing.T) {
 		},
 	}
 	user := &fakeUserClient{discoverable: []domain.FreelancerData{lowTrust, highTrust}}
-	svc := NewRecommendationService(job, user, reviews, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, reviews, nil, nil, nil, newFreelancerTestConfig())
 
 	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a")
 	if err != nil {
@@ -649,7 +661,7 @@ func TestGetRecommendedFreelancersDegradesWhenReviewLookupFails(t *testing.T) {
 		HourlyRate:   70,
 		Availability: availabilityFullTime,
 	}}}
-	svc := NewRecommendationService(job, user, reviews, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, reviews, nil, nil, nil, newFreelancerTestConfig())
 
 	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a")
 	if err != nil {
@@ -689,7 +701,7 @@ func TestGetRecommendedFreelancersRespectsLimit(t *testing.T) {
 		})
 	}
 
-	svc := NewRecommendationService(job, user, nil, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, nil, nil, nil, nil, newFreelancerTestConfig())
 	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 3, "caller-a")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -724,7 +736,7 @@ func TestGetRecommendedFreelancersCacheIsCallerScoped(t *testing.T) {
 		}},
 	}
 	cache := &fakeCache{}
-	svc := NewRecommendationService(job, user, nil, cache, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, nil, cache, nil, nil, newFreelancerTestConfig())
 
 	if _, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a"); err != nil {
 		t.Fatalf("caller-a recommendations errored: %v", err)
@@ -751,7 +763,7 @@ func TestInvalidateRecommendationCacheTargetsUsersAndJobs(t *testing.T) {
 			"freelancers:88:caller-a": {{UserID: "f-3"}},
 		},
 	}
-	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, newFreelancerTestConfig())
+	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, nil, nil, newFreelancerTestConfig())
 
 	deleted, err := svc.InvalidateRecommendationCache(context.Background(), []string{" freelancer-1 ", "freelancer-1", ""}, []int64{77, 77, 0}, false)
 	if err != nil {
@@ -779,7 +791,7 @@ func TestInvalidateRecommendationCacheClearAll(t *testing.T) {
 			"freelancers:77:caller-a": {{UserID: "f-1"}},
 		},
 	}
-	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, newFreelancerTestConfig())
+	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, nil, nil, newFreelancerTestConfig())
 
 	deleted, err := svc.InvalidateRecommendationCache(context.Background(), []string{"freelancer-1"}, []int64{77}, true)
 	if err != nil {

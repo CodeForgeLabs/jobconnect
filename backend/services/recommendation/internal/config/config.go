@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	GRPCListenAddr              string
+	MetricsListenAddr           string
 	JobServiceAddr              string
 	UserServiceAddr             string
 	ReviewServiceAddr           string
@@ -23,11 +24,20 @@ type Config struct {
 	PerSkillPageSize            int32
 	MaxSkillQueries             int
 	RecommendationCacheTTL      time.Duration
+	EmbedderBackend             string
+	EmbedderPythonPath          string
+	EmbedderWorkerScript        string
+	EmbedderSocketPath          string
+	EmbedderModel               string
+	EmbedderBatchSize           int
+	EmbedderOperationTimeout    time.Duration
+	EmbedderStartupTimeout      time.Duration
 }
 
 func LoadFromEnv() (Config, error) {
 	cfg := Config{
 		GRPCListenAddr:              getEnv("RECOMMENDATION_GRPC_LISTEN_ADDR", ":50064"),
+		MetricsListenAddr:           getEnv("RECOMMENDATION_METRICS_LISTEN_ADDR", ":50164"),
 		JobServiceAddr:              getEnv("JOB_SERVICE_ADDR", "localhost:50053"),
 		UserServiceAddr:             getEnv("USER_SERVICE_ADDR", "localhost:50052"),
 		ReviewServiceAddr:           getEnv("REVIEW_SERVICE_ADDR", "localhost:50056"),
@@ -41,6 +51,14 @@ func LoadFromEnv() (Config, error) {
 		PerSkillPageSize:            int32(getIntEnv("RECOMMENDATION_PER_SKILL_PAGE_SIZE", 25)),
 		MaxSkillQueries:             getIntEnv("RECOMMENDATION_MAX_SKILL_QUERIES", 5),
 		RecommendationCacheTTL:      getDurationEnv("RECOMMENDATION_CACHE_TTL", 2*time.Minute),
+		EmbedderBackend:             strings.ToLower(getEnv("RECOMMENDATION_EMBEDDER_BACKEND", "noop")),
+		EmbedderPythonPath:          getEnv("RECOMMENDATION_EMBEDDER_PYTHON", "python3"),
+		EmbedderWorkerScript:        getEnv("RECOMMENDATION_EMBEDDER_WORKER_SCRIPT", ""),
+		EmbedderSocketPath:          getEnv("RECOMMENDATION_EMBEDDER_SOCKET", "/tmp/recommendation-embedder.sock"),
+		EmbedderModel:               getEnv("RECOMMENDATION_EMBEDDER_MODEL", "sentence-transformers/all-MiniLM-L6-v2"),
+		EmbedderBatchSize:           getIntEnv("RECOMMENDATION_EMBEDDER_BATCH_SIZE", 32),
+		EmbedderOperationTimeout:    getDurationEnv("RECOMMENDATION_EMBEDDER_TIMEOUT", 5*time.Second),
+		EmbedderStartupTimeout:      getDurationEnv("RECOMMENDATION_EMBEDDER_STARTUP_TIMEOUT", 30*time.Second),
 	}
 
 	if cfg.DefaultRecommendationLimit <= 0 {
@@ -69,6 +87,26 @@ func LoadFromEnv() (Config, error) {
 	}
 	if cfg.RecommendationRedisDB < 0 {
 		return Config{}, fmt.Errorf("RECOMMENDATION_REDIS_DB must be greater than or equal to zero")
+	}
+	if cfg.EmbedderBackend != "noop" && cfg.EmbedderBackend != "python" {
+		return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDER_BACKEND must be noop or python")
+	}
+	if cfg.EmbedderBackend == "python" {
+		if strings.TrimSpace(cfg.EmbedderWorkerScript) == "" {
+			return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDER_WORKER_SCRIPT is required when RECOMMENDATION_EMBEDDER_BACKEND=python")
+		}
+		if strings.TrimSpace(cfg.EmbedderSocketPath) == "" {
+			return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDER_SOCKET is required when RECOMMENDATION_EMBEDDER_BACKEND=python")
+		}
+	}
+	if cfg.EmbedderBatchSize <= 0 {
+		return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDER_BATCH_SIZE must be greater than zero")
+	}
+	if cfg.EmbedderOperationTimeout <= 0 {
+		return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDER_TIMEOUT must be greater than zero")
+	}
+	if cfg.EmbedderStartupTimeout <= 0 {
+		return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDER_STARTUP_TIMEOUT must be greater than zero")
 	}
 
 	return cfg, nil
