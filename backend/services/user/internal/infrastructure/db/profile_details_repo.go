@@ -655,6 +655,122 @@ func (r *ProfileRepo) UpsertFreelancerNote(ctx context.Context, userID uuid.UUID
 	return application.FreelancerNote{FreelancerUserID: freelancerUserID, Note: normalizedNote, UpdatedAt: updatedAt}, nil
 }
 
+func (r *ProfileRepo) ListDiscoverableFreelancers(ctx context.Context, filter application.DiscoverableFreelancerFilter, pageSize uint32, pageToken string) (application.ListResult[application.DiscoverableFreelancer], error) {
+	limit, offset, err := parsePage(pageSize, pageToken)
+	if err != nil {
+		return application.ListResult[application.DiscoverableFreelancer]{}, err
+	}
+
+	whereClauses := []string{
+		"p.role = 'freelancer'",
+		"p.deleted_at is null",
+	}
+	args := []any{}
+	argIdx := 1
+
+	if filter.RequireActiveAccount {
+		whereClauses = append(whereClauses, "coalesce(p.account_status, 'ACTIVE') = 'ACTIVE'")
+	}
+	if filter.RequireHeadline {
+		whereClauses = append(whereClauses, "coalesce(fp.headline, '') <> ''")
+	}
+	if filter.MinSkills > 0 {
+		whereClauses = append(whereClauses, fmt.Sprintf("coalesce(jsonb_array_length(fp.skills), 0) >= $%d", argIdx))
+		args = append(args, filter.MinSkills)
+		argIdx++
+	}
+
+	normalizedSkills := make([]string, 0, len(filter.Skills))
+	seen := make(map[string]struct{}, len(filter.Skills))
+	for _, skill := range filter.Skills {
+		s := strings.ToLower(strings.TrimSpace(skill))
+		if s == "" {
+			continue
+		}
+		if _, ok := seen[s]; ok {
+			continue
+		}
+		seen[s] = struct{}{}
+		normalizedSkills = append(normalizedSkills, s)
+	}
+	if len(normalizedSkills) > 0 {
+		whereClauses = append(whereClauses, fmt.Sprintf(
+			"exists (select 1 from jsonb_array_elements_text(fp.skills) s where lower(s) = any($%d::text[]))",
+			argIdx,
+		))
+		args = append(args, normalizedSkills)
+		argIdx++
+	}
+
+	args = append(args, limit+1, offset)
+	limitPos := argIdx
+	offsetPos := argIdx + 1
+
+	query := fmt.Sprintf(`
+		select
+			p.user_id,
+			coalesce(fp.headline, ''),
+			coalesce(p.bio, ''),
+			coalesce(fp.skills, '[]'::jsonb),
+			coalesce(fp.hourly_rate, 0),
+			coalesce(fp.availability, 'AS_NEEDED'),
+			coalesce(fp.rating, 0),
+			coalesce(fp.total_reviews, 0),
+			coalesce(p.location, ''),
+			p.last_active_at
+		from profiles p
+		join freelancer_profiles fp on fp.profile_id = p.id
+		where %s
+		order by coalesce(fp.rating, 0) desc, p.updated_at desc, p.user_id asc
+		limit $%d offset $%d
+	`, strings.Join(whereClauses, " and "), limitPos, offsetPos)
+
+	rows, err := r.pool.Query(ctx, query, args...)
+	if err != nil {
+		return application.ListResult[application.DiscoverableFreelancer]{}, err
+	}
+	defer rows.Close()
+
+	items := make([]application.DiscoverableFreelancer, 0, limit)
+	for rows.Next() {
+		var row application.DiscoverableFreelancer
+		var skillsRaw []byte
+		var lastActive *time.Time
+		if err := rows.Scan(
+			&row.UserID,
+			&row.Headline,
+			&row.Bio,
+			&skillsRaw,
+			&row.HourlyRate,
+			&row.Availability,
+			&row.Rating,
+			&row.TotalReviews,
+			&row.Location,
+			&lastActive,
+		); err != nil {
+			return application.ListResult[application.DiscoverableFreelancer]{}, err
+		}
+		if len(skillsRaw) > 0 {
+			_ = json.Unmarshal(skillsRaw, &row.Skills)
+		}
+		if lastActive != nil {
+			utc := lastActive.UTC()
+			row.LastActiveAt = &utc
+		}
+		items = append(items, row)
+	}
+	if err := rows.Err(); err != nil {
+		return application.ListResult[application.DiscoverableFreelancer]{}, err
+	}
+
+	var nextToken string
+	if len(items) > limit {
+		items = items[:limit]
+		nextToken = strconv.Itoa(offset + limit)
+	}
+	return application.ListResult[application.DiscoverableFreelancer]{Items: items, NextPageToken: nextToken}, nil
+}
+
 func (r *ProfileRepo) GetFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (application.FreelancerNote, error) {
 	profileID, err := r.clientProfileID(ctx, userID)
 	if err != nil {
