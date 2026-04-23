@@ -17,7 +17,7 @@ the `review` service.
   - client review trust
 - ranks freelancers with semantic, skill, rate, availability, and freelancer
   review trust signals
-- caches top recommendations in memory for a short TTL
+- caches top recommendations in memory or Redis for a short TTL
 
 `GetRecommendedFreelancers` ranks discoverable freelancers for a client-owned
 job. The gateway forwards the caller's authorization metadata so downstream job
@@ -44,6 +44,15 @@ Tunable recommendation settings:
 - `RECOMMENDATION_PER_SKILL_PAGE_SIZE=25`
 - `RECOMMENDATION_MAX_SKILL_QUERIES=5`
 - `RECOMMENDATION_CACHE_TTL=2m`
+- `RECOMMENDATION_CACHE_BACKEND=memory` (`memory` or `redis`)
+- `RECOMMENDATION_REDIS_ADDR=localhost:6379`
+- `RECOMMENDATION_REDIS_PASSWORD=`
+- `RECOMMENDATION_REDIS_DB=0`
+
+Docker Compose runs the recommendation service with Redis enabled so cached
+recommendations are shared across service instances. The Redis adapter stores
+derived recommendation payloads only; Kafka events can later invalidate or
+refresh those keys without changing the API path.
 
 ## Gateway Endpoint
 

@@ -33,10 +33,26 @@ Incorporate ratings and transaction data to improve recommendation quality.
 ## **Phase 3 — Latency & Caching (The "Discovery" Cache)**
 As the number of jobs and users grows, real-time filtering becomes too slow.
 
-- **Background Workers**: Periodically pre-calculate recommendations for top active users.
-- **Caching Layer**: Store recommendations in Redis/PostgreSQL for instant retrieval.
-- **Events**: Invalidate/update recommendations when a new job is posted or a profile is updated (via Pub/Sub).
-- **Why**: To maintain <100ms response times at scale.
+- **Phase 3a — Redis Cache Backend**:
+    - Add a Redis implementation behind the existing `RecommendationCache` port.
+    - Keep the in-memory cache available for tests and simple local runs.
+    - Cache final ranked job recommendations by freelancer ID.
+    - Cache final ranked freelancer recommendations by job ID plus caller scope.
+    - Store cache entries as short-lived JSON documents with Redis TTLs.
+- **Phase 3b — Cache Observability**:
+    - Track cache hits, misses, set failures, and downstream recomputation latency.
+    - Log candidate counts and cache backend selection at startup.
+- **Phase 3c — Explicit Invalidation API**:
+    - Add invalidation methods for freelancer profile/work-preference changes, job changes, and review summary changes.
+    - Keep invalidation policy in the application layer, not inside the Redis adapter.
+- **Phase 3d — Kafka-Driven Refresh (Later)**:
+    - Consume `job`, `user`, and `review` events from Kafka.
+    - Use events to invalidate Redis keys or trigger background recomputation.
+    - Example events: `JobCreated`, `JobUpdated`, `JobClosed`, `FreelancerProfileUpdated`, `WorkPreferencesUpdated`, `ReviewCreated`, `ReviewUpdated`, `ReviewDeleted`.
+- **Phase 3e — Background Precomputation**:
+    - Periodically pre-calculate recommendations for active freelancers and active client jobs.
+    - API requests should become cache read first, compute fallback second.
+- **Why**: To maintain <100ms response times at scale while keeping Kafka as the future source of freshness signals and Redis as the fast read store.
 
 ---
 

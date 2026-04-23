@@ -33,6 +33,18 @@ services:
       timeout: 5s
       retries: 20
 
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   user:
     build:
       context: .
@@ -235,6 +247,8 @@ services:
       JOB_SERVICE_ADDR: job:50053
       USER_SERVICE_ADDR: user:50052
       REVIEW_SERVICE_ADDR: review:50056
+      RECOMMENDATION_CACHE_BACKEND: redis
+      RECOMMENDATION_REDIS_ADDR: redis:6379
     ports:
       - "50064:50064"
     depends_on:
@@ -244,6 +258,8 @@ services:
         condition: service_started
       review:
         condition: service_started
+      redis:
+        condition: service_healthy
 
   gateway:
     build:
@@ -268,3 +284,4 @@ services:
 volumes:
   postgres-data:
   minio-data:
+  redis-data:
