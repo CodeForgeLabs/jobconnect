@@ -60,6 +60,11 @@ service UserService {
       returns (UpsertFreelancerNoteResponse);
   rpc GetFreelancerNote(GetFreelancerNoteRequest)
       returns (GetFreelancerNoteResponse);
+
+  // Discovery endpoint: returns public freelancer cards for service-to-service
+  // recommendation use. Callers MUST be server-side (recommendation service).
+  rpc ListDiscoverableFreelancers(ListDiscoverableFreelancersRequest)
+      returns (ListDiscoverableFreelancersResponse);
 }
 
 enum UserRole {
@@ -659,5 +664,33 @@ message GetFreelancerNoteRequest {
 
 message GetFreelancerNoteResponse {
   FreelancerNote note = 1;
+}
+
+// Discoverable freelancer card returned by ListDiscoverableFreelancers.
+message DiscoverableFreelancer {
+  string user_id = 1;
+  string headline = 2;
+  string bio = 3;
+  repeated string skills = 4;
+  double hourly_rate = 5;
+  Availability availability = 6;
+  double rating = 7;
+  uint32 total_reviews = 8;
+  bool can_be_discovered = 9;
+  string location = 10;
+  optional int64 last_active_at_unix = 11;
+}
+
+message ListDiscoverableFreelancersRequest {
+  uint32 page_size = 1;
+  string page_token = 2;
+  // Optional: restrict to freelancers whose profile skills include any of
+  // these (case-insensitive).
+  repeated string skills = 3;
+}
+
+message ListDiscoverableFreelancersResponse {
+  repeated DiscoverableFreelancer freelancers = 1;
+  PagingResponse page = 2;
 }
 

@@ -16,9 +16,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BACKEND_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$BACKEND_DIR"
 
-declare -a NAMES=( "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" )
-declare -a USERS=( "auth"        "user"        "job"         "proposal"        "contract"        "wallet"        "chat"        "connects"         "verification"        "payment" )
-declare -a DBS=(   "jobconnect_auth" "jobconnect_user" "jobconnect_job" "jobconnect_proposal" "jobconnect_contract" "jobconnect_wallet" "jobconnect_chat" "jobconnect_connects" "jobconnect_verification" "jobconnect_payment" )
+declare -a NAMES=( "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" "postgres" )
+declare -a USERS=( "auth"        "user"        "job"         "proposal"        "contract"        "wallet"        "chat"        "connects"         "verification"        "payment"        "review" )
+declare -a DBS=(   "jobconnect_auth" "jobconnect_user" "jobconnect_job" "jobconnect_proposal" "jobconnect_contract" "jobconnect_wallet" "jobconnect_chat" "jobconnect_connects" "jobconnect_verification" "jobconnect_payment" "jobconnect_review" )
 declare -a DIRS=(
     "services/auth/migrations"
     "services/user/migrations"
@@ -30,6 +30,7 @@ declare -a DIRS=(
     "services/connects/migrations"
     "services/verification/migrations"
     "services/payment/migrations"
+    "services/review/migrations"
 )
 
 ensure_migration_table() {

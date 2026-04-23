@@ -30,6 +30,9 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'payment') THEN
         CREATE ROLE payment LOGIN PASSWORD 'payment';
     END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'review') THEN
+        CREATE ROLE review LOGIN PASSWORD 'review';
+    END IF;
 END
 $$;
 
@@ -62,3 +65,6 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'jobconnect_verificati
 
 SELECT 'CREATE DATABASE jobconnect_payment OWNER payment'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'jobconnect_payment')\gexec
+
+SELECT 'CREATE DATABASE jobconnect_review OWNER review'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'jobconnect_review')\gexec
