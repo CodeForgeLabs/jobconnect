@@ -14,6 +14,11 @@ type FreelancerRecommendation struct {
 	MatchReason string
 }
 
+type RatingSummary struct {
+	AverageRating float64
+	TotalReviews  int64
+}
+
 type JobData struct {
 	ID             int64
 	ClientID       string

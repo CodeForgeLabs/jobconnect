@@ -17,6 +17,10 @@ type UserServiceClient interface {
 	ListDiscoverableFreelancers(ctx context.Context, skills []string, pageSize int32) ([]domain.FreelancerData, error)
 }
 
+type ReviewServiceClient interface {
+	GetUserRatingSummary(ctx context.Context, userID string) (domain.RatingSummary, error)
+}
+
 type RecommendationCache interface {
 	GetRecommendedJobs(userID string) ([]domain.JobRecommendation, bool)
 	SetRecommendedJobs(userID string, recommendations []domain.JobRecommendation)

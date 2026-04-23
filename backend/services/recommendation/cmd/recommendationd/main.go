@@ -20,6 +20,7 @@ import (
 	"jobconnect/recommendation/internal/config"
 	"jobconnect/recommendation/internal/infrastructure/cache"
 	"jobconnect/recommendation/internal/infrastructure/jobgrpc"
+	"jobconnect/recommendation/internal/infrastructure/reviewgrpc"
 	"jobconnect/recommendation/internal/infrastructure/usergrpc"
 )
 
@@ -48,9 +49,16 @@ func main() {
 	}
 	defer userConn.Close()
 
+	reviewConn, err := grpc.NewClient(cfg.ReviewServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("review service dial: %v", err)
+	}
+	defer reviewConn.Close()
+
 	app := application.NewRecommendationService(
 		jobgrpc.NewClient(jobConn),
 		usergrpc.NewClient(userConn),
+		reviewgrpc.NewClient(reviewConn),
 		cache.NewMemoryCache(cfg.RecommendationCacheTTL),
 		application.ServiceConfig{
 			DefaultLimit:      cfg.DefaultRecommendationLimit,

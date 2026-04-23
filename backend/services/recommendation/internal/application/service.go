@@ -22,6 +22,9 @@ const (
 	availabilityPartTime    = "AVAILABILITY_PART_TIME"
 	availabilityAsNeeded    = "AVAILABILITY_AS_NEEDED"
 	availabilityUnavailable = "AVAILABILITY_UNAVAILABLE"
+
+	trustEnrichmentLimit = 50
+	neutralTrustScore    = 0.5
 )
 
 type ServiceConfig struct {
@@ -33,24 +36,30 @@ type ServiceConfig struct {
 }
 
 type RecommendationService struct {
-	jobClient  JobServiceClient
-	userClient UserServiceClient
-	cache      RecommendationCache
-	cfg        ServiceConfig
+	jobClient    JobServiceClient
+	userClient   UserServiceClient
+	reviewClient ReviewServiceClient
+	cache        RecommendationCache
+	cfg          ServiceConfig
 }
 
 type scoredJobRecommendation struct {
 	recommendation domain.JobRecommendation
 	score          float64
+	clientID       string
 	skillMatches   []string
+	skillScore     float64
 	semanticScore  float64
 	budgetScore    float64
 	freshnessScore float64
+	trustScore     float64
+	ratingSummary  domain.RatingSummary
 }
 
 func NewRecommendationService(
 	jobClient JobServiceClient,
 	userClient UserServiceClient,
+	reviewClient ReviewServiceClient,
 	cache RecommendationCache,
 	cfg ServiceConfig,
 ) *RecommendationService {
@@ -71,10 +80,11 @@ func NewRecommendationService(
 	}
 
 	return &RecommendationService{
-		jobClient:  jobClient,
-		userClient: userClient,
-		cache:      cache,
-		cfg:        cfg,
+		jobClient:    jobClient,
+		userClient:   userClient,
+		reviewClient: reviewClient,
+		cache:        cache,
+		cfg:          cfg,
 	}
 }
 
@@ -111,7 +121,7 @@ func (s *RecommendationService) GetRecommendedJobs(ctx context.Context, userID s
 		return nil, nil
 	}
 
-	ranked := s.rankJobs(user, preferences, candidates)
+	ranked := s.rankJobs(ctx, user, preferences, candidates)
 	recommendations := make([]domain.JobRecommendation, 0, len(ranked))
 	for _, rankedJob := range ranked {
 		recommendations = append(recommendations, rankedJob.recommendation)
@@ -152,7 +162,7 @@ func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, j
 		return nil, nil
 	}
 
-	ranked := s.rankFreelancers(job, candidates)
+	ranked := s.rankFreelancers(ctx, job, candidates)
 	recommendations := make([]domain.FreelancerRecommendation, 0, len(ranked))
 	for _, entry := range ranked {
 		recommendations = append(recommendations, entry.recommendation)
@@ -172,10 +182,12 @@ type scoredFreelancerRecommendation struct {
 	recommendation    domain.FreelancerRecommendation
 	score             float64
 	skillMatches      []string
+	skillScore        float64
 	semanticScore     float64
 	rateScore         float64
 	availabilityScore float64
-	ratingScore       float64
+	trustScore        float64
+	ratingSummary     domain.RatingSummary
 }
 
 func (s *RecommendationService) collectFreelancerCandidates(ctx context.Context, job domain.JobData) ([]domain.FreelancerData, error) {
@@ -219,7 +231,7 @@ func isEligibleFreelancer(f domain.FreelancerData, job domain.JobData) bool {
 	return true
 }
 
-func (s *RecommendationService) rankFreelancers(job domain.JobData, candidates []domain.FreelancerData) []scoredFreelancerRecommendation {
+func (s *RecommendationService) rankFreelancers(ctx context.Context, job domain.JobData, candidates []domain.FreelancerData) []scoredFreelancerRecommendation {
 	jobText := strings.Join([]string{
 		job.Title,
 		job.Description,
@@ -239,21 +251,15 @@ func (s *RecommendationService) rankFreelancers(job domain.JobData, candidates [
 		semanticScore := cosineSimilarity(jobVector, buildTokenVector(profileText))
 		rateScore := calculateFreelancerRateScore(f, job)
 		availabilityScore := calculateAvailabilityScore(f.Availability)
-		ratingScore := f.Rating / 5.0
-		if ratingScore < 0 {
-			ratingScore = 0
-		}
-		if ratingScore > 1 {
-			ratingScore = 1
-		}
+		ratingScore := clamp01(f.Rating / 5)
 
-		score := 0.40*semanticScore +
+		preTrustScore := 0.40*semanticScore +
 			0.30*skillOverlap +
 			0.15*rateScore +
 			0.05*availabilityScore +
 			0.10*ratingScore
 
-		if score <= 0 {
+		if preTrustScore <= 0 {
 			continue
 		}
 		if len(skillMatches) == 0 && semanticScore < 0.2 {
@@ -263,15 +269,16 @@ func (s *RecommendationService) rankFreelancers(job domain.JobData, candidates [
 		scored = append(scored, scoredFreelancerRecommendation{
 			recommendation: domain.FreelancerRecommendation{
 				UserID:      f.ID,
-				MatchScore:  float32(math.Min(score, 0.999)),
-				MatchReason: buildFreelancerMatchReason(skillMatches, semanticScore, rateScore, ratingScore, f),
+				MatchScore:  float32(math.Min(preTrustScore, 0.999)),
+				MatchReason: buildFreelancerMatchReason(skillMatches, semanticScore, rateScore, neutralTrustScore, domain.RatingSummary{}),
 			},
-			score:             score,
+			score:             preTrustScore,
 			skillMatches:      skillMatches,
+			skillScore:        skillOverlap,
 			semanticScore:     semanticScore,
 			rateScore:         rateScore,
 			availabilityScore: availabilityScore,
-			ratingScore:       ratingScore,
+			trustScore:        neutralTrustScore,
 		})
 	}
 
@@ -281,7 +288,61 @@ func (s *RecommendationService) rankFreelancers(job domain.JobData, candidates [
 		}
 		return scored[i].recommendation.UserID < scored[j].recommendation.UserID
 	})
+
+	s.enrichFreelancerTrust(ctx, scored)
+	for i := range scored {
+		scored[i].score = 0.35*scored[i].semanticScore +
+			0.30*scored[i].skillScore +
+			0.15*scored[i].rateScore +
+			0.15*scored[i].trustScore +
+			0.05*scored[i].availabilityScore
+		scored[i].recommendation.MatchScore = float32(math.Min(scored[i].score, 0.999))
+		scored[i].recommendation.MatchReason = buildFreelancerMatchReason(
+			scored[i].skillMatches,
+			scored[i].semanticScore,
+			scored[i].rateScore,
+			scored[i].trustScore,
+			scored[i].ratingSummary,
+		)
+	}
+
+	sort.SliceStable(scored, func(i, j int) bool {
+		if math.Abs(scored[i].score-scored[j].score) > 0.0001 {
+			return scored[i].score > scored[j].score
+		}
+		return scored[i].recommendation.UserID < scored[j].recommendation.UserID
+	})
 	return scored
+}
+
+func (s *RecommendationService) enrichFreelancerTrust(ctx context.Context, scored []scoredFreelancerRecommendation) {
+	for i := range scored {
+		scored[i].trustScore = neutralTrustScore
+	}
+	if s.reviewClient == nil {
+		return
+	}
+
+	limit := min(len(scored), trustEnrichmentLimit)
+	summaries := make(map[string]domain.RatingSummary, limit)
+	for i := 0; i < limit; i++ {
+		userID := strings.TrimSpace(scored[i].recommendation.UserID)
+		if userID == "" {
+			continue
+		}
+		summary, ok := summaries[userID]
+		if !ok {
+			var err error
+			summary, err = s.reviewClient.GetUserRatingSummary(ctx, userID)
+			if err != nil {
+				log.Printf("recommendation: review summary lookup failed for freelancer %q: %v", userID, err)
+				continue
+			}
+			summaries[userID] = summary
+		}
+		scored[i].ratingSummary = summary
+		scored[i].trustScore = calculateTrustScore(summary)
+	}
 }
 
 func calculateFreelancerRateScore(f domain.FreelancerData, job domain.JobData) float64 {
@@ -325,7 +386,7 @@ func calculateAvailabilityScore(availability string) float64 {
 	}
 }
 
-func buildFreelancerMatchReason(skillMatches []string, semanticScore, rateScore, ratingScore float64, f domain.FreelancerData) string {
+func buildFreelancerMatchReason(skillMatches []string, semanticScore, rateScore, trustScore float64, summary domain.RatingSummary) string {
 	if len(skillMatches) > 0 {
 		preview := skillMatches
 		if len(preview) > 3 {
@@ -333,8 +394,8 @@ func buildFreelancerMatchReason(skillMatches []string, semanticScore, rateScore,
 		}
 		return fmt.Sprintf("Matches required skills: %s", strings.Join(preview, ", "))
 	}
-	if ratingScore >= 0.8 && f.TotalReviews > 0 {
-		return fmt.Sprintf("Top-rated freelancer (%.1f avg, %d reviews)", f.Rating, f.TotalReviews)
+	if trustScore >= 0.8 && summary.TotalReviews > 0 {
+		return fmt.Sprintf("Top-rated freelancer (%.1f avg, %d reviews)", summary.AverageRating, summary.TotalReviews)
 	}
 	if semanticScore >= 0.35 {
 		return "Strong profile match for this job"
@@ -422,7 +483,7 @@ func matchesContractType(jobType string, contractTypes []string) bool {
 	return false
 }
 
-func (s *RecommendationService) rankJobs(user domain.UserData, preferences domain.WorkPreferences, jobs []domain.JobData) []scoredJobRecommendation {
+func (s *RecommendationService) rankJobs(ctx context.Context, user domain.UserData, preferences domain.WorkPreferences, jobs []domain.JobData) []scoredJobRecommendation {
 	profileText := strings.Join([]string{
 		user.Headline,
 		user.Bio,
@@ -443,22 +504,25 @@ func (s *RecommendationService) rankJobs(user domain.UserData, preferences domai
 		budgetScore := calculateBudgetScore(user, preferences, job)
 		freshnessScore := calculateFreshnessScore(job.CreatedAt, time.Now())
 
-		score := 0.55*semanticScore + 0.25*skillOverlap + 0.15*budgetScore + 0.05*freshnessScore
-		if score <= 0 {
+		preTrustScore := 0.55*semanticScore + 0.25*skillOverlap + 0.15*budgetScore + 0.05*freshnessScore
+		if preTrustScore <= 0 {
 			continue
 		}
 
 		scored = append(scored, scoredJobRecommendation{
 			recommendation: domain.JobRecommendation{
 				JobID:       job.ID,
-				MatchScore:  float32(math.Min(score, 0.999)),
-				MatchReason: buildMatchReason(skillMatches, semanticScore, budgetScore, freshnessScore),
+				MatchScore:  float32(math.Min(preTrustScore, 0.999)),
+				MatchReason: buildMatchReason(skillMatches, semanticScore, budgetScore, freshnessScore, neutralTrustScore, domain.RatingSummary{}),
 			},
-			score:          score,
+			score:          preTrustScore,
+			clientID:       job.ClientID,
 			skillMatches:   skillMatches,
+			skillScore:     skillOverlap,
 			semanticScore:  semanticScore,
 			budgetScore:    budgetScore,
 			freshnessScore: freshnessScore,
+			trustScore:     neutralTrustScore,
 		})
 	}
 
@@ -469,7 +533,79 @@ func (s *RecommendationService) rankJobs(user domain.UserData, preferences domai
 		return scored[i].recommendation.JobID < scored[j].recommendation.JobID
 	})
 
+	s.enrichJobTrust(ctx, scored)
+	for i := range scored {
+		scored[i].score = 0.45*scored[i].semanticScore +
+			0.25*scored[i].skillScore +
+			0.15*scored[i].budgetScore +
+			0.05*scored[i].freshnessScore +
+			0.10*scored[i].trustScore
+		scored[i].recommendation.MatchScore = float32(math.Min(scored[i].score, 0.999))
+		scored[i].recommendation.MatchReason = buildMatchReason(
+			scored[i].skillMatches,
+			scored[i].semanticScore,
+			scored[i].budgetScore,
+			scored[i].freshnessScore,
+			scored[i].trustScore,
+			scored[i].ratingSummary,
+		)
+	}
+
+	sort.SliceStable(scored, func(i, j int) bool {
+		if math.Abs(scored[i].score-scored[j].score) > 0.0001 {
+			return scored[i].score > scored[j].score
+		}
+		return scored[i].recommendation.JobID < scored[j].recommendation.JobID
+	})
+
 	return scored
+}
+
+func (s *RecommendationService) enrichJobTrust(ctx context.Context, scored []scoredJobRecommendation) {
+	for i := range scored {
+		scored[i].trustScore = neutralTrustScore
+	}
+	if s.reviewClient == nil {
+		return
+	}
+
+	limit := min(len(scored), trustEnrichmentLimit)
+	summaries := make(map[string]domain.RatingSummary, limit)
+	for i := 0; i < limit; i++ {
+		clientID := strings.TrimSpace(scored[i].clientID)
+		if clientID == "" {
+			continue
+		}
+		summary, ok := summaries[clientID]
+		if !ok {
+			var err error
+			summary, err = s.reviewClient.GetUserRatingSummary(ctx, clientID)
+			if err != nil {
+				log.Printf("recommendation: review summary lookup failed for client %q: %v", clientID, err)
+				continue
+			}
+			summaries[clientID] = summary
+		}
+		scored[i].ratingSummary = summary
+		scored[i].trustScore = calculateTrustScore(summary)
+	}
+}
+
+func calculateTrustScore(summary domain.RatingSummary) float64 {
+	if summary.TotalReviews <= 0 {
+		return neutralTrustScore
+	}
+	return clamp01(summary.AverageRating / 5)
+}
+
+func clamp01(value float64) float64 {
+	if math.IsNaN(value) || value < 0 {
+		return 0
+	}
+	if value > 1 {
+		return 1
+	}
+	return value
 }
 
 func calculateSkillOverlap(userSkills, requiredSkills []string) ([]string, float64) {
@@ -560,13 +696,16 @@ func calculateFreshnessScore(createdAt, now time.Time) float64 {
 	}
 }
 
-func buildMatchReason(skillMatches []string, semanticScore, budgetScore, freshnessScore float64) string {
+func buildMatchReason(skillMatches []string, semanticScore, budgetScore, freshnessScore, trustScore float64, summary domain.RatingSummary) string {
 	if len(skillMatches) > 0 {
 		preview := skillMatches
 		if len(preview) > 3 {
 			preview = preview[:3]
 		}
 		return fmt.Sprintf("Matches your skills in %s", strings.Join(preview, ", "))
+	}
+	if trustScore >= 0.8 && summary.TotalReviews > 0 {
+		return fmt.Sprintf("Highly rated client (%.1f avg, %d reviews)", summary.AverageRating, summary.TotalReviews)
 	}
 	if semanticScore >= 0.35 {
 		return "Strong semantic match for your profile"

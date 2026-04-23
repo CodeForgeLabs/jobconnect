@@ -135,6 +135,24 @@ services:
       proposal:
         condition: service_started
 
+  review:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: review
+        CMD_PATH: ./cmd/reviewd
+    env_file:
+      - .env
+    environment:
+      REVIEW_GRPC_LISTEN_ADDR: ":50056"
+      REVIEW_POSTGRES_URL: "postgres://review:review@postgres:5432/jobconnect_review?sslmode=disable"
+    ports:
+      - "50056:50056"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   wallet:
     build:
       context: .
@@ -213,12 +231,18 @@ services:
         CMD_PATH: ./cmd/recommendationd
     env_file:
       - .env
+    environment:
+      JOB_SERVICE_ADDR: job:50053
+      USER_SERVICE_ADDR: user:50052
+      REVIEW_SERVICE_ADDR: review:50056
     ports:
       - "50064:50064"
     depends_on:
       user:
         condition: service_started
       job:
+        condition: service_started
+      review:
         condition: service_started
 
   gateway:

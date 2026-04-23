@@ -1,7 +1,8 @@
 # Recommendation Service
 
 Phase 1 delivers job recommendations for freelancers. Phase 1b adds freelancer
-recommendations for clients.
+recommendations for clients. Phase 2 adds review-aware trust ranking through
+the `review` service.
 
 ## What It Does
 
@@ -13,6 +14,9 @@ recommendations for clients.
   - skill overlap
   - budget and rate fit
   - freshness
+  - client review trust
+- ranks freelancers with semantic, skill, rate, availability, and freelancer
+  review trust signals
 - caches top recommendations in memory for a short TTL
 
 `GetRecommendedFreelancers` ranks discoverable freelancers for a client-owned
@@ -30,6 +34,7 @@ Default downstream addresses:
 
 - `JOB_SERVICE_ADDR=localhost:50053`
 - `USER_SERVICE_ADDR=localhost:50052`
+- `REVIEW_SERVICE_ADDR=localhost:50056`
 
 Tunable recommendation settings:
 

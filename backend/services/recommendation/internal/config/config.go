@@ -12,6 +12,7 @@ type Config struct {
 	GRPCListenAddr             string
 	JobServiceAddr             string
 	UserServiceAddr            string
+	ReviewServiceAddr          string
 	DefaultRecommendationLimit int32
 	MaxRecommendationLimit     int32
 	CandidatePageSize          int32
@@ -25,6 +26,7 @@ func LoadFromEnv() (Config, error) {
 		GRPCListenAddr:             getEnv("RECOMMENDATION_GRPC_LISTEN_ADDR", ":50064"),
 		JobServiceAddr:             getEnv("JOB_SERVICE_ADDR", "localhost:50053"),
 		UserServiceAddr:            getEnv("USER_SERVICE_ADDR", "localhost:50052"),
+		ReviewServiceAddr:          getEnv("REVIEW_SERVICE_ADDR", "localhost:50056"),
 		DefaultRecommendationLimit: int32(getIntEnv("RECOMMENDATION_DEFAULT_LIMIT", 10)),
 		MaxRecommendationLimit:     int32(getIntEnv("RECOMMENDATION_MAX_LIMIT", 25)),
 		CandidatePageSize:          int32(getIntEnv("RECOMMENDATION_CANDIDATE_PAGE_SIZE", 100)),

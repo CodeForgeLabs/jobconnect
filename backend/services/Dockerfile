@@ -14,5 +14,5 @@ FROM alpine:3.20
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=builder /out/service /app/service
-EXPOSE 50051 50052 50053 50054 50055 50059
+EXPOSE 50051 50052 50053 50054 50055 50056 50059 50064
 ENTRYPOINT ["/app/service"]
