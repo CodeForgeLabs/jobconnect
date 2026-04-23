@@ -25,6 +25,9 @@ const (
 
 	trustEnrichmentLimit = 50
 	neutralTrustScore    = 0.5
+
+	recommendationTypeJobs        = "jobs"
+	recommendationTypeFreelancers = "freelancers"
 )
 
 type ServiceConfig struct {
@@ -93,31 +96,42 @@ func (s *RecommendationService) GetRecommendedJobs(ctx context.Context, userID s
 		return nil, fmt.Errorf("user_id is required")
 	}
 
+	startedAt := time.Now()
 	normalizedLimit := s.normalizeLimit(limit)
 	if s.cache != nil {
 		if cached, ok := s.cache.GetRecommendedJobs(userID); ok {
-			return limitRecommendations(cached, normalizedLimit), nil
+			limited := limitRecommendations(cached, normalizedLimit)
+			logRecommendationCacheHit(recommendationTypeJobs, len(cached), len(limited), normalizedLimit, time.Since(startedAt))
+			return limited, nil
 		}
+		logRecommendationCacheMiss(recommendationTypeJobs, normalizedLimit)
+	} else {
+		logRecommendationCacheDisabled(recommendationTypeJobs, normalizedLimit)
 	}
 
 	user, err := s.userClient.GetFreelancer(ctx, userID)
 	if err != nil {
+		logRecommendationComputeError(recommendationTypeJobs, time.Since(startedAt), err)
 		return nil, fmt.Errorf("fetch freelancer profile: %w", err)
 	}
 	if !user.CanApplyJobs {
+		logRecommendationComputed(recommendationTypeJobs, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, nil
 	}
 
 	preferences, err := s.userClient.GetWorkPreferences(ctx, userID)
 	if err != nil {
+		logRecommendationComputeError(recommendationTypeJobs, time.Since(startedAt), err)
 		return nil, fmt.Errorf("fetch freelancer work preferences: %w", err)
 	}
 
 	candidates, err := s.collectCandidates(ctx, user, preferences)
 	if err != nil {
+		logRecommendationComputeError(recommendationTypeJobs, time.Since(startedAt), err)
 		return nil, err
 	}
 	if len(candidates) == 0 {
+		logRecommendationComputed(recommendationTypeJobs, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, nil
 	}
 
@@ -130,7 +144,9 @@ func (s *RecommendationService) GetRecommendedJobs(ctx context.Context, userID s
 	if s.cache != nil {
 		s.cache.SetRecommendedJobs(userID, recommendations)
 	}
-	return limitRecommendations(recommendations, normalizedLimit), nil
+	limited := limitRecommendations(recommendations, normalizedLimit)
+	logRecommendationComputed(recommendationTypeJobs, len(candidates), len(recommendations), len(limited), normalizedLimit, time.Since(startedAt))
+	return limited, nil
 }
 
 func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, jobID int64, limit int32, callerScope string) ([]domain.FreelancerRecommendation, error) {
@@ -138,27 +154,37 @@ func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, j
 		return nil, fmt.Errorf("job_id is required")
 	}
 
+	startedAt := time.Now()
 	normalizedLimit := s.normalizeLimit(limit)
 	job, err := s.jobClient.GetJob(ctx, jobID)
 	if err != nil {
+		logRecommendationComputeError(recommendationTypeFreelancers, time.Since(startedAt), err)
 		return nil, fmt.Errorf("fetch job: %w", err)
 	}
 	if job.ID == 0 {
+		logRecommendationComputed(recommendationTypeFreelancers, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, fmt.Errorf("job %d not found", jobID)
 	}
 
 	cacheKey := freelancerCacheKey(jobID, callerScope)
 	if s.cache != nil {
 		if cached, ok := s.cache.GetRecommendedFreelancers(cacheKey); ok {
-			return limitFreelancerRecommendations(cached, normalizedLimit), nil
+			limited := limitFreelancerRecommendations(cached, normalizedLimit)
+			logRecommendationCacheHit(recommendationTypeFreelancers, len(cached), len(limited), normalizedLimit, time.Since(startedAt))
+			return limited, nil
 		}
+		logRecommendationCacheMiss(recommendationTypeFreelancers, normalizedLimit)
+	} else {
+		logRecommendationCacheDisabled(recommendationTypeFreelancers, normalizedLimit)
 	}
 
 	candidates, err := s.collectFreelancerCandidates(ctx, job)
 	if err != nil {
+		logRecommendationComputeError(recommendationTypeFreelancers, time.Since(startedAt), err)
 		return nil, err
 	}
 	if len(candidates) == 0 {
+		logRecommendationComputed(recommendationTypeFreelancers, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, nil
 	}
 
@@ -171,7 +197,81 @@ func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, j
 	if s.cache != nil {
 		s.cache.SetRecommendedFreelancers(cacheKey, recommendations)
 	}
-	return limitFreelancerRecommendations(recommendations, normalizedLimit), nil
+	limited := limitFreelancerRecommendations(recommendations, normalizedLimit)
+	logRecommendationComputed(recommendationTypeFreelancers, len(candidates), len(recommendations), len(limited), normalizedLimit, time.Since(startedAt))
+	return limited, nil
+}
+
+func logRecommendationCacheHit(recommendationType string, cachedCount, returnedCount int, limit int32, elapsed time.Duration) {
+	log.Printf(
+		"recommendation: type=%s cache=hit cached_count=%d returned_count=%d limit=%d elapsed=%s",
+		recommendationType,
+		cachedCount,
+		returnedCount,
+		limit,
+		elapsed,
+	)
+}
+
+func logRecommendationCacheMiss(recommendationType string, limit int32) {
+	log.Printf("recommendation: type=%s cache=miss limit=%d", recommendationType, limit)
+}
+
+func logRecommendationCacheDisabled(recommendationType string, limit int32) {
+	log.Printf("recommendation: type=%s cache=disabled limit=%d", recommendationType, limit)
+}
+
+func logRecommendationComputed(recommendationType string, candidateCount, rankedCount, returnedCount int, limit int32, elapsed time.Duration) {
+	log.Printf(
+		"recommendation: type=%s recompute=complete candidate_count=%d ranked_count=%d returned_count=%d limit=%d elapsed=%s",
+		recommendationType,
+		candidateCount,
+		rankedCount,
+		returnedCount,
+		limit,
+		elapsed,
+	)
+}
+
+func logRecommendationComputeError(recommendationType string, elapsed time.Duration, err error) {
+	log.Printf("recommendation: type=%s recompute=error elapsed=%s error=%v", recommendationType, elapsed, err)
+}
+
+func (s *RecommendationService) InvalidateRecommendationCache(ctx context.Context, userIDs []string, jobIDs []int64, all bool) (int, error) {
+	_ = ctx
+	if s.cache == nil {
+		log.Printf("recommendation: cache invalidation skipped cache=disabled users=%d jobs=%d all=%t", len(userIDs), len(jobIDs), all)
+		return 0, nil
+	}
+
+	startedAt := time.Now()
+	if all {
+		deleted := s.cache.Clear()
+		logRecommendationInvalidated("all", deleted, len(userIDs), len(jobIDs), time.Since(startedAt))
+		return deleted, nil
+	}
+
+	deleted := 0
+	for _, userID := range uniqueNonEmptyStrings(userIDs) {
+		deleted += s.cache.DeleteRecommendedJobs(userID)
+	}
+	for _, jobID := range uniquePositiveInt64s(jobIDs) {
+		deleted += s.cache.DeleteRecommendedFreelancersForJob(jobID)
+	}
+
+	logRecommendationInvalidated("targeted", deleted, len(userIDs), len(jobIDs), time.Since(startedAt))
+	return deleted, nil
+}
+
+func logRecommendationInvalidated(scope string, deleted, userIDCount, jobIDCount int, elapsed time.Duration) {
+	log.Printf(
+		"recommendation: cache=invalidate scope=%s deleted_count=%d user_id_count=%d job_id_count=%d elapsed=%s",
+		scope,
+		deleted,
+		userIDCount,
+		jobIDCount,
+		elapsed,
+	)
 }
 
 func freelancerCacheKey(jobID int64, callerScope string) string {
@@ -811,6 +911,39 @@ func uniqueStrings(values []string) []string {
 		}
 		seen[normalized] = struct{}{}
 		out = append(out, strings.TrimSpace(value))
+	}
+	return out
+}
+
+func uniqueNonEmptyStrings(values []string) []string {
+	seen := make(map[string]struct{}, len(values))
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" {
+			continue
+		}
+		if _, ok := seen[trimmed]; ok {
+			continue
+		}
+		seen[trimmed] = struct{}{}
+		out = append(out, trimmed)
+	}
+	return out
+}
+
+func uniquePositiveInt64s(values []int64) []int64 {
+	seen := make(map[int64]struct{}, len(values))
+	out := make([]int64, 0, len(values))
+	for _, value := range values {
+		if value <= 0 {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
 	}
 	return out
 }

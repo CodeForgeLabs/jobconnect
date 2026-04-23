@@ -42,6 +42,10 @@ func (s *recommendationServiceClientStub) GetRecommendedFreelancers(ctx context.
 	}, nil
 }
 
+func (s *recommendationServiceClientStub) InvalidateRecommendationCache(ctx context.Context, in *recommendationv1.InvalidateRecommendationCacheRequest, opts ...grpc.CallOption) (*recommendationv1.InvalidateRecommendationCacheResponse, error) {
+	return &recommendationv1.InvalidateRecommendationCacheResponse{}, nil
+}
+
 func outgoingAuth(ctx context.Context) string {
 	md, ok := metadata.FromOutgoingContext(ctx)
 	if !ok {

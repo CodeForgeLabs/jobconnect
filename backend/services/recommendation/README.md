@@ -54,6 +54,20 @@ recommendations are shared across service instances. The Redis adapter stores
 derived recommendation payloads only; Kafka events can later invalidate or
 refresh those keys without changing the API path.
 
+## Observability
+
+The service logs cache hits, misses, disabled-cache paths, recomputation latency,
+candidate counts, ranked counts, returned counts, and recomputation errors.
+Redis cache get/decode/set failures are logged inside the Redis adapter.
+
+## Cache Invalidation
+
+Internal callers can use `InvalidateRecommendationCache` to clear cached entries
+after upstream `job`, `user`, or `review` changes. The RPC supports user-scoped
+job recommendation invalidation, job-scoped freelancer recommendation
+invalidation across caller-specific cache entries, and full recommendation cache
+clear for broad refresh events.
+
 ## Gateway Endpoint
 
 Authenticated freelancer endpoint:

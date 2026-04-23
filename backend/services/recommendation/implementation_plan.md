@@ -40,10 +40,15 @@ As the number of jobs and users grows, real-time filtering becomes too slow.
     - Cache final ranked freelancer recommendations by job ID plus caller scope.
     - Store cache entries as short-lived JSON documents with Redis TTLs.
 - **Phase 3b — Cache Observability**:
-    - Track cache hits, misses, set failures, and downstream recomputation latency.
-    - Log candidate counts and cache backend selection at startup.
+    - Emit structured service logs for cache hits, misses, disabled cache, recomputation latency, candidate counts, ranked counts, returned counts, and recomputation errors.
+    - Emit Redis adapter logs for cache get/decode/set failures.
+    - Log cache backend selection at startup.
+    - Later, export the same signals to the platform metrics backend once one is chosen.
 - **Phase 3c — Explicit Invalidation API**:
-    - Add invalidation methods for freelancer profile/work-preference changes, job changes, and review summary changes.
+    - Add an internal `InvalidateRecommendationCache` RPC for targeted cache invalidation.
+    - Support invalidating job recommendations by freelancer/user ID.
+    - Support invalidating freelancer recommendations by job ID across all caller-scoped cache entries.
+    - Support full recommendation cache clear for broad or emergency invalidations.
     - Keep invalidation policy in the application layer, not inside the Redis adapter.
 - **Phase 3d — Kafka-Driven Refresh (Later)**:
     - Consume `job`, `user`, and `review` events from Kafka.

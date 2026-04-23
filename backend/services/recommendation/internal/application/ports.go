@@ -24,6 +24,9 @@ type ReviewServiceClient interface {
 type RecommendationCache interface {
 	GetRecommendedJobs(userID string) ([]domain.JobRecommendation, bool)
 	SetRecommendedJobs(userID string, recommendations []domain.JobRecommendation)
+	DeleteRecommendedJobs(userID string) int
 	GetRecommendedFreelancers(key string) ([]domain.FreelancerRecommendation, bool)
 	SetRecommendedFreelancers(key string, recommendations []domain.FreelancerRecommendation)
+	DeleteRecommendedFreelancersForJob(jobID int64) int
+	Clear() int
 }

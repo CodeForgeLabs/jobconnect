@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -50,6 +51,35 @@ func (f *fakeRedisClient) Set(ctx context.Context, key string, value any, expira
 	}
 	f.expirations[key] = expiration
 	return redis.NewStatusResult("OK", nil)
+}
+
+func (f *fakeRedisClient) Del(ctx context.Context, keys ...string) *redis.IntCmd {
+	if f.err != nil {
+		return redis.NewIntResult(0, f.err)
+	}
+	var deleted int64
+	for _, key := range keys {
+		if _, ok := f.values[key]; ok {
+			delete(f.values, key)
+			delete(f.expirations, key)
+			deleted++
+		}
+	}
+	return redis.NewIntResult(deleted, nil)
+}
+
+func (f *fakeRedisClient) Scan(ctx context.Context, cursor uint64, match string, count int64) *redis.ScanCmd {
+	if f.err != nil {
+		return redis.NewScanCmdResult(nil, 0, f.err)
+	}
+	prefix := strings.TrimSuffix(match, "*")
+	keys := make([]string, 0)
+	for key := range f.values {
+		if strings.HasPrefix(key, prefix) {
+			keys = append(keys, key)
+		}
+	}
+	return redis.NewScanCmdResult(keys, 0, nil)
 }
 
 func (f *fakeRedisClient) Ping(ctx context.Context) *redis.StatusCmd {
@@ -141,5 +171,62 @@ func TestRedisCacheDisabledWhenTTLZero(t *testing.T) {
 	}
 	if _, ok := cache.GetRecommendedJobs("freelancer-1"); ok {
 		t.Fatal("expected disabled cache to miss")
+	}
+}
+
+func TestRedisCacheDeletesJobRecommendations(t *testing.T) {
+	client := newFakeRedisClient()
+	cache := newRedisCacheWithClient(client, time.Minute, time.Second)
+
+	cache.SetRecommendedJobs("freelancer-1", []domain.JobRecommendation{{JobID: 1}})
+	if deleted := cache.DeleteRecommendedJobs("freelancer-1"); deleted != 1 {
+		t.Fatalf("expected 1 deleted job recommendation cache entry, got %d", deleted)
+	}
+	if _, ok := cache.GetRecommendedJobs("freelancer-1"); ok {
+		t.Fatal("expected job recommendation cache to be deleted")
+	}
+}
+
+func TestRedisCacheDeletesFreelancerRecommendationsForJob(t *testing.T) {
+	client := newFakeRedisClient()
+	cache := newRedisCacheWithClient(client, time.Minute, time.Second)
+
+	cache.SetRecommendedFreelancers("freelancers:77:caller-a", []domain.FreelancerRecommendation{{UserID: "f-1"}})
+	cache.SetRecommendedFreelancers("freelancers:77:caller-b", []domain.FreelancerRecommendation{{UserID: "f-2"}})
+	cache.SetRecommendedFreelancers("freelancers:88:caller-a", []domain.FreelancerRecommendation{{UserID: "f-3"}})
+
+	if deleted := cache.DeleteRecommendedFreelancersForJob(77); deleted != 2 {
+		t.Fatalf("expected 2 deleted freelancer recommendation cache entries, got %d", deleted)
+	}
+	if _, ok := cache.GetRecommendedFreelancers("freelancers:77:caller-a"); ok {
+		t.Fatal("expected caller-a cache entry to be deleted")
+	}
+	if _, ok := cache.GetRecommendedFreelancers("freelancers:77:caller-b"); ok {
+		t.Fatal("expected caller-b cache entry to be deleted")
+	}
+	if _, ok := cache.GetRecommendedFreelancers("freelancers:88:caller-a"); !ok {
+		t.Fatal("expected other job cache entry to remain")
+	}
+}
+
+func TestRedisCacheClearDeletesAllRecommendationEntries(t *testing.T) {
+	client := newFakeRedisClient()
+	cache := newRedisCacheWithClient(client, time.Minute, time.Second)
+
+	cache.SetRecommendedJobs("freelancer-1", []domain.JobRecommendation{{JobID: 1}})
+	cache.SetRecommendedFreelancers("freelancers:77:caller-a", []domain.FreelancerRecommendation{{UserID: "f-1"}})
+	client.values["other:key"] = "keep"
+
+	if deleted := cache.Clear(); deleted != 2 {
+		t.Fatalf("expected 2 deleted recommendation cache entries, got %d", deleted)
+	}
+	if _, ok := client.values[jobRecommendationsKey("freelancer-1")]; ok {
+		t.Fatal("expected job recommendation cache to be deleted")
+	}
+	if _, ok := client.values[freelancerRecommendationsKey("freelancers:77:caller-a")]; ok {
+		t.Fatal("expected freelancer recommendation cache to be deleted")
+	}
+	if _, ok := client.values["other:key"]; !ok {
+		t.Fatal("expected unrelated Redis key to remain")
 	}
 }

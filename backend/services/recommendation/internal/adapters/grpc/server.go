@@ -67,6 +67,21 @@ func (s *Server) GetRecommendedFreelancers(ctx context.Context, req *pb.GetRecom
 	return &pb.GetRecommendedFreelancersResponse{Recommendations: pbRecs}, nil
 }
 
+func (s *Server) InvalidateRecommendationCache(ctx context.Context, req *pb.InvalidateRecommendationCacheRequest) (*pb.InvalidateRecommendationCacheResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if !req.All && len(req.UserIds) == 0 && len(req.JobIds) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "user_ids, job_ids, or all is required")
+	}
+
+	deleted, err := s.app.InvalidateRecommendationCache(ctx, req.UserIds, req.JobIds, req.All)
+	if err != nil {
+		return nil, toStatusError(err)
+	}
+	return &pb.InvalidateRecommendationCacheResponse{DeletedEntries: int64(deleted)}, nil
+}
+
 // forwardAuthMetadata copies the caller's incoming authorization header onto
 // the outgoing context so downstream gRPC calls (user/job/review) carry the
 // same credentials.

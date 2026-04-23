@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -34,6 +35,8 @@ type RedisCache struct {
 type redisClient interface {
 	Get(ctx context.Context, key string) *redis.StringCmd
 	Set(ctx context.Context, key string, value any, expiration time.Duration) *redis.StatusCmd
+	Del(ctx context.Context, keys ...string) *redis.IntCmd
+	Scan(ctx context.Context, cursor uint64, match string, count int64) *redis.ScanCmd
 	Ping(ctx context.Context) *redis.StatusCmd
 	Close() error
 }
@@ -92,6 +95,10 @@ func (c *RedisCache) SetRecommendedJobs(userID string, recommendations []domain.
 	c.setJSON(jobRecommendationsKey(userID), recommendations)
 }
 
+func (c *RedisCache) DeleteRecommendedJobs(userID string) int {
+	return c.deleteKeys(jobRecommendationsKey(userID))
+}
+
 func (c *RedisCache) GetRecommendedFreelancers(key string) ([]domain.FreelancerRecommendation, bool) {
 	var recommendations []domain.FreelancerRecommendation
 	if !c.getJSON(freelancerRecommendationsKey(key), &recommendations) {
@@ -102,6 +109,14 @@ func (c *RedisCache) GetRecommendedFreelancers(key string) ([]domain.FreelancerR
 
 func (c *RedisCache) SetRecommendedFreelancers(key string, recommendations []domain.FreelancerRecommendation) {
 	c.setJSON(freelancerRecommendationsKey(key), recommendations)
+}
+
+func (c *RedisCache) DeleteRecommendedFreelancersForJob(jobID int64) int {
+	return c.deleteKeysByPattern(freelancerRecommendationsJobPattern(jobID))
+}
+
+func (c *RedisCache) Clear() int {
+	return c.deleteKeysByPattern(redisCachePrefix + ":*")
 }
 
 func (c *RedisCache) getJSON(key string, dest any) bool {
@@ -146,10 +161,61 @@ func (c *RedisCache) setJSON(key string, value any) {
 	}
 }
 
+func (c *RedisCache) deleteKeys(keys ...string) int {
+	if c == nil || c.client == nil || len(keys) == 0 {
+		return 0
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), c.operationTimeout)
+	defer cancel()
+
+	deleted, err := c.client.Del(ctx, keys...).Result()
+	if err != nil {
+		log.Printf("recommendation cache: redis delete failed keys=%d: %v", len(keys), err)
+		return 0
+	}
+	return int(deleted)
+}
+
+func (c *RedisCache) deleteKeysByPattern(pattern string) int {
+	if c == nil || c.client == nil {
+		return 0
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), c.operationTimeout)
+	defer cancel()
+
+	var cursor uint64
+	deleted := 0
+	for {
+		keys, nextCursor, err := c.client.Scan(ctx, cursor, pattern, 100).Result()
+		if err != nil {
+			log.Printf("recommendation cache: redis scan failed pattern=%q: %v", pattern, err)
+			return deleted
+		}
+		if len(keys) > 0 {
+			count, err := c.client.Del(ctx, keys...).Result()
+			if err != nil {
+				log.Printf("recommendation cache: redis delete failed pattern=%q keys=%d: %v", pattern, len(keys), err)
+				return deleted
+			}
+			deleted += int(count)
+		}
+		if nextCursor == 0 {
+			return deleted
+		}
+		cursor = nextCursor
+	}
+}
+
 func jobRecommendationsKey(userID string) string {
 	return redisCachePrefix + ":jobs:" + strings.TrimSpace(userID)
 }
 
 func freelancerRecommendationsKey(key string) string {
 	return redisCachePrefix + ":freelancers:" + strings.TrimSpace(key)
+}
+
+func freelancerRecommendationsJobPattern(jobID int64) string {
+	return redisCachePrefix + fmt.Sprintf(":freelancers:freelancers:%d:*", jobID)
 }

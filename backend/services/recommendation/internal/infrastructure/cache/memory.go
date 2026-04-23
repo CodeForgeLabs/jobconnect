@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -8,11 +10,11 @@ import (
 )
 
 type MemoryCache struct {
-	mu                 sync.RWMutex
-	ttl                time.Duration
-	jobEntries         map[string]jobEntry
-	freelancerEntries  map[string]freelancerEntry
-	clockNow           func() time.Time
+	mu                sync.RWMutex
+	ttl               time.Duration
+	jobEntries        map[string]jobEntry
+	freelancerEntries map[string]freelancerEntry
+	clockNow          func() time.Time
 }
 
 type jobEntry struct {
@@ -73,6 +75,20 @@ func (c *MemoryCache) SetRecommendedJobs(userID string, recommendations []domain
 	c.mu.Unlock()
 }
 
+func (c *MemoryCache) DeleteRecommendedJobs(userID string) int {
+	if c == nil {
+		return 0
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if _, ok := c.jobEntries[userID]; !ok {
+		return 0
+	}
+	delete(c.jobEntries, userID)
+	return 1
+}
+
 func (c *MemoryCache) GetRecommendedFreelancers(key string) ([]domain.FreelancerRecommendation, bool) {
 	if c == nil || c.ttl == 0 {
 		return nil, false
@@ -110,4 +126,35 @@ func (c *MemoryCache) SetRecommendedFreelancers(key string, recommendations []do
 		expiresAt:       c.clockNow().Add(c.ttl),
 	}
 	c.mu.Unlock()
+}
+
+func (c *MemoryCache) DeleteRecommendedFreelancersForJob(jobID int64) int {
+	if c == nil {
+		return 0
+	}
+
+	prefix := fmt.Sprintf("freelancers:%d:", jobID)
+	deleted := 0
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for key := range c.freelancerEntries {
+		if strings.HasPrefix(key, prefix) {
+			delete(c.freelancerEntries, key)
+			deleted++
+		}
+	}
+	return deleted
+}
+
+func (c *MemoryCache) Clear() int {
+	if c == nil {
+		return 0
+	}
+
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	deleted := len(c.jobEntries) + len(c.freelancerEntries)
+	c.jobEntries = make(map[string]jobEntry)
+	c.freelancerEntries = make(map[string]freelancerEntry)
+	return deleted
 }

@@ -80,6 +80,9 @@ type fakeCache struct {
 	setCalled          bool
 	freelancerStore    map[string][]domain.FreelancerRecommendation
 	freelancerSetCount int
+	clearCount         int
+	deletedJobs        []string
+	deletedJobIDs      []int64
 }
 
 func (f *fakeCache) GetRecommendedJobs(userID string) ([]domain.JobRecommendation, bool) {
@@ -92,6 +95,16 @@ func (f *fakeCache) GetRecommendedJobs(userID string) ([]domain.JobRecommendatio
 func (f *fakeCache) SetRecommendedJobs(userID string, recommendations []domain.JobRecommendation) {
 	f.setCalled = true
 	f.recommendations = append([]domain.JobRecommendation(nil), recommendations...)
+}
+
+func (f *fakeCache) DeleteRecommendedJobs(userID string) int {
+	f.deletedJobs = append(f.deletedJobs, userID)
+	if !f.hit {
+		return 0
+	}
+	f.hit = false
+	f.recommendations = nil
+	return 1
 }
 
 func (f *fakeCache) GetRecommendedFreelancers(key string) ([]domain.FreelancerRecommendation, bool) {
@@ -111,6 +124,32 @@ func (f *fakeCache) SetRecommendedFreelancers(key string, recs []domain.Freelanc
 	}
 	f.freelancerStore[key] = append([]domain.FreelancerRecommendation(nil), recs...)
 	f.freelancerSetCount++
+}
+
+func (f *fakeCache) DeleteRecommendedFreelancersForJob(jobID int64) int {
+	f.deletedJobIDs = append(f.deletedJobIDs, jobID)
+	prefix := freelancerCacheKey(jobID, "")
+	deleted := 0
+	for key := range f.freelancerStore {
+		if len(key) >= len(prefix) && key[:len(prefix)] == prefix {
+			delete(f.freelancerStore, key)
+			deleted++
+		}
+	}
+	return deleted
+}
+
+func (f *fakeCache) Clear() int {
+	f.clearCount++
+	deleted := 0
+	if f.hit {
+		deleted += len(f.recommendations)
+	}
+	deleted += len(f.freelancerStore)
+	f.hit = false
+	f.recommendations = nil
+	f.freelancerStore = nil
+	return deleted
 }
 
 func TestGetRecommendedJobsRanksSkillAndSemanticMatchFirst(t *testing.T) {
@@ -699,5 +738,57 @@ func TestGetRecommendedFreelancersCacheIsCallerScoped(t *testing.T) {
 	}
 	if user.discoverableHits != 2 {
 		t.Fatalf("expected separate user lookups per caller, got %d", user.discoverableHits)
+	}
+}
+
+func TestInvalidateRecommendationCacheTargetsUsersAndJobs(t *testing.T) {
+	cache := &fakeCache{
+		hit:             true,
+		recommendations: []domain.JobRecommendation{{JobID: 1}},
+		freelancerStore: map[string][]domain.FreelancerRecommendation{
+			"freelancers:77:caller-a": {{UserID: "f-1"}},
+			"freelancers:77:caller-b": {{UserID: "f-2"}},
+			"freelancers:88:caller-a": {{UserID: "f-3"}},
+		},
+	}
+	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, newFreelancerTestConfig())
+
+	deleted, err := svc.InvalidateRecommendationCache(context.Background(), []string{" freelancer-1 ", "freelancer-1", ""}, []int64{77, 77, 0}, false)
+	if err != nil {
+		t.Fatalf("InvalidateRecommendationCache returned error: %v", err)
+	}
+	if deleted != 3 {
+		t.Fatalf("expected 3 deleted entries, got %d", deleted)
+	}
+	if len(cache.deletedJobs) != 1 || cache.deletedJobs[0] != "freelancer-1" {
+		t.Fatalf("expected normalized single user invalidation, got %#v", cache.deletedJobs)
+	}
+	if len(cache.deletedJobIDs) != 1 || cache.deletedJobIDs[0] != 77 {
+		t.Fatalf("expected single job invalidation, got %#v", cache.deletedJobIDs)
+	}
+	if _, ok := cache.freelancerStore["freelancers:88:caller-a"]; !ok {
+		t.Fatal("expected other job freelancer cache to remain")
+	}
+}
+
+func TestInvalidateRecommendationCacheClearAll(t *testing.T) {
+	cache := &fakeCache{
+		hit:             true,
+		recommendations: []domain.JobRecommendation{{JobID: 1}},
+		freelancerStore: map[string][]domain.FreelancerRecommendation{
+			"freelancers:77:caller-a": {{UserID: "f-1"}},
+		},
+	}
+	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, newFreelancerTestConfig())
+
+	deleted, err := svc.InvalidateRecommendationCache(context.Background(), []string{"freelancer-1"}, []int64{77}, true)
+	if err != nil {
+		t.Fatalf("InvalidateRecommendationCache returned error: %v", err)
+	}
+	if deleted != 2 {
+		t.Fatalf("expected 2 deleted entries, got %d", deleted)
+	}
+	if cache.clearCount != 1 {
+		t.Fatalf("expected clear to be called once, got %d", cache.clearCount)
 	}
 }
