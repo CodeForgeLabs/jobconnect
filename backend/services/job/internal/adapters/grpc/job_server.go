@@ -41,7 +41,6 @@ type JobServer struct {
 	SaveJobUC          *application.SaveJob
 	UnsaveJobUC        *application.UnsaveJob
 	ListSavedJobsUC    *application.ListSavedJobs
-	HireApplicantUC    *application.HireApplicant
 	RejectAllUC        *application.RejectAllApplicants
 	ReopenHiringUC     *application.ReopenHiringForJob
 	GetJobStatsUC      *application.GetJobStats
@@ -79,7 +78,6 @@ type JobServerConfig struct {
 	SaveJobUC          *application.SaveJob
 	UnsaveJobUC        *application.UnsaveJob
 	ListSavedJobsUC    *application.ListSavedJobs
-	HireApplicantUC    *application.HireApplicant
 	RejectAllUC        *application.RejectAllApplicants
 	ReopenHiringUC     *application.ReopenHiringForJob
 	GetJobStatsUC      *application.GetJobStats
@@ -118,7 +116,6 @@ func NewJobServer(cfg JobServerConfig) *JobServer {
 		SaveJobUC:          cfg.SaveJobUC,
 		UnsaveJobUC:        cfg.UnsaveJobUC,
 		ListSavedJobsUC:    cfg.ListSavedJobsUC,
-		HireApplicantUC:    cfg.HireApplicantUC,
 		RejectAllUC:        cfg.RejectAllUC,
 		ReopenHiringUC:     cfg.ReopenHiringUC,
 		GetJobStatsUC:      cfg.GetJobStatsUC,
@@ -171,7 +168,6 @@ func (s *JobServer) CreateJob(ctx context.Context, req *jobv1.CreateJobRequest) 
 		JobType:        jobType,
 		BudgetFixed:    req.BudgetFixed,
 		HourlyRate:     req.HourlyRate,
-		Currency:       req.Currency,
 		Deadline:       deadline,
 		Attachments:    attachments,
 	})
@@ -274,9 +270,6 @@ func (s *JobServer) UpdateJob(ctx context.Context, req *jobv1.UpdateJobRequest) 
 	}
 	if req.HourlyRate != nil {
 		in.HourlyRate = req.HourlyRate
-	}
-	if req.Currency != nil {
-		in.Currency = req.Currency
 	}
 	if req.DeadlineUnixSeconds != nil {
 		in.Deadline = req.DeadlineUnixSeconds
@@ -829,24 +822,6 @@ func (s *JobServer) ListSavedJobs(ctx context.Context, req *jobv1.ListSavedJobsR
 	return &jobv1.ListSavedJobsResponse{Jobs: jobs, NextPageToken: out.NextPageToken}, nil
 }
 
-func (s *JobServer) HireApplicant(ctx context.Context, req *jobv1.HireApplicantRequest) (*jobv1.HireApplicantResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "request required")
-	}
-	callerID, role, err := callerFromContext(ctx, s.TokenParser)
-	if err != nil {
-		return nil, err
-	}
-	if err := requireClientRole(role); err != nil {
-		return nil, err
-	}
-	out, err := s.HireApplicantUC.Execute(ctx, application.HireApplicantInput{ProposalID: req.ProposalId, ClientID: callerID})
-	if err != nil {
-		return nil, toStatus(err)
-	}
-	return &jobv1.HireApplicantResponse{Hired: out.Hired, JobId: out.JobID}, nil
-}
-
 func (s *JobServer) RejectAllApplicants(ctx context.Context, req *jobv1.RejectAllApplicantsRequest) (*jobv1.RejectAllApplicantsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
@@ -1005,7 +980,6 @@ func toProtoJob(in domain.Job) *jobv1.Job {
 		RequiredSkills:       in.RequiredSkills,
 		BudgetFixed:          in.BudgetFixed,
 		HourlyRate:           in.HourlyRate,
-		Currency:             in.Currency,
 		BudgetMin:            in.BudgetMin,
 		BudgetMax:            in.BudgetMax,
 		Attachments:          attachments,
@@ -1165,6 +1139,8 @@ func applicantStageFromEnum(in jobv1.ApplicantStage) (string, error) {
 		return application.ApplicantStageShortlisted, nil
 	case jobv1.ApplicantStage_APPLICANT_STAGE_REJECTED:
 		return application.ApplicantStageRejected, nil
+	case jobv1.ApplicantStage_APPLICANT_STAGE_OFFER_SENT:
+		return application.ApplicantStageOfferSent, nil
 	case jobv1.ApplicantStage_APPLICANT_STAGE_HIRED:
 		return application.ApplicantStageHired, nil
 	default:
@@ -1178,6 +1154,8 @@ func applicantStageToEnum(in string) jobv1.ApplicantStage {
 		return jobv1.ApplicantStage_APPLICANT_STAGE_SHORTLISTED
 	case application.ApplicantStageRejected:
 		return jobv1.ApplicantStage_APPLICANT_STAGE_REJECTED
+	case application.ApplicantStageOfferSent:
+		return jobv1.ApplicantStage_APPLICANT_STAGE_OFFER_SENT
 	case application.ApplicantStageHired:
 		return jobv1.ApplicantStage_APPLICANT_STAGE_HIRED
 	default:
@@ -1254,6 +1232,10 @@ func toStatus(err error) error {
 		return status.Error(codes.NotFound, err.Error())
 	case strings.Contains(msg, "required"), strings.Contains(msg, "invalid"), strings.Contains(msg, "too long"), strings.Contains(msg, "must"):
 		return status.Error(codes.InvalidArgument, err.Error())
+	case strings.Contains(msg, "eligible") || strings.Contains(msg, "cannot"):
+		return status.Error(codes.PermissionDenied, err.Error())
+	case strings.Contains(msg, "already has") || strings.Contains(msg, "before reopening"):
+		return status.Error(codes.FailedPrecondition, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())
 	}

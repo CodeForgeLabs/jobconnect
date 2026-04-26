@@ -27,6 +27,8 @@ func TestUserPortfolioUpdateRouteUsesPut(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -66,6 +68,8 @@ func TestUserRoutesDoNotExposePublicAdminInternalUserRoutes(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -98,6 +102,8 @@ func TestUserRoutes_DoNotExposeCreateProfileButExposeGetSinglePortfolioEndpoint(
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -131,6 +137,8 @@ func TestUserRoutesExposePortfolioMediaUploadURLRoute(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -157,6 +165,8 @@ func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)

@@ -77,8 +77,9 @@ const (
 	ContractStatus_CONTRACT_STATUS_PENDING_ACCEPTANCE ContractStatus = 1
 	ContractStatus_CONTRACT_STATUS_ACTIVE             ContractStatus = 2
 	ContractStatus_CONTRACT_STATUS_DECLINED           ContractStatus = 3
-	ContractStatus_CONTRACT_STATUS_PAUSED             ContractStatus = 4
-	ContractStatus_CONTRACT_STATUS_ENDED              ContractStatus = 5
+	ContractStatus_CONTRACT_STATUS_REVOKED            ContractStatus = 4
+	ContractStatus_CONTRACT_STATUS_PAUSED             ContractStatus = 5
+	ContractStatus_CONTRACT_STATUS_ENDED              ContractStatus = 6
 )
 
 // Enum value maps for ContractStatus.
@@ -88,16 +89,18 @@ var (
 		1: "CONTRACT_STATUS_PENDING_ACCEPTANCE",
 		2: "CONTRACT_STATUS_ACTIVE",
 		3: "CONTRACT_STATUS_DECLINED",
-		4: "CONTRACT_STATUS_PAUSED",
-		5: "CONTRACT_STATUS_ENDED",
+		4: "CONTRACT_STATUS_REVOKED",
+		5: "CONTRACT_STATUS_PAUSED",
+		6: "CONTRACT_STATUS_ENDED",
 	}
 	ContractStatus_value = map[string]int32{
 		"CONTRACT_STATUS_UNSPECIFIED":        0,
 		"CONTRACT_STATUS_PENDING_ACCEPTANCE": 1,
 		"CONTRACT_STATUS_ACTIVE":             2,
 		"CONTRACT_STATUS_DECLINED":           3,
-		"CONTRACT_STATUS_PAUSED":             4,
-		"CONTRACT_STATUS_ENDED":              5,
+		"CONTRACT_STATUS_REVOKED":            4,
+		"CONTRACT_STATUS_PAUSED":             5,
+		"CONTRACT_STATUS_ENDED":              6,
 	}
 )
 
@@ -131,12 +134,14 @@ func (ContractStatus) EnumDescriptor() ([]byte, []int) {
 type MilestoneStatus int32
 
 const (
-	MilestoneStatus_MILESTONE_STATUS_UNSPECIFIED       MilestoneStatus = 0
-	MilestoneStatus_MILESTONE_STATUS_PENDING           MilestoneStatus = 1
-	MilestoneStatus_MILESTONE_STATUS_SUBMITTED         MilestoneStatus = 2
-	MilestoneStatus_MILESTONE_STATUS_CHANGES_REQUESTED MilestoneStatus = 3
-	MilestoneStatus_MILESTONE_STATUS_APPROVED          MilestoneStatus = 4
-	MilestoneStatus_MILESTONE_STATUS_FUNDED            MilestoneStatus = 5
+	MilestoneStatus_MILESTONE_STATUS_UNSPECIFIED                 MilestoneStatus = 0
+	MilestoneStatus_MILESTONE_STATUS_PENDING                     MilestoneStatus = 1
+	MilestoneStatus_MILESTONE_STATUS_SUBMITTED                   MilestoneStatus = 2
+	MilestoneStatus_MILESTONE_STATUS_CHANGES_REQUESTED           MilestoneStatus = 3
+	MilestoneStatus_MILESTONE_STATUS_APPROVED                    MilestoneStatus = 4
+	MilestoneStatus_MILESTONE_STATUS_FUNDED                      MilestoneStatus = 5
+	MilestoneStatus_MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT MilestoneStatus = 6
+	MilestoneStatus_MILESTONE_STATUS_RELEASED                    MilestoneStatus = 7
 )
 
 // Enum value maps for MilestoneStatus.
@@ -148,14 +153,18 @@ var (
 		3: "MILESTONE_STATUS_CHANGES_REQUESTED",
 		4: "MILESTONE_STATUS_APPROVED",
 		5: "MILESTONE_STATUS_FUNDED",
+		6: "MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT",
+		7: "MILESTONE_STATUS_RELEASED",
 	}
 	MilestoneStatus_value = map[string]int32{
-		"MILESTONE_STATUS_UNSPECIFIED":       0,
-		"MILESTONE_STATUS_PENDING":           1,
-		"MILESTONE_STATUS_SUBMITTED":         2,
-		"MILESTONE_STATUS_CHANGES_REQUESTED": 3,
-		"MILESTONE_STATUS_APPROVED":          4,
-		"MILESTONE_STATUS_FUNDED":            5,
+		"MILESTONE_STATUS_UNSPECIFIED":                 0,
+		"MILESTONE_STATUS_PENDING":                     1,
+		"MILESTONE_STATUS_SUBMITTED":                   2,
+		"MILESTONE_STATUS_CHANGES_REQUESTED":           3,
+		"MILESTONE_STATUS_APPROVED":                    4,
+		"MILESTONE_STATUS_FUNDED":                      5,
+		"MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT": 6,
+		"MILESTONE_STATUS_RELEASED":                    7,
 	}
 )
 
@@ -293,13 +302,204 @@ func (AmendmentStatus) EnumDescriptor() ([]byte, []int) {
 	return file_contract_v1_contract_proto_rawDescGZIP(), []int{4}
 }
 
+type HourlyInvoiceStatus int32
+
+const (
+	HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_UNSPECIFIED HourlyInvoiceStatus = 0
+	HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_DRAFT       HourlyInvoiceStatus = 1
+	HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_SUBMITTED   HourlyInvoiceStatus = 2
+	HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_IN_REVIEW   HourlyInvoiceStatus = 3
+	HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_APPROVED    HourlyInvoiceStatus = 4
+	HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_DISPUTED    HourlyInvoiceStatus = 5
+	HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_CHARGED     HourlyInvoiceStatus = 6
+	HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_PAID        HourlyInvoiceStatus = 7
+	HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_FAILED      HourlyInvoiceStatus = 8
+)
+
+// Enum value maps for HourlyInvoiceStatus.
+var (
+	HourlyInvoiceStatus_name = map[int32]string{
+		0: "HOURLY_INVOICE_STATUS_UNSPECIFIED",
+		1: "HOURLY_INVOICE_STATUS_DRAFT",
+		2: "HOURLY_INVOICE_STATUS_SUBMITTED",
+		3: "HOURLY_INVOICE_STATUS_IN_REVIEW",
+		4: "HOURLY_INVOICE_STATUS_APPROVED",
+		5: "HOURLY_INVOICE_STATUS_DISPUTED",
+		6: "HOURLY_INVOICE_STATUS_CHARGED",
+		7: "HOURLY_INVOICE_STATUS_PAID",
+		8: "HOURLY_INVOICE_STATUS_FAILED",
+	}
+	HourlyInvoiceStatus_value = map[string]int32{
+		"HOURLY_INVOICE_STATUS_UNSPECIFIED": 0,
+		"HOURLY_INVOICE_STATUS_DRAFT":       1,
+		"HOURLY_INVOICE_STATUS_SUBMITTED":   2,
+		"HOURLY_INVOICE_STATUS_IN_REVIEW":   3,
+		"HOURLY_INVOICE_STATUS_APPROVED":    4,
+		"HOURLY_INVOICE_STATUS_DISPUTED":    5,
+		"HOURLY_INVOICE_STATUS_CHARGED":     6,
+		"HOURLY_INVOICE_STATUS_PAID":        7,
+		"HOURLY_INVOICE_STATUS_FAILED":      8,
+	}
+)
+
+func (x HourlyInvoiceStatus) Enum() *HourlyInvoiceStatus {
+	p := new(HourlyInvoiceStatus)
+	*p = x
+	return p
+}
+
+func (x HourlyInvoiceStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (HourlyInvoiceStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_contract_v1_contract_proto_enumTypes[5].Descriptor()
+}
+
+func (HourlyInvoiceStatus) Type() protoreflect.EnumType {
+	return &file_contract_v1_contract_proto_enumTypes[5]
+}
+
+func (x HourlyInvoiceStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use HourlyInvoiceStatus.Descriptor instead.
+func (HourlyInvoiceStatus) EnumDescriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{5}
+}
+
+type ContractBonusStatus int32
+
+const (
+	ContractBonusStatus_CONTRACT_BONUS_STATUS_UNSPECIFIED ContractBonusStatus = 0
+	ContractBonusStatus_CONTRACT_BONUS_STATUS_PENDING     ContractBonusStatus = 1
+	ContractBonusStatus_CONTRACT_BONUS_STATUS_PAID        ContractBonusStatus = 2
+	ContractBonusStatus_CONTRACT_BONUS_STATUS_FAILED      ContractBonusStatus = 3
+)
+
+// Enum value maps for ContractBonusStatus.
+var (
+	ContractBonusStatus_name = map[int32]string{
+		0: "CONTRACT_BONUS_STATUS_UNSPECIFIED",
+		1: "CONTRACT_BONUS_STATUS_PENDING",
+		2: "CONTRACT_BONUS_STATUS_PAID",
+		3: "CONTRACT_BONUS_STATUS_FAILED",
+	}
+	ContractBonusStatus_value = map[string]int32{
+		"CONTRACT_BONUS_STATUS_UNSPECIFIED": 0,
+		"CONTRACT_BONUS_STATUS_PENDING":     1,
+		"CONTRACT_BONUS_STATUS_PAID":        2,
+		"CONTRACT_BONUS_STATUS_FAILED":      3,
+	}
+)
+
+func (x ContractBonusStatus) Enum() *ContractBonusStatus {
+	p := new(ContractBonusStatus)
+	*p = x
+	return p
+}
+
+func (x ContractBonusStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ContractBonusStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_contract_v1_contract_proto_enumTypes[6].Descriptor()
+}
+
+func (ContractBonusStatus) Type() protoreflect.EnumType {
+	return &file_contract_v1_contract_proto_enumTypes[6]
+}
+
+func (x ContractBonusStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ContractBonusStatus.Descriptor instead.
+func (ContractBonusStatus) EnumDescriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{6}
+}
+
+type StatusHistoryEventType int32
+
+const (
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_UNSPECIFIED                           StatusHistoryEventType = 0
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED               StatusHistoryEventType = 1
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_MILESTONE_SUBMITTED                   StatusHistoryEventType = 2
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_MILESTONE_CHANGES_REQUESTED           StatusHistoryEventType = 3
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_MILESTONE_APPROVED_PENDING_SETTLEMENT StatusHistoryEventType = 4
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_MILESTONE_FUNDED                      StatusHistoryEventType = 5
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_MILESTONE_RELEASED                    StatusHistoryEventType = 6
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_CREATED                StatusHistoryEventType = 7
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_DISPUTED               StatusHistoryEventType = 8
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_PAID                   StatusHistoryEventType = 9
+	StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_CONTRACT_END_BLOCKED                  StatusHistoryEventType = 10
+)
+
+// Enum value maps for StatusHistoryEventType.
+var (
+	StatusHistoryEventType_name = map[int32]string{
+		0:  "STATUS_HISTORY_EVENT_TYPE_UNSPECIFIED",
+		1:  "STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED",
+		2:  "STATUS_HISTORY_EVENT_TYPE_MILESTONE_SUBMITTED",
+		3:  "STATUS_HISTORY_EVENT_TYPE_MILESTONE_CHANGES_REQUESTED",
+		4:  "STATUS_HISTORY_EVENT_TYPE_MILESTONE_APPROVED_PENDING_SETTLEMENT",
+		5:  "STATUS_HISTORY_EVENT_TYPE_MILESTONE_FUNDED",
+		6:  "STATUS_HISTORY_EVENT_TYPE_MILESTONE_RELEASED",
+		7:  "STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_CREATED",
+		8:  "STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_DISPUTED",
+		9:  "STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_PAID",
+		10: "STATUS_HISTORY_EVENT_TYPE_CONTRACT_END_BLOCKED",
+	}
+	StatusHistoryEventType_value = map[string]int32{
+		"STATUS_HISTORY_EVENT_TYPE_UNSPECIFIED":                           0,
+		"STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED":               1,
+		"STATUS_HISTORY_EVENT_TYPE_MILESTONE_SUBMITTED":                   2,
+		"STATUS_HISTORY_EVENT_TYPE_MILESTONE_CHANGES_REQUESTED":           3,
+		"STATUS_HISTORY_EVENT_TYPE_MILESTONE_APPROVED_PENDING_SETTLEMENT": 4,
+		"STATUS_HISTORY_EVENT_TYPE_MILESTONE_FUNDED":                      5,
+		"STATUS_HISTORY_EVENT_TYPE_MILESTONE_RELEASED":                    6,
+		"STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_CREATED":                7,
+		"STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_DISPUTED":               8,
+		"STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_PAID":                   9,
+		"STATUS_HISTORY_EVENT_TYPE_CONTRACT_END_BLOCKED":                  10,
+	}
+)
+
+func (x StatusHistoryEventType) Enum() *StatusHistoryEventType {
+	p := new(StatusHistoryEventType)
+	*p = x
+	return p
+}
+
+func (x StatusHistoryEventType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (StatusHistoryEventType) Descriptor() protoreflect.EnumDescriptor {
+	return file_contract_v1_contract_proto_enumTypes[7].Descriptor()
+}
+
+func (StatusHistoryEventType) Type() protoreflect.EnumType {
+	return &file_contract_v1_contract_proto_enumTypes[7]
+}
+
+func (x StatusHistoryEventType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use StatusHistoryEventType.Descriptor instead.
+func (StatusHistoryEventType) EnumDescriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{7}
+}
+
 type Milestone struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
 	Id                     int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Title                  string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
 	Description            string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Amount                 float64                `protobuf:"fixed64,4,opt,name=amount,proto3" json:"amount,omitempty"`
-	Currency               string                 `protobuf:"bytes,5,opt,name=currency,proto3" json:"currency,omitempty"`
+	AmountMinor            int64                  `protobuf:"varint,4,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
 	DueAtUnixSeconds       int64                  `protobuf:"varint,6,opt,name=due_at_unix_seconds,json=dueAtUnixSeconds,proto3" json:"due_at_unix_seconds,omitempty"`
 	Status                 MilestoneStatus        `protobuf:"varint,7,opt,name=status,proto3,enum=contract.v1.MilestoneStatus" json:"status,omitempty"`
 	SubmissionNote         string                 `protobuf:"bytes,8,opt,name=submission_note,json=submissionNote,proto3" json:"submission_note,omitempty"`
@@ -363,18 +563,11 @@ func (x *Milestone) GetDescription() string {
 	return ""
 }
 
-func (x *Milestone) GetAmount() float64 {
+func (x *Milestone) GetAmountMinor() int64 {
 	if x != nil {
-		return x.Amount
+		return x.AmountMinor
 	}
 	return 0
-}
-
-func (x *Milestone) GetCurrency() string {
-	if x != nil {
-		return x.Currency
-	}
-	return ""
 }
 
 func (x *Milestone) GetDueAtUnixSeconds() int64 {
@@ -447,6 +640,8 @@ type HourlyLog struct {
 	ReviewNote            string                 `protobuf:"bytes,10,opt,name=review_note,json=reviewNote,proto3" json:"review_note,omitempty"`
 	CreatedAtUnixSeconds  int64                  `protobuf:"varint,11,opt,name=created_at_unix_seconds,json=createdAtUnixSeconds,proto3" json:"created_at_unix_seconds,omitempty"`
 	ReviewedAtUnixSeconds int64                  `protobuf:"varint,12,opt,name=reviewed_at_unix_seconds,json=reviewedAtUnixSeconds,proto3" json:"reviewed_at_unix_seconds,omitempty"`
+	InvoiceId             int64                  `protobuf:"varint,13,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	EvidenceUrls          []string               `protobuf:"bytes,14,rep,name=evidence_urls,json=evidenceUrls,proto3" json:"evidence_urls,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -565,24 +760,320 @@ func (x *HourlyLog) GetReviewedAtUnixSeconds() int64 {
 	return 0
 }
 
+func (x *HourlyLog) GetInvoiceId() int64 {
+	if x != nil {
+		return x.InvoiceId
+	}
+	return 0
+}
+
+func (x *HourlyLog) GetEvidenceUrls() []string {
+	if x != nil {
+		return x.EvidenceUrls
+	}
+	return nil
+}
+
+type HourlyInvoice struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	Id                     int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	ContractId             int64                  `protobuf:"varint,2,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	ClientId               string                 `protobuf:"bytes,3,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	FreelancerId           string                 `protobuf:"bytes,4,opt,name=freelancer_id,json=freelancerId,proto3" json:"freelancer_id,omitempty"`
+	WeekStartUnixSeconds   int64                  `protobuf:"varint,5,opt,name=week_start_unix_seconds,json=weekStartUnixSeconds,proto3" json:"week_start_unix_seconds,omitempty"`
+	WeekEndUnixSeconds     int64                  `protobuf:"varint,6,opt,name=week_end_unix_seconds,json=weekEndUnixSeconds,proto3" json:"week_end_unix_seconds,omitempty"`
+	Status                 HourlyInvoiceStatus    `protobuf:"varint,7,opt,name=status,proto3,enum=contract.v1.HourlyInvoiceStatus" json:"status,omitempty"`
+	BillableMinutes        int32                  `protobuf:"varint,8,opt,name=billable_minutes,json=billableMinutes,proto3" json:"billable_minutes,omitempty"`
+	HourlyRateMinor        int64                  `protobuf:"varint,9,opt,name=hourly_rate_minor,json=hourlyRateMinor,proto3" json:"hourly_rate_minor,omitempty"`
+	AmountMinor            int64                  `protobuf:"varint,10,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
+	DisputeId              string                 `protobuf:"bytes,11,opt,name=dispute_id,json=disputeId,proto3" json:"dispute_id,omitempty"`
+	CreatedAtUnixSeconds   int64                  `protobuf:"varint,12,opt,name=created_at_unix_seconds,json=createdAtUnixSeconds,proto3" json:"created_at_unix_seconds,omitempty"`
+	SubmittedAtUnixSeconds int64                  `protobuf:"varint,13,opt,name=submitted_at_unix_seconds,json=submittedAtUnixSeconds,proto3" json:"submitted_at_unix_seconds,omitempty"`
+	ApprovedAtUnixSeconds  int64                  `protobuf:"varint,14,opt,name=approved_at_unix_seconds,json=approvedAtUnixSeconds,proto3" json:"approved_at_unix_seconds,omitempty"`
+	PaidAtUnixSeconds      int64                  `protobuf:"varint,15,opt,name=paid_at_unix_seconds,json=paidAtUnixSeconds,proto3" json:"paid_at_unix_seconds,omitempty"`
+	FailedAtUnixSeconds    int64                  `protobuf:"varint,16,opt,name=failed_at_unix_seconds,json=failedAtUnixSeconds,proto3" json:"failed_at_unix_seconds,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *HourlyInvoice) Reset() {
+	*x = HourlyInvoice{}
+	mi := &file_contract_v1_contract_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HourlyInvoice) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HourlyInvoice) ProtoMessage() {}
+
+func (x *HourlyInvoice) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HourlyInvoice.ProtoReflect.Descriptor instead.
+func (*HourlyInvoice) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *HourlyInvoice) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *HourlyInvoice) GetFreelancerId() string {
+	if x != nil {
+		return x.FreelancerId
+	}
+	return ""
+}
+
+func (x *HourlyInvoice) GetWeekStartUnixSeconds() int64 {
+	if x != nil {
+		return x.WeekStartUnixSeconds
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetWeekEndUnixSeconds() int64 {
+	if x != nil {
+		return x.WeekEndUnixSeconds
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetStatus() HourlyInvoiceStatus {
+	if x != nil {
+		return x.Status
+	}
+	return HourlyInvoiceStatus_HOURLY_INVOICE_STATUS_UNSPECIFIED
+}
+
+func (x *HourlyInvoice) GetBillableMinutes() int32 {
+	if x != nil {
+		return x.BillableMinutes
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetHourlyRateMinor() int64 {
+	if x != nil {
+		return x.HourlyRateMinor
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetAmountMinor() int64 {
+	if x != nil {
+		return x.AmountMinor
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetDisputeId() string {
+	if x != nil {
+		return x.DisputeId
+	}
+	return ""
+}
+
+func (x *HourlyInvoice) GetCreatedAtUnixSeconds() int64 {
+	if x != nil {
+		return x.CreatedAtUnixSeconds
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetSubmittedAtUnixSeconds() int64 {
+	if x != nil {
+		return x.SubmittedAtUnixSeconds
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetApprovedAtUnixSeconds() int64 {
+	if x != nil {
+		return x.ApprovedAtUnixSeconds
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetPaidAtUnixSeconds() int64 {
+	if x != nil {
+		return x.PaidAtUnixSeconds
+	}
+	return 0
+}
+
+func (x *HourlyInvoice) GetFailedAtUnixSeconds() int64 {
+	if x != nil {
+		return x.FailedAtUnixSeconds
+	}
+	return 0
+}
+
+type ContractBonus struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Id                   int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	ContractId           int64                  `protobuf:"varint,2,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	ClientId             string                 `protobuf:"bytes,3,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	FreelancerId         string                 `protobuf:"bytes,4,opt,name=freelancer_id,json=freelancerId,proto3" json:"freelancer_id,omitempty"`
+	AmountMinor          int64                  `protobuf:"varint,5,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
+	Note                 string                 `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
+	Status               ContractBonusStatus    `protobuf:"varint,7,opt,name=status,proto3,enum=contract.v1.ContractBonusStatus" json:"status,omitempty"`
+	CreatedAtUnixSeconds int64                  `protobuf:"varint,8,opt,name=created_at_unix_seconds,json=createdAtUnixSeconds,proto3" json:"created_at_unix_seconds,omitempty"`
+	PaidAtUnixSeconds    int64                  `protobuf:"varint,9,opt,name=paid_at_unix_seconds,json=paidAtUnixSeconds,proto3" json:"paid_at_unix_seconds,omitempty"`
+	FailedAtUnixSeconds  int64                  `protobuf:"varint,10,opt,name=failed_at_unix_seconds,json=failedAtUnixSeconds,proto3" json:"failed_at_unix_seconds,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *ContractBonus) Reset() {
+	*x = ContractBonus{}
+	mi := &file_contract_v1_contract_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractBonus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractBonus) ProtoMessage() {}
+
+func (x *ContractBonus) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractBonus.ProtoReflect.Descriptor instead.
+func (*ContractBonus) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ContractBonus) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *ContractBonus) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *ContractBonus) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *ContractBonus) GetFreelancerId() string {
+	if x != nil {
+		return x.FreelancerId
+	}
+	return ""
+}
+
+func (x *ContractBonus) GetAmountMinor() int64 {
+	if x != nil {
+		return x.AmountMinor
+	}
+	return 0
+}
+
+func (x *ContractBonus) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *ContractBonus) GetStatus() ContractBonusStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ContractBonusStatus_CONTRACT_BONUS_STATUS_UNSPECIFIED
+}
+
+func (x *ContractBonus) GetCreatedAtUnixSeconds() int64 {
+	if x != nil {
+		return x.CreatedAtUnixSeconds
+	}
+	return 0
+}
+
+func (x *ContractBonus) GetPaidAtUnixSeconds() int64 {
+	if x != nil {
+		return x.PaidAtUnixSeconds
+	}
+	return 0
+}
+
+func (x *ContractBonus) GetFailedAtUnixSeconds() int64 {
+	if x != nil {
+		return x.FailedAtUnixSeconds
+	}
+	return 0
+}
+
 type Amendment struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
 	Id                     int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	ContractId             int64                  `protobuf:"varint,2,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
 	ProposedBy             string                 `protobuf:"bytes,3,opt,name=proposed_by,json=proposedBy,proto3" json:"proposed_by,omitempty"`
 	Summary                string                 `protobuf:"bytes,4,opt,name=summary,proto3" json:"summary,omitempty"`
-	PayloadJson            string                 `protobuf:"bytes,5,opt,name=payload_json,json=payloadJson,proto3" json:"payload_json,omitempty"`
+	Payload                *AmendmentPayload      `protobuf:"bytes,5,opt,name=payload,proto3" json:"payload,omitempty"`
 	Status                 AmendmentStatus        `protobuf:"varint,6,opt,name=status,proto3,enum=contract.v1.AmendmentStatus" json:"status,omitempty"`
 	ExpiresAtUnixSeconds   int64                  `protobuf:"varint,7,opt,name=expires_at_unix_seconds,json=expiresAtUnixSeconds,proto3" json:"expires_at_unix_seconds,omitempty"`
 	RespondedAtUnixSeconds int64                  `protobuf:"varint,8,opt,name=responded_at_unix_seconds,json=respondedAtUnixSeconds,proto3" json:"responded_at_unix_seconds,omitempty"`
 	CreatedAtUnixSeconds   int64                  `protobuf:"varint,9,opt,name=created_at_unix_seconds,json=createdAtUnixSeconds,proto3" json:"created_at_unix_seconds,omitempty"`
+	RespondedBy            string                 `protobuf:"bytes,10,opt,name=responded_by,json=respondedBy,proto3" json:"responded_by,omitempty"`
+	ResponseNote           string                 `protobuf:"bytes,11,opt,name=response_note,json=responseNote,proto3" json:"response_note,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
 
 func (x *Amendment) Reset() {
 	*x = Amendment{}
-	mi := &file_contract_v1_contract_proto_msgTypes[2]
+	mi := &file_contract_v1_contract_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -594,7 +1085,7 @@ func (x *Amendment) String() string {
 func (*Amendment) ProtoMessage() {}
 
 func (x *Amendment) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[2]
+	mi := &file_contract_v1_contract_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -607,7 +1098,7 @@ func (x *Amendment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Amendment.ProtoReflect.Descriptor instead.
 func (*Amendment) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{2}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Amendment) GetId() int64 {
@@ -638,11 +1129,11 @@ func (x *Amendment) GetSummary() string {
 	return ""
 }
 
-func (x *Amendment) GetPayloadJson() string {
+func (x *Amendment) GetPayload() *AmendmentPayload {
 	if x != nil {
-		return x.PayloadJson
+		return x.Payload
 	}
-	return ""
+	return nil
 }
 
 func (x *Amendment) GetStatus() AmendmentStatus {
@@ -673,6 +1164,280 @@ func (x *Amendment) GetCreatedAtUnixSeconds() int64 {
 	return 0
 }
 
+func (x *Amendment) GetRespondedBy() string {
+	if x != nil {
+		return x.RespondedBy
+	}
+	return ""
+}
+
+func (x *Amendment) GetResponseNote() string {
+	if x != nil {
+		return x.ResponseNote
+	}
+	return ""
+}
+
+type CompensationChange struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	NewHourlyRateMinor int64                  `protobuf:"varint,1,opt,name=new_hourly_rate_minor,json=newHourlyRateMinor,proto3" json:"new_hourly_rate_minor,omitempty"`
+	NewFixedTotalMinor int64                  `protobuf:"varint,2,opt,name=new_fixed_total_minor,json=newFixedTotalMinor,proto3" json:"new_fixed_total_minor,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *CompensationChange) Reset() {
+	*x = CompensationChange{}
+	mi := &file_contract_v1_contract_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CompensationChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CompensationChange) ProtoMessage() {}
+
+func (x *CompensationChange) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CompensationChange.ProtoReflect.Descriptor instead.
+func (*CompensationChange) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CompensationChange) GetNewHourlyRateMinor() int64 {
+	if x != nil {
+		return x.NewHourlyRateMinor
+	}
+	return 0
+}
+
+func (x *CompensationChange) GetNewFixedTotalMinor() int64 {
+	if x != nil {
+		return x.NewFixedTotalMinor
+	}
+	return 0
+}
+
+type MilestonesChange struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Milestones    []*Milestone           `protobuf:"bytes,1,rep,name=milestones,proto3" json:"milestones,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MilestonesChange) Reset() {
+	*x = MilestonesChange{}
+	mi := &file_contract_v1_contract_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MilestonesChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MilestonesChange) ProtoMessage() {}
+
+func (x *MilestonesChange) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MilestonesChange.ProtoReflect.Descriptor instead.
+func (*MilestonesChange) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *MilestonesChange) GetMilestones() []*Milestone {
+	if x != nil {
+		return x.Milestones
+	}
+	return nil
+}
+
+type WeeklyLimitChange struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	NewWeeklyHourLimit int32                  `protobuf:"varint,1,opt,name=new_weekly_hour_limit,json=newWeeklyHourLimit,proto3" json:"new_weekly_hour_limit,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *WeeklyLimitChange) Reset() {
+	*x = WeeklyLimitChange{}
+	mi := &file_contract_v1_contract_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WeeklyLimitChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WeeklyLimitChange) ProtoMessage() {}
+
+func (x *WeeklyLimitChange) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WeeklyLimitChange.ProtoReflect.Descriptor instead.
+func (*WeeklyLimitChange) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *WeeklyLimitChange) GetNewWeeklyHourLimit() int32 {
+	if x != nil {
+		return x.NewWeeklyHourLimit
+	}
+	return 0
+}
+
+type ScopeChange struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	NewTitle       string                 `protobuf:"bytes,1,opt,name=new_title,json=newTitle,proto3" json:"new_title,omitempty"`
+	NewDescription string                 `protobuf:"bytes,2,opt,name=new_description,json=newDescription,proto3" json:"new_description,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ScopeChange) Reset() {
+	*x = ScopeChange{}
+	mi := &file_contract_v1_contract_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopeChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopeChange) ProtoMessage() {}
+
+func (x *ScopeChange) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopeChange.ProtoReflect.Descriptor instead.
+func (*ScopeChange) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ScopeChange) GetNewTitle() string {
+	if x != nil {
+		return x.NewTitle
+	}
+	return ""
+}
+
+func (x *ScopeChange) GetNewDescription() string {
+	if x != nil {
+		return x.NewDescription
+	}
+	return ""
+}
+
+type AmendmentPayload struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	CompensationChange *CompensationChange    `protobuf:"bytes,1,opt,name=compensation_change,json=compensationChange,proto3" json:"compensation_change,omitempty"`
+	MilestonesChange   *MilestonesChange      `protobuf:"bytes,2,opt,name=milestones_change,json=milestonesChange,proto3" json:"milestones_change,omitempty"`
+	WeeklyLimitChange  *WeeklyLimitChange     `protobuf:"bytes,3,opt,name=weekly_limit_change,json=weeklyLimitChange,proto3" json:"weekly_limit_change,omitempty"`
+	ScopeChange        *ScopeChange           `protobuf:"bytes,4,opt,name=scope_change,json=scopeChange,proto3" json:"scope_change,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *AmendmentPayload) Reset() {
+	*x = AmendmentPayload{}
+	mi := &file_contract_v1_contract_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AmendmentPayload) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AmendmentPayload) ProtoMessage() {}
+
+func (x *AmendmentPayload) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AmendmentPayload.ProtoReflect.Descriptor instead.
+func (*AmendmentPayload) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *AmendmentPayload) GetCompensationChange() *CompensationChange {
+	if x != nil {
+		return x.CompensationChange
+	}
+	return nil
+}
+
+func (x *AmendmentPayload) GetMilestonesChange() *MilestonesChange {
+	if x != nil {
+		return x.MilestonesChange
+	}
+	return nil
+}
+
+func (x *AmendmentPayload) GetWeeklyLimitChange() *WeeklyLimitChange {
+	if x != nil {
+		return x.WeeklyLimitChange
+	}
+	return nil
+}
+
+func (x *AmendmentPayload) GetScopeChange() *ScopeChange {
+	if x != nil {
+		return x.ScopeChange
+	}
+	return nil
+}
+
 type StatusHistoryEntry struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	Id                   int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -681,13 +1446,15 @@ type StatusHistoryEntry struct {
 	Reason               string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
 	ActorId              string                 `protobuf:"bytes,5,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
 	CreatedAtUnixSeconds int64                  `protobuf:"varint,6,opt,name=created_at_unix_seconds,json=createdAtUnixSeconds,proto3" json:"created_at_unix_seconds,omitempty"`
+	EventType            StatusHistoryEventType `protobuf:"varint,7,opt,name=event_type,json=eventType,proto3,enum=contract.v1.StatusHistoryEventType" json:"event_type,omitempty"`
+	MilestoneId          int64                  `protobuf:"varint,8,opt,name=milestone_id,json=milestoneId,proto3" json:"milestone_id,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
 
 func (x *StatusHistoryEntry) Reset() {
 	*x = StatusHistoryEntry{}
-	mi := &file_contract_v1_contract_proto_msgTypes[3]
+	mi := &file_contract_v1_contract_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -699,7 +1466,7 @@ func (x *StatusHistoryEntry) String() string {
 func (*StatusHistoryEntry) ProtoMessage() {}
 
 func (x *StatusHistoryEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[3]
+	mi := &file_contract_v1_contract_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -712,7 +1479,7 @@ func (x *StatusHistoryEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StatusHistoryEntry.ProtoReflect.Descriptor instead.
 func (*StatusHistoryEntry) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{3}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StatusHistoryEntry) GetId() int64 {
@@ -757,6 +1524,20 @@ func (x *StatusHistoryEntry) GetCreatedAtUnixSeconds() int64 {
 	return 0
 }
 
+func (x *StatusHistoryEntry) GetEventType() StatusHistoryEventType {
+	if x != nil {
+		return x.EventType
+	}
+	return StatusHistoryEventType_STATUS_HISTORY_EVENT_TYPE_UNSPECIFIED
+}
+
+func (x *StatusHistoryEntry) GetMilestoneId() int64 {
+	if x != nil {
+		return x.MilestoneId
+	}
+	return 0
+}
+
 type Contract struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
 	Id                     int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -768,24 +1549,24 @@ type Contract struct {
 	Status                 ContractStatus         `protobuf:"varint,7,opt,name=status,proto3,enum=contract.v1.ContractStatus" json:"status,omitempty"`
 	Title                  string                 `protobuf:"bytes,8,opt,name=title,proto3" json:"title,omitempty"`
 	Description            string                 `protobuf:"bytes,9,opt,name=description,proto3" json:"description,omitempty"`
-	Currency               string                 `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"`
-	HourlyRate             float64                `protobuf:"fixed64,11,opt,name=hourly_rate,json=hourlyRate,proto3" json:"hourly_rate,omitempty"`
-	FixedTotal             float64                `protobuf:"fixed64,12,opt,name=fixed_total,json=fixedTotal,proto3" json:"fixed_total,omitempty"`
+	HourlyRateMinor        int64                  `protobuf:"varint,11,opt,name=hourly_rate_minor,json=hourlyRateMinor,proto3" json:"hourly_rate_minor,omitempty"`
+	FixedTotalMinor        int64                  `protobuf:"varint,12,opt,name=fixed_total_minor,json=fixedTotalMinor,proto3" json:"fixed_total_minor,omitempty"`
 	WeeklyHourLimit        int32                  `protobuf:"varint,13,opt,name=weekly_hour_limit,json=weeklyHourLimit,proto3" json:"weekly_hour_limit,omitempty"`
 	Milestones             []*Milestone           `protobuf:"bytes,14,rep,name=milestones,proto3" json:"milestones,omitempty"`
 	CreatedAtUnixSeconds   int64                  `protobuf:"varint,15,opt,name=created_at_unix_seconds,json=createdAtUnixSeconds,proto3" json:"created_at_unix_seconds,omitempty"`
 	UpdatedAtUnixSeconds   int64                  `protobuf:"varint,16,opt,name=updated_at_unix_seconds,json=updatedAtUnixSeconds,proto3" json:"updated_at_unix_seconds,omitempty"`
 	ActivatedAtUnixSeconds int64                  `protobuf:"varint,17,opt,name=activated_at_unix_seconds,json=activatedAtUnixSeconds,proto3" json:"activated_at_unix_seconds,omitempty"`
 	DeclinedAtUnixSeconds  int64                  `protobuf:"varint,18,opt,name=declined_at_unix_seconds,json=declinedAtUnixSeconds,proto3" json:"declined_at_unix_seconds,omitempty"`
-	PausedAtUnixSeconds    int64                  `protobuf:"varint,19,opt,name=paused_at_unix_seconds,json=pausedAtUnixSeconds,proto3" json:"paused_at_unix_seconds,omitempty"`
-	EndedAtUnixSeconds     int64                  `protobuf:"varint,20,opt,name=ended_at_unix_seconds,json=endedAtUnixSeconds,proto3" json:"ended_at_unix_seconds,omitempty"`
+	RevokedAtUnixSeconds   int64                  `protobuf:"varint,19,opt,name=revoked_at_unix_seconds,json=revokedAtUnixSeconds,proto3" json:"revoked_at_unix_seconds,omitempty"`
+	PausedAtUnixSeconds    int64                  `protobuf:"varint,20,opt,name=paused_at_unix_seconds,json=pausedAtUnixSeconds,proto3" json:"paused_at_unix_seconds,omitempty"`
+	EndedAtUnixSeconds     int64                  `protobuf:"varint,21,opt,name=ended_at_unix_seconds,json=endedAtUnixSeconds,proto3" json:"ended_at_unix_seconds,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
 
 func (x *Contract) Reset() {
 	*x = Contract{}
-	mi := &file_contract_v1_contract_proto_msgTypes[4]
+	mi := &file_contract_v1_contract_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -797,7 +1578,7 @@ func (x *Contract) String() string {
 func (*Contract) ProtoMessage() {}
 
 func (x *Contract) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[4]
+	mi := &file_contract_v1_contract_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -810,7 +1591,7 @@ func (x *Contract) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Contract.ProtoReflect.Descriptor instead.
 func (*Contract) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{4}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Contract) GetId() int64 {
@@ -876,23 +1657,16 @@ func (x *Contract) GetDescription() string {
 	return ""
 }
 
-func (x *Contract) GetCurrency() string {
+func (x *Contract) GetHourlyRateMinor() int64 {
 	if x != nil {
-		return x.Currency
-	}
-	return ""
-}
-
-func (x *Contract) GetHourlyRate() float64 {
-	if x != nil {
-		return x.HourlyRate
+		return x.HourlyRateMinor
 	}
 	return 0
 }
 
-func (x *Contract) GetFixedTotal() float64 {
+func (x *Contract) GetFixedTotalMinor() int64 {
 	if x != nil {
-		return x.FixedTotal
+		return x.FixedTotalMinor
 	}
 	return 0
 }
@@ -939,6 +1713,13 @@ func (x *Contract) GetDeclinedAtUnixSeconds() int64 {
 	return 0
 }
 
+func (x *Contract) GetRevokedAtUnixSeconds() int64 {
+	if x != nil {
+		return x.RevokedAtUnixSeconds
+	}
+	return 0
+}
+
 func (x *Contract) GetPausedAtUnixSeconds() int64 {
 	if x != nil {
 		return x.PausedAtUnixSeconds
@@ -961,9 +1742,8 @@ type CreateContractRequest struct {
 	ContractType    ContractType           `protobuf:"varint,4,opt,name=contract_type,json=contractType,proto3,enum=contract.v1.ContractType" json:"contract_type,omitempty"`
 	Title           string                 `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
 	Description     string                 `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
-	Currency        string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
-	HourlyRate      float64                `protobuf:"fixed64,8,opt,name=hourly_rate,json=hourlyRate,proto3" json:"hourly_rate,omitempty"`
-	FixedTotal      float64                `protobuf:"fixed64,9,opt,name=fixed_total,json=fixedTotal,proto3" json:"fixed_total,omitempty"`
+	HourlyRateMinor int64                  `protobuf:"varint,8,opt,name=hourly_rate_minor,json=hourlyRateMinor,proto3" json:"hourly_rate_minor,omitempty"`
+	FixedTotalMinor int64                  `protobuf:"varint,9,opt,name=fixed_total_minor,json=fixedTotalMinor,proto3" json:"fixed_total_minor,omitempty"`
 	WeeklyHourLimit int32                  `protobuf:"varint,10,opt,name=weekly_hour_limit,json=weeklyHourLimit,proto3" json:"weekly_hour_limit,omitempty"`
 	Milestones      []*Milestone           `protobuf:"bytes,11,rep,name=milestones,proto3" json:"milestones,omitempty"`
 	unknownFields   protoimpl.UnknownFields
@@ -972,7 +1752,7 @@ type CreateContractRequest struct {
 
 func (x *CreateContractRequest) Reset() {
 	*x = CreateContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[5]
+	mi := &file_contract_v1_contract_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -984,7 +1764,7 @@ func (x *CreateContractRequest) String() string {
 func (*CreateContractRequest) ProtoMessage() {}
 
 func (x *CreateContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[5]
+	mi := &file_contract_v1_contract_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -997,7 +1777,7 @@ func (x *CreateContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateContractRequest.ProtoReflect.Descriptor instead.
 func (*CreateContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{5}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CreateContractRequest) GetFreelancerId() string {
@@ -1042,23 +1822,16 @@ func (x *CreateContractRequest) GetDescription() string {
 	return ""
 }
 
-func (x *CreateContractRequest) GetCurrency() string {
+func (x *CreateContractRequest) GetHourlyRateMinor() int64 {
 	if x != nil {
-		return x.Currency
-	}
-	return ""
-}
-
-func (x *CreateContractRequest) GetHourlyRate() float64 {
-	if x != nil {
-		return x.HourlyRate
+		return x.HourlyRateMinor
 	}
 	return 0
 }
 
-func (x *CreateContractRequest) GetFixedTotal() float64 {
+func (x *CreateContractRequest) GetFixedTotalMinor() int64 {
 	if x != nil {
-		return x.FixedTotal
+		return x.FixedTotalMinor
 	}
 	return 0
 }
@@ -1086,7 +1859,7 @@ type CreateContractResponse struct {
 
 func (x *CreateContractResponse) Reset() {
 	*x = CreateContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[6]
+	mi := &file_contract_v1_contract_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1098,7 +1871,7 @@ func (x *CreateContractResponse) String() string {
 func (*CreateContractResponse) ProtoMessage() {}
 
 func (x *CreateContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[6]
+	mi := &file_contract_v1_contract_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1111,7 +1884,7 @@ func (x *CreateContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateContractResponse.ProtoReflect.Descriptor instead.
 func (*CreateContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{6}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreateContractResponse) GetContract() *Contract {
@@ -1130,7 +1903,7 @@ type GetContractRequest struct {
 
 func (x *GetContractRequest) Reset() {
 	*x = GetContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[7]
+	mi := &file_contract_v1_contract_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1142,7 +1915,7 @@ func (x *GetContractRequest) String() string {
 func (*GetContractRequest) ProtoMessage() {}
 
 func (x *GetContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[7]
+	mi := &file_contract_v1_contract_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1155,7 +1928,7 @@ func (x *GetContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetContractRequest.ProtoReflect.Descriptor instead.
 func (*GetContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{7}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetContractRequest) GetContractId() int64 {
@@ -1174,7 +1947,7 @@ type GetContractResponse struct {
 
 func (x *GetContractResponse) Reset() {
 	*x = GetContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[8]
+	mi := &file_contract_v1_contract_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1186,7 +1959,7 @@ func (x *GetContractResponse) String() string {
 func (*GetContractResponse) ProtoMessage() {}
 
 func (x *GetContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[8]
+	mi := &file_contract_v1_contract_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1199,7 +1972,7 @@ func (x *GetContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetContractResponse.ProtoReflect.Descriptor instead.
 func (*GetContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{8}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetContractResponse) GetContract() *Contract {
@@ -1220,7 +1993,7 @@ type ListMyContractsRequest struct {
 
 func (x *ListMyContractsRequest) Reset() {
 	*x = ListMyContractsRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[9]
+	mi := &file_contract_v1_contract_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1232,7 +2005,7 @@ func (x *ListMyContractsRequest) String() string {
 func (*ListMyContractsRequest) ProtoMessage() {}
 
 func (x *ListMyContractsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[9]
+	mi := &file_contract_v1_contract_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1245,7 +2018,7 @@ func (x *ListMyContractsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyContractsRequest.ProtoReflect.Descriptor instead.
 func (*ListMyContractsRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{9}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListMyContractsRequest) GetStatus() ContractStatus {
@@ -1279,7 +2052,7 @@ type ListMyContractsResponse struct {
 
 func (x *ListMyContractsResponse) Reset() {
 	*x = ListMyContractsResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[10]
+	mi := &file_contract_v1_contract_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1291,7 +2064,7 @@ func (x *ListMyContractsResponse) String() string {
 func (*ListMyContractsResponse) ProtoMessage() {}
 
 func (x *ListMyContractsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[10]
+	mi := &file_contract_v1_contract_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1304,7 +2077,7 @@ func (x *ListMyContractsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyContractsResponse.ProtoReflect.Descriptor instead.
 func (*ListMyContractsResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{10}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListMyContractsResponse) GetContracts() []*Contract {
@@ -1321,6 +2094,126 @@ func (x *ListMyContractsResponse) GetNextPageToken() string {
 	return ""
 }
 
+type GetJobOfferStateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         int64                  `protobuf:"varint,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetJobOfferStateRequest) Reset() {
+	*x = GetJobOfferStateRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetJobOfferStateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetJobOfferStateRequest) ProtoMessage() {}
+
+func (x *GetJobOfferStateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetJobOfferStateRequest.ProtoReflect.Descriptor instead.
+func (*GetJobOfferStateRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GetJobOfferStateRequest) GetJobId() int64 {
+	if x != nil {
+		return x.JobId
+	}
+	return 0
+}
+
+type GetJobOfferStateResponse struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	JobId             int64                  `protobuf:"varint,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	HasPendingOffer   bool                   `protobuf:"varint,2,opt,name=has_pending_offer,json=hasPendingOffer,proto3" json:"has_pending_offer,omitempty"`
+	PendingContractId int64                  `protobuf:"varint,3,opt,name=pending_contract_id,json=pendingContractId,proto3" json:"pending_contract_id,omitempty"`
+	HasActiveContract bool                   `protobuf:"varint,4,opt,name=has_active_contract,json=hasActiveContract,proto3" json:"has_active_contract,omitempty"`
+	ActiveContractId  int64                  `protobuf:"varint,5,opt,name=active_contract_id,json=activeContractId,proto3" json:"active_contract_id,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *GetJobOfferStateResponse) Reset() {
+	*x = GetJobOfferStateResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetJobOfferStateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetJobOfferStateResponse) ProtoMessage() {}
+
+func (x *GetJobOfferStateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetJobOfferStateResponse.ProtoReflect.Descriptor instead.
+func (*GetJobOfferStateResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetJobOfferStateResponse) GetJobId() int64 {
+	if x != nil {
+		return x.JobId
+	}
+	return 0
+}
+
+func (x *GetJobOfferStateResponse) GetHasPendingOffer() bool {
+	if x != nil {
+		return x.HasPendingOffer
+	}
+	return false
+}
+
+func (x *GetJobOfferStateResponse) GetPendingContractId() int64 {
+	if x != nil {
+		return x.PendingContractId
+	}
+	return 0
+}
+
+func (x *GetJobOfferStateResponse) GetHasActiveContract() bool {
+	if x != nil {
+		return x.HasActiveContract
+	}
+	return false
+}
+
+func (x *GetJobOfferStateResponse) GetActiveContractId() int64 {
+	if x != nil {
+		return x.ActiveContractId
+	}
+	return 0
+}
+
 type AcceptContractRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
@@ -1330,7 +2223,7 @@ type AcceptContractRequest struct {
 
 func (x *AcceptContractRequest) Reset() {
 	*x = AcceptContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[11]
+	mi := &file_contract_v1_contract_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1342,7 +2235,7 @@ func (x *AcceptContractRequest) String() string {
 func (*AcceptContractRequest) ProtoMessage() {}
 
 func (x *AcceptContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[11]
+	mi := &file_contract_v1_contract_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1355,7 +2248,7 @@ func (x *AcceptContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptContractRequest.ProtoReflect.Descriptor instead.
 func (*AcceptContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{11}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *AcceptContractRequest) GetContractId() int64 {
@@ -1374,7 +2267,7 @@ type AcceptContractResponse struct {
 
 func (x *AcceptContractResponse) Reset() {
 	*x = AcceptContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[12]
+	mi := &file_contract_v1_contract_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1386,7 +2279,7 @@ func (x *AcceptContractResponse) String() string {
 func (*AcceptContractResponse) ProtoMessage() {}
 
 func (x *AcceptContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[12]
+	mi := &file_contract_v1_contract_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1399,7 +2292,7 @@ func (x *AcceptContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AcceptContractResponse.ProtoReflect.Descriptor instead.
 func (*AcceptContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{12}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *AcceptContractResponse) GetContract() *Contract {
@@ -1419,7 +2312,7 @@ type DeclineContractRequest struct {
 
 func (x *DeclineContractRequest) Reset() {
 	*x = DeclineContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[13]
+	mi := &file_contract_v1_contract_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1431,7 +2324,7 @@ func (x *DeclineContractRequest) String() string {
 func (*DeclineContractRequest) ProtoMessage() {}
 
 func (x *DeclineContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[13]
+	mi := &file_contract_v1_contract_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1444,7 +2337,7 @@ func (x *DeclineContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeclineContractRequest.ProtoReflect.Descriptor instead.
 func (*DeclineContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{13}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *DeclineContractRequest) GetContractId() int64 {
@@ -1470,7 +2363,7 @@ type DeclineContractResponse struct {
 
 func (x *DeclineContractResponse) Reset() {
 	*x = DeclineContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[14]
+	mi := &file_contract_v1_contract_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1482,7 +2375,7 @@ func (x *DeclineContractResponse) String() string {
 func (*DeclineContractResponse) ProtoMessage() {}
 
 func (x *DeclineContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[14]
+	mi := &file_contract_v1_contract_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1495,7 +2388,7 @@ func (x *DeclineContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeclineContractResponse.ProtoReflect.Descriptor instead.
 func (*DeclineContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{14}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *DeclineContractResponse) GetContract() *Contract {
@@ -1505,33 +2398,29 @@ func (x *DeclineContractResponse) GetContract() *Contract {
 	return nil
 }
 
-type UpdateMilestoneStatusRequest struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	ContractId     int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
-	MilestoneId    int64                  `protobuf:"varint,2,opt,name=milestone_id,json=milestoneId,proto3" json:"milestone_id,omitempty"`
-	Status         MilestoneStatus        `protobuf:"varint,3,opt,name=status,proto3,enum=contract.v1.MilestoneStatus" json:"status,omitempty"`
-	SubmissionNote string                 `protobuf:"bytes,5,opt,name=submission_note,json=submissionNote,proto3" json:"submission_note,omitempty"`
-	SubmissionUrls []string               `protobuf:"bytes,6,rep,name=submission_urls,json=submissionUrls,proto3" json:"submission_urls,omitempty"`
-	ReviewNote     string                 `protobuf:"bytes,7,opt,name=review_note,json=reviewNote,proto3" json:"review_note,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+type RevokeContractOfferRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateMilestoneStatusRequest) Reset() {
-	*x = UpdateMilestoneStatusRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[15]
+func (x *RevokeContractOfferRequest) Reset() {
+	*x = RevokeContractOfferRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateMilestoneStatusRequest) String() string {
+func (x *RevokeContractOfferRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateMilestoneStatusRequest) ProtoMessage() {}
+func (*RevokeContractOfferRequest) ProtoMessage() {}
 
-func (x *UpdateMilestoneStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[15]
+func (x *RevokeContractOfferRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1542,75 +2431,47 @@ func (x *UpdateMilestoneStatusRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateMilestoneStatusRequest.ProtoReflect.Descriptor instead.
-func (*UpdateMilestoneStatusRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{15}
+// Deprecated: Use RevokeContractOfferRequest.ProtoReflect.Descriptor instead.
+func (*RevokeContractOfferRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{24}
 }
 
-func (x *UpdateMilestoneStatusRequest) GetContractId() int64 {
+func (x *RevokeContractOfferRequest) GetContractId() int64 {
 	if x != nil {
 		return x.ContractId
 	}
 	return 0
 }
 
-func (x *UpdateMilestoneStatusRequest) GetMilestoneId() int64 {
+func (x *RevokeContractOfferRequest) GetReason() string {
 	if x != nil {
-		return x.MilestoneId
-	}
-	return 0
-}
-
-func (x *UpdateMilestoneStatusRequest) GetStatus() MilestoneStatus {
-	if x != nil {
-		return x.Status
-	}
-	return MilestoneStatus_MILESTONE_STATUS_UNSPECIFIED
-}
-
-func (x *UpdateMilestoneStatusRequest) GetSubmissionNote() string {
-	if x != nil {
-		return x.SubmissionNote
+		return x.Reason
 	}
 	return ""
 }
 
-func (x *UpdateMilestoneStatusRequest) GetSubmissionUrls() []string {
-	if x != nil {
-		return x.SubmissionUrls
-	}
-	return nil
-}
-
-func (x *UpdateMilestoneStatusRequest) GetReviewNote() string {
-	if x != nil {
-		return x.ReviewNote
-	}
-	return ""
-}
-
-type UpdateMilestoneStatusResponse struct {
+type RevokeContractOfferResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Contract      *Contract              `protobuf:"bytes,1,opt,name=contract,proto3" json:"contract,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateMilestoneStatusResponse) Reset() {
-	*x = UpdateMilestoneStatusResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[16]
+func (x *RevokeContractOfferResponse) Reset() {
+	*x = RevokeContractOfferResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateMilestoneStatusResponse) String() string {
+func (x *RevokeContractOfferResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateMilestoneStatusResponse) ProtoMessage() {}
+func (*RevokeContractOfferResponse) ProtoMessage() {}
 
-func (x *UpdateMilestoneStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[16]
+func (x *RevokeContractOfferResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1621,12 +2482,420 @@ func (x *UpdateMilestoneStatusResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateMilestoneStatusResponse.ProtoReflect.Descriptor instead.
-func (*UpdateMilestoneStatusResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{16}
+// Deprecated: Use RevokeContractOfferResponse.ProtoReflect.Descriptor instead.
+func (*RevokeContractOfferResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{25}
 }
 
-func (x *UpdateMilestoneStatusResponse) GetContract() *Contract {
+func (x *RevokeContractOfferResponse) GetContract() *Contract {
+	if x != nil {
+		return x.Contract
+	}
+	return nil
+}
+
+type SubmitMilestoneWorkRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	MilestoneId   int64                  `protobuf:"varint,2,opt,name=milestone_id,json=milestoneId,proto3" json:"milestone_id,omitempty"`
+	Note          string                 `protobuf:"bytes,3,opt,name=note,proto3" json:"note,omitempty"`
+	Attachments   []string               `protobuf:"bytes,4,rep,name=attachments,proto3" json:"attachments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitMilestoneWorkRequest) Reset() {
+	*x = SubmitMilestoneWorkRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitMilestoneWorkRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitMilestoneWorkRequest) ProtoMessage() {}
+
+func (x *SubmitMilestoneWorkRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitMilestoneWorkRequest.ProtoReflect.Descriptor instead.
+func (*SubmitMilestoneWorkRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *SubmitMilestoneWorkRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *SubmitMilestoneWorkRequest) GetMilestoneId() int64 {
+	if x != nil {
+		return x.MilestoneId
+	}
+	return 0
+}
+
+func (x *SubmitMilestoneWorkRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *SubmitMilestoneWorkRequest) GetAttachments() []string {
+	if x != nil {
+		return x.Attachments
+	}
+	return nil
+}
+
+type SubmitMilestoneWorkResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Contract      *Contract              `protobuf:"bytes,1,opt,name=contract,proto3" json:"contract,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SubmitMilestoneWorkResponse) Reset() {
+	*x = SubmitMilestoneWorkResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SubmitMilestoneWorkResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubmitMilestoneWorkResponse) ProtoMessage() {}
+
+func (x *SubmitMilestoneWorkResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubmitMilestoneWorkResponse.ProtoReflect.Descriptor instead.
+func (*SubmitMilestoneWorkResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *SubmitMilestoneWorkResponse) GetContract() *Contract {
+	if x != nil {
+		return x.Contract
+	}
+	return nil
+}
+
+type RequestMilestoneChangesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	MilestoneId   int64                  `protobuf:"varint,2,opt,name=milestone_id,json=milestoneId,proto3" json:"milestone_id,omitempty"`
+	Note          string                 `protobuf:"bytes,3,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestMilestoneChangesRequest) Reset() {
+	*x = RequestMilestoneChangesRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestMilestoneChangesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestMilestoneChangesRequest) ProtoMessage() {}
+
+func (x *RequestMilestoneChangesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestMilestoneChangesRequest.ProtoReflect.Descriptor instead.
+func (*RequestMilestoneChangesRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *RequestMilestoneChangesRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *RequestMilestoneChangesRequest) GetMilestoneId() int64 {
+	if x != nil {
+		return x.MilestoneId
+	}
+	return 0
+}
+
+func (x *RequestMilestoneChangesRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+type RequestMilestoneChangesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Contract      *Contract              `protobuf:"bytes,1,opt,name=contract,proto3" json:"contract,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequestMilestoneChangesResponse) Reset() {
+	*x = RequestMilestoneChangesResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestMilestoneChangesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestMilestoneChangesResponse) ProtoMessage() {}
+
+func (x *RequestMilestoneChangesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequestMilestoneChangesResponse.ProtoReflect.Descriptor instead.
+func (*RequestMilestoneChangesResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *RequestMilestoneChangesResponse) GetContract() *Contract {
+	if x != nil {
+		return x.Contract
+	}
+	return nil
+}
+
+type ApproveMilestoneSubmissionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	MilestoneId   int64                  `protobuf:"varint,2,opt,name=milestone_id,json=milestoneId,proto3" json:"milestone_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApproveMilestoneSubmissionRequest) Reset() {
+	*x = ApproveMilestoneSubmissionRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApproveMilestoneSubmissionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApproveMilestoneSubmissionRequest) ProtoMessage() {}
+
+func (x *ApproveMilestoneSubmissionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApproveMilestoneSubmissionRequest.ProtoReflect.Descriptor instead.
+func (*ApproveMilestoneSubmissionRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *ApproveMilestoneSubmissionRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *ApproveMilestoneSubmissionRequest) GetMilestoneId() int64 {
+	if x != nil {
+		return x.MilestoneId
+	}
+	return 0
+}
+
+type ApproveMilestoneSubmissionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Contract      *Contract              `protobuf:"bytes,1,opt,name=contract,proto3" json:"contract,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ApproveMilestoneSubmissionResponse) Reset() {
+	*x = ApproveMilestoneSubmissionResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApproveMilestoneSubmissionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApproveMilestoneSubmissionResponse) ProtoMessage() {}
+
+func (x *ApproveMilestoneSubmissionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApproveMilestoneSubmissionResponse.ProtoReflect.Descriptor instead.
+func (*ApproveMilestoneSubmissionResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *ApproveMilestoneSubmissionResponse) GetContract() *Contract {
+	if x != nil {
+		return x.Contract
+	}
+	return nil
+}
+
+type InternalMarkMilestoneFundedRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	MilestoneId   int64                  `protobuf:"varint,2,opt,name=milestone_id,json=milestoneId,proto3" json:"milestone_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalMarkMilestoneFundedRequest) Reset() {
+	*x = InternalMarkMilestoneFundedRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalMarkMilestoneFundedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalMarkMilestoneFundedRequest) ProtoMessage() {}
+
+func (x *InternalMarkMilestoneFundedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalMarkMilestoneFundedRequest.ProtoReflect.Descriptor instead.
+func (*InternalMarkMilestoneFundedRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *InternalMarkMilestoneFundedRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *InternalMarkMilestoneFundedRequest) GetMilestoneId() int64 {
+	if x != nil {
+		return x.MilestoneId
+	}
+	return 0
+}
+
+type InternalMarkMilestoneFundedResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Contract      *Contract              `protobuf:"bytes,1,opt,name=contract,proto3" json:"contract,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalMarkMilestoneFundedResponse) Reset() {
+	*x = InternalMarkMilestoneFundedResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalMarkMilestoneFundedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalMarkMilestoneFundedResponse) ProtoMessage() {}
+
+func (x *InternalMarkMilestoneFundedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalMarkMilestoneFundedResponse.ProtoReflect.Descriptor instead.
+func (*InternalMarkMilestoneFundedResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *InternalMarkMilestoneFundedResponse) GetContract() *Contract {
 	if x != nil {
 		return x.Contract
 	}
@@ -1639,13 +2908,14 @@ type LogHourlyWorkRequest struct {
 	StartAtUnixSeconds int64                  `protobuf:"varint,2,opt,name=start_at_unix_seconds,json=startAtUnixSeconds,proto3" json:"start_at_unix_seconds,omitempty"`
 	EndAtUnixSeconds   int64                  `protobuf:"varint,3,opt,name=end_at_unix_seconds,json=endAtUnixSeconds,proto3" json:"end_at_unix_seconds,omitempty"`
 	Note               string                 `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	EvidenceUrls       []string               `protobuf:"bytes,5,rep,name=evidence_urls,json=evidenceUrls,proto3" json:"evidence_urls,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
 func (x *LogHourlyWorkRequest) Reset() {
 	*x = LogHourlyWorkRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[17]
+	mi := &file_contract_v1_contract_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1657,7 +2927,7 @@ func (x *LogHourlyWorkRequest) String() string {
 func (*LogHourlyWorkRequest) ProtoMessage() {}
 
 func (x *LogHourlyWorkRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[17]
+	mi := &file_contract_v1_contract_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1670,7 +2940,7 @@ func (x *LogHourlyWorkRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogHourlyWorkRequest.ProtoReflect.Descriptor instead.
 func (*LogHourlyWorkRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{17}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *LogHourlyWorkRequest) GetContractId() int64 {
@@ -1701,6 +2971,13 @@ func (x *LogHourlyWorkRequest) GetNote() string {
 	return ""
 }
 
+func (x *LogHourlyWorkRequest) GetEvidenceUrls() []string {
+	if x != nil {
+		return x.EvidenceUrls
+	}
+	return nil
+}
+
 type LogHourlyWorkResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	HourlyLog     *HourlyLog             `protobuf:"bytes,1,opt,name=hourly_log,json=hourlyLog,proto3" json:"hourly_log,omitempty"`
@@ -1710,7 +2987,7 @@ type LogHourlyWorkResponse struct {
 
 func (x *LogHourlyWorkResponse) Reset() {
 	*x = LogHourlyWorkResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[18]
+	mi := &file_contract_v1_contract_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1722,7 +2999,7 @@ func (x *LogHourlyWorkResponse) String() string {
 func (*LogHourlyWorkResponse) ProtoMessage() {}
 
 func (x *LogHourlyWorkResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[18]
+	mi := &file_contract_v1_contract_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1735,7 +3012,7 @@ func (x *LogHourlyWorkResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LogHourlyWorkResponse.ProtoReflect.Descriptor instead.
 func (*LogHourlyWorkResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{18}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *LogHourlyWorkResponse) GetHourlyLog() *HourlyLog {
@@ -1743,6 +3020,118 @@ func (x *LogHourlyWorkResponse) GetHourlyLog() *HourlyLog {
 		return x.HourlyLog
 	}
 	return nil
+}
+
+type GetHourlyLogEvidenceUploadUrlRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	FileName      string                 `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	ContentType   string                 `protobuf:"bytes,3,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) Reset() {
+	*x = GetHourlyLogEvidenceUploadUrlRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHourlyLogEvidenceUploadUrlRequest) ProtoMessage() {}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHourlyLogEvidenceUploadUrlRequest.ProtoReflect.Descriptor instead.
+func (*GetHourlyLogEvidenceUploadUrlRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
+}
+
+type GetHourlyLogEvidenceUploadUrlResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StorageKey    string                 `protobuf:"bytes,1,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
+	UploadUrl     string                 `protobuf:"bytes,2,opt,name=upload_url,json=uploadUrl,proto3" json:"upload_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) Reset() {
+	*x = GetHourlyLogEvidenceUploadUrlResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHourlyLogEvidenceUploadUrlResponse) ProtoMessage() {}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHourlyLogEvidenceUploadUrlResponse.ProtoReflect.Descriptor instead.
+func (*GetHourlyLogEvidenceUploadUrlResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) GetStorageKey() string {
+	if x != nil {
+		return x.StorageKey
+	}
+	return ""
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) GetUploadUrl() string {
+	if x != nil {
+		return x.UploadUrl
+	}
+	return ""
 }
 
 type ListHourlyLogsRequest struct {
@@ -1756,7 +3145,7 @@ type ListHourlyLogsRequest struct {
 
 func (x *ListHourlyLogsRequest) Reset() {
 	*x = ListHourlyLogsRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[19]
+	mi := &file_contract_v1_contract_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1768,7 +3157,7 @@ func (x *ListHourlyLogsRequest) String() string {
 func (*ListHourlyLogsRequest) ProtoMessage() {}
 
 func (x *ListHourlyLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[19]
+	mi := &file_contract_v1_contract_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1781,7 +3170,7 @@ func (x *ListHourlyLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListHourlyLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListHourlyLogsRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{19}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListHourlyLogsRequest) GetContractId() int64 {
@@ -1815,7 +3204,7 @@ type ListHourlyLogsResponse struct {
 
 func (x *ListHourlyLogsResponse) Reset() {
 	*x = ListHourlyLogsResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[20]
+	mi := &file_contract_v1_contract_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1827,7 +3216,7 @@ func (x *ListHourlyLogsResponse) String() string {
 func (*ListHourlyLogsResponse) ProtoMessage() {}
 
 func (x *ListHourlyLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[20]
+	mi := &file_contract_v1_contract_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1840,7 +3229,7 @@ func (x *ListHourlyLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListHourlyLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListHourlyLogsResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{20}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ListHourlyLogsResponse) GetHourlyLogs() []*HourlyLog {
@@ -1857,6 +3246,182 @@ func (x *ListHourlyLogsResponse) GetNextPageToken() string {
 	return ""
 }
 
+type GetHourlyWorkSummaryRequest struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	ContractId           int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	WeekStartUnixSeconds int64                  `protobuf:"varint,2,opt,name=week_start_unix_seconds,json=weekStartUnixSeconds,proto3" json:"week_start_unix_seconds,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *GetHourlyWorkSummaryRequest) Reset() {
+	*x = GetHourlyWorkSummaryRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHourlyWorkSummaryRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHourlyWorkSummaryRequest) ProtoMessage() {}
+
+func (x *GetHourlyWorkSummaryRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHourlyWorkSummaryRequest.ProtoReflect.Descriptor instead.
+func (*GetHourlyWorkSummaryRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *GetHourlyWorkSummaryRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryRequest) GetWeekStartUnixSeconds() int64 {
+	if x != nil {
+		return x.WeekStartUnixSeconds
+	}
+	return 0
+}
+
+type GetHourlyWorkSummaryResponse struct {
+	state                        protoimpl.MessageState `protogen:"open.v1"`
+	ContractId                   int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	WeekStartUnixSeconds         int64                  `protobuf:"varint,2,opt,name=week_start_unix_seconds,json=weekStartUnixSeconds,proto3" json:"week_start_unix_seconds,omitempty"`
+	WeekEndUnixSeconds           int64                  `protobuf:"varint,3,opt,name=week_end_unix_seconds,json=weekEndUnixSeconds,proto3" json:"week_end_unix_seconds,omitempty"`
+	WeeklyHourLimit              int32                  `protobuf:"varint,4,opt,name=weekly_hour_limit,json=weeklyHourLimit,proto3" json:"weekly_hour_limit,omitempty"`
+	BillableMinutes              int32                  `protobuf:"varint,5,opt,name=billable_minutes,json=billableMinutes,proto3" json:"billable_minutes,omitempty"`
+	PendingMinutes               int32                  `protobuf:"varint,6,opt,name=pending_minutes,json=pendingMinutes,proto3" json:"pending_minutes,omitempty"`
+	ApprovedMinutes              int32                  `protobuf:"varint,7,opt,name=approved_minutes,json=approvedMinutes,proto3" json:"approved_minutes,omitempty"`
+	RejectedMinutes              int32                  `protobuf:"varint,8,opt,name=rejected_minutes,json=rejectedMinutes,proto3" json:"rejected_minutes,omitempty"`
+	RemainingMinutes             int32                  `protobuf:"varint,9,opt,name=remaining_minutes,json=remainingMinutes,proto3" json:"remaining_minutes,omitempty"`
+	HourlyRateMinor              int64                  `protobuf:"varint,10,opt,name=hourly_rate_minor,json=hourlyRateMinor,proto3" json:"hourly_rate_minor,omitempty"`
+	EstimatedBillableAmountMinor int64                  `protobuf:"varint,11,opt,name=estimated_billable_amount_minor,json=estimatedBillableAmountMinor,proto3" json:"estimated_billable_amount_minor,omitempty"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
+}
+
+func (x *GetHourlyWorkSummaryResponse) Reset() {
+	*x = GetHourlyWorkSummaryResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHourlyWorkSummaryResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHourlyWorkSummaryResponse) ProtoMessage() {}
+
+func (x *GetHourlyWorkSummaryResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHourlyWorkSummaryResponse.ProtoReflect.Descriptor instead.
+func (*GetHourlyWorkSummaryResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetWeekStartUnixSeconds() int64 {
+	if x != nil {
+		return x.WeekStartUnixSeconds
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetWeekEndUnixSeconds() int64 {
+	if x != nil {
+		return x.WeekEndUnixSeconds
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetWeeklyHourLimit() int32 {
+	if x != nil {
+		return x.WeeklyHourLimit
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetBillableMinutes() int32 {
+	if x != nil {
+		return x.BillableMinutes
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetPendingMinutes() int32 {
+	if x != nil {
+		return x.PendingMinutes
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetApprovedMinutes() int32 {
+	if x != nil {
+		return x.ApprovedMinutes
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetRejectedMinutes() int32 {
+	if x != nil {
+		return x.RejectedMinutes
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetRemainingMinutes() int32 {
+	if x != nil {
+		return x.RemainingMinutes
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetHourlyRateMinor() int64 {
+	if x != nil {
+		return x.HourlyRateMinor
+	}
+	return 0
+}
+
+func (x *GetHourlyWorkSummaryResponse) GetEstimatedBillableAmountMinor() int64 {
+	if x != nil {
+		return x.EstimatedBillableAmountMinor
+	}
+	return 0
+}
+
 type ReviewHourlyLogRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	HourlyLogId   int64                  `protobuf:"varint,1,opt,name=hourly_log_id,json=hourlyLogId,proto3" json:"hourly_log_id,omitempty"`
@@ -1868,7 +3433,7 @@ type ReviewHourlyLogRequest struct {
 
 func (x *ReviewHourlyLogRequest) Reset() {
 	*x = ReviewHourlyLogRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[21]
+	mi := &file_contract_v1_contract_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1880,7 +3445,7 @@ func (x *ReviewHourlyLogRequest) String() string {
 func (*ReviewHourlyLogRequest) ProtoMessage() {}
 
 func (x *ReviewHourlyLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[21]
+	mi := &file_contract_v1_contract_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1893,7 +3458,7 @@ func (x *ReviewHourlyLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReviewHourlyLogRequest.ProtoReflect.Descriptor instead.
 func (*ReviewHourlyLogRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{21}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ReviewHourlyLogRequest) GetHourlyLogId() int64 {
@@ -1926,7 +3491,7 @@ type ReviewHourlyLogResponse struct {
 
 func (x *ReviewHourlyLogResponse) Reset() {
 	*x = ReviewHourlyLogResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[22]
+	mi := &file_contract_v1_contract_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1938,7 +3503,7 @@ func (x *ReviewHourlyLogResponse) String() string {
 func (*ReviewHourlyLogResponse) ProtoMessage() {}
 
 func (x *ReviewHourlyLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[22]
+	mi := &file_contract_v1_contract_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1951,7 +3516,7 @@ func (x *ReviewHourlyLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReviewHourlyLogResponse.ProtoReflect.Descriptor instead.
 func (*ReviewHourlyLogResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{22}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ReviewHourlyLogResponse) GetHourlyLog() *HourlyLog {
@@ -1961,11 +3526,899 @@ func (x *ReviewHourlyLogResponse) GetHourlyLog() *HourlyLog {
 	return nil
 }
 
+type UpdateHourlyLogRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	HourlyLogId        int64                  `protobuf:"varint,1,opt,name=hourly_log_id,json=hourlyLogId,proto3" json:"hourly_log_id,omitempty"`
+	StartAtUnixSeconds int64                  `protobuf:"varint,2,opt,name=start_at_unix_seconds,json=startAtUnixSeconds,proto3" json:"start_at_unix_seconds,omitempty"`
+	EndAtUnixSeconds   int64                  `protobuf:"varint,3,opt,name=end_at_unix_seconds,json=endAtUnixSeconds,proto3" json:"end_at_unix_seconds,omitempty"`
+	Note               string                 `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	EvidenceUrls       []string               `protobuf:"bytes,5,rep,name=evidence_urls,json=evidenceUrls,proto3" json:"evidence_urls,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *UpdateHourlyLogRequest) Reset() {
+	*x = UpdateHourlyLogRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateHourlyLogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateHourlyLogRequest) ProtoMessage() {}
+
+func (x *UpdateHourlyLogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateHourlyLogRequest.ProtoReflect.Descriptor instead.
+func (*UpdateHourlyLogRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *UpdateHourlyLogRequest) GetHourlyLogId() int64 {
+	if x != nil {
+		return x.HourlyLogId
+	}
+	return 0
+}
+
+func (x *UpdateHourlyLogRequest) GetStartAtUnixSeconds() int64 {
+	if x != nil {
+		return x.StartAtUnixSeconds
+	}
+	return 0
+}
+
+func (x *UpdateHourlyLogRequest) GetEndAtUnixSeconds() int64 {
+	if x != nil {
+		return x.EndAtUnixSeconds
+	}
+	return 0
+}
+
+func (x *UpdateHourlyLogRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+func (x *UpdateHourlyLogRequest) GetEvidenceUrls() []string {
+	if x != nil {
+		return x.EvidenceUrls
+	}
+	return nil
+}
+
+type UpdateHourlyLogResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HourlyLog     *HourlyLog             `protobuf:"bytes,1,opt,name=hourly_log,json=hourlyLog,proto3" json:"hourly_log,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateHourlyLogResponse) Reset() {
+	*x = UpdateHourlyLogResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateHourlyLogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateHourlyLogResponse) ProtoMessage() {}
+
+func (x *UpdateHourlyLogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateHourlyLogResponse.ProtoReflect.Descriptor instead.
+func (*UpdateHourlyLogResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *UpdateHourlyLogResponse) GetHourlyLog() *HourlyLog {
+	if x != nil {
+		return x.HourlyLog
+	}
+	return nil
+}
+
+type DeleteHourlyLogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HourlyLogId   int64                  `protobuf:"varint,1,opt,name=hourly_log_id,json=hourlyLogId,proto3" json:"hourly_log_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteHourlyLogRequest) Reset() {
+	*x = DeleteHourlyLogRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteHourlyLogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteHourlyLogRequest) ProtoMessage() {}
+
+func (x *DeleteHourlyLogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteHourlyLogRequest.ProtoReflect.Descriptor instead.
+func (*DeleteHourlyLogRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *DeleteHourlyLogRequest) GetHourlyLogId() int64 {
+	if x != nil {
+		return x.HourlyLogId
+	}
+	return 0
+}
+
+type DeleteHourlyLogResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteHourlyLogResponse) Reset() {
+	*x = DeleteHourlyLogResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteHourlyLogResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteHourlyLogResponse) ProtoMessage() {}
+
+func (x *DeleteHourlyLogResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteHourlyLogResponse.ProtoReflect.Descriptor instead.
+func (*DeleteHourlyLogResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{47}
+}
+
+type GetHourlyInvoiceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	InvoiceId     int64                  `protobuf:"varint,1,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHourlyInvoiceRequest) Reset() {
+	*x = GetHourlyInvoiceRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHourlyInvoiceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHourlyInvoiceRequest) ProtoMessage() {}
+
+func (x *GetHourlyInvoiceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHourlyInvoiceRequest.ProtoReflect.Descriptor instead.
+func (*GetHourlyInvoiceRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *GetHourlyInvoiceRequest) GetInvoiceId() int64 {
+	if x != nil {
+		return x.InvoiceId
+	}
+	return 0
+}
+
+type GetHourlyInvoiceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Invoice       *HourlyInvoice         `protobuf:"bytes,1,opt,name=invoice,proto3" json:"invoice,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHourlyInvoiceResponse) Reset() {
+	*x = GetHourlyInvoiceResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHourlyInvoiceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHourlyInvoiceResponse) ProtoMessage() {}
+
+func (x *GetHourlyInvoiceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHourlyInvoiceResponse.ProtoReflect.Descriptor instead.
+func (*GetHourlyInvoiceResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *GetHourlyInvoiceResponse) GetInvoice() *HourlyInvoice {
+	if x != nil {
+		return x.Invoice
+	}
+	return nil
+}
+
+type ListHourlyInvoicesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListHourlyInvoicesRequest) Reset() {
+	*x = ListHourlyInvoicesRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListHourlyInvoicesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHourlyInvoicesRequest) ProtoMessage() {}
+
+func (x *ListHourlyInvoicesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHourlyInvoicesRequest.ProtoReflect.Descriptor instead.
+func (*ListHourlyInvoicesRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *ListHourlyInvoicesRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *ListHourlyInvoicesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListHourlyInvoicesRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListHourlyInvoicesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Invoices      []*HourlyInvoice       `protobuf:"bytes,1,rep,name=invoices,proto3" json:"invoices,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListHourlyInvoicesResponse) Reset() {
+	*x = ListHourlyInvoicesResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListHourlyInvoicesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListHourlyInvoicesResponse) ProtoMessage() {}
+
+func (x *ListHourlyInvoicesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListHourlyInvoicesResponse.ProtoReflect.Descriptor instead.
+func (*ListHourlyInvoicesResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *ListHourlyInvoicesResponse) GetInvoices() []*HourlyInvoice {
+	if x != nil {
+		return x.Invoices
+	}
+	return nil
+}
+
+func (x *ListHourlyInvoicesResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type InternalCloseHourlyWeekRequest struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	ContractId           int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	WeekStartUnixSeconds int64                  `protobuf:"varint,2,opt,name=week_start_unix_seconds,json=weekStartUnixSeconds,proto3" json:"week_start_unix_seconds,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *InternalCloseHourlyWeekRequest) Reset() {
+	*x = InternalCloseHourlyWeekRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalCloseHourlyWeekRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalCloseHourlyWeekRequest) ProtoMessage() {}
+
+func (x *InternalCloseHourlyWeekRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalCloseHourlyWeekRequest.ProtoReflect.Descriptor instead.
+func (*InternalCloseHourlyWeekRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{52}
+}
+
+func (x *InternalCloseHourlyWeekRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *InternalCloseHourlyWeekRequest) GetWeekStartUnixSeconds() int64 {
+	if x != nil {
+		return x.WeekStartUnixSeconds
+	}
+	return 0
+}
+
+type InternalCloseHourlyWeekResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Invoice       *HourlyInvoice         `protobuf:"bytes,1,opt,name=invoice,proto3" json:"invoice,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalCloseHourlyWeekResponse) Reset() {
+	*x = InternalCloseHourlyWeekResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalCloseHourlyWeekResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalCloseHourlyWeekResponse) ProtoMessage() {}
+
+func (x *InternalCloseHourlyWeekResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalCloseHourlyWeekResponse.ProtoReflect.Descriptor instead.
+func (*InternalCloseHourlyWeekResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *InternalCloseHourlyWeekResponse) GetInvoice() *HourlyInvoice {
+	if x != nil {
+		return x.Invoice
+	}
+	return nil
+}
+
+type InternalSettleHourlyInvoiceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	InvoiceId     int64                  `protobuf:"varint,1,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalSettleHourlyInvoiceRequest) Reset() {
+	*x = InternalSettleHourlyInvoiceRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalSettleHourlyInvoiceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalSettleHourlyInvoiceRequest) ProtoMessage() {}
+
+func (x *InternalSettleHourlyInvoiceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalSettleHourlyInvoiceRequest.ProtoReflect.Descriptor instead.
+func (*InternalSettleHourlyInvoiceRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *InternalSettleHourlyInvoiceRequest) GetInvoiceId() int64 {
+	if x != nil {
+		return x.InvoiceId
+	}
+	return 0
+}
+
+type InternalSettleHourlyInvoiceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Invoice       *HourlyInvoice         `protobuf:"bytes,1,opt,name=invoice,proto3" json:"invoice,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalSettleHourlyInvoiceResponse) Reset() {
+	*x = InternalSettleHourlyInvoiceResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalSettleHourlyInvoiceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalSettleHourlyInvoiceResponse) ProtoMessage() {}
+
+func (x *InternalSettleHourlyInvoiceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalSettleHourlyInvoiceResponse.ProtoReflect.Descriptor instead.
+func (*InternalSettleHourlyInvoiceResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *InternalSettleHourlyInvoiceResponse) GetInvoice() *HourlyInvoice {
+	if x != nil {
+		return x.Invoice
+	}
+	return nil
+}
+
+type CreateContractBonusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	AmountMinor   int64                  `protobuf:"varint,2,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
+	Note          string                 `protobuf:"bytes,3,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateContractBonusRequest) Reset() {
+	*x = CreateContractBonusRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateContractBonusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateContractBonusRequest) ProtoMessage() {}
+
+func (x *CreateContractBonusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateContractBonusRequest.ProtoReflect.Descriptor instead.
+func (*CreateContractBonusRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *CreateContractBonusRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *CreateContractBonusRequest) GetAmountMinor() int64 {
+	if x != nil {
+		return x.AmountMinor
+	}
+	return 0
+}
+
+func (x *CreateContractBonusRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+type CreateContractBonusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bonus         *ContractBonus         `protobuf:"bytes,1,opt,name=bonus,proto3" json:"bonus,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateContractBonusResponse) Reset() {
+	*x = CreateContractBonusResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateContractBonusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateContractBonusResponse) ProtoMessage() {}
+
+func (x *CreateContractBonusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateContractBonusResponse.ProtoReflect.Descriptor instead.
+func (*CreateContractBonusResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{57}
+}
+
+func (x *CreateContractBonusResponse) GetBonus() *ContractBonus {
+	if x != nil {
+		return x.Bonus
+	}
+	return nil
+}
+
+type ListContractBonusesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken     string                 `protobuf:"bytes,3,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListContractBonusesRequest) Reset() {
+	*x = ListContractBonusesRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[58]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListContractBonusesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListContractBonusesRequest) ProtoMessage() {}
+
+func (x *ListContractBonusesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[58]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListContractBonusesRequest.ProtoReflect.Descriptor instead.
+func (*ListContractBonusesRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{58}
+}
+
+func (x *ListContractBonusesRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *ListContractBonusesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListContractBonusesRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListContractBonusesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bonuses       []*ContractBonus       `protobuf:"bytes,1,rep,name=bonuses,proto3" json:"bonuses,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListContractBonusesResponse) Reset() {
+	*x = ListContractBonusesResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[59]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListContractBonusesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListContractBonusesResponse) ProtoMessage() {}
+
+func (x *ListContractBonusesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[59]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListContractBonusesResponse.ProtoReflect.Descriptor instead.
+func (*ListContractBonusesResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{59}
+}
+
+func (x *ListContractBonusesResponse) GetBonuses() []*ContractBonus {
+	if x != nil {
+		return x.Bonuses
+	}
+	return nil
+}
+
+func (x *ListContractBonusesResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type InternalMarkContractBonusPaidRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BonusId       int64                  `protobuf:"varint,1,opt,name=bonus_id,json=bonusId,proto3" json:"bonus_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalMarkContractBonusPaidRequest) Reset() {
+	*x = InternalMarkContractBonusPaidRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[60]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalMarkContractBonusPaidRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalMarkContractBonusPaidRequest) ProtoMessage() {}
+
+func (x *InternalMarkContractBonusPaidRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[60]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalMarkContractBonusPaidRequest.ProtoReflect.Descriptor instead.
+func (*InternalMarkContractBonusPaidRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{60}
+}
+
+func (x *InternalMarkContractBonusPaidRequest) GetBonusId() int64 {
+	if x != nil {
+		return x.BonusId
+	}
+	return 0
+}
+
+type InternalMarkContractBonusPaidResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Bonus         *ContractBonus         `protobuf:"bytes,1,opt,name=bonus,proto3" json:"bonus,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalMarkContractBonusPaidResponse) Reset() {
+	*x = InternalMarkContractBonusPaidResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[61]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalMarkContractBonusPaidResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalMarkContractBonusPaidResponse) ProtoMessage() {}
+
+func (x *InternalMarkContractBonusPaidResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[61]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalMarkContractBonusPaidResponse.ProtoReflect.Descriptor instead.
+func (*InternalMarkContractBonusPaidResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{61}
+}
+
+func (x *InternalMarkContractBonusPaidResponse) GetBonus() *ContractBonus {
+	if x != nil {
+		return x.Bonus
+	}
+	return nil
+}
+
 type ProposeAmendmentRequest struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	ContractId           int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
 	Summary              string                 `protobuf:"bytes,2,opt,name=summary,proto3" json:"summary,omitempty"`
-	PayloadJson          string                 `protobuf:"bytes,3,opt,name=payload_json,json=payloadJson,proto3" json:"payload_json,omitempty"`
+	Payload              *AmendmentPayload      `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
 	ExpiresAtUnixSeconds int64                  `protobuf:"varint,4,opt,name=expires_at_unix_seconds,json=expiresAtUnixSeconds,proto3" json:"expires_at_unix_seconds,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
@@ -1973,7 +4426,7 @@ type ProposeAmendmentRequest struct {
 
 func (x *ProposeAmendmentRequest) Reset() {
 	*x = ProposeAmendmentRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[23]
+	mi := &file_contract_v1_contract_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1985,7 +4438,7 @@ func (x *ProposeAmendmentRequest) String() string {
 func (*ProposeAmendmentRequest) ProtoMessage() {}
 
 func (x *ProposeAmendmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[23]
+	mi := &file_contract_v1_contract_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1998,7 +4451,7 @@ func (x *ProposeAmendmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProposeAmendmentRequest.ProtoReflect.Descriptor instead.
 func (*ProposeAmendmentRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{23}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ProposeAmendmentRequest) GetContractId() int64 {
@@ -2015,11 +4468,11 @@ func (x *ProposeAmendmentRequest) GetSummary() string {
 	return ""
 }
 
-func (x *ProposeAmendmentRequest) GetPayloadJson() string {
+func (x *ProposeAmendmentRequest) GetPayload() *AmendmentPayload {
 	if x != nil {
-		return x.PayloadJson
+		return x.Payload
 	}
-	return ""
+	return nil
 }
 
 func (x *ProposeAmendmentRequest) GetExpiresAtUnixSeconds() int64 {
@@ -2038,7 +4491,7 @@ type ProposeAmendmentResponse struct {
 
 func (x *ProposeAmendmentResponse) Reset() {
 	*x = ProposeAmendmentResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[24]
+	mi := &file_contract_v1_contract_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2050,7 +4503,7 @@ func (x *ProposeAmendmentResponse) String() string {
 func (*ProposeAmendmentResponse) ProtoMessage() {}
 
 func (x *ProposeAmendmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[24]
+	mi := &file_contract_v1_contract_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2063,7 +4516,7 @@ func (x *ProposeAmendmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProposeAmendmentResponse.ProtoReflect.Descriptor instead.
 func (*ProposeAmendmentResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{24}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ProposeAmendmentResponse) GetAmendment() *Amendment {
@@ -2077,13 +4530,14 @@ type RespondAmendmentRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AmendmentId   int64                  `protobuf:"varint,1,opt,name=amendment_id,json=amendmentId,proto3" json:"amendment_id,omitempty"`
 	Status        AmendmentStatus        `protobuf:"varint,2,opt,name=status,proto3,enum=contract.v1.AmendmentStatus" json:"status,omitempty"`
+	ResponseNote  string                 `protobuf:"bytes,3,opt,name=response_note,json=responseNote,proto3" json:"response_note,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RespondAmendmentRequest) Reset() {
 	*x = RespondAmendmentRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[25]
+	mi := &file_contract_v1_contract_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2095,7 +4549,7 @@ func (x *RespondAmendmentRequest) String() string {
 func (*RespondAmendmentRequest) ProtoMessage() {}
 
 func (x *RespondAmendmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[25]
+	mi := &file_contract_v1_contract_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2108,7 +4562,7 @@ func (x *RespondAmendmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RespondAmendmentRequest.ProtoReflect.Descriptor instead.
 func (*RespondAmendmentRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{25}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *RespondAmendmentRequest) GetAmendmentId() int64 {
@@ -2125,6 +4579,13 @@ func (x *RespondAmendmentRequest) GetStatus() AmendmentStatus {
 	return AmendmentStatus_AMENDMENT_STATUS_UNSPECIFIED
 }
 
+func (x *RespondAmendmentRequest) GetResponseNote() string {
+	if x != nil {
+		return x.ResponseNote
+	}
+	return ""
+}
+
 type RespondAmendmentResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Amendment     *Amendment             `protobuf:"bytes,1,opt,name=amendment,proto3" json:"amendment,omitempty"`
@@ -2134,7 +4595,7 @@ type RespondAmendmentResponse struct {
 
 func (x *RespondAmendmentResponse) Reset() {
 	*x = RespondAmendmentResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[26]
+	mi := &file_contract_v1_contract_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2146,7 +4607,7 @@ func (x *RespondAmendmentResponse) String() string {
 func (*RespondAmendmentResponse) ProtoMessage() {}
 
 func (x *RespondAmendmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[26]
+	mi := &file_contract_v1_contract_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2159,7 +4620,7 @@ func (x *RespondAmendmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RespondAmendmentResponse.ProtoReflect.Descriptor instead.
 func (*RespondAmendmentResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{26}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *RespondAmendmentResponse) GetAmendment() *Amendment {
@@ -2180,7 +4641,7 @@ type ListAmendmentsRequest struct {
 
 func (x *ListAmendmentsRequest) Reset() {
 	*x = ListAmendmentsRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[27]
+	mi := &file_contract_v1_contract_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2192,7 +4653,7 @@ func (x *ListAmendmentsRequest) String() string {
 func (*ListAmendmentsRequest) ProtoMessage() {}
 
 func (x *ListAmendmentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[27]
+	mi := &file_contract_v1_contract_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2205,7 +4666,7 @@ func (x *ListAmendmentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAmendmentsRequest.ProtoReflect.Descriptor instead.
 func (*ListAmendmentsRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{27}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ListAmendmentsRequest) GetContractId() int64 {
@@ -2239,7 +4700,7 @@ type ListAmendmentsResponse struct {
 
 func (x *ListAmendmentsResponse) Reset() {
 	*x = ListAmendmentsResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[28]
+	mi := &file_contract_v1_contract_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2251,7 +4712,7 @@ func (x *ListAmendmentsResponse) String() string {
 func (*ListAmendmentsResponse) ProtoMessage() {}
 
 func (x *ListAmendmentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[28]
+	mi := &file_contract_v1_contract_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2264,7 +4725,7 @@ func (x *ListAmendmentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAmendmentsResponse.ProtoReflect.Descriptor instead.
 func (*ListAmendmentsResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{28}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ListAmendmentsResponse) GetAmendments() []*Amendment {
@@ -2291,7 +4752,7 @@ type PauseContractRequest struct {
 
 func (x *PauseContractRequest) Reset() {
 	*x = PauseContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[29]
+	mi := &file_contract_v1_contract_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2303,7 +4764,7 @@ func (x *PauseContractRequest) String() string {
 func (*PauseContractRequest) ProtoMessage() {}
 
 func (x *PauseContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[29]
+	mi := &file_contract_v1_contract_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2316,7 +4777,7 @@ func (x *PauseContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseContractRequest.ProtoReflect.Descriptor instead.
 func (*PauseContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{29}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *PauseContractRequest) GetContractId() int64 {
@@ -2342,7 +4803,7 @@ type PauseContractResponse struct {
 
 func (x *PauseContractResponse) Reset() {
 	*x = PauseContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[30]
+	mi := &file_contract_v1_contract_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2354,7 +4815,7 @@ func (x *PauseContractResponse) String() string {
 func (*PauseContractResponse) ProtoMessage() {}
 
 func (x *PauseContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[30]
+	mi := &file_contract_v1_contract_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2367,7 +4828,7 @@ func (x *PauseContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseContractResponse.ProtoReflect.Descriptor instead.
 func (*PauseContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{30}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *PauseContractResponse) GetContract() *Contract {
@@ -2387,7 +4848,7 @@ type ResumeContractRequest struct {
 
 func (x *ResumeContractRequest) Reset() {
 	*x = ResumeContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[31]
+	mi := &file_contract_v1_contract_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2399,7 +4860,7 @@ func (x *ResumeContractRequest) String() string {
 func (*ResumeContractRequest) ProtoMessage() {}
 
 func (x *ResumeContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[31]
+	mi := &file_contract_v1_contract_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2412,7 +4873,7 @@ func (x *ResumeContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResumeContractRequest.ProtoReflect.Descriptor instead.
 func (*ResumeContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{31}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ResumeContractRequest) GetContractId() int64 {
@@ -2438,7 +4899,7 @@ type ResumeContractResponse struct {
 
 func (x *ResumeContractResponse) Reset() {
 	*x = ResumeContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[32]
+	mi := &file_contract_v1_contract_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2450,7 +4911,7 @@ func (x *ResumeContractResponse) String() string {
 func (*ResumeContractResponse) ProtoMessage() {}
 
 func (x *ResumeContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[32]
+	mi := &file_contract_v1_contract_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2463,7 +4924,7 @@ func (x *ResumeContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResumeContractResponse.ProtoReflect.Descriptor instead.
 func (*ResumeContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{32}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *ResumeContractResponse) GetContract() *Contract {
@@ -2483,7 +4944,7 @@ type EndContractRequest struct {
 
 func (x *EndContractRequest) Reset() {
 	*x = EndContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[33]
+	mi := &file_contract_v1_contract_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2495,7 +4956,7 @@ func (x *EndContractRequest) String() string {
 func (*EndContractRequest) ProtoMessage() {}
 
 func (x *EndContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[33]
+	mi := &file_contract_v1_contract_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2508,7 +4969,7 @@ func (x *EndContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndContractRequest.ProtoReflect.Descriptor instead.
 func (*EndContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{33}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *EndContractRequest) GetContractId() int64 {
@@ -2534,7 +4995,7 @@ type EndContractResponse struct {
 
 func (x *EndContractResponse) Reset() {
 	*x = EndContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[34]
+	mi := &file_contract_v1_contract_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2546,7 +5007,7 @@ func (x *EndContractResponse) String() string {
 func (*EndContractResponse) ProtoMessage() {}
 
 func (x *EndContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[34]
+	mi := &file_contract_v1_contract_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2559,7 +5020,7 @@ func (x *EndContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndContractResponse.ProtoReflect.Descriptor instead.
 func (*EndContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{34}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *EndContractResponse) GetContract() *Contract {
@@ -2580,7 +5041,7 @@ type GetStatusHistoryRequest struct {
 
 func (x *GetStatusHistoryRequest) Reset() {
 	*x = GetStatusHistoryRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[35]
+	mi := &file_contract_v1_contract_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2592,7 +5053,7 @@ func (x *GetStatusHistoryRequest) String() string {
 func (*GetStatusHistoryRequest) ProtoMessage() {}
 
 func (x *GetStatusHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[35]
+	mi := &file_contract_v1_contract_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2605,7 +5066,7 @@ func (x *GetStatusHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusHistoryRequest.ProtoReflect.Descriptor instead.
 func (*GetStatusHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{35}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *GetStatusHistoryRequest) GetContractId() int64 {
@@ -2639,7 +5100,7 @@ type GetStatusHistoryResponse struct {
 
 func (x *GetStatusHistoryResponse) Reset() {
 	*x = GetStatusHistoryResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[36]
+	mi := &file_contract_v1_contract_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2651,7 +5112,7 @@ func (x *GetStatusHistoryResponse) String() string {
 func (*GetStatusHistoryResponse) ProtoMessage() {}
 
 func (x *GetStatusHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[36]
+	mi := &file_contract_v1_contract_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2664,7 +5125,7 @@ func (x *GetStatusHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusHistoryResponse.ProtoReflect.Descriptor instead.
 func (*GetStatusHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{36}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *GetStatusHistoryResponse) GetEntries() []*StatusHistoryEntry {
@@ -2685,13 +5146,12 @@ var File_contract_v1_contract_proto protoreflect.FileDescriptor
 
 const file_contract_v1_contract_proto_rawDesc = "" +
 	"\n" +
-	"\x1acontract/v1/contract.proto\x12\vcontract.v1\"\xfa\x03\n" +
+	"\x1acontract/v1/contract.proto\x12\vcontract.v1\"\xe9\x03\n" +
 	"\tMilestone\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x16\n" +
-	"\x06amount\x18\x04 \x01(\x01R\x06amount\x12\x1a\n" +
-	"\bcurrency\x18\x05 \x01(\tR\bcurrency\x12-\n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12!\n" +
+	"\famount_minor\x18\x04 \x01(\x03R\vamountMinor\x12-\n" +
 	"\x13due_at_unix_seconds\x18\x06 \x01(\x03R\x10dueAtUnixSeconds\x124\n" +
 	"\x06status\x18\a \x01(\x0e2\x1c.contract.v1.MilestoneStatusR\x06status\x12'\n" +
 	"\x0fsubmission_note\x18\b \x01(\tR\x0esubmissionNote\x12'\n" +
@@ -2701,7 +5161,7 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\vreview_note\x18\v \x01(\tR\n" +
 	"reviewNote\x127\n" +
 	"\x18reviewed_at_unix_seconds\x18\f \x01(\x03R\x15reviewedAtUnixSeconds\x12%\n" +
-	"\x0erevision_count\x18\r \x01(\x05R\rrevisionCount\"\xfe\x03\n" +
+	"\x0erevision_count\x18\r \x01(\x05R\rrevisionCount\"\xc2\x04\n" +
 	"\tHourlyLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
 	"\vcontract_id\x18\x02 \x01(\x03R\n" +
@@ -2717,19 +5177,75 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	" \x01(\tR\n" +
 	"reviewNote\x125\n" +
 	"\x17created_at_unix_seconds\x18\v \x01(\x03R\x14createdAtUnixSeconds\x127\n" +
-	"\x18reviewed_at_unix_seconds\x18\f \x01(\x03R\x15reviewedAtUnixSeconds\"\xf9\x02\n" +
+	"\x18reviewed_at_unix_seconds\x18\f \x01(\x03R\x15reviewedAtUnixSeconds\x12\x1d\n" +
+	"\n" +
+	"invoice_id\x18\r \x01(\x03R\tinvoiceId\x12#\n" +
+	"\revidence_urls\x18\x0e \x03(\tR\fevidenceUrls\"\xd0\x05\n" +
+	"\rHourlyInvoice\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
+	"\vcontract_id\x18\x02 \x01(\x03R\n" +
+	"contractId\x12\x1b\n" +
+	"\tclient_id\x18\x03 \x01(\tR\bclientId\x12#\n" +
+	"\rfreelancer_id\x18\x04 \x01(\tR\ffreelancerId\x125\n" +
+	"\x17week_start_unix_seconds\x18\x05 \x01(\x03R\x14weekStartUnixSeconds\x121\n" +
+	"\x15week_end_unix_seconds\x18\x06 \x01(\x03R\x12weekEndUnixSeconds\x128\n" +
+	"\x06status\x18\a \x01(\x0e2 .contract.v1.HourlyInvoiceStatusR\x06status\x12)\n" +
+	"\x10billable_minutes\x18\b \x01(\x05R\x0fbillableMinutes\x12*\n" +
+	"\x11hourly_rate_minor\x18\t \x01(\x03R\x0fhourlyRateMinor\x12!\n" +
+	"\famount_minor\x18\n" +
+	" \x01(\x03R\vamountMinor\x12\x1d\n" +
+	"\n" +
+	"dispute_id\x18\v \x01(\tR\tdisputeId\x125\n" +
+	"\x17created_at_unix_seconds\x18\f \x01(\x03R\x14createdAtUnixSeconds\x129\n" +
+	"\x19submitted_at_unix_seconds\x18\r \x01(\x03R\x16submittedAtUnixSeconds\x127\n" +
+	"\x18approved_at_unix_seconds\x18\x0e \x01(\x03R\x15approvedAtUnixSeconds\x12/\n" +
+	"\x14paid_at_unix_seconds\x18\x0f \x01(\x03R\x11paidAtUnixSeconds\x123\n" +
+	"\x16failed_at_unix_seconds\x18\x10 \x01(\x03R\x13failedAtUnixSeconds\"\x90\x03\n" +
+	"\rContractBonus\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
+	"\vcontract_id\x18\x02 \x01(\x03R\n" +
+	"contractId\x12\x1b\n" +
+	"\tclient_id\x18\x03 \x01(\tR\bclientId\x12#\n" +
+	"\rfreelancer_id\x18\x04 \x01(\tR\ffreelancerId\x12!\n" +
+	"\famount_minor\x18\x05 \x01(\x03R\vamountMinor\x12\x12\n" +
+	"\x04note\x18\x06 \x01(\tR\x04note\x128\n" +
+	"\x06status\x18\a \x01(\x0e2 .contract.v1.ContractBonusStatusR\x06status\x125\n" +
+	"\x17created_at_unix_seconds\x18\b \x01(\x03R\x14createdAtUnixSeconds\x12/\n" +
+	"\x14paid_at_unix_seconds\x18\t \x01(\x03R\x11paidAtUnixSeconds\x123\n" +
+	"\x16failed_at_unix_seconds\x18\n" +
+	" \x01(\x03R\x13failedAtUnixSeconds\"\xd7\x03\n" +
 	"\tAmendment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
 	"\vcontract_id\x18\x02 \x01(\x03R\n" +
 	"contractId\x12\x1f\n" +
 	"\vproposed_by\x18\x03 \x01(\tR\n" +
 	"proposedBy\x12\x18\n" +
-	"\asummary\x18\x04 \x01(\tR\asummary\x12!\n" +
-	"\fpayload_json\x18\x05 \x01(\tR\vpayloadJson\x124\n" +
+	"\asummary\x18\x04 \x01(\tR\asummary\x127\n" +
+	"\apayload\x18\x05 \x01(\v2\x1d.contract.v1.AmendmentPayloadR\apayload\x124\n" +
 	"\x06status\x18\x06 \x01(\x0e2\x1c.contract.v1.AmendmentStatusR\x06status\x125\n" +
 	"\x17expires_at_unix_seconds\x18\a \x01(\x03R\x14expiresAtUnixSeconds\x129\n" +
 	"\x19responded_at_unix_seconds\x18\b \x01(\x03R\x16respondedAtUnixSeconds\x125\n" +
-	"\x17created_at_unix_seconds\x18\t \x01(\x03R\x14createdAtUnixSeconds\"\xe4\x01\n" +
+	"\x17created_at_unix_seconds\x18\t \x01(\x03R\x14createdAtUnixSeconds\x12!\n" +
+	"\fresponded_by\x18\n" +
+	" \x01(\tR\vrespondedBy\x12#\n" +
+	"\rresponse_note\x18\v \x01(\tR\fresponseNote\"z\n" +
+	"\x12CompensationChange\x121\n" +
+	"\x15new_hourly_rate_minor\x18\x01 \x01(\x03R\x12newHourlyRateMinor\x121\n" +
+	"\x15new_fixed_total_minor\x18\x02 \x01(\x03R\x12newFixedTotalMinor\"J\n" +
+	"\x10MilestonesChange\x126\n" +
+	"\n" +
+	"milestones\x18\x01 \x03(\v2\x16.contract.v1.MilestoneR\n" +
+	"milestones\"F\n" +
+	"\x11WeeklyLimitChange\x121\n" +
+	"\x15new_weekly_hour_limit\x18\x01 \x01(\x05R\x12newWeeklyHourLimit\"S\n" +
+	"\vScopeChange\x12\x1b\n" +
+	"\tnew_title\x18\x01 \x01(\tR\bnewTitle\x12'\n" +
+	"\x0fnew_description\x18\x02 \x01(\tR\x0enewDescription\"\xbd\x02\n" +
+	"\x10AmendmentPayload\x12P\n" +
+	"\x13compensation_change\x18\x01 \x01(\v2\x1f.contract.v1.CompensationChangeR\x12compensationChange\x12J\n" +
+	"\x11milestones_change\x18\x02 \x01(\v2\x1d.contract.v1.MilestonesChangeR\x10milestonesChange\x12N\n" +
+	"\x13weekly_limit_change\x18\x03 \x01(\v2\x1e.contract.v1.WeeklyLimitChangeR\x11weeklyLimitChange\x12;\n" +
+	"\fscope_change\x18\x04 \x01(\v2\x18.contract.v1.ScopeChangeR\vscopeChange\"\xcb\x02\n" +
 	"\x12StatusHistoryEntry\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
 	"\vcontract_id\x18\x02 \x01(\x03R\n" +
@@ -2737,7 +5253,10 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\x06status\x18\x03 \x01(\x0e2\x1b.contract.v1.ContractStatusR\x06status\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x19\n" +
 	"\bactor_id\x18\x05 \x01(\tR\aactorId\x125\n" +
-	"\x17created_at_unix_seconds\x18\x06 \x01(\x03R\x14createdAtUnixSeconds\"\xcd\x06\n" +
+	"\x17created_at_unix_seconds\x18\x06 \x01(\x03R\x14createdAtUnixSeconds\x12B\n" +
+	"\n" +
+	"event_type\x18\a \x01(\x0e2#.contract.v1.StatusHistoryEventTypeR\teventType\x12!\n" +
+	"\fmilestone_id\x18\b \x01(\x03R\vmilestoneId\"\xfe\x06\n" +
 	"\bContract\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1b\n" +
 	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12#\n" +
@@ -2748,13 +5267,9 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\rcontract_type\x18\x06 \x01(\x0e2\x19.contract.v1.ContractTypeR\fcontractType\x123\n" +
 	"\x06status\x18\a \x01(\x0e2\x1b.contract.v1.ContractStatusR\x06status\x12\x14\n" +
 	"\x05title\x18\b \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\t \x01(\tR\vdescription\x12\x1a\n" +
-	"\bcurrency\x18\n" +
-	" \x01(\tR\bcurrency\x12\x1f\n" +
-	"\vhourly_rate\x18\v \x01(\x01R\n" +
-	"hourlyRate\x12\x1f\n" +
-	"\vfixed_total\x18\f \x01(\x01R\n" +
-	"fixedTotal\x12*\n" +
+	"\vdescription\x18\t \x01(\tR\vdescription\x12*\n" +
+	"\x11hourly_rate_minor\x18\v \x01(\x03R\x0fhourlyRateMinor\x12*\n" +
+	"\x11fixed_total_minor\x18\f \x01(\x03R\x0ffixedTotalMinor\x12*\n" +
 	"\x11weekly_hour_limit\x18\r \x01(\x05R\x0fweeklyHourLimit\x126\n" +
 	"\n" +
 	"milestones\x18\x0e \x03(\v2\x16.contract.v1.MilestoneR\n" +
@@ -2762,9 +5277,10 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\x17created_at_unix_seconds\x18\x0f \x01(\x03R\x14createdAtUnixSeconds\x125\n" +
 	"\x17updated_at_unix_seconds\x18\x10 \x01(\x03R\x14updatedAtUnixSeconds\x129\n" +
 	"\x19activated_at_unix_seconds\x18\x11 \x01(\x03R\x16activatedAtUnixSeconds\x127\n" +
-	"\x18declined_at_unix_seconds\x18\x12 \x01(\x03R\x15declinedAtUnixSeconds\x123\n" +
-	"\x16paused_at_unix_seconds\x18\x13 \x01(\x03R\x13pausedAtUnixSeconds\x121\n" +
-	"\x15ended_at_unix_seconds\x18\x14 \x01(\x03R\x12endedAtUnixSeconds\"\xae\x03\n" +
+	"\x18declined_at_unix_seconds\x18\x12 \x01(\x03R\x15declinedAtUnixSeconds\x125\n" +
+	"\x17revoked_at_unix_seconds\x18\x13 \x01(\x03R\x14revokedAtUnixSeconds\x123\n" +
+	"\x16paused_at_unix_seconds\x18\x14 \x01(\x03R\x13pausedAtUnixSeconds\x121\n" +
+	"\x15ended_at_unix_seconds\x18\x15 \x01(\x03R\x12endedAtUnixSeconds\"\xa8\x03\n" +
 	"\x15CreateContractRequest\x12#\n" +
 	"\rfreelancer_id\x18\x01 \x01(\tR\ffreelancerId\x12\x15\n" +
 	"\x06job_id\x18\x02 \x01(\x03R\x05jobId\x12\x1f\n" +
@@ -2772,12 +5288,9 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"proposalId\x12>\n" +
 	"\rcontract_type\x18\x04 \x01(\x0e2\x19.contract.v1.ContractTypeR\fcontractType\x12\x14\n" +
 	"\x05title\x18\x05 \x01(\tR\x05title\x12 \n" +
-	"\vdescription\x18\x06 \x01(\tR\vdescription\x12\x1a\n" +
-	"\bcurrency\x18\a \x01(\tR\bcurrency\x12\x1f\n" +
-	"\vhourly_rate\x18\b \x01(\x01R\n" +
-	"hourlyRate\x12\x1f\n" +
-	"\vfixed_total\x18\t \x01(\x01R\n" +
-	"fixedTotal\x12*\n" +
+	"\vdescription\x18\x06 \x01(\tR\vdescription\x12*\n" +
+	"\x11hourly_rate_minor\x18\b \x01(\x03R\x0fhourlyRateMinor\x12*\n" +
+	"\x11fixed_total_minor\x18\t \x01(\x03R\x0ffixedTotalMinor\x12*\n" +
 	"\x11weekly_hour_limit\x18\n" +
 	" \x01(\x05R\x0fweeklyHourLimit\x126\n" +
 	"\n" +
@@ -2797,7 +5310,15 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"page_token\x18\x03 \x01(\tR\tpageToken\"v\n" +
 	"\x17ListMyContractsResponse\x123\n" +
 	"\tcontracts\x18\x01 \x03(\v2\x15.contract.v1.ContractR\tcontracts\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"8\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"0\n" +
+	"\x17GetJobOfferStateRequest\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\"\xeb\x01\n" +
+	"\x18GetJobOfferStateResponse\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\x12*\n" +
+	"\x11has_pending_offer\x18\x02 \x01(\bR\x0fhasPendingOffer\x12.\n" +
+	"\x13pending_contract_id\x18\x03 \x01(\x03R\x11pendingContractId\x12.\n" +
+	"\x13has_active_contract\x18\x04 \x01(\bR\x11hasActiveContract\x12,\n" +
+	"\x12active_contract_id\x18\x05 \x01(\x03R\x10activeContractId\"8\n" +
 	"\x15AcceptContractRequest\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\x03R\n" +
 	"contractId\"K\n" +
@@ -2808,27 +5329,60 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"contractId\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\"L\n" +
 	"\x17DeclineContractResponse\x121\n" +
-	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"\x8b\x02\n" +
-	"\x1cUpdateMilestoneStatusRequest\x12\x1f\n" +
+	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"U\n" +
+	"\x1aRevokeContractOfferRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"P\n" +
+	"\x1bRevokeContractOfferResponse\x121\n" +
+	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"\x96\x01\n" +
+	"\x1aSubmitMilestoneWorkRequest\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\x03R\n" +
 	"contractId\x12!\n" +
-	"\fmilestone_id\x18\x02 \x01(\x03R\vmilestoneId\x124\n" +
-	"\x06status\x18\x03 \x01(\x0e2\x1c.contract.v1.MilestoneStatusR\x06status\x12'\n" +
-	"\x0fsubmission_note\x18\x05 \x01(\tR\x0esubmissionNote\x12'\n" +
-	"\x0fsubmission_urls\x18\x06 \x03(\tR\x0esubmissionUrls\x12\x1f\n" +
-	"\vreview_note\x18\a \x01(\tR\n" +
-	"reviewNote\"R\n" +
-	"\x1dUpdateMilestoneStatusResponse\x121\n" +
-	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"\xad\x01\n" +
+	"\fmilestone_id\x18\x02 \x01(\x03R\vmilestoneId\x12\x12\n" +
+	"\x04note\x18\x03 \x01(\tR\x04note\x12 \n" +
+	"\vattachments\x18\x04 \x03(\tR\vattachments\"P\n" +
+	"\x1bSubmitMilestoneWorkResponse\x121\n" +
+	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"x\n" +
+	"\x1eRequestMilestoneChangesRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x12!\n" +
+	"\fmilestone_id\x18\x02 \x01(\x03R\vmilestoneId\x12\x12\n" +
+	"\x04note\x18\x03 \x01(\tR\x04note\"T\n" +
+	"\x1fRequestMilestoneChangesResponse\x121\n" +
+	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"g\n" +
+	"!ApproveMilestoneSubmissionRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x12!\n" +
+	"\fmilestone_id\x18\x02 \x01(\x03R\vmilestoneId\"W\n" +
+	"\"ApproveMilestoneSubmissionResponse\x121\n" +
+	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"h\n" +
+	"\"InternalMarkMilestoneFundedRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x12!\n" +
+	"\fmilestone_id\x18\x02 \x01(\x03R\vmilestoneId\"X\n" +
+	"#InternalMarkMilestoneFundedResponse\x121\n" +
+	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"\xd2\x01\n" +
 	"\x14LogHourlyWorkRequest\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\x03R\n" +
 	"contractId\x121\n" +
 	"\x15start_at_unix_seconds\x18\x02 \x01(\x03R\x12startAtUnixSeconds\x12-\n" +
 	"\x13end_at_unix_seconds\x18\x03 \x01(\x03R\x10endAtUnixSeconds\x12\x12\n" +
-	"\x04note\x18\x04 \x01(\tR\x04note\"N\n" +
+	"\x04note\x18\x04 \x01(\tR\x04note\x12#\n" +
+	"\revidence_urls\x18\x05 \x03(\tR\fevidenceUrls\"N\n" +
 	"\x15LogHourlyWorkResponse\x125\n" +
 	"\n" +
-	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"t\n" +
+	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"\x87\x01\n" +
+	"$GetHourlyLogEvidenceUploadUrlRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x12\x1b\n" +
+	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12!\n" +
+	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\"g\n" +
+	"%GetHourlyLogEvidenceUploadUrlResponse\x12\x1f\n" +
+	"\vstorage_key\x18\x01 \x01(\tR\n" +
+	"storageKey\x12\x1d\n" +
+	"\n" +
+	"upload_url\x18\x02 \x01(\tR\tuploadUrl\"t\n" +
 	"\x15ListHourlyLogsRequest\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\x03R\n" +
 	"contractId\x12\x1b\n" +
@@ -2838,7 +5392,25 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\x16ListHourlyLogsResponse\x127\n" +
 	"\vhourly_logs\x18\x01 \x03(\v2\x16.contract.v1.HourlyLogR\n" +
 	"hourlyLogs\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x93\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"u\n" +
+	"\x1bGetHourlyWorkSummaryRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x125\n" +
+	"\x17week_start_unix_seconds\x18\x02 \x01(\x03R\x14weekStartUnixSeconds\"\x9f\x04\n" +
+	"\x1cGetHourlyWorkSummaryResponse\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x125\n" +
+	"\x17week_start_unix_seconds\x18\x02 \x01(\x03R\x14weekStartUnixSeconds\x121\n" +
+	"\x15week_end_unix_seconds\x18\x03 \x01(\x03R\x12weekEndUnixSeconds\x12*\n" +
+	"\x11weekly_hour_limit\x18\x04 \x01(\x05R\x0fweeklyHourLimit\x12)\n" +
+	"\x10billable_minutes\x18\x05 \x01(\x05R\x0fbillableMinutes\x12'\n" +
+	"\x0fpending_minutes\x18\x06 \x01(\x05R\x0ependingMinutes\x12)\n" +
+	"\x10approved_minutes\x18\a \x01(\x05R\x0fapprovedMinutes\x12)\n" +
+	"\x10rejected_minutes\x18\b \x01(\x05R\x0frejectedMinutes\x12+\n" +
+	"\x11remaining_minutes\x18\t \x01(\x05R\x10remainingMinutes\x12*\n" +
+	"\x11hourly_rate_minor\x18\n" +
+	" \x01(\x03R\x0fhourlyRateMinor\x12E\n" +
+	"\x1festimated_billable_amount_minor\x18\v \x01(\x03R\x1cestimatedBillableAmountMinor\"\x93\x01\n" +
 	"\x16ReviewHourlyLogRequest\x12\"\n" +
 	"\rhourly_log_id\x18\x01 \x01(\x03R\vhourlyLogId\x124\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x1c.contract.v1.HourlyLogStatusR\x06status\x12\x1f\n" +
@@ -2846,18 +5418,76 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"reviewNote\"P\n" +
 	"\x17ReviewHourlyLogResponse\x125\n" +
 	"\n" +
-	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"\xae\x01\n" +
+	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"\xd7\x01\n" +
+	"\x16UpdateHourlyLogRequest\x12\"\n" +
+	"\rhourly_log_id\x18\x01 \x01(\x03R\vhourlyLogId\x121\n" +
+	"\x15start_at_unix_seconds\x18\x02 \x01(\x03R\x12startAtUnixSeconds\x12-\n" +
+	"\x13end_at_unix_seconds\x18\x03 \x01(\x03R\x10endAtUnixSeconds\x12\x12\n" +
+	"\x04note\x18\x04 \x01(\tR\x04note\x12#\n" +
+	"\revidence_urls\x18\x05 \x03(\tR\fevidenceUrls\"P\n" +
+	"\x17UpdateHourlyLogResponse\x125\n" +
+	"\n" +
+	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"<\n" +
+	"\x16DeleteHourlyLogRequest\x12\"\n" +
+	"\rhourly_log_id\x18\x01 \x01(\x03R\vhourlyLogId\"\x19\n" +
+	"\x17DeleteHourlyLogResponse\"8\n" +
+	"\x17GetHourlyInvoiceRequest\x12\x1d\n" +
+	"\n" +
+	"invoice_id\x18\x01 \x01(\x03R\tinvoiceId\"P\n" +
+	"\x18GetHourlyInvoiceResponse\x124\n" +
+	"\ainvoice\x18\x01 \x01(\v2\x1a.contract.v1.HourlyInvoiceR\ainvoice\"x\n" +
+	"\x19ListHourlyInvoicesRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"|\n" +
+	"\x1aListHourlyInvoicesResponse\x126\n" +
+	"\binvoices\x18\x01 \x03(\v2\x1a.contract.v1.HourlyInvoiceR\binvoices\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"x\n" +
+	"\x1eInternalCloseHourlyWeekRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x125\n" +
+	"\x17week_start_unix_seconds\x18\x02 \x01(\x03R\x14weekStartUnixSeconds\"W\n" +
+	"\x1fInternalCloseHourlyWeekResponse\x124\n" +
+	"\ainvoice\x18\x01 \x01(\v2\x1a.contract.v1.HourlyInvoiceR\ainvoice\"C\n" +
+	"\"InternalSettleHourlyInvoiceRequest\x12\x1d\n" +
+	"\n" +
+	"invoice_id\x18\x01 \x01(\x03R\tinvoiceId\"[\n" +
+	"#InternalSettleHourlyInvoiceResponse\x124\n" +
+	"\ainvoice\x18\x01 \x01(\v2\x1a.contract.v1.HourlyInvoiceR\ainvoice\"t\n" +
+	"\x1aCreateContractBonusRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x12!\n" +
+	"\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12\x12\n" +
+	"\x04note\x18\x03 \x01(\tR\x04note\"O\n" +
+	"\x1bCreateContractBonusResponse\x120\n" +
+	"\x05bonus\x18\x01 \x01(\v2\x1a.contract.v1.ContractBonusR\x05bonus\"y\n" +
+	"\x1aListContractBonusesRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x03 \x01(\tR\tpageToken\"{\n" +
+	"\x1bListContractBonusesResponse\x124\n" +
+	"\abonuses\x18\x01 \x03(\v2\x1a.contract.v1.ContractBonusR\abonuses\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"A\n" +
+	"$InternalMarkContractBonusPaidRequest\x12\x19\n" +
+	"\bbonus_id\x18\x01 \x01(\x03R\abonusId\"Y\n" +
+	"%InternalMarkContractBonusPaidResponse\x120\n" +
+	"\x05bonus\x18\x01 \x01(\v2\x1a.contract.v1.ContractBonusR\x05bonus\"\xc4\x01\n" +
 	"\x17ProposeAmendmentRequest\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\x03R\n" +
 	"contractId\x12\x18\n" +
-	"\asummary\x18\x02 \x01(\tR\asummary\x12!\n" +
-	"\fpayload_json\x18\x03 \x01(\tR\vpayloadJson\x125\n" +
+	"\asummary\x18\x02 \x01(\tR\asummary\x127\n" +
+	"\apayload\x18\x03 \x01(\v2\x1d.contract.v1.AmendmentPayloadR\apayload\x125\n" +
 	"\x17expires_at_unix_seconds\x18\x04 \x01(\x03R\x14expiresAtUnixSeconds\"P\n" +
 	"\x18ProposeAmendmentResponse\x124\n" +
-	"\tamendment\x18\x01 \x01(\v2\x16.contract.v1.AmendmentR\tamendment\"r\n" +
+	"\tamendment\x18\x01 \x01(\v2\x16.contract.v1.AmendmentR\tamendment\"\x97\x01\n" +
 	"\x17RespondAmendmentRequest\x12!\n" +
 	"\famendment_id\x18\x01 \x01(\x03R\vamendmentId\x124\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x1c.contract.v1.AmendmentStatusR\x06status\"P\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x1c.contract.v1.AmendmentStatusR\x06status\x12#\n" +
+	"\rresponse_note\x18\x03 \x01(\tR\fresponseNote\"P\n" +
 	"\x18RespondAmendmentResponse\x124\n" +
 	"\tamendment\x18\x01 \x01(\v2\x16.contract.v1.AmendmentR\tamendment\"t\n" +
 	"\x15ListAmendmentsRequest\x12\x1f\n" +
@@ -2901,21 +5531,24 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\fContractType\x12\x1d\n" +
 	"\x19CONTRACT_TYPE_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13CONTRACT_TYPE_FIXED\x10\x01\x12\x18\n" +
-	"\x14CONTRACT_TYPE_HOURLY\x10\x02*\xca\x01\n" +
+	"\x14CONTRACT_TYPE_HOURLY\x10\x02*\xe7\x01\n" +
 	"\x0eContractStatus\x12\x1f\n" +
 	"\x1bCONTRACT_STATUS_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"CONTRACT_STATUS_PENDING_ACCEPTANCE\x10\x01\x12\x1a\n" +
 	"\x16CONTRACT_STATUS_ACTIVE\x10\x02\x12\x1c\n" +
-	"\x18CONTRACT_STATUS_DECLINED\x10\x03\x12\x1a\n" +
-	"\x16CONTRACT_STATUS_PAUSED\x10\x04\x12\x19\n" +
-	"\x15CONTRACT_STATUS_ENDED\x10\x05*\xd5\x01\n" +
+	"\x18CONTRACT_STATUS_DECLINED\x10\x03\x12\x1b\n" +
+	"\x17CONTRACT_STATUS_REVOKED\x10\x04\x12\x1a\n" +
+	"\x16CONTRACT_STATUS_PAUSED\x10\x05\x12\x19\n" +
+	"\x15CONTRACT_STATUS_ENDED\x10\x06*\xa6\x02\n" +
 	"\x0fMilestoneStatus\x12 \n" +
 	"\x1cMILESTONE_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18MILESTONE_STATUS_PENDING\x10\x01\x12\x1e\n" +
 	"\x1aMILESTONE_STATUS_SUBMITTED\x10\x02\x12&\n" +
 	"\"MILESTONE_STATUS_CHANGES_REQUESTED\x10\x03\x12\x1d\n" +
 	"\x19MILESTONE_STATUS_APPROVED\x10\x04\x12\x1b\n" +
-	"\x17MILESTONE_STATUS_FUNDED\x10\x05*\x93\x01\n" +
+	"\x17MILESTONE_STATUS_FUNDED\x10\x05\x120\n" +
+	",MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT\x10\x06\x12\x1d\n" +
+	"\x19MILESTONE_STATUS_RELEASED\x10\a*\x93\x01\n" +
 	"\x0fHourlyLogStatus\x12!\n" +
 	"\x1dHOURLY_LOG_STATUS_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19HOURLY_LOG_STATUS_PENDING\x10\x01\x12\x1e\n" +
@@ -2926,17 +5559,61 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\x18AMENDMENT_STATUS_PENDING\x10\x01\x12\x1d\n" +
 	"\x19AMENDMENT_STATUS_ACCEPTED\x10\x02\x12\x1d\n" +
 	"\x19AMENDMENT_STATUS_REJECTED\x10\x03\x12\x1c\n" +
-	"\x18AMENDMENT_STATUS_EXPIRED\x10\x042\xd9\v\n" +
+	"\x18AMENDMENT_STATUS_EXPIRED\x10\x04*\xd4\x02\n" +
+	"\x13HourlyInvoiceStatus\x12%\n" +
+	"!HOURLY_INVOICE_STATUS_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bHOURLY_INVOICE_STATUS_DRAFT\x10\x01\x12#\n" +
+	"\x1fHOURLY_INVOICE_STATUS_SUBMITTED\x10\x02\x12#\n" +
+	"\x1fHOURLY_INVOICE_STATUS_IN_REVIEW\x10\x03\x12\"\n" +
+	"\x1eHOURLY_INVOICE_STATUS_APPROVED\x10\x04\x12\"\n" +
+	"\x1eHOURLY_INVOICE_STATUS_DISPUTED\x10\x05\x12!\n" +
+	"\x1dHOURLY_INVOICE_STATUS_CHARGED\x10\x06\x12\x1e\n" +
+	"\x1aHOURLY_INVOICE_STATUS_PAID\x10\a\x12 \n" +
+	"\x1cHOURLY_INVOICE_STATUS_FAILED\x10\b*\xa1\x01\n" +
+	"\x13ContractBonusStatus\x12%\n" +
+	"!CONTRACT_BONUS_STATUS_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dCONTRACT_BONUS_STATUS_PENDING\x10\x01\x12\x1e\n" +
+	"\x1aCONTRACT_BONUS_STATUS_PAID\x10\x02\x12 \n" +
+	"\x1cCONTRACT_BONUS_STATUS_FAILED\x10\x03*\xe3\x04\n" +
+	"\x16StatusHistoryEventType\x12)\n" +
+	"%STATUS_HISTORY_EVENT_TYPE_UNSPECIFIED\x10\x00\x125\n" +
+	"1STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED\x10\x01\x121\n" +
+	"-STATUS_HISTORY_EVENT_TYPE_MILESTONE_SUBMITTED\x10\x02\x129\n" +
+	"5STATUS_HISTORY_EVENT_TYPE_MILESTONE_CHANGES_REQUESTED\x10\x03\x12C\n" +
+	"?STATUS_HISTORY_EVENT_TYPE_MILESTONE_APPROVED_PENDING_SETTLEMENT\x10\x04\x12.\n" +
+	"*STATUS_HISTORY_EVENT_TYPE_MILESTONE_FUNDED\x10\x05\x120\n" +
+	",STATUS_HISTORY_EVENT_TYPE_MILESTONE_RELEASED\x10\x06\x124\n" +
+	"0STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_CREATED\x10\a\x125\n" +
+	"1STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_DISPUTED\x10\b\x121\n" +
+	"-STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_PAID\x10\t\x122\n" +
+	".STATUS_HISTORY_EVENT_TYPE_CONTRACT_END_BLOCKED\x10\n" +
+	"2\xee\x19\n" +
 	"\x0fContractService\x12Y\n" +
 	"\x0eCreateContract\x12\".contract.v1.CreateContractRequest\x1a#.contract.v1.CreateContractResponse\x12P\n" +
 	"\vGetContract\x12\x1f.contract.v1.GetContractRequest\x1a .contract.v1.GetContractResponse\x12\\\n" +
-	"\x0fListMyContracts\x12#.contract.v1.ListMyContractsRequest\x1a$.contract.v1.ListMyContractsResponse\x12Y\n" +
+	"\x0fListMyContracts\x12#.contract.v1.ListMyContractsRequest\x1a$.contract.v1.ListMyContractsResponse\x12g\n" +
+	"\x18InternalGetJobOfferState\x12$.contract.v1.GetJobOfferStateRequest\x1a%.contract.v1.GetJobOfferStateResponse\x12Y\n" +
 	"\x0eAcceptContract\x12\".contract.v1.AcceptContractRequest\x1a#.contract.v1.AcceptContractResponse\x12\\\n" +
-	"\x0fDeclineContract\x12#.contract.v1.DeclineContractRequest\x1a$.contract.v1.DeclineContractResponse\x12n\n" +
-	"\x15UpdateMilestoneStatus\x12).contract.v1.UpdateMilestoneStatusRequest\x1a*.contract.v1.UpdateMilestoneStatusResponse\x12V\n" +
-	"\rLogHourlyWork\x12!.contract.v1.LogHourlyWorkRequest\x1a\".contract.v1.LogHourlyWorkResponse\x12Y\n" +
-	"\x0eListHourlyLogs\x12\".contract.v1.ListHourlyLogsRequest\x1a#.contract.v1.ListHourlyLogsResponse\x12\\\n" +
+	"\x0fDeclineContract\x12#.contract.v1.DeclineContractRequest\x1a$.contract.v1.DeclineContractResponse\x12h\n" +
+	"\x13RevokeContractOffer\x12'.contract.v1.RevokeContractOfferRequest\x1a(.contract.v1.RevokeContractOfferResponse\x12h\n" +
+	"\x13SubmitMilestoneWork\x12'.contract.v1.SubmitMilestoneWorkRequest\x1a(.contract.v1.SubmitMilestoneWorkResponse\x12t\n" +
+	"\x17RequestMilestoneChanges\x12+.contract.v1.RequestMilestoneChangesRequest\x1a,.contract.v1.RequestMilestoneChangesResponse\x12}\n" +
+	"\x1aApproveMilestoneSubmission\x12..contract.v1.ApproveMilestoneSubmissionRequest\x1a/.contract.v1.ApproveMilestoneSubmissionResponse\x12\x80\x01\n" +
+	"\x1bInternalMarkMilestoneFunded\x12/.contract.v1.InternalMarkMilestoneFundedRequest\x1a0.contract.v1.InternalMarkMilestoneFundedResponse\x12V\n" +
+	"\rLogHourlyWork\x12!.contract.v1.LogHourlyWorkRequest\x1a\".contract.v1.LogHourlyWorkResponse\x12\x86\x01\n" +
+	"\x1dGetHourlyLogEvidenceUploadUrl\x121.contract.v1.GetHourlyLogEvidenceUploadUrlRequest\x1a2.contract.v1.GetHourlyLogEvidenceUploadUrlResponse\x12Y\n" +
+	"\x0eListHourlyLogs\x12\".contract.v1.ListHourlyLogsRequest\x1a#.contract.v1.ListHourlyLogsResponse\x12k\n" +
+	"\x14GetHourlyWorkSummary\x12(.contract.v1.GetHourlyWorkSummaryRequest\x1a).contract.v1.GetHourlyWorkSummaryResponse\x12\\\n" +
+	"\x0fUpdateHourlyLog\x12#.contract.v1.UpdateHourlyLogRequest\x1a$.contract.v1.UpdateHourlyLogResponse\x12\\\n" +
+	"\x0fDeleteHourlyLog\x12#.contract.v1.DeleteHourlyLogRequest\x1a$.contract.v1.DeleteHourlyLogResponse\x12\\\n" +
 	"\x0fReviewHourlyLog\x12#.contract.v1.ReviewHourlyLogRequest\x1a$.contract.v1.ReviewHourlyLogResponse\x12_\n" +
+	"\x10GetHourlyInvoice\x12$.contract.v1.GetHourlyInvoiceRequest\x1a%.contract.v1.GetHourlyInvoiceResponse\x12e\n" +
+	"\x12ListHourlyInvoices\x12&.contract.v1.ListHourlyInvoicesRequest\x1a'.contract.v1.ListHourlyInvoicesResponse\x12t\n" +
+	"\x17InternalCloseHourlyWeek\x12+.contract.v1.InternalCloseHourlyWeekRequest\x1a,.contract.v1.InternalCloseHourlyWeekResponse\x12\x80\x01\n" +
+	"\x1bInternalSettleHourlyInvoice\x12/.contract.v1.InternalSettleHourlyInvoiceRequest\x1a0.contract.v1.InternalSettleHourlyInvoiceResponse\x12h\n" +
+	"\x13CreateContractBonus\x12'.contract.v1.CreateContractBonusRequest\x1a(.contract.v1.CreateContractBonusResponse\x12h\n" +
+	"\x13ListContractBonuses\x12'.contract.v1.ListContractBonusesRequest\x1a(.contract.v1.ListContractBonusesResponse\x12\x86\x01\n" +
+	"\x1dInternalMarkContractBonusPaid\x121.contract.v1.InternalMarkContractBonusPaidRequest\x1a2.contract.v1.InternalMarkContractBonusPaidResponse\x12_\n" +
 	"\x10ProposeAmendment\x12$.contract.v1.ProposeAmendmentRequest\x1a%.contract.v1.ProposeAmendmentResponse\x12_\n" +
 	"\x10RespondAmendment\x12$.contract.v1.RespondAmendmentRequest\x1a%.contract.v1.RespondAmendmentResponse\x12Y\n" +
 	"\x0eListAmendments\x12\".contract.v1.ListAmendmentsRequest\x1a#.contract.v1.ListAmendmentsResponse\x12V\n" +
@@ -2957,119 +5634,214 @@ func file_contract_v1_contract_proto_rawDescGZIP() []byte {
 	return file_contract_v1_contract_proto_rawDescData
 }
 
-var file_contract_v1_contract_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_contract_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
+var file_contract_v1_contract_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
+var file_contract_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 76)
 var file_contract_v1_contract_proto_goTypes = []any{
-	(ContractType)(0),                     // 0: contract.v1.ContractType
-	(ContractStatus)(0),                   // 1: contract.v1.ContractStatus
-	(MilestoneStatus)(0),                  // 2: contract.v1.MilestoneStatus
-	(HourlyLogStatus)(0),                  // 3: contract.v1.HourlyLogStatus
-	(AmendmentStatus)(0),                  // 4: contract.v1.AmendmentStatus
-	(*Milestone)(nil),                     // 5: contract.v1.Milestone
-	(*HourlyLog)(nil),                     // 6: contract.v1.HourlyLog
-	(*Amendment)(nil),                     // 7: contract.v1.Amendment
-	(*StatusHistoryEntry)(nil),            // 8: contract.v1.StatusHistoryEntry
-	(*Contract)(nil),                      // 9: contract.v1.Contract
-	(*CreateContractRequest)(nil),         // 10: contract.v1.CreateContractRequest
-	(*CreateContractResponse)(nil),        // 11: contract.v1.CreateContractResponse
-	(*GetContractRequest)(nil),            // 12: contract.v1.GetContractRequest
-	(*GetContractResponse)(nil),           // 13: contract.v1.GetContractResponse
-	(*ListMyContractsRequest)(nil),        // 14: contract.v1.ListMyContractsRequest
-	(*ListMyContractsResponse)(nil),       // 15: contract.v1.ListMyContractsResponse
-	(*AcceptContractRequest)(nil),         // 16: contract.v1.AcceptContractRequest
-	(*AcceptContractResponse)(nil),        // 17: contract.v1.AcceptContractResponse
-	(*DeclineContractRequest)(nil),        // 18: contract.v1.DeclineContractRequest
-	(*DeclineContractResponse)(nil),       // 19: contract.v1.DeclineContractResponse
-	(*UpdateMilestoneStatusRequest)(nil),  // 20: contract.v1.UpdateMilestoneStatusRequest
-	(*UpdateMilestoneStatusResponse)(nil), // 21: contract.v1.UpdateMilestoneStatusResponse
-	(*LogHourlyWorkRequest)(nil),          // 22: contract.v1.LogHourlyWorkRequest
-	(*LogHourlyWorkResponse)(nil),         // 23: contract.v1.LogHourlyWorkResponse
-	(*ListHourlyLogsRequest)(nil),         // 24: contract.v1.ListHourlyLogsRequest
-	(*ListHourlyLogsResponse)(nil),        // 25: contract.v1.ListHourlyLogsResponse
-	(*ReviewHourlyLogRequest)(nil),        // 26: contract.v1.ReviewHourlyLogRequest
-	(*ReviewHourlyLogResponse)(nil),       // 27: contract.v1.ReviewHourlyLogResponse
-	(*ProposeAmendmentRequest)(nil),       // 28: contract.v1.ProposeAmendmentRequest
-	(*ProposeAmendmentResponse)(nil),      // 29: contract.v1.ProposeAmendmentResponse
-	(*RespondAmendmentRequest)(nil),       // 30: contract.v1.RespondAmendmentRequest
-	(*RespondAmendmentResponse)(nil),      // 31: contract.v1.RespondAmendmentResponse
-	(*ListAmendmentsRequest)(nil),         // 32: contract.v1.ListAmendmentsRequest
-	(*ListAmendmentsResponse)(nil),        // 33: contract.v1.ListAmendmentsResponse
-	(*PauseContractRequest)(nil),          // 34: contract.v1.PauseContractRequest
-	(*PauseContractResponse)(nil),         // 35: contract.v1.PauseContractResponse
-	(*ResumeContractRequest)(nil),         // 36: contract.v1.ResumeContractRequest
-	(*ResumeContractResponse)(nil),        // 37: contract.v1.ResumeContractResponse
-	(*EndContractRequest)(nil),            // 38: contract.v1.EndContractRequest
-	(*EndContractResponse)(nil),           // 39: contract.v1.EndContractResponse
-	(*GetStatusHistoryRequest)(nil),       // 40: contract.v1.GetStatusHistoryRequest
-	(*GetStatusHistoryResponse)(nil),      // 41: contract.v1.GetStatusHistoryResponse
+	(ContractType)(0),                             // 0: contract.v1.ContractType
+	(ContractStatus)(0),                           // 1: contract.v1.ContractStatus
+	(MilestoneStatus)(0),                          // 2: contract.v1.MilestoneStatus
+	(HourlyLogStatus)(0),                          // 3: contract.v1.HourlyLogStatus
+	(AmendmentStatus)(0),                          // 4: contract.v1.AmendmentStatus
+	(HourlyInvoiceStatus)(0),                      // 5: contract.v1.HourlyInvoiceStatus
+	(ContractBonusStatus)(0),                      // 6: contract.v1.ContractBonusStatus
+	(StatusHistoryEventType)(0),                   // 7: contract.v1.StatusHistoryEventType
+	(*Milestone)(nil),                             // 8: contract.v1.Milestone
+	(*HourlyLog)(nil),                             // 9: contract.v1.HourlyLog
+	(*HourlyInvoice)(nil),                         // 10: contract.v1.HourlyInvoice
+	(*ContractBonus)(nil),                         // 11: contract.v1.ContractBonus
+	(*Amendment)(nil),                             // 12: contract.v1.Amendment
+	(*CompensationChange)(nil),                    // 13: contract.v1.CompensationChange
+	(*MilestonesChange)(nil),                      // 14: contract.v1.MilestonesChange
+	(*WeeklyLimitChange)(nil),                     // 15: contract.v1.WeeklyLimitChange
+	(*ScopeChange)(nil),                           // 16: contract.v1.ScopeChange
+	(*AmendmentPayload)(nil),                      // 17: contract.v1.AmendmentPayload
+	(*StatusHistoryEntry)(nil),                    // 18: contract.v1.StatusHistoryEntry
+	(*Contract)(nil),                              // 19: contract.v1.Contract
+	(*CreateContractRequest)(nil),                 // 20: contract.v1.CreateContractRequest
+	(*CreateContractResponse)(nil),                // 21: contract.v1.CreateContractResponse
+	(*GetContractRequest)(nil),                    // 22: contract.v1.GetContractRequest
+	(*GetContractResponse)(nil),                   // 23: contract.v1.GetContractResponse
+	(*ListMyContractsRequest)(nil),                // 24: contract.v1.ListMyContractsRequest
+	(*ListMyContractsResponse)(nil),               // 25: contract.v1.ListMyContractsResponse
+	(*GetJobOfferStateRequest)(nil),               // 26: contract.v1.GetJobOfferStateRequest
+	(*GetJobOfferStateResponse)(nil),              // 27: contract.v1.GetJobOfferStateResponse
+	(*AcceptContractRequest)(nil),                 // 28: contract.v1.AcceptContractRequest
+	(*AcceptContractResponse)(nil),                // 29: contract.v1.AcceptContractResponse
+	(*DeclineContractRequest)(nil),                // 30: contract.v1.DeclineContractRequest
+	(*DeclineContractResponse)(nil),               // 31: contract.v1.DeclineContractResponse
+	(*RevokeContractOfferRequest)(nil),            // 32: contract.v1.RevokeContractOfferRequest
+	(*RevokeContractOfferResponse)(nil),           // 33: contract.v1.RevokeContractOfferResponse
+	(*SubmitMilestoneWorkRequest)(nil),            // 34: contract.v1.SubmitMilestoneWorkRequest
+	(*SubmitMilestoneWorkResponse)(nil),           // 35: contract.v1.SubmitMilestoneWorkResponse
+	(*RequestMilestoneChangesRequest)(nil),        // 36: contract.v1.RequestMilestoneChangesRequest
+	(*RequestMilestoneChangesResponse)(nil),       // 37: contract.v1.RequestMilestoneChangesResponse
+	(*ApproveMilestoneSubmissionRequest)(nil),     // 38: contract.v1.ApproveMilestoneSubmissionRequest
+	(*ApproveMilestoneSubmissionResponse)(nil),    // 39: contract.v1.ApproveMilestoneSubmissionResponse
+	(*InternalMarkMilestoneFundedRequest)(nil),    // 40: contract.v1.InternalMarkMilestoneFundedRequest
+	(*InternalMarkMilestoneFundedResponse)(nil),   // 41: contract.v1.InternalMarkMilestoneFundedResponse
+	(*LogHourlyWorkRequest)(nil),                  // 42: contract.v1.LogHourlyWorkRequest
+	(*LogHourlyWorkResponse)(nil),                 // 43: contract.v1.LogHourlyWorkResponse
+	(*GetHourlyLogEvidenceUploadUrlRequest)(nil),  // 44: contract.v1.GetHourlyLogEvidenceUploadUrlRequest
+	(*GetHourlyLogEvidenceUploadUrlResponse)(nil), // 45: contract.v1.GetHourlyLogEvidenceUploadUrlResponse
+	(*ListHourlyLogsRequest)(nil),                 // 46: contract.v1.ListHourlyLogsRequest
+	(*ListHourlyLogsResponse)(nil),                // 47: contract.v1.ListHourlyLogsResponse
+	(*GetHourlyWorkSummaryRequest)(nil),           // 48: contract.v1.GetHourlyWorkSummaryRequest
+	(*GetHourlyWorkSummaryResponse)(nil),          // 49: contract.v1.GetHourlyWorkSummaryResponse
+	(*ReviewHourlyLogRequest)(nil),                // 50: contract.v1.ReviewHourlyLogRequest
+	(*ReviewHourlyLogResponse)(nil),               // 51: contract.v1.ReviewHourlyLogResponse
+	(*UpdateHourlyLogRequest)(nil),                // 52: contract.v1.UpdateHourlyLogRequest
+	(*UpdateHourlyLogResponse)(nil),               // 53: contract.v1.UpdateHourlyLogResponse
+	(*DeleteHourlyLogRequest)(nil),                // 54: contract.v1.DeleteHourlyLogRequest
+	(*DeleteHourlyLogResponse)(nil),               // 55: contract.v1.DeleteHourlyLogResponse
+	(*GetHourlyInvoiceRequest)(nil),               // 56: contract.v1.GetHourlyInvoiceRequest
+	(*GetHourlyInvoiceResponse)(nil),              // 57: contract.v1.GetHourlyInvoiceResponse
+	(*ListHourlyInvoicesRequest)(nil),             // 58: contract.v1.ListHourlyInvoicesRequest
+	(*ListHourlyInvoicesResponse)(nil),            // 59: contract.v1.ListHourlyInvoicesResponse
+	(*InternalCloseHourlyWeekRequest)(nil),        // 60: contract.v1.InternalCloseHourlyWeekRequest
+	(*InternalCloseHourlyWeekResponse)(nil),       // 61: contract.v1.InternalCloseHourlyWeekResponse
+	(*InternalSettleHourlyInvoiceRequest)(nil),    // 62: contract.v1.InternalSettleHourlyInvoiceRequest
+	(*InternalSettleHourlyInvoiceResponse)(nil),   // 63: contract.v1.InternalSettleHourlyInvoiceResponse
+	(*CreateContractBonusRequest)(nil),            // 64: contract.v1.CreateContractBonusRequest
+	(*CreateContractBonusResponse)(nil),           // 65: contract.v1.CreateContractBonusResponse
+	(*ListContractBonusesRequest)(nil),            // 66: contract.v1.ListContractBonusesRequest
+	(*ListContractBonusesResponse)(nil),           // 67: contract.v1.ListContractBonusesResponse
+	(*InternalMarkContractBonusPaidRequest)(nil),  // 68: contract.v1.InternalMarkContractBonusPaidRequest
+	(*InternalMarkContractBonusPaidResponse)(nil), // 69: contract.v1.InternalMarkContractBonusPaidResponse
+	(*ProposeAmendmentRequest)(nil),               // 70: contract.v1.ProposeAmendmentRequest
+	(*ProposeAmendmentResponse)(nil),              // 71: contract.v1.ProposeAmendmentResponse
+	(*RespondAmendmentRequest)(nil),               // 72: contract.v1.RespondAmendmentRequest
+	(*RespondAmendmentResponse)(nil),              // 73: contract.v1.RespondAmendmentResponse
+	(*ListAmendmentsRequest)(nil),                 // 74: contract.v1.ListAmendmentsRequest
+	(*ListAmendmentsResponse)(nil),                // 75: contract.v1.ListAmendmentsResponse
+	(*PauseContractRequest)(nil),                  // 76: contract.v1.PauseContractRequest
+	(*PauseContractResponse)(nil),                 // 77: contract.v1.PauseContractResponse
+	(*ResumeContractRequest)(nil),                 // 78: contract.v1.ResumeContractRequest
+	(*ResumeContractResponse)(nil),                // 79: contract.v1.ResumeContractResponse
+	(*EndContractRequest)(nil),                    // 80: contract.v1.EndContractRequest
+	(*EndContractResponse)(nil),                   // 81: contract.v1.EndContractResponse
+	(*GetStatusHistoryRequest)(nil),               // 82: contract.v1.GetStatusHistoryRequest
+	(*GetStatusHistoryResponse)(nil),              // 83: contract.v1.GetStatusHistoryResponse
 }
 var file_contract_v1_contract_proto_depIdxs = []int32{
 	2,  // 0: contract.v1.Milestone.status:type_name -> contract.v1.MilestoneStatus
 	3,  // 1: contract.v1.HourlyLog.status:type_name -> contract.v1.HourlyLogStatus
-	4,  // 2: contract.v1.Amendment.status:type_name -> contract.v1.AmendmentStatus
-	1,  // 3: contract.v1.StatusHistoryEntry.status:type_name -> contract.v1.ContractStatus
-	0,  // 4: contract.v1.Contract.contract_type:type_name -> contract.v1.ContractType
-	1,  // 5: contract.v1.Contract.status:type_name -> contract.v1.ContractStatus
-	5,  // 6: contract.v1.Contract.milestones:type_name -> contract.v1.Milestone
-	0,  // 7: contract.v1.CreateContractRequest.contract_type:type_name -> contract.v1.ContractType
-	5,  // 8: contract.v1.CreateContractRequest.milestones:type_name -> contract.v1.Milestone
-	9,  // 9: contract.v1.CreateContractResponse.contract:type_name -> contract.v1.Contract
-	9,  // 10: contract.v1.GetContractResponse.contract:type_name -> contract.v1.Contract
-	1,  // 11: contract.v1.ListMyContractsRequest.status:type_name -> contract.v1.ContractStatus
-	9,  // 12: contract.v1.ListMyContractsResponse.contracts:type_name -> contract.v1.Contract
-	9,  // 13: contract.v1.AcceptContractResponse.contract:type_name -> contract.v1.Contract
-	9,  // 14: contract.v1.DeclineContractResponse.contract:type_name -> contract.v1.Contract
-	2,  // 15: contract.v1.UpdateMilestoneStatusRequest.status:type_name -> contract.v1.MilestoneStatus
-	9,  // 16: contract.v1.UpdateMilestoneStatusResponse.contract:type_name -> contract.v1.Contract
-	6,  // 17: contract.v1.LogHourlyWorkResponse.hourly_log:type_name -> contract.v1.HourlyLog
-	6,  // 18: contract.v1.ListHourlyLogsResponse.hourly_logs:type_name -> contract.v1.HourlyLog
-	3,  // 19: contract.v1.ReviewHourlyLogRequest.status:type_name -> contract.v1.HourlyLogStatus
-	6,  // 20: contract.v1.ReviewHourlyLogResponse.hourly_log:type_name -> contract.v1.HourlyLog
-	7,  // 21: contract.v1.ProposeAmendmentResponse.amendment:type_name -> contract.v1.Amendment
-	4,  // 22: contract.v1.RespondAmendmentRequest.status:type_name -> contract.v1.AmendmentStatus
-	7,  // 23: contract.v1.RespondAmendmentResponse.amendment:type_name -> contract.v1.Amendment
-	7,  // 24: contract.v1.ListAmendmentsResponse.amendments:type_name -> contract.v1.Amendment
-	9,  // 25: contract.v1.PauseContractResponse.contract:type_name -> contract.v1.Contract
-	9,  // 26: contract.v1.ResumeContractResponse.contract:type_name -> contract.v1.Contract
-	9,  // 27: contract.v1.EndContractResponse.contract:type_name -> contract.v1.Contract
-	8,  // 28: contract.v1.GetStatusHistoryResponse.entries:type_name -> contract.v1.StatusHistoryEntry
-	10, // 29: contract.v1.ContractService.CreateContract:input_type -> contract.v1.CreateContractRequest
-	12, // 30: contract.v1.ContractService.GetContract:input_type -> contract.v1.GetContractRequest
-	14, // 31: contract.v1.ContractService.ListMyContracts:input_type -> contract.v1.ListMyContractsRequest
-	16, // 32: contract.v1.ContractService.AcceptContract:input_type -> contract.v1.AcceptContractRequest
-	18, // 33: contract.v1.ContractService.DeclineContract:input_type -> contract.v1.DeclineContractRequest
-	20, // 34: contract.v1.ContractService.UpdateMilestoneStatus:input_type -> contract.v1.UpdateMilestoneStatusRequest
-	22, // 35: contract.v1.ContractService.LogHourlyWork:input_type -> contract.v1.LogHourlyWorkRequest
-	24, // 36: contract.v1.ContractService.ListHourlyLogs:input_type -> contract.v1.ListHourlyLogsRequest
-	26, // 37: contract.v1.ContractService.ReviewHourlyLog:input_type -> contract.v1.ReviewHourlyLogRequest
-	28, // 38: contract.v1.ContractService.ProposeAmendment:input_type -> contract.v1.ProposeAmendmentRequest
-	30, // 39: contract.v1.ContractService.RespondAmendment:input_type -> contract.v1.RespondAmendmentRequest
-	32, // 40: contract.v1.ContractService.ListAmendments:input_type -> contract.v1.ListAmendmentsRequest
-	34, // 41: contract.v1.ContractService.PauseContract:input_type -> contract.v1.PauseContractRequest
-	36, // 42: contract.v1.ContractService.ResumeContract:input_type -> contract.v1.ResumeContractRequest
-	38, // 43: contract.v1.ContractService.EndContract:input_type -> contract.v1.EndContractRequest
-	40, // 44: contract.v1.ContractService.GetStatusHistory:input_type -> contract.v1.GetStatusHistoryRequest
-	11, // 45: contract.v1.ContractService.CreateContract:output_type -> contract.v1.CreateContractResponse
-	13, // 46: contract.v1.ContractService.GetContract:output_type -> contract.v1.GetContractResponse
-	15, // 47: contract.v1.ContractService.ListMyContracts:output_type -> contract.v1.ListMyContractsResponse
-	17, // 48: contract.v1.ContractService.AcceptContract:output_type -> contract.v1.AcceptContractResponse
-	19, // 49: contract.v1.ContractService.DeclineContract:output_type -> contract.v1.DeclineContractResponse
-	21, // 50: contract.v1.ContractService.UpdateMilestoneStatus:output_type -> contract.v1.UpdateMilestoneStatusResponse
-	23, // 51: contract.v1.ContractService.LogHourlyWork:output_type -> contract.v1.LogHourlyWorkResponse
-	25, // 52: contract.v1.ContractService.ListHourlyLogs:output_type -> contract.v1.ListHourlyLogsResponse
-	27, // 53: contract.v1.ContractService.ReviewHourlyLog:output_type -> contract.v1.ReviewHourlyLogResponse
-	29, // 54: contract.v1.ContractService.ProposeAmendment:output_type -> contract.v1.ProposeAmendmentResponse
-	31, // 55: contract.v1.ContractService.RespondAmendment:output_type -> contract.v1.RespondAmendmentResponse
-	33, // 56: contract.v1.ContractService.ListAmendments:output_type -> contract.v1.ListAmendmentsResponse
-	35, // 57: contract.v1.ContractService.PauseContract:output_type -> contract.v1.PauseContractResponse
-	37, // 58: contract.v1.ContractService.ResumeContract:output_type -> contract.v1.ResumeContractResponse
-	39, // 59: contract.v1.ContractService.EndContract:output_type -> contract.v1.EndContractResponse
-	41, // 60: contract.v1.ContractService.GetStatusHistory:output_type -> contract.v1.GetStatusHistoryResponse
-	45, // [45:61] is the sub-list for method output_type
-	29, // [29:45] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	5,  // 2: contract.v1.HourlyInvoice.status:type_name -> contract.v1.HourlyInvoiceStatus
+	6,  // 3: contract.v1.ContractBonus.status:type_name -> contract.v1.ContractBonusStatus
+	17, // 4: contract.v1.Amendment.payload:type_name -> contract.v1.AmendmentPayload
+	4,  // 5: contract.v1.Amendment.status:type_name -> contract.v1.AmendmentStatus
+	8,  // 6: contract.v1.MilestonesChange.milestones:type_name -> contract.v1.Milestone
+	13, // 7: contract.v1.AmendmentPayload.compensation_change:type_name -> contract.v1.CompensationChange
+	14, // 8: contract.v1.AmendmentPayload.milestones_change:type_name -> contract.v1.MilestonesChange
+	15, // 9: contract.v1.AmendmentPayload.weekly_limit_change:type_name -> contract.v1.WeeklyLimitChange
+	16, // 10: contract.v1.AmendmentPayload.scope_change:type_name -> contract.v1.ScopeChange
+	1,  // 11: contract.v1.StatusHistoryEntry.status:type_name -> contract.v1.ContractStatus
+	7,  // 12: contract.v1.StatusHistoryEntry.event_type:type_name -> contract.v1.StatusHistoryEventType
+	0,  // 13: contract.v1.Contract.contract_type:type_name -> contract.v1.ContractType
+	1,  // 14: contract.v1.Contract.status:type_name -> contract.v1.ContractStatus
+	8,  // 15: contract.v1.Contract.milestones:type_name -> contract.v1.Milestone
+	0,  // 16: contract.v1.CreateContractRequest.contract_type:type_name -> contract.v1.ContractType
+	8,  // 17: contract.v1.CreateContractRequest.milestones:type_name -> contract.v1.Milestone
+	19, // 18: contract.v1.CreateContractResponse.contract:type_name -> contract.v1.Contract
+	19, // 19: contract.v1.GetContractResponse.contract:type_name -> contract.v1.Contract
+	1,  // 20: contract.v1.ListMyContractsRequest.status:type_name -> contract.v1.ContractStatus
+	19, // 21: contract.v1.ListMyContractsResponse.contracts:type_name -> contract.v1.Contract
+	19, // 22: contract.v1.AcceptContractResponse.contract:type_name -> contract.v1.Contract
+	19, // 23: contract.v1.DeclineContractResponse.contract:type_name -> contract.v1.Contract
+	19, // 24: contract.v1.RevokeContractOfferResponse.contract:type_name -> contract.v1.Contract
+	19, // 25: contract.v1.SubmitMilestoneWorkResponse.contract:type_name -> contract.v1.Contract
+	19, // 26: contract.v1.RequestMilestoneChangesResponse.contract:type_name -> contract.v1.Contract
+	19, // 27: contract.v1.ApproveMilestoneSubmissionResponse.contract:type_name -> contract.v1.Contract
+	19, // 28: contract.v1.InternalMarkMilestoneFundedResponse.contract:type_name -> contract.v1.Contract
+	9,  // 29: contract.v1.LogHourlyWorkResponse.hourly_log:type_name -> contract.v1.HourlyLog
+	9,  // 30: contract.v1.ListHourlyLogsResponse.hourly_logs:type_name -> contract.v1.HourlyLog
+	3,  // 31: contract.v1.ReviewHourlyLogRequest.status:type_name -> contract.v1.HourlyLogStatus
+	9,  // 32: contract.v1.ReviewHourlyLogResponse.hourly_log:type_name -> contract.v1.HourlyLog
+	9,  // 33: contract.v1.UpdateHourlyLogResponse.hourly_log:type_name -> contract.v1.HourlyLog
+	10, // 34: contract.v1.GetHourlyInvoiceResponse.invoice:type_name -> contract.v1.HourlyInvoice
+	10, // 35: contract.v1.ListHourlyInvoicesResponse.invoices:type_name -> contract.v1.HourlyInvoice
+	10, // 36: contract.v1.InternalCloseHourlyWeekResponse.invoice:type_name -> contract.v1.HourlyInvoice
+	10, // 37: contract.v1.InternalSettleHourlyInvoiceResponse.invoice:type_name -> contract.v1.HourlyInvoice
+	11, // 38: contract.v1.CreateContractBonusResponse.bonus:type_name -> contract.v1.ContractBonus
+	11, // 39: contract.v1.ListContractBonusesResponse.bonuses:type_name -> contract.v1.ContractBonus
+	11, // 40: contract.v1.InternalMarkContractBonusPaidResponse.bonus:type_name -> contract.v1.ContractBonus
+	17, // 41: contract.v1.ProposeAmendmentRequest.payload:type_name -> contract.v1.AmendmentPayload
+	12, // 42: contract.v1.ProposeAmendmentResponse.amendment:type_name -> contract.v1.Amendment
+	4,  // 43: contract.v1.RespondAmendmentRequest.status:type_name -> contract.v1.AmendmentStatus
+	12, // 44: contract.v1.RespondAmendmentResponse.amendment:type_name -> contract.v1.Amendment
+	12, // 45: contract.v1.ListAmendmentsResponse.amendments:type_name -> contract.v1.Amendment
+	19, // 46: contract.v1.PauseContractResponse.contract:type_name -> contract.v1.Contract
+	19, // 47: contract.v1.ResumeContractResponse.contract:type_name -> contract.v1.Contract
+	19, // 48: contract.v1.EndContractResponse.contract:type_name -> contract.v1.Contract
+	18, // 49: contract.v1.GetStatusHistoryResponse.entries:type_name -> contract.v1.StatusHistoryEntry
+	20, // 50: contract.v1.ContractService.CreateContract:input_type -> contract.v1.CreateContractRequest
+	22, // 51: contract.v1.ContractService.GetContract:input_type -> contract.v1.GetContractRequest
+	24, // 52: contract.v1.ContractService.ListMyContracts:input_type -> contract.v1.ListMyContractsRequest
+	26, // 53: contract.v1.ContractService.InternalGetJobOfferState:input_type -> contract.v1.GetJobOfferStateRequest
+	28, // 54: contract.v1.ContractService.AcceptContract:input_type -> contract.v1.AcceptContractRequest
+	30, // 55: contract.v1.ContractService.DeclineContract:input_type -> contract.v1.DeclineContractRequest
+	32, // 56: contract.v1.ContractService.RevokeContractOffer:input_type -> contract.v1.RevokeContractOfferRequest
+	34, // 57: contract.v1.ContractService.SubmitMilestoneWork:input_type -> contract.v1.SubmitMilestoneWorkRequest
+	36, // 58: contract.v1.ContractService.RequestMilestoneChanges:input_type -> contract.v1.RequestMilestoneChangesRequest
+	38, // 59: contract.v1.ContractService.ApproveMilestoneSubmission:input_type -> contract.v1.ApproveMilestoneSubmissionRequest
+	40, // 60: contract.v1.ContractService.InternalMarkMilestoneFunded:input_type -> contract.v1.InternalMarkMilestoneFundedRequest
+	42, // 61: contract.v1.ContractService.LogHourlyWork:input_type -> contract.v1.LogHourlyWorkRequest
+	44, // 62: contract.v1.ContractService.GetHourlyLogEvidenceUploadUrl:input_type -> contract.v1.GetHourlyLogEvidenceUploadUrlRequest
+	46, // 63: contract.v1.ContractService.ListHourlyLogs:input_type -> contract.v1.ListHourlyLogsRequest
+	48, // 64: contract.v1.ContractService.GetHourlyWorkSummary:input_type -> contract.v1.GetHourlyWorkSummaryRequest
+	52, // 65: contract.v1.ContractService.UpdateHourlyLog:input_type -> contract.v1.UpdateHourlyLogRequest
+	54, // 66: contract.v1.ContractService.DeleteHourlyLog:input_type -> contract.v1.DeleteHourlyLogRequest
+	50, // 67: contract.v1.ContractService.ReviewHourlyLog:input_type -> contract.v1.ReviewHourlyLogRequest
+	56, // 68: contract.v1.ContractService.GetHourlyInvoice:input_type -> contract.v1.GetHourlyInvoiceRequest
+	58, // 69: contract.v1.ContractService.ListHourlyInvoices:input_type -> contract.v1.ListHourlyInvoicesRequest
+	60, // 70: contract.v1.ContractService.InternalCloseHourlyWeek:input_type -> contract.v1.InternalCloseHourlyWeekRequest
+	62, // 71: contract.v1.ContractService.InternalSettleHourlyInvoice:input_type -> contract.v1.InternalSettleHourlyInvoiceRequest
+	64, // 72: contract.v1.ContractService.CreateContractBonus:input_type -> contract.v1.CreateContractBonusRequest
+	66, // 73: contract.v1.ContractService.ListContractBonuses:input_type -> contract.v1.ListContractBonusesRequest
+	68, // 74: contract.v1.ContractService.InternalMarkContractBonusPaid:input_type -> contract.v1.InternalMarkContractBonusPaidRequest
+	70, // 75: contract.v1.ContractService.ProposeAmendment:input_type -> contract.v1.ProposeAmendmentRequest
+	72, // 76: contract.v1.ContractService.RespondAmendment:input_type -> contract.v1.RespondAmendmentRequest
+	74, // 77: contract.v1.ContractService.ListAmendments:input_type -> contract.v1.ListAmendmentsRequest
+	76, // 78: contract.v1.ContractService.PauseContract:input_type -> contract.v1.PauseContractRequest
+	78, // 79: contract.v1.ContractService.ResumeContract:input_type -> contract.v1.ResumeContractRequest
+	80, // 80: contract.v1.ContractService.EndContract:input_type -> contract.v1.EndContractRequest
+	82, // 81: contract.v1.ContractService.GetStatusHistory:input_type -> contract.v1.GetStatusHistoryRequest
+	21, // 82: contract.v1.ContractService.CreateContract:output_type -> contract.v1.CreateContractResponse
+	23, // 83: contract.v1.ContractService.GetContract:output_type -> contract.v1.GetContractResponse
+	25, // 84: contract.v1.ContractService.ListMyContracts:output_type -> contract.v1.ListMyContractsResponse
+	27, // 85: contract.v1.ContractService.InternalGetJobOfferState:output_type -> contract.v1.GetJobOfferStateResponse
+	29, // 86: contract.v1.ContractService.AcceptContract:output_type -> contract.v1.AcceptContractResponse
+	31, // 87: contract.v1.ContractService.DeclineContract:output_type -> contract.v1.DeclineContractResponse
+	33, // 88: contract.v1.ContractService.RevokeContractOffer:output_type -> contract.v1.RevokeContractOfferResponse
+	35, // 89: contract.v1.ContractService.SubmitMilestoneWork:output_type -> contract.v1.SubmitMilestoneWorkResponse
+	37, // 90: contract.v1.ContractService.RequestMilestoneChanges:output_type -> contract.v1.RequestMilestoneChangesResponse
+	39, // 91: contract.v1.ContractService.ApproveMilestoneSubmission:output_type -> contract.v1.ApproveMilestoneSubmissionResponse
+	41, // 92: contract.v1.ContractService.InternalMarkMilestoneFunded:output_type -> contract.v1.InternalMarkMilestoneFundedResponse
+	43, // 93: contract.v1.ContractService.LogHourlyWork:output_type -> contract.v1.LogHourlyWorkResponse
+	45, // 94: contract.v1.ContractService.GetHourlyLogEvidenceUploadUrl:output_type -> contract.v1.GetHourlyLogEvidenceUploadUrlResponse
+	47, // 95: contract.v1.ContractService.ListHourlyLogs:output_type -> contract.v1.ListHourlyLogsResponse
+	49, // 96: contract.v1.ContractService.GetHourlyWorkSummary:output_type -> contract.v1.GetHourlyWorkSummaryResponse
+	53, // 97: contract.v1.ContractService.UpdateHourlyLog:output_type -> contract.v1.UpdateHourlyLogResponse
+	55, // 98: contract.v1.ContractService.DeleteHourlyLog:output_type -> contract.v1.DeleteHourlyLogResponse
+	51, // 99: contract.v1.ContractService.ReviewHourlyLog:output_type -> contract.v1.ReviewHourlyLogResponse
+	57, // 100: contract.v1.ContractService.GetHourlyInvoice:output_type -> contract.v1.GetHourlyInvoiceResponse
+	59, // 101: contract.v1.ContractService.ListHourlyInvoices:output_type -> contract.v1.ListHourlyInvoicesResponse
+	61, // 102: contract.v1.ContractService.InternalCloseHourlyWeek:output_type -> contract.v1.InternalCloseHourlyWeekResponse
+	63, // 103: contract.v1.ContractService.InternalSettleHourlyInvoice:output_type -> contract.v1.InternalSettleHourlyInvoiceResponse
+	65, // 104: contract.v1.ContractService.CreateContractBonus:output_type -> contract.v1.CreateContractBonusResponse
+	67, // 105: contract.v1.ContractService.ListContractBonuses:output_type -> contract.v1.ListContractBonusesResponse
+	69, // 106: contract.v1.ContractService.InternalMarkContractBonusPaid:output_type -> contract.v1.InternalMarkContractBonusPaidResponse
+	71, // 107: contract.v1.ContractService.ProposeAmendment:output_type -> contract.v1.ProposeAmendmentResponse
+	73, // 108: contract.v1.ContractService.RespondAmendment:output_type -> contract.v1.RespondAmendmentResponse
+	75, // 109: contract.v1.ContractService.ListAmendments:output_type -> contract.v1.ListAmendmentsResponse
+	77, // 110: contract.v1.ContractService.PauseContract:output_type -> contract.v1.PauseContractResponse
+	79, // 111: contract.v1.ContractService.ResumeContract:output_type -> contract.v1.ResumeContractResponse
+	81, // 112: contract.v1.ContractService.EndContract:output_type -> contract.v1.EndContractResponse
+	83, // 113: contract.v1.ContractService.GetStatusHistory:output_type -> contract.v1.GetStatusHistoryResponse
+	82, // [82:114] is the sub-list for method output_type
+	50, // [50:82] is the sub-list for method input_type
+	50, // [50:50] is the sub-list for extension type_name
+	50, // [50:50] is the sub-list for extension extendee
+	0,  // [0:50] is the sub-list for field type_name
 }
 
 func init() { file_contract_v1_contract_proto_init() }
@@ -3082,8 +5854,8 @@ func file_contract_v1_contract_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_contract_v1_contract_proto_rawDesc), len(file_contract_v1_contract_proto_rawDesc)),
-			NumEnums:      5,
-			NumMessages:   37,
+			NumEnums:      8,
+			NumMessages:   76,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

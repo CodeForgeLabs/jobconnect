@@ -2,6 +2,7 @@ package grpcadapter
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	"github.com/google/uuid"
@@ -50,4 +51,33 @@ func requireFreelancerRole(role string) error {
 		return nil
 	}
 	return status.Error(codes.PermissionDenied, "freelancer role required")
+}
+
+func requireInternalCaller(ctx context.Context, services ...string) error {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return status.Error(codes.PermissionDenied, "internal caller required")
+	}
+	vals := md.Get("x-jobconnect-internal")
+	if len(vals) == 0 {
+		return status.Error(codes.PermissionDenied, "internal caller required")
+	}
+	caller := strings.TrimSpace(vals[0])
+	for _, service := range services {
+		if strings.EqualFold(caller, service) {
+			requiredSecret := strings.TrimSpace(os.Getenv("JOBCONNECT_INTERNAL_CALLER_SECRET"))
+			if requiredSecret == "" {
+				return status.Error(codes.PermissionDenied, "internal caller secret is not configured")
+			}
+			secretVals := md.Get("x-jobconnect-internal-secret")
+			if len(secretVals) == 0 {
+				return status.Error(codes.PermissionDenied, "internal caller secret required")
+			}
+			if strings.TrimSpace(secretVals[0]) != requiredSecret {
+				return status.Error(codes.PermissionDenied, "invalid internal caller secret")
+			}
+			return nil
+		}
+	}
+	return status.Error(codes.PermissionDenied, "internal caller required")
 }

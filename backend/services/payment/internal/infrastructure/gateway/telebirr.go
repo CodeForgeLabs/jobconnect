@@ -40,7 +40,6 @@ func (g *TelebirrGateway) VerifyPayment(ctx context.Context, externalRef string)
 	return application.VerifyResult{
 		Verified:    true,
 		AmountMinor: 500000, // Hardcoded for stub (5000 ETB) - in a real app, we'd query Telebirr
-		Currency:    "ETB",
 		ExternalRef: txRef,
 	}, nil
 }

@@ -4,13 +4,16 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	contractv1 "jobconnect/job/gen/contract/v1"
 	"jobconnect/job/internal/application"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 )
 
 type ContractClient struct {
@@ -26,41 +29,30 @@ func NewContractClient(address string) (*ContractClient, error) {
 	return &ContractClient{client: contractv1.NewContractServiceClient(conn)}, nil
 }
 
-func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.CreateContractFromProposalInput) error {
+func (c *ContractClient) GetJobOfferState(ctx context.Context, jobID int64, clientID uuid.UUID) (application.ContractState, error) {
 	if c == nil || c.client == nil {
-		return fmt.Errorf("contract client is nil")
+		return application.ContractState{}, fmt.Errorf("contract client is nil")
 	}
-	if in.JobID <= 0 {
-		return fmt.Errorf("job_id is required")
+	if jobID <= 0 {
+		return application.ContractState{}, fmt.Errorf("job_id is required")
 	}
-	if in.ProposalID <= 0 {
-		return fmt.Errorf("proposal_id is required")
+	if clientID == uuid.Nil {
+		return application.ContractState{}, fmt.Errorf("client_id is required")
 	}
-
-	contractType := contractv1.ContractType_CONTRACT_TYPE_FIXED
-	hourlyRate := 0.0
-	fixedTotal := in.BidAmount
-	if strings.EqualFold(strings.TrimSpace(in.BidType), "hourly") {
-		contractType = contractv1.ContractType_CONTRACT_TYPE_HOURLY
-		hourlyRate = in.BidAmount
-		fixedTotal = 0
-	}
-
 	forwardCtx := forwardAuthorization(ctx)
-	_, err := c.client.CreateContract(forwardCtx, &contractv1.CreateContractRequest{
-		FreelancerId:    in.FreelancerID,
-		JobId:           in.JobID,
-		ProposalId:      in.ProposalID,
-		ContractType:    contractType,
-		Title:           fmt.Sprintf("Contract for job %d", in.JobID),
-		Description:     fmt.Sprintf("Auto-created from proposal %d", in.ProposalID),
-		Currency:        "USD",
-		HourlyRate:      hourlyRate,
-		FixedTotal:      fixedTotal,
-		WeeklyHourLimit: 0,
-	})
-	if err != nil {
-		return fmt.Errorf("create contract: %w", err)
+	forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal", "job-service")
+	if secret := strings.TrimSpace(os.Getenv("JOBCONNECT_INTERNAL_CALLER_SECRET")); secret != "" {
+		forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal-secret", secret)
 	}
-	return nil
+	res, err := c.client.InternalGetJobOfferState(forwardCtx, &contractv1.GetJobOfferStateRequest{JobId: jobID})
+	if err != nil {
+		return application.ContractState{}, fmt.Errorf("get job offer state: %w", err)
+	}
+	return application.ContractState{
+		JobID:             res.GetJobId(),
+		HasPendingOffer:   res.GetHasPendingOffer(),
+		PendingContractID: res.GetPendingContractId(),
+		HasActiveContract: res.GetHasActiveContract(),
+		ActiveContractID:  res.GetActiveContractId(),
+	}, nil
 }

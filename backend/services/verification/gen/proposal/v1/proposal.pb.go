@@ -30,6 +30,7 @@ const (
 	ProposalStatus_PROPOSAL_STATUS_REJECTED    ProposalStatus = 3
 	ProposalStatus_PROPOSAL_STATUS_HIRED       ProposalStatus = 4
 	ProposalStatus_PROPOSAL_STATUS_WITHDRAWN   ProposalStatus = 5
+	ProposalStatus_PROPOSAL_STATUS_OFFER_SENT  ProposalStatus = 6
 )
 
 // Enum value maps for ProposalStatus.
@@ -41,6 +42,7 @@ var (
 		3: "PROPOSAL_STATUS_REJECTED",
 		4: "PROPOSAL_STATUS_HIRED",
 		5: "PROPOSAL_STATUS_WITHDRAWN",
+		6: "PROPOSAL_STATUS_OFFER_SENT",
 	}
 	ProposalStatus_value = map[string]int32{
 		"PROPOSAL_STATUS_UNSPECIFIED": 0,
@@ -49,6 +51,7 @@ var (
 		"PROPOSAL_STATUS_REJECTED":    3,
 		"PROPOSAL_STATUS_HIRED":       4,
 		"PROPOSAL_STATUS_WITHDRAWN":   5,
+		"PROPOSAL_STATUS_OFFER_SENT":  6,
 	}
 )
 
@@ -134,6 +137,55 @@ func (SortBy) EnumDescriptor() ([]byte, []int) {
 	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{1}
 }
 
+type ClientDecision int32
+
+const (
+	ClientDecision_CLIENT_DECISION_UNSPECIFIED ClientDecision = 0
+	ClientDecision_CLIENT_DECISION_SHORTLISTED ClientDecision = 1
+	ClientDecision_CLIENT_DECISION_REJECTED    ClientDecision = 2
+)
+
+// Enum value maps for ClientDecision.
+var (
+	ClientDecision_name = map[int32]string{
+		0: "CLIENT_DECISION_UNSPECIFIED",
+		1: "CLIENT_DECISION_SHORTLISTED",
+		2: "CLIENT_DECISION_REJECTED",
+	}
+	ClientDecision_value = map[string]int32{
+		"CLIENT_DECISION_UNSPECIFIED": 0,
+		"CLIENT_DECISION_SHORTLISTED": 1,
+		"CLIENT_DECISION_REJECTED":    2,
+	}
+)
+
+func (x ClientDecision) Enum() *ClientDecision {
+	p := new(ClientDecision)
+	*p = x
+	return p
+}
+
+func (x ClientDecision) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ClientDecision) Descriptor() protoreflect.EnumDescriptor {
+	return file_proposal_v1_proposal_proto_enumTypes[2].Descriptor()
+}
+
+func (ClientDecision) Type() protoreflect.EnumType {
+	return &file_proposal_v1_proposal_proto_enumTypes[2]
+}
+
+func (x ClientDecision) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ClientDecision.Descriptor instead.
+func (ClientDecision) EnumDescriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{2}
+}
+
 type ProposalAttachment struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -141,6 +193,7 @@ type ProposalAttachment struct {
 	ContentType   string                 `protobuf:"bytes,3,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
 	Url           string                 `protobuf:"bytes,4,opt,name=url,proto3" json:"url,omitempty"`
 	SizeBytes     int64                  `protobuf:"varint,5,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	StorageKey    string                 `protobuf:"bytes,6,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -210,6 +263,13 @@ func (x *ProposalAttachment) GetSizeBytes() int64 {
 	return 0
 }
 
+func (x *ProposalAttachment) GetStorageKey() string {
+	if x != nil {
+		return x.StorageKey
+	}
+	return ""
+}
+
 type Proposal struct {
 	state                    protoimpl.MessageState `protogen:"open.v1"`
 	Id                       int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -230,6 +290,7 @@ type Proposal struct {
 	HiredAtUnixSeconds       int64                  `protobuf:"varint,16,opt,name=hired_at_unix_seconds,json=hiredAtUnixSeconds,proto3" json:"hired_at_unix_seconds,omitempty"`
 	WithdrawnAtUnixSeconds   int64                  `protobuf:"varint,17,opt,name=withdrawn_at_unix_seconds,json=withdrawnAtUnixSeconds,proto3" json:"withdrawn_at_unix_seconds,omitempty"`
 	ConnectsSpent            int32                  `protobuf:"varint,18,opt,name=connects_spent,json=connectsSpent,proto3" json:"connects_spent,omitempty"`
+	OfferSentAtUnixSeconds   int64                  `protobuf:"varint,19,opt,name=offer_sent_at_unix_seconds,json=offerSentAtUnixSeconds,proto3" json:"offer_sent_at_unix_seconds,omitempty"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -386,6 +447,13 @@ func (x *Proposal) GetWithdrawnAtUnixSeconds() int64 {
 func (x *Proposal) GetConnectsSpent() int32 {
 	if x != nil {
 		return x.ConnectsSpent
+	}
+	return 0
+}
+
+func (x *Proposal) GetOfferSentAtUnixSeconds() int64 {
+	if x != nil {
+		return x.OfferSentAtUnixSeconds
 	}
 	return 0
 }
@@ -830,6 +898,198 @@ func (x *GetProposalResponse) GetProposal() *Proposal {
 	return nil
 }
 
+type GetMyProposalForJobRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         int64                  `protobuf:"varint,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyProposalForJobRequest) Reset() {
+	*x = GetMyProposalForJobRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyProposalForJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyProposalForJobRequest) ProtoMessage() {}
+
+func (x *GetMyProposalForJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyProposalForJobRequest.ProtoReflect.Descriptor instead.
+func (*GetMyProposalForJobRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetMyProposalForJobRequest) GetJobId() int64 {
+	if x != nil {
+		return x.JobId
+	}
+	return 0
+}
+
+type GetMyProposalForJobResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Proposal      *Proposal              `protobuf:"bytes,1,opt,name=proposal,proto3" json:"proposal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMyProposalForJobResponse) Reset() {
+	*x = GetMyProposalForJobResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMyProposalForJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMyProposalForJobResponse) ProtoMessage() {}
+
+func (x *GetMyProposalForJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMyProposalForJobResponse.ProtoReflect.Descriptor instead.
+func (*GetMyProposalForJobResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetMyProposalForJobResponse) GetProposal() *Proposal {
+	if x != nil {
+		return x.Proposal
+	}
+	return nil
+}
+
+type HasAppliedToJobRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         int64                  `protobuf:"varint,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HasAppliedToJobRequest) Reset() {
+	*x = HasAppliedToJobRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HasAppliedToJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HasAppliedToJobRequest) ProtoMessage() {}
+
+func (x *HasAppliedToJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HasAppliedToJobRequest.ProtoReflect.Descriptor instead.
+func (*HasAppliedToJobRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *HasAppliedToJobRequest) GetJobId() int64 {
+	if x != nil {
+		return x.JobId
+	}
+	return 0
+}
+
+type HasAppliedToJobResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	HasApplied    bool                   `protobuf:"varint,1,opt,name=has_applied,json=hasApplied,proto3" json:"has_applied,omitempty"`
+	ProposalId    int64                  `protobuf:"varint,2,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	ActiveStatus  ProposalStatus         `protobuf:"varint,3,opt,name=active_status,json=activeStatus,proto3,enum=proposal.v1.ProposalStatus" json:"active_status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HasAppliedToJobResponse) Reset() {
+	*x = HasAppliedToJobResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HasAppliedToJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HasAppliedToJobResponse) ProtoMessage() {}
+
+func (x *HasAppliedToJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HasAppliedToJobResponse.ProtoReflect.Descriptor instead.
+func (*HasAppliedToJobResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *HasAppliedToJobResponse) GetHasApplied() bool {
+	if x != nil {
+		return x.HasApplied
+	}
+	return false
+}
+
+func (x *HasAppliedToJobResponse) GetProposalId() int64 {
+	if x != nil {
+		return x.ProposalId
+	}
+	return 0
+}
+
+func (x *HasAppliedToJobResponse) GetActiveStatus() ProposalStatus {
+	if x != nil {
+		return x.ActiveStatus
+	}
+	return ProposalStatus_PROPOSAL_STATUS_UNSPECIFIED
+}
+
 type ListProposalsByJobRequest struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	JobId              int64                  `protobuf:"varint,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
@@ -844,7 +1104,7 @@ type ListProposalsByJobRequest struct {
 
 func (x *ListProposalsByJobRequest) Reset() {
 	*x = ListProposalsByJobRequest{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[10]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -856,7 +1116,7 @@ func (x *ListProposalsByJobRequest) String() string {
 func (*ListProposalsByJobRequest) ProtoMessage() {}
 
 func (x *ListProposalsByJobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[10]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -869,7 +1129,7 @@ func (x *ListProposalsByJobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProposalsByJobRequest.ProtoReflect.Descriptor instead.
 func (*ListProposalsByJobRequest) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{10}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListProposalsByJobRequest) GetJobId() int64 {
@@ -924,7 +1184,7 @@ type ListProposalsByJobResponse struct {
 
 func (x *ListProposalsByJobResponse) Reset() {
 	*x = ListProposalsByJobResponse{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[11]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -936,7 +1196,7 @@ func (x *ListProposalsByJobResponse) String() string {
 func (*ListProposalsByJobResponse) ProtoMessage() {}
 
 func (x *ListProposalsByJobResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[11]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -949,7 +1209,7 @@ func (x *ListProposalsByJobResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProposalsByJobResponse.ProtoReflect.Descriptor instead.
 func (*ListProposalsByJobResponse) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{11}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ListProposalsByJobResponse) GetProposals() []*Proposal {
@@ -979,7 +1239,7 @@ type ListMyProposalsRequest struct {
 
 func (x *ListMyProposalsRequest) Reset() {
 	*x = ListMyProposalsRequest{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[12]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -991,7 +1251,7 @@ func (x *ListMyProposalsRequest) String() string {
 func (*ListMyProposalsRequest) ProtoMessage() {}
 
 func (x *ListMyProposalsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[12]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1004,7 +1264,7 @@ func (x *ListMyProposalsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyProposalsRequest.ProtoReflect.Descriptor instead.
 func (*ListMyProposalsRequest) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{12}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ListMyProposalsRequest) GetStatusFilter() []ProposalStatus {
@@ -1052,7 +1312,7 @@ type ListMyProposalsResponse struct {
 
 func (x *ListMyProposalsResponse) Reset() {
 	*x = ListMyProposalsResponse{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[13]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1064,7 +1324,7 @@ func (x *ListMyProposalsResponse) String() string {
 func (*ListMyProposalsResponse) ProtoMessage() {}
 
 func (x *ListMyProposalsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[13]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1077,7 +1337,7 @@ func (x *ListMyProposalsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMyProposalsResponse.ProtoReflect.Descriptor instead.
 func (*ListMyProposalsResponse) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{13}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ListMyProposalsResponse) GetProposals() []*Proposal {
@@ -1094,10 +1354,926 @@ func (x *ListMyProposalsResponse) GetNextPageToken() string {
 	return ""
 }
 
+type ListClientProposalsRequest struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	StatusFilter       []ProposalStatus       `protobuf:"varint,1,rep,packed,name=status_filter,json=statusFilter,proto3,enum=proposal.v1.ProposalStatus" json:"status_filter,omitempty"`
+	JobIdFilter        *int64                 `protobuf:"varint,2,opt,name=job_id_filter,json=jobIdFilter,proto3,oneof" json:"job_id_filter,omitempty"`
+	FreelancerIdFilter *string                `protobuf:"bytes,3,opt,name=freelancer_id_filter,json=freelancerIdFilter,proto3,oneof" json:"freelancer_id_filter,omitempty"`
+	SortBy             SortBy                 `protobuf:"varint,4,opt,name=sort_by,json=sortBy,proto3,enum=proposal.v1.SortBy" json:"sort_by,omitempty"`
+	PageSize           int32                  `protobuf:"varint,5,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken          string                 `protobuf:"bytes,6,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *ListClientProposalsRequest) Reset() {
+	*x = ListClientProposalsRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListClientProposalsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListClientProposalsRequest) ProtoMessage() {}
+
+func (x *ListClientProposalsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListClientProposalsRequest.ProtoReflect.Descriptor instead.
+func (*ListClientProposalsRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ListClientProposalsRequest) GetStatusFilter() []ProposalStatus {
+	if x != nil {
+		return x.StatusFilter
+	}
+	return nil
+}
+
+func (x *ListClientProposalsRequest) GetJobIdFilter() int64 {
+	if x != nil && x.JobIdFilter != nil {
+		return *x.JobIdFilter
+	}
+	return 0
+}
+
+func (x *ListClientProposalsRequest) GetFreelancerIdFilter() string {
+	if x != nil && x.FreelancerIdFilter != nil {
+		return *x.FreelancerIdFilter
+	}
+	return ""
+}
+
+func (x *ListClientProposalsRequest) GetSortBy() SortBy {
+	if x != nil {
+		return x.SortBy
+	}
+	return SortBy_SORT_BY_UNSPECIFIED
+}
+
+func (x *ListClientProposalsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListClientProposalsRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+type ListClientProposalsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Proposals     []*Proposal            `protobuf:"bytes,1,rep,name=proposals,proto3" json:"proposals,omitempty"`
+	NextPageToken string                 `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListClientProposalsResponse) Reset() {
+	*x = ListClientProposalsResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListClientProposalsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListClientProposalsResponse) ProtoMessage() {}
+
+func (x *ListClientProposalsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListClientProposalsResponse.ProtoReflect.Descriptor instead.
+func (*ListClientProposalsResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ListClientProposalsResponse) GetProposals() []*Proposal {
+	if x != nil {
+		return x.Proposals
+	}
+	return nil
+}
+
+func (x *ListClientProposalsResponse) GetNextPageToken() string {
+	if x != nil {
+		return x.NextPageToken
+	}
+	return ""
+}
+
+type ProposalStatusCount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        ProposalStatus         `protobuf:"varint,1,opt,name=status,proto3,enum=proposal.v1.ProposalStatus" json:"status,omitempty"`
+	Count         int64                  `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProposalStatusCount) Reset() {
+	*x = ProposalStatusCount{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProposalStatusCount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProposalStatusCount) ProtoMessage() {}
+
+func (x *ProposalStatusCount) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProposalStatusCount.ProtoReflect.Descriptor instead.
+func (*ProposalStatusCount) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ProposalStatusCount) GetStatus() ProposalStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ProposalStatus_PROPOSAL_STATUS_UNSPECIFIED
+}
+
+func (x *ProposalStatusCount) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+type CountProposalsByJobRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	JobId         int64                  `protobuf:"varint,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CountProposalsByJobRequest) Reset() {
+	*x = CountProposalsByJobRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CountProposalsByJobRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CountProposalsByJobRequest) ProtoMessage() {}
+
+func (x *CountProposalsByJobRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CountProposalsByJobRequest.ProtoReflect.Descriptor instead.
+func (*CountProposalsByJobRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *CountProposalsByJobRequest) GetJobId() int64 {
+	if x != nil {
+		return x.JobId
+	}
+	return 0
+}
+
+type CountProposalsByJobResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	ByStatus      []*ProposalStatusCount `protobuf:"bytes,2,rep,name=by_status,json=byStatus,proto3" json:"by_status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CountProposalsByJobResponse) Reset() {
+	*x = CountProposalsByJobResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CountProposalsByJobResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CountProposalsByJobResponse) ProtoMessage() {}
+
+func (x *CountProposalsByJobResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CountProposalsByJobResponse.ProtoReflect.Descriptor instead.
+func (*CountProposalsByJobResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *CountProposalsByJobResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *CountProposalsByJobResponse) GetByStatus() []*ProposalStatusCount {
+	if x != nil {
+		return x.ByStatus
+	}
+	return nil
+}
+
+type CountClientProposalInboxRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StatusFilter  []ProposalStatus       `protobuf:"varint,1,rep,packed,name=status_filter,json=statusFilter,proto3,enum=proposal.v1.ProposalStatus" json:"status_filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CountClientProposalInboxRequest) Reset() {
+	*x = CountClientProposalInboxRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CountClientProposalInboxRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CountClientProposalInboxRequest) ProtoMessage() {}
+
+func (x *CountClientProposalInboxRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CountClientProposalInboxRequest.ProtoReflect.Descriptor instead.
+func (*CountClientProposalInboxRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CountClientProposalInboxRequest) GetStatusFilter() []ProposalStatus {
+	if x != nil {
+		return x.StatusFilter
+	}
+	return nil
+}
+
+type CountClientProposalInboxResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Total         int64                  `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+	ByStatus      []*ProposalStatusCount `protobuf:"bytes,2,rep,name=by_status,json=byStatus,proto3" json:"by_status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CountClientProposalInboxResponse) Reset() {
+	*x = CountClientProposalInboxResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CountClientProposalInboxResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CountClientProposalInboxResponse) ProtoMessage() {}
+
+func (x *CountClientProposalInboxResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CountClientProposalInboxResponse.ProtoReflect.Descriptor instead.
+func (*CountClientProposalInboxResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *CountClientProposalInboxResponse) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *CountClientProposalInboxResponse) GetByStatus() []*ProposalStatusCount {
+	if x != nil {
+		return x.ByStatus
+	}
+	return nil
+}
+
+type InternalMarkProposalOfferSentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	ClientId      string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	Note          string                 `protobuf:"bytes,3,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalMarkProposalOfferSentRequest) Reset() {
+	*x = InternalMarkProposalOfferSentRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalMarkProposalOfferSentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalMarkProposalOfferSentRequest) ProtoMessage() {}
+
+func (x *InternalMarkProposalOfferSentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalMarkProposalOfferSentRequest.ProtoReflect.Descriptor instead.
+func (*InternalMarkProposalOfferSentRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *InternalMarkProposalOfferSentRequest) GetProposalId() int64 {
+	if x != nil {
+		return x.ProposalId
+	}
+	return 0
+}
+
+func (x *InternalMarkProposalOfferSentRequest) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *InternalMarkProposalOfferSentRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+type InternalMarkProposalOfferSentResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Proposal      *Proposal              `protobuf:"bytes,1,opt,name=proposal,proto3" json:"proposal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalMarkProposalOfferSentResponse) Reset() {
+	*x = InternalMarkProposalOfferSentResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalMarkProposalOfferSentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalMarkProposalOfferSentResponse) ProtoMessage() {}
+
+func (x *InternalMarkProposalOfferSentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalMarkProposalOfferSentResponse.ProtoReflect.Descriptor instead.
+func (*InternalMarkProposalOfferSentResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *InternalMarkProposalOfferSentResponse) GetProposal() *Proposal {
+	if x != nil {
+		return x.Proposal
+	}
+	return nil
+}
+
+type InternalHireProposalRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	ClientId      string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	Note          string                 `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalHireProposalRequest) Reset() {
+	*x = InternalHireProposalRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalHireProposalRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalHireProposalRequest) ProtoMessage() {}
+
+func (x *InternalHireProposalRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalHireProposalRequest.ProtoReflect.Descriptor instead.
+func (*InternalHireProposalRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *InternalHireProposalRequest) GetProposalId() int64 {
+	if x != nil {
+		return x.ProposalId
+	}
+	return 0
+}
+
+func (x *InternalHireProposalRequest) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *InternalHireProposalRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+func (x *InternalHireProposalRequest) GetNote() string {
+	if x != nil {
+		return x.Note
+	}
+	return ""
+}
+
+type InternalHireProposalResponse struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	Proposal               *Proposal              `protobuf:"bytes,1,opt,name=proposal,proto3" json:"proposal,omitempty"`
+	ReusedIdempotentResult bool                   `protobuf:"varint,2,opt,name=reused_idempotent_result,json=reusedIdempotentResult,proto3" json:"reused_idempotent_result,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *InternalHireProposalResponse) Reset() {
+	*x = InternalHireProposalResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalHireProposalResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalHireProposalResponse) ProtoMessage() {}
+
+func (x *InternalHireProposalResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalHireProposalResponse.ProtoReflect.Descriptor instead.
+func (*InternalHireProposalResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *InternalHireProposalResponse) GetProposal() *Proposal {
+	if x != nil {
+		return x.Proposal
+	}
+	return nil
+}
+
+func (x *InternalHireProposalResponse) GetReusedIdempotentResult() bool {
+	if x != nil {
+		return x.ReusedIdempotentResult
+	}
+	return false
+}
+
+type InternalReleaseHiredProposalRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	ClientId      string                 `protobuf:"bytes,2,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalReleaseHiredProposalRequest) Reset() {
+	*x = InternalReleaseHiredProposalRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalReleaseHiredProposalRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalReleaseHiredProposalRequest) ProtoMessage() {}
+
+func (x *InternalReleaseHiredProposalRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalReleaseHiredProposalRequest.ProtoReflect.Descriptor instead.
+func (*InternalReleaseHiredProposalRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *InternalReleaseHiredProposalRequest) GetProposalId() int64 {
+	if x != nil {
+		return x.ProposalId
+	}
+	return 0
+}
+
+func (x *InternalReleaseHiredProposalRequest) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *InternalReleaseHiredProposalRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type InternalReleaseHiredProposalResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Proposal      *Proposal              `protobuf:"bytes,1,opt,name=proposal,proto3" json:"proposal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InternalReleaseHiredProposalResponse) Reset() {
+	*x = InternalReleaseHiredProposalResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InternalReleaseHiredProposalResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InternalReleaseHiredProposalResponse) ProtoMessage() {}
+
+func (x *InternalReleaseHiredProposalResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InternalReleaseHiredProposalResponse.ProtoReflect.Descriptor instead.
+func (*InternalReleaseHiredProposalResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *InternalReleaseHiredProposalResponse) GetProposal() *Proposal {
+	if x != nil {
+		return x.Proposal
+	}
+	return nil
+}
+
+type GetProposalAttachmentUploadUrlRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	FileName      string                 `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	ContentType   string                 `protobuf:"bytes,3,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProposalAttachmentUploadUrlRequest) Reset() {
+	*x = GetProposalAttachmentUploadUrlRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProposalAttachmentUploadUrlRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProposalAttachmentUploadUrlRequest) ProtoMessage() {}
+
+func (x *GetProposalAttachmentUploadUrlRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProposalAttachmentUploadUrlRequest.ProtoReflect.Descriptor instead.
+func (*GetProposalAttachmentUploadUrlRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GetProposalAttachmentUploadUrlRequest) GetProposalId() int64 {
+	if x != nil {
+		return x.ProposalId
+	}
+	return 0
+}
+
+func (x *GetProposalAttachmentUploadUrlRequest) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *GetProposalAttachmentUploadUrlRequest) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
+}
+
+type GetProposalAttachmentUploadUrlResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StorageKey    string                 `protobuf:"bytes,1,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
+	UploadUrl     string                 `protobuf:"bytes,2,opt,name=upload_url,json=uploadUrl,proto3" json:"upload_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProposalAttachmentUploadUrlResponse) Reset() {
+	*x = GetProposalAttachmentUploadUrlResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProposalAttachmentUploadUrlResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProposalAttachmentUploadUrlResponse) ProtoMessage() {}
+
+func (x *GetProposalAttachmentUploadUrlResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProposalAttachmentUploadUrlResponse.ProtoReflect.Descriptor instead.
+func (*GetProposalAttachmentUploadUrlResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *GetProposalAttachmentUploadUrlResponse) GetStorageKey() string {
+	if x != nil {
+		return x.StorageKey
+	}
+	return ""
+}
+
+func (x *GetProposalAttachmentUploadUrlResponse) GetUploadUrl() string {
+	if x != nil {
+		return x.UploadUrl
+	}
+	return ""
+}
+
+type GetProposalAttachmentDownloadUrlRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
+	AttachmentId  int64                  `protobuf:"varint,2,opt,name=attachment_id,json=attachmentId,proto3" json:"attachment_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProposalAttachmentDownloadUrlRequest) Reset() {
+	*x = GetProposalAttachmentDownloadUrlRequest{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProposalAttachmentDownloadUrlRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProposalAttachmentDownloadUrlRequest) ProtoMessage() {}
+
+func (x *GetProposalAttachmentDownloadUrlRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProposalAttachmentDownloadUrlRequest.ProtoReflect.Descriptor instead.
+func (*GetProposalAttachmentDownloadUrlRequest) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GetProposalAttachmentDownloadUrlRequest) GetProposalId() int64 {
+	if x != nil {
+		return x.ProposalId
+	}
+	return 0
+}
+
+func (x *GetProposalAttachmentDownloadUrlRequest) GetAttachmentId() int64 {
+	if x != nil {
+		return x.AttachmentId
+	}
+	return 0
+}
+
+type GetProposalAttachmentDownloadUrlResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DownloadUrl   string                 `protobuf:"bytes,1,opt,name=download_url,json=downloadUrl,proto3" json:"download_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetProposalAttachmentDownloadUrlResponse) Reset() {
+	*x = GetProposalAttachmentDownloadUrlResponse{}
+	mi := &file_proposal_v1_proposal_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetProposalAttachmentDownloadUrlResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetProposalAttachmentDownloadUrlResponse) ProtoMessage() {}
+
+func (x *GetProposalAttachmentDownloadUrlResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proposal_v1_proposal_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetProposalAttachmentDownloadUrlResponse.ProtoReflect.Descriptor instead.
+func (*GetProposalAttachmentDownloadUrlResponse) Descriptor() ([]byte, []int) {
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *GetProposalAttachmentDownloadUrlResponse) GetDownloadUrl() string {
+	if x != nil {
+		return x.DownloadUrl
+	}
+	return ""
+}
+
 type SetProposalStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProposalId    int64                  `protobuf:"varint,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty"`
-	Status        ProposalStatus         `protobuf:"varint,2,opt,name=status,proto3,enum=proposal.v1.ProposalStatus" json:"status,omitempty"` // shortlisted | rejected | hired
+	Decision      ClientDecision         `protobuf:"varint,2,opt,name=decision,proto3,enum=proposal.v1.ClientDecision" json:"decision,omitempty"` // shortlisted | rejected
 	Reason        string                 `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1105,7 +2281,7 @@ type SetProposalStatusRequest struct {
 
 func (x *SetProposalStatusRequest) Reset() {
 	*x = SetProposalStatusRequest{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[14]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1117,7 +2293,7 @@ func (x *SetProposalStatusRequest) String() string {
 func (*SetProposalStatusRequest) ProtoMessage() {}
 
 func (x *SetProposalStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[14]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1130,7 +2306,7 @@ func (x *SetProposalStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProposalStatusRequest.ProtoReflect.Descriptor instead.
 func (*SetProposalStatusRequest) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{14}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *SetProposalStatusRequest) GetProposalId() int64 {
@@ -1140,11 +2316,11 @@ func (x *SetProposalStatusRequest) GetProposalId() int64 {
 	return 0
 }
 
-func (x *SetProposalStatusRequest) GetStatus() ProposalStatus {
+func (x *SetProposalStatusRequest) GetDecision() ClientDecision {
 	if x != nil {
-		return x.Status
+		return x.Decision
 	}
-	return ProposalStatus_PROPOSAL_STATUS_UNSPECIFIED
+	return ClientDecision_CLIENT_DECISION_UNSPECIFIED
 }
 
 func (x *SetProposalStatusRequest) GetReason() string {
@@ -1163,7 +2339,7 @@ type SetProposalStatusResponse struct {
 
 func (x *SetProposalStatusResponse) Reset() {
 	*x = SetProposalStatusResponse{}
-	mi := &file_proposal_v1_proposal_proto_msgTypes[15]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1175,7 +2351,7 @@ func (x *SetProposalStatusResponse) String() string {
 func (*SetProposalStatusResponse) ProtoMessage() {}
 
 func (x *SetProposalStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proposal_v1_proposal_proto_msgTypes[15]
+	mi := &file_proposal_v1_proposal_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1188,7 +2364,7 @@ func (x *SetProposalStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetProposalStatusResponse.ProtoReflect.Descriptor instead.
 func (*SetProposalStatusResponse) Descriptor() ([]byte, []int) {
-	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{15}
+	return file_proposal_v1_proposal_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *SetProposalStatusResponse) GetProposal() *Proposal {
@@ -1202,14 +2378,16 @@ var File_proposal_v1_proposal_proto protoreflect.FileDescriptor
 
 const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\n" +
-	"\x1aproposal/v1/proposal.proto\x12\vproposal.v1\"\x95\x01\n" +
+	"\x1aproposal/v1/proposal.proto\x12\vproposal.v1\"\xb6\x01\n" +
 	"\x12ProposalAttachment\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1b\n" +
 	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12!\n" +
 	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\x12\x10\n" +
 	"\x03url\x18\x04 \x01(\tR\x03url\x12\x1d\n" +
 	"\n" +
-	"size_bytes\x18\x05 \x01(\x03R\tsizeBytes\"\x8f\x06\n" +
+	"size_bytes\x18\x05 \x01(\x03R\tsizeBytes\x12\x1f\n" +
+	"\vstorage_key\x18\x06 \x01(\tR\n" +
+	"storageKey\"\xcb\x06\n" +
 	"\bProposal\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x15\n" +
 	"\x06job_id\x18\x02 \x01(\x03R\x05jobId\x12\x1b\n" +
@@ -1230,7 +2408,8 @@ const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\x18rejected_at_unix_seconds\x18\x0f \x01(\x03R\x15rejectedAtUnixSeconds\x121\n" +
 	"\x15hired_at_unix_seconds\x18\x10 \x01(\x03R\x12hiredAtUnixSeconds\x129\n" +
 	"\x19withdrawn_at_unix_seconds\x18\x11 \x01(\x03R\x16withdrawnAtUnixSeconds\x12%\n" +
-	"\x0econnects_spent\x18\x12 \x01(\x05R\rconnectsSpent\"\x9c\x02\n" +
+	"\x0econnects_spent\x18\x12 \x01(\x05R\rconnectsSpent\x12:\n" +
+	"\x1aoffer_sent_at_unix_seconds\x18\x13 \x01(\x03R\x16offerSentAtUnixSeconds\"\x9c\x02\n" +
 	"\x15SubmitProposalRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\x12!\n" +
 	"\fcover_letter\x18\x02 \x01(\tR\vcoverLetter\x12\x19\n" +
@@ -1262,7 +2441,19 @@ const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\vproposal_id\x18\x01 \x01(\x03R\n" +
 	"proposalId\"H\n" +
 	"\x13GetProposalResponse\x121\n" +
-	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal\"\xae\x02\n" +
+	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal\"3\n" +
+	"\x1aGetMyProposalForJobRequest\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\"P\n" +
+	"\x1bGetMyProposalForJobResponse\x121\n" +
+	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal\"/\n" +
+	"\x16HasAppliedToJobRequest\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\"\x9d\x01\n" +
+	"\x17HasAppliedToJobResponse\x12\x1f\n" +
+	"\vhas_applied\x18\x01 \x01(\bR\n" +
+	"hasApplied\x12\x1f\n" +
+	"\vproposal_id\x18\x02 \x01(\x03R\n" +
+	"proposalId\x12@\n" +
+	"\ractive_status\x18\x03 \x01(\x0e2\x1b.proposal.v1.ProposalStatusR\factiveStatus\"\xae\x02\n" +
 	"\x19ListProposalsByJobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\x12@\n" +
 	"\rstatus_filter\x18\x02 \x03(\x0e2\x1b.proposal.v1.ProposalStatusR\fstatusFilter\x125\n" +
@@ -1285,35 +2476,116 @@ const file_proposal_v1_proposal_proto_rawDesc = "" +
 	"\x0e_job_id_filter\"v\n" +
 	"\x17ListMyProposalsResponse\x123\n" +
 	"\tproposals\x18\x01 \x03(\v2\x15.proposal.v1.ProposalR\tproposals\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\x88\x01\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"\xd3\x02\n" +
+	"\x1aListClientProposalsRequest\x12@\n" +
+	"\rstatus_filter\x18\x01 \x03(\x0e2\x1b.proposal.v1.ProposalStatusR\fstatusFilter\x12'\n" +
+	"\rjob_id_filter\x18\x02 \x01(\x03H\x00R\vjobIdFilter\x88\x01\x01\x125\n" +
+	"\x14freelancer_id_filter\x18\x03 \x01(\tH\x01R\x12freelancerIdFilter\x88\x01\x01\x12,\n" +
+	"\asort_by\x18\x04 \x01(\x0e2\x13.proposal.v1.SortByR\x06sortBy\x12\x1b\n" +
+	"\tpage_size\x18\x05 \x01(\x05R\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x06 \x01(\tR\tpageTokenB\x10\n" +
+	"\x0e_job_id_filterB\x17\n" +
+	"\x15_freelancer_id_filter\"z\n" +
+	"\x1bListClientProposalsResponse\x123\n" +
+	"\tproposals\x18\x01 \x03(\v2\x15.proposal.v1.ProposalR\tproposals\x12&\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"`\n" +
+	"\x13ProposalStatusCount\x123\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x1b.proposal.v1.ProposalStatusR\x06status\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x03R\x05count\"3\n" +
+	"\x1aCountProposalsByJobRequest\x12\x15\n" +
+	"\x06job_id\x18\x01 \x01(\x03R\x05jobId\"r\n" +
+	"\x1bCountProposalsByJobResponse\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\x03R\x05total\x12=\n" +
+	"\tby_status\x18\x02 \x03(\v2 .proposal.v1.ProposalStatusCountR\bbyStatus\"c\n" +
+	"\x1fCountClientProposalInboxRequest\x12@\n" +
+	"\rstatus_filter\x18\x01 \x03(\x0e2\x1b.proposal.v1.ProposalStatusR\fstatusFilter\"w\n" +
+	" CountClientProposalInboxResponse\x12\x14\n" +
+	"\x05total\x18\x01 \x01(\x03R\x05total\x12=\n" +
+	"\tby_status\x18\x02 \x03(\v2 .proposal.v1.ProposalStatusCountR\bbyStatus\"x\n" +
+	"$InternalMarkProposalOfferSentRequest\x12\x1f\n" +
+	"\vproposal_id\x18\x01 \x01(\x03R\n" +
+	"proposalId\x12\x1b\n" +
+	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12\x12\n" +
+	"\x04note\x18\x03 \x01(\tR\x04note\"Z\n" +
+	"%InternalMarkProposalOfferSentResponse\x121\n" +
+	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal\"\x8e\x01\n" +
+	"\x1bInternalHireProposalRequest\x12\x1f\n" +
+	"\vproposal_id\x18\x01 \x01(\x03R\n" +
+	"proposalId\x12\x1b\n" +
+	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x03 \x01(\tR\trequestId\x12\x12\n" +
+	"\x04note\x18\x04 \x01(\tR\x04note\"\x8b\x01\n" +
+	"\x1cInternalHireProposalResponse\x121\n" +
+	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal\x128\n" +
+	"\x18reused_idempotent_result\x18\x02 \x01(\bR\x16reusedIdempotentResult\"{\n" +
+	"#InternalReleaseHiredProposalRequest\x12\x1f\n" +
+	"\vproposal_id\x18\x01 \x01(\x03R\n" +
+	"proposalId\x12\x1b\n" +
+	"\tclient_id\x18\x02 \x01(\tR\bclientId\x12\x16\n" +
+	"\x06reason\x18\x03 \x01(\tR\x06reason\"Y\n" +
+	"$InternalReleaseHiredProposalResponse\x121\n" +
+	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal\"\x88\x01\n" +
+	"%GetProposalAttachmentUploadUrlRequest\x12\x1f\n" +
+	"\vproposal_id\x18\x01 \x01(\x03R\n" +
+	"proposalId\x12\x1b\n" +
+	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12!\n" +
+	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\"h\n" +
+	"&GetProposalAttachmentUploadUrlResponse\x12\x1f\n" +
+	"\vstorage_key\x18\x01 \x01(\tR\n" +
+	"storageKey\x12\x1d\n" +
+	"\n" +
+	"upload_url\x18\x02 \x01(\tR\tuploadUrl\"o\n" +
+	"'GetProposalAttachmentDownloadUrlRequest\x12\x1f\n" +
+	"\vproposal_id\x18\x01 \x01(\x03R\n" +
+	"proposalId\x12#\n" +
+	"\rattachment_id\x18\x02 \x01(\x03R\fattachmentId\"M\n" +
+	"(GetProposalAttachmentDownloadUrlResponse\x12!\n" +
+	"\fdownload_url\x18\x01 \x01(\tR\vdownloadUrl\"\x8c\x01\n" +
 	"\x18SetProposalStatusRequest\x12\x1f\n" +
 	"\vproposal_id\x18\x01 \x01(\x03R\n" +
-	"proposalId\x123\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x1b.proposal.v1.ProposalStatusR\x06status\x12\x16\n" +
+	"proposalId\x127\n" +
+	"\bdecision\x18\x02 \x01(\x0e2\x1b.proposal.v1.ClientDecisionR\bdecision\x12\x16\n" +
 	"\x06reason\x18\x03 \x01(\tR\x06reason\"N\n" +
 	"\x19SetProposalStatusResponse\x121\n" +
-	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal*\xc4\x01\n" +
+	"\bproposal\x18\x01 \x01(\v2\x15.proposal.v1.ProposalR\bproposal*\xe4\x01\n" +
 	"\x0eProposalStatus\x12\x1f\n" +
 	"\x1bPROPOSAL_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14PROPOSAL_STATUS_SENT\x10\x01\x12\x1f\n" +
 	"\x1bPROPOSAL_STATUS_SHORTLISTED\x10\x02\x12\x1c\n" +
 	"\x18PROPOSAL_STATUS_REJECTED\x10\x03\x12\x19\n" +
 	"\x15PROPOSAL_STATUS_HIRED\x10\x04\x12\x1d\n" +
-	"\x19PROPOSAL_STATUS_WITHDRAWN\x10\x05*t\n" +
+	"\x19PROPOSAL_STATUS_WITHDRAWN\x10\x05\x12\x1e\n" +
+	"\x1aPROPOSAL_STATUS_OFFER_SENT\x10\x06*t\n" +
 	"\x06SortBy\x12\x17\n" +
 	"\x13SORT_BY_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eSORT_BY_NEWEST\x10\x01\x12\x12\n" +
 	"\x0eSORT_BY_OLDEST\x10\x02\x12\x14\n" +
 	"\x10SORT_BY_BID_HIGH\x10\x03\x12\x13\n" +
-	"\x0fSORT_BY_BID_LOW\x10\x042\xa3\x05\n" +
+	"\x0fSORT_BY_BID_LOW\x10\x04*p\n" +
+	"\x0eClientDecision\x12\x1f\n" +
+	"\x1bCLIENT_DECISION_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bCLIENT_DECISION_SHORTLISTED\x10\x01\x12\x1c\n" +
+	"\x18CLIENT_DECISION_REJECTED\x10\x022\xd2\x0e\n" +
 	"\x0fProposalService\x12Y\n" +
 	"\x0eSubmitProposal\x12\".proposal.v1.SubmitProposalRequest\x1a#.proposal.v1.SubmitProposalResponse\x12Y\n" +
 	"\x0eModifyProposal\x12\".proposal.v1.ModifyProposalRequest\x1a#.proposal.v1.ModifyProposalResponse\x12_\n" +
 	"\x10WithdrawProposal\x12$.proposal.v1.WithdrawProposalRequest\x1a%.proposal.v1.WithdrawProposalResponse\x12P\n" +
-	"\vGetProposal\x12\x1f.proposal.v1.GetProposalRequest\x1a .proposal.v1.GetProposalResponse\x12e\n" +
+	"\vGetProposal\x12\x1f.proposal.v1.GetProposalRequest\x1a .proposal.v1.GetProposalResponse\x12h\n" +
+	"\x13GetMyProposalForJob\x12'.proposal.v1.GetMyProposalForJobRequest\x1a(.proposal.v1.GetMyProposalForJobResponse\x12\\\n" +
+	"\x0fHasAppliedToJob\x12#.proposal.v1.HasAppliedToJobRequest\x1a$.proposal.v1.HasAppliedToJobResponse\x12e\n" +
 	"\x12ListProposalsByJob\x12&.proposal.v1.ListProposalsByJobRequest\x1a'.proposal.v1.ListProposalsByJobResponse\x12\\\n" +
-	"\x0fListMyProposals\x12#.proposal.v1.ListMyProposalsRequest\x1a$.proposal.v1.ListMyProposalsResponse\x12b\n" +
-	"\x11SetProposalStatus\x12%.proposal.v1.SetProposalStatusRequest\x1a&.proposal.v1.SetProposalStatusResponseB0Z.jobconnect/proposal/gen/proposal/v1;proposalv1b\x06proto3"
+	"\x0fListMyProposals\x12#.proposal.v1.ListMyProposalsRequest\x1a$.proposal.v1.ListMyProposalsResponse\x12h\n" +
+	"\x13ListClientProposals\x12'.proposal.v1.ListClientProposalsRequest\x1a(.proposal.v1.ListClientProposalsResponse\x12h\n" +
+	"\x13CountProposalsByJob\x12'.proposal.v1.CountProposalsByJobRequest\x1a(.proposal.v1.CountProposalsByJobResponse\x12w\n" +
+	"\x18CountClientProposalInbox\x12,.proposal.v1.CountClientProposalInboxRequest\x1a-.proposal.v1.CountClientProposalInboxResponse\x12\x89\x01\n" +
+	"\x1eGetProposalAttachmentUploadUrl\x122.proposal.v1.GetProposalAttachmentUploadUrlRequest\x1a3.proposal.v1.GetProposalAttachmentUploadUrlResponse\x12\x8f\x01\n" +
+	" GetProposalAttachmentDownloadUrl\x124.proposal.v1.GetProposalAttachmentDownloadUrlRequest\x1a5.proposal.v1.GetProposalAttachmentDownloadUrlResponse\x12b\n" +
+	"\x11SetProposalStatus\x12%.proposal.v1.SetProposalStatusRequest\x1a&.proposal.v1.SetProposalStatusResponse\x12\x86\x01\n" +
+	"\x1dInternalMarkProposalOfferSent\x121.proposal.v1.InternalMarkProposalOfferSentRequest\x1a2.proposal.v1.InternalMarkProposalOfferSentResponse\x12k\n" +
+	"\x14InternalHireProposal\x12(.proposal.v1.InternalHireProposalRequest\x1a).proposal.v1.InternalHireProposalResponse\x12\x83\x01\n" +
+	"\x1cInternalReleaseHiredProposal\x120.proposal.v1.InternalReleaseHiredProposalRequest\x1a1.proposal.v1.InternalReleaseHiredProposalResponseB0Z.jobconnect/proposal/gen/proposal/v1;proposalv1b\x06proto3"
 
 var (
 	file_proposal_v1_proposal_proto_rawDescOnce sync.Once
@@ -1327,63 +2599,117 @@ func file_proposal_v1_proposal_proto_rawDescGZIP() []byte {
 	return file_proposal_v1_proposal_proto_rawDescData
 }
 
-var file_proposal_v1_proposal_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_proposal_v1_proposal_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_proposal_v1_proposal_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_proposal_v1_proposal_proto_msgTypes = make([]protoimpl.MessageInfo, 37)
 var file_proposal_v1_proposal_proto_goTypes = []any{
-	(ProposalStatus)(0),                // 0: proposal.v1.ProposalStatus
-	(SortBy)(0),                        // 1: proposal.v1.SortBy
-	(*ProposalAttachment)(nil),         // 2: proposal.v1.ProposalAttachment
-	(*Proposal)(nil),                   // 3: proposal.v1.Proposal
-	(*SubmitProposalRequest)(nil),      // 4: proposal.v1.SubmitProposalRequest
-	(*SubmitProposalResponse)(nil),     // 5: proposal.v1.SubmitProposalResponse
-	(*ModifyProposalRequest)(nil),      // 6: proposal.v1.ModifyProposalRequest
-	(*ModifyProposalResponse)(nil),     // 7: proposal.v1.ModifyProposalResponse
-	(*WithdrawProposalRequest)(nil),    // 8: proposal.v1.WithdrawProposalRequest
-	(*WithdrawProposalResponse)(nil),   // 9: proposal.v1.WithdrawProposalResponse
-	(*GetProposalRequest)(nil),         // 10: proposal.v1.GetProposalRequest
-	(*GetProposalResponse)(nil),        // 11: proposal.v1.GetProposalResponse
-	(*ListProposalsByJobRequest)(nil),  // 12: proposal.v1.ListProposalsByJobRequest
-	(*ListProposalsByJobResponse)(nil), // 13: proposal.v1.ListProposalsByJobResponse
-	(*ListMyProposalsRequest)(nil),     // 14: proposal.v1.ListMyProposalsRequest
-	(*ListMyProposalsResponse)(nil),    // 15: proposal.v1.ListMyProposalsResponse
-	(*SetProposalStatusRequest)(nil),   // 16: proposal.v1.SetProposalStatusRequest
-	(*SetProposalStatusResponse)(nil),  // 17: proposal.v1.SetProposalStatusResponse
+	(ProposalStatus)(0),                              // 0: proposal.v1.ProposalStatus
+	(SortBy)(0),                                      // 1: proposal.v1.SortBy
+	(ClientDecision)(0),                              // 2: proposal.v1.ClientDecision
+	(*ProposalAttachment)(nil),                       // 3: proposal.v1.ProposalAttachment
+	(*Proposal)(nil),                                 // 4: proposal.v1.Proposal
+	(*SubmitProposalRequest)(nil),                    // 5: proposal.v1.SubmitProposalRequest
+	(*SubmitProposalResponse)(nil),                   // 6: proposal.v1.SubmitProposalResponse
+	(*ModifyProposalRequest)(nil),                    // 7: proposal.v1.ModifyProposalRequest
+	(*ModifyProposalResponse)(nil),                   // 8: proposal.v1.ModifyProposalResponse
+	(*WithdrawProposalRequest)(nil),                  // 9: proposal.v1.WithdrawProposalRequest
+	(*WithdrawProposalResponse)(nil),                 // 10: proposal.v1.WithdrawProposalResponse
+	(*GetProposalRequest)(nil),                       // 11: proposal.v1.GetProposalRequest
+	(*GetProposalResponse)(nil),                      // 12: proposal.v1.GetProposalResponse
+	(*GetMyProposalForJobRequest)(nil),               // 13: proposal.v1.GetMyProposalForJobRequest
+	(*GetMyProposalForJobResponse)(nil),              // 14: proposal.v1.GetMyProposalForJobResponse
+	(*HasAppliedToJobRequest)(nil),                   // 15: proposal.v1.HasAppliedToJobRequest
+	(*HasAppliedToJobResponse)(nil),                  // 16: proposal.v1.HasAppliedToJobResponse
+	(*ListProposalsByJobRequest)(nil),                // 17: proposal.v1.ListProposalsByJobRequest
+	(*ListProposalsByJobResponse)(nil),               // 18: proposal.v1.ListProposalsByJobResponse
+	(*ListMyProposalsRequest)(nil),                   // 19: proposal.v1.ListMyProposalsRequest
+	(*ListMyProposalsResponse)(nil),                  // 20: proposal.v1.ListMyProposalsResponse
+	(*ListClientProposalsRequest)(nil),               // 21: proposal.v1.ListClientProposalsRequest
+	(*ListClientProposalsResponse)(nil),              // 22: proposal.v1.ListClientProposalsResponse
+	(*ProposalStatusCount)(nil),                      // 23: proposal.v1.ProposalStatusCount
+	(*CountProposalsByJobRequest)(nil),               // 24: proposal.v1.CountProposalsByJobRequest
+	(*CountProposalsByJobResponse)(nil),              // 25: proposal.v1.CountProposalsByJobResponse
+	(*CountClientProposalInboxRequest)(nil),          // 26: proposal.v1.CountClientProposalInboxRequest
+	(*CountClientProposalInboxResponse)(nil),         // 27: proposal.v1.CountClientProposalInboxResponse
+	(*InternalMarkProposalOfferSentRequest)(nil),     // 28: proposal.v1.InternalMarkProposalOfferSentRequest
+	(*InternalMarkProposalOfferSentResponse)(nil),    // 29: proposal.v1.InternalMarkProposalOfferSentResponse
+	(*InternalHireProposalRequest)(nil),              // 30: proposal.v1.InternalHireProposalRequest
+	(*InternalHireProposalResponse)(nil),             // 31: proposal.v1.InternalHireProposalResponse
+	(*InternalReleaseHiredProposalRequest)(nil),      // 32: proposal.v1.InternalReleaseHiredProposalRequest
+	(*InternalReleaseHiredProposalResponse)(nil),     // 33: proposal.v1.InternalReleaseHiredProposalResponse
+	(*GetProposalAttachmentUploadUrlRequest)(nil),    // 34: proposal.v1.GetProposalAttachmentUploadUrlRequest
+	(*GetProposalAttachmentUploadUrlResponse)(nil),   // 35: proposal.v1.GetProposalAttachmentUploadUrlResponse
+	(*GetProposalAttachmentDownloadUrlRequest)(nil),  // 36: proposal.v1.GetProposalAttachmentDownloadUrlRequest
+	(*GetProposalAttachmentDownloadUrlResponse)(nil), // 37: proposal.v1.GetProposalAttachmentDownloadUrlResponse
+	(*SetProposalStatusRequest)(nil),                 // 38: proposal.v1.SetProposalStatusRequest
+	(*SetProposalStatusResponse)(nil),                // 39: proposal.v1.SetProposalStatusResponse
 }
 var file_proposal_v1_proposal_proto_depIdxs = []int32{
-	2,  // 0: proposal.v1.Proposal.attachments:type_name -> proposal.v1.ProposalAttachment
+	3,  // 0: proposal.v1.Proposal.attachments:type_name -> proposal.v1.ProposalAttachment
 	0,  // 1: proposal.v1.Proposal.status:type_name -> proposal.v1.ProposalStatus
-	2,  // 2: proposal.v1.SubmitProposalRequest.attachments:type_name -> proposal.v1.ProposalAttachment
-	3,  // 3: proposal.v1.SubmitProposalResponse.proposal:type_name -> proposal.v1.Proposal
-	2,  // 4: proposal.v1.ModifyProposalRequest.attachments:type_name -> proposal.v1.ProposalAttachment
-	3,  // 5: proposal.v1.ModifyProposalResponse.proposal:type_name -> proposal.v1.Proposal
-	3,  // 6: proposal.v1.GetProposalResponse.proposal:type_name -> proposal.v1.Proposal
-	0,  // 7: proposal.v1.ListProposalsByJobRequest.status_filter:type_name -> proposal.v1.ProposalStatus
-	1,  // 8: proposal.v1.ListProposalsByJobRequest.sort_by:type_name -> proposal.v1.SortBy
-	3,  // 9: proposal.v1.ListProposalsByJobResponse.proposals:type_name -> proposal.v1.Proposal
-	0,  // 10: proposal.v1.ListMyProposalsRequest.status_filter:type_name -> proposal.v1.ProposalStatus
-	1,  // 11: proposal.v1.ListMyProposalsRequest.sort_by:type_name -> proposal.v1.SortBy
-	3,  // 12: proposal.v1.ListMyProposalsResponse.proposals:type_name -> proposal.v1.Proposal
-	0,  // 13: proposal.v1.SetProposalStatusRequest.status:type_name -> proposal.v1.ProposalStatus
-	3,  // 14: proposal.v1.SetProposalStatusResponse.proposal:type_name -> proposal.v1.Proposal
-	4,  // 15: proposal.v1.ProposalService.SubmitProposal:input_type -> proposal.v1.SubmitProposalRequest
-	6,  // 16: proposal.v1.ProposalService.ModifyProposal:input_type -> proposal.v1.ModifyProposalRequest
-	8,  // 17: proposal.v1.ProposalService.WithdrawProposal:input_type -> proposal.v1.WithdrawProposalRequest
-	10, // 18: proposal.v1.ProposalService.GetProposal:input_type -> proposal.v1.GetProposalRequest
-	12, // 19: proposal.v1.ProposalService.ListProposalsByJob:input_type -> proposal.v1.ListProposalsByJobRequest
-	14, // 20: proposal.v1.ProposalService.ListMyProposals:input_type -> proposal.v1.ListMyProposalsRequest
-	16, // 21: proposal.v1.ProposalService.SetProposalStatus:input_type -> proposal.v1.SetProposalStatusRequest
-	5,  // 22: proposal.v1.ProposalService.SubmitProposal:output_type -> proposal.v1.SubmitProposalResponse
-	7,  // 23: proposal.v1.ProposalService.ModifyProposal:output_type -> proposal.v1.ModifyProposalResponse
-	9,  // 24: proposal.v1.ProposalService.WithdrawProposal:output_type -> proposal.v1.WithdrawProposalResponse
-	11, // 25: proposal.v1.ProposalService.GetProposal:output_type -> proposal.v1.GetProposalResponse
-	13, // 26: proposal.v1.ProposalService.ListProposalsByJob:output_type -> proposal.v1.ListProposalsByJobResponse
-	15, // 27: proposal.v1.ProposalService.ListMyProposals:output_type -> proposal.v1.ListMyProposalsResponse
-	17, // 28: proposal.v1.ProposalService.SetProposalStatus:output_type -> proposal.v1.SetProposalStatusResponse
-	22, // [22:29] is the sub-list for method output_type
-	15, // [15:22] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	3,  // 2: proposal.v1.SubmitProposalRequest.attachments:type_name -> proposal.v1.ProposalAttachment
+	4,  // 3: proposal.v1.SubmitProposalResponse.proposal:type_name -> proposal.v1.Proposal
+	3,  // 4: proposal.v1.ModifyProposalRequest.attachments:type_name -> proposal.v1.ProposalAttachment
+	4,  // 5: proposal.v1.ModifyProposalResponse.proposal:type_name -> proposal.v1.Proposal
+	4,  // 6: proposal.v1.GetProposalResponse.proposal:type_name -> proposal.v1.Proposal
+	4,  // 7: proposal.v1.GetMyProposalForJobResponse.proposal:type_name -> proposal.v1.Proposal
+	0,  // 8: proposal.v1.HasAppliedToJobResponse.active_status:type_name -> proposal.v1.ProposalStatus
+	0,  // 9: proposal.v1.ListProposalsByJobRequest.status_filter:type_name -> proposal.v1.ProposalStatus
+	1,  // 10: proposal.v1.ListProposalsByJobRequest.sort_by:type_name -> proposal.v1.SortBy
+	4,  // 11: proposal.v1.ListProposalsByJobResponse.proposals:type_name -> proposal.v1.Proposal
+	0,  // 12: proposal.v1.ListMyProposalsRequest.status_filter:type_name -> proposal.v1.ProposalStatus
+	1,  // 13: proposal.v1.ListMyProposalsRequest.sort_by:type_name -> proposal.v1.SortBy
+	4,  // 14: proposal.v1.ListMyProposalsResponse.proposals:type_name -> proposal.v1.Proposal
+	0,  // 15: proposal.v1.ListClientProposalsRequest.status_filter:type_name -> proposal.v1.ProposalStatus
+	1,  // 16: proposal.v1.ListClientProposalsRequest.sort_by:type_name -> proposal.v1.SortBy
+	4,  // 17: proposal.v1.ListClientProposalsResponse.proposals:type_name -> proposal.v1.Proposal
+	0,  // 18: proposal.v1.ProposalStatusCount.status:type_name -> proposal.v1.ProposalStatus
+	23, // 19: proposal.v1.CountProposalsByJobResponse.by_status:type_name -> proposal.v1.ProposalStatusCount
+	0,  // 20: proposal.v1.CountClientProposalInboxRequest.status_filter:type_name -> proposal.v1.ProposalStatus
+	23, // 21: proposal.v1.CountClientProposalInboxResponse.by_status:type_name -> proposal.v1.ProposalStatusCount
+	4,  // 22: proposal.v1.InternalMarkProposalOfferSentResponse.proposal:type_name -> proposal.v1.Proposal
+	4,  // 23: proposal.v1.InternalHireProposalResponse.proposal:type_name -> proposal.v1.Proposal
+	4,  // 24: proposal.v1.InternalReleaseHiredProposalResponse.proposal:type_name -> proposal.v1.Proposal
+	2,  // 25: proposal.v1.SetProposalStatusRequest.decision:type_name -> proposal.v1.ClientDecision
+	4,  // 26: proposal.v1.SetProposalStatusResponse.proposal:type_name -> proposal.v1.Proposal
+	5,  // 27: proposal.v1.ProposalService.SubmitProposal:input_type -> proposal.v1.SubmitProposalRequest
+	7,  // 28: proposal.v1.ProposalService.ModifyProposal:input_type -> proposal.v1.ModifyProposalRequest
+	9,  // 29: proposal.v1.ProposalService.WithdrawProposal:input_type -> proposal.v1.WithdrawProposalRequest
+	11, // 30: proposal.v1.ProposalService.GetProposal:input_type -> proposal.v1.GetProposalRequest
+	13, // 31: proposal.v1.ProposalService.GetMyProposalForJob:input_type -> proposal.v1.GetMyProposalForJobRequest
+	15, // 32: proposal.v1.ProposalService.HasAppliedToJob:input_type -> proposal.v1.HasAppliedToJobRequest
+	17, // 33: proposal.v1.ProposalService.ListProposalsByJob:input_type -> proposal.v1.ListProposalsByJobRequest
+	19, // 34: proposal.v1.ProposalService.ListMyProposals:input_type -> proposal.v1.ListMyProposalsRequest
+	21, // 35: proposal.v1.ProposalService.ListClientProposals:input_type -> proposal.v1.ListClientProposalsRequest
+	24, // 36: proposal.v1.ProposalService.CountProposalsByJob:input_type -> proposal.v1.CountProposalsByJobRequest
+	26, // 37: proposal.v1.ProposalService.CountClientProposalInbox:input_type -> proposal.v1.CountClientProposalInboxRequest
+	34, // 38: proposal.v1.ProposalService.GetProposalAttachmentUploadUrl:input_type -> proposal.v1.GetProposalAttachmentUploadUrlRequest
+	36, // 39: proposal.v1.ProposalService.GetProposalAttachmentDownloadUrl:input_type -> proposal.v1.GetProposalAttachmentDownloadUrlRequest
+	38, // 40: proposal.v1.ProposalService.SetProposalStatus:input_type -> proposal.v1.SetProposalStatusRequest
+	28, // 41: proposal.v1.ProposalService.InternalMarkProposalOfferSent:input_type -> proposal.v1.InternalMarkProposalOfferSentRequest
+	30, // 42: proposal.v1.ProposalService.InternalHireProposal:input_type -> proposal.v1.InternalHireProposalRequest
+	32, // 43: proposal.v1.ProposalService.InternalReleaseHiredProposal:input_type -> proposal.v1.InternalReleaseHiredProposalRequest
+	6,  // 44: proposal.v1.ProposalService.SubmitProposal:output_type -> proposal.v1.SubmitProposalResponse
+	8,  // 45: proposal.v1.ProposalService.ModifyProposal:output_type -> proposal.v1.ModifyProposalResponse
+	10, // 46: proposal.v1.ProposalService.WithdrawProposal:output_type -> proposal.v1.WithdrawProposalResponse
+	12, // 47: proposal.v1.ProposalService.GetProposal:output_type -> proposal.v1.GetProposalResponse
+	14, // 48: proposal.v1.ProposalService.GetMyProposalForJob:output_type -> proposal.v1.GetMyProposalForJobResponse
+	16, // 49: proposal.v1.ProposalService.HasAppliedToJob:output_type -> proposal.v1.HasAppliedToJobResponse
+	18, // 50: proposal.v1.ProposalService.ListProposalsByJob:output_type -> proposal.v1.ListProposalsByJobResponse
+	20, // 51: proposal.v1.ProposalService.ListMyProposals:output_type -> proposal.v1.ListMyProposalsResponse
+	22, // 52: proposal.v1.ProposalService.ListClientProposals:output_type -> proposal.v1.ListClientProposalsResponse
+	25, // 53: proposal.v1.ProposalService.CountProposalsByJob:output_type -> proposal.v1.CountProposalsByJobResponse
+	27, // 54: proposal.v1.ProposalService.CountClientProposalInbox:output_type -> proposal.v1.CountClientProposalInboxResponse
+	35, // 55: proposal.v1.ProposalService.GetProposalAttachmentUploadUrl:output_type -> proposal.v1.GetProposalAttachmentUploadUrlResponse
+	37, // 56: proposal.v1.ProposalService.GetProposalAttachmentDownloadUrl:output_type -> proposal.v1.GetProposalAttachmentDownloadUrlResponse
+	39, // 57: proposal.v1.ProposalService.SetProposalStatus:output_type -> proposal.v1.SetProposalStatusResponse
+	29, // 58: proposal.v1.ProposalService.InternalMarkProposalOfferSent:output_type -> proposal.v1.InternalMarkProposalOfferSentResponse
+	31, // 59: proposal.v1.ProposalService.InternalHireProposal:output_type -> proposal.v1.InternalHireProposalResponse
+	33, // 60: proposal.v1.ProposalService.InternalReleaseHiredProposal:output_type -> proposal.v1.InternalReleaseHiredProposalResponse
+	44, // [44:61] is the sub-list for method output_type
+	27, // [27:44] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_proposal_v1_proposal_proto_init() }
@@ -1391,15 +2717,16 @@ func file_proposal_v1_proposal_proto_init() {
 	if File_proposal_v1_proposal_proto != nil {
 		return
 	}
-	file_proposal_v1_proposal_proto_msgTypes[10].OneofWrappers = []any{}
-	file_proposal_v1_proposal_proto_msgTypes[12].OneofWrappers = []any{}
+	file_proposal_v1_proposal_proto_msgTypes[14].OneofWrappers = []any{}
+	file_proposal_v1_proposal_proto_msgTypes[16].OneofWrappers = []any{}
+	file_proposal_v1_proposal_proto_msgTypes[18].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proposal_v1_proposal_proto_rawDesc), len(file_proposal_v1_proposal_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   16,
+			NumEnums:      3,
+			NumMessages:   37,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

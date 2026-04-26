@@ -1,0 +1,1 @@
+drop index if exists uq_contracts_pending_offer_per_job_client;

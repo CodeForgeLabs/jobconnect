@@ -26,7 +26,6 @@ type UpdateJobInput struct {
 	JobType             *string
 	BudgetFixed         *float64
 	HourlyRate          *float64
-	Currency            *string
 	Deadline            *int64
 	ClearDeadline       bool
 	Attachments         []domain.Attachment
@@ -102,16 +101,6 @@ func (uc *UpdateJob) Execute(ctx context.Context, in UpdateJobInput) (UpdateJobO
 	}
 	if in.HourlyRate != nil {
 		job.HourlyRate = *in.HourlyRate
-	}
-	if in.Currency != nil {
-		cur := strings.ToUpper(strings.TrimSpace(*in.Currency))
-		if cur == "" {
-			return UpdateJobOutput{}, fmt.Errorf("currency is required")
-		}
-		if len(cur) > 8 {
-			return UpdateJobOutput{}, fmt.Errorf("currency too long")
-		}
-		job.Currency = cur
 	}
 	if in.ClearDeadline {
 		job.Deadline = nil

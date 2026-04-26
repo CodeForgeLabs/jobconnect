@@ -38,12 +38,12 @@ func (r *JobRepo) Create(ctx context.Context, job domain.Job) (int64, error) {
 	err = tx.QueryRow(ctx, `
 		insert into jobs (
 			client_id, title, description, required_skills, job_type, budget_fixed, hourly_rate,
-			currency, budget_min, budget_max, visibility, deadline, status, created_at, updated_at
+			budget_min, budget_max, visibility, deadline, status, created_at, updated_at
 		)
-		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 		returning id
 	`, job.ClientID, job.Title, job.Description, skills, job.JobType, job.BudgetFixed, job.HourlyRate,
-		job.Currency, job.BudgetMin, job.BudgetMax, job.Visibility, job.Deadline, job.Status, job.CreatedAt, job.UpdatedAt).Scan(&id)
+		job.BudgetMin, job.BudgetMax, job.Visibility, job.Deadline, job.Status, job.CreatedAt, job.UpdatedAt).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -91,7 +91,7 @@ func (r *JobRepo) GetPublicByID(ctx context.Context, jobID int64) (domain.Job, e
 func (r *JobRepo) ListByClient(ctx context.Context, clientID uuid.UUID, status string, limit, offset int) ([]domain.Job, error) {
 	query := `
 		select id, client_id, title, description, required_skills, job_type,
-			budget_fixed, hourly_rate, currency, budget_min, budget_max, visibility,
+			budget_fixed, hourly_rate, budget_min, budget_max, visibility,
 			deadline, status, close_reason, settlement_policy, cancellation_reason,
 			created_at, updated_at, closed_at, paused_at, filled_at, completed_at, canceled_at
 		from jobs
@@ -134,7 +134,7 @@ func (r *JobRepo) ListByClient(ctx context.Context, clientID uuid.UUID, status s
 func (r *JobRepo) ListInvitedJobs(ctx context.Context, freelancerID uuid.UUID, limit, offset int) ([]domain.InvitedJob, error) {
 	rows, err := r.pool.Query(ctx, `
 		select j.id, j.client_id, j.title, j.description, j.required_skills, j.job_type,
-			j.budget_fixed, j.hourly_rate, j.currency, j.budget_min, j.budget_max, j.visibility,
+			j.budget_fixed, j.hourly_rate, j.budget_min, j.budget_max, j.visibility,
 			j.deadline, j.status, j.close_reason, j.settlement_policy, j.cancellation_reason,
 			j.created_at, j.updated_at, j.closed_at, j.paused_at, j.filled_at, j.completed_at, j.canceled_at,
 			i.job_id, i.client_id, i.freelancer_id, i.created_at, i.response_status
@@ -162,7 +162,6 @@ func (r *JobRepo) ListInvitedJobs(ctx context.Context, freelancerID uuid.UUID, l
 			&ij.Job.JobType,
 			&ij.Job.BudgetFixed,
 			&ij.Job.HourlyRate,
-			&ij.Job.Currency,
 			&ij.Job.BudgetMin,
 			&ij.Job.BudgetMax,
 			&ij.Job.Visibility,
@@ -250,7 +249,7 @@ func (r *JobRepo) UnsaveJob(ctx context.Context, jobID int64, freelancerID uuid.
 func (r *JobRepo) ListSavedJobs(ctx context.Context, freelancerID uuid.UUID, limit, offset int) ([]domain.Job, error) {
 	rows, err := r.pool.Query(ctx, `
 		select j.id, j.client_id, j.title, j.description, j.required_skills, j.job_type,
-			j.budget_fixed, j.hourly_rate, j.currency, j.budget_min, j.budget_max, j.visibility,
+			j.budget_fixed, j.hourly_rate, j.budget_min, j.budget_max, j.visibility,
 			j.deadline, j.status, j.close_reason, j.settlement_policy, j.cancellation_reason,
 			j.created_at, j.updated_at, j.closed_at, j.paused_at, j.filled_at, j.completed_at, j.canceled_at
 		from saved_jobs s
@@ -284,7 +283,7 @@ func (r *JobRepo) ListSavedJobs(ctx context.Context, freelancerID uuid.UUID, lim
 func (r *JobRepo) ListOpen(ctx context.Context, limit, offset int) ([]domain.Job, error) {
 	rows, err := r.pool.Query(ctx, `
 		select id, client_id, title, description, required_skills, job_type,
-			budget_fixed, hourly_rate, currency, budget_min, budget_max, visibility,
+			budget_fixed, hourly_rate, budget_min, budget_max, visibility,
 			deadline, status, close_reason, settlement_policy, cancellation_reason,
 			created_at, updated_at, closed_at, paused_at, filled_at, completed_at, canceled_at
 		from jobs
@@ -376,7 +375,7 @@ func (r *JobRepo) DeleteAttachment(ctx context.Context, jobID int64, attachmentI
 func (r *JobRepo) getJobByQuery(ctx context.Context, where string, args ...any) (domain.Job, error) {
 	query := fmt.Sprintf(`
 		select id, client_id, title, description, required_skills, job_type,
-			budget_fixed, hourly_rate, currency, budget_min, budget_max, visibility,
+			budget_fixed, hourly_rate, budget_min, budget_max, visibility,
 			deadline, status, close_reason, settlement_policy, cancellation_reason,
 			created_at, updated_at, closed_at, paused_at, filled_at, completed_at, canceled_at
 		from jobs
@@ -434,7 +433,6 @@ func scanJob(scanner rowScanner) (domain.Job, error) {
 		&job.JobType,
 		&job.BudgetFixed,
 		&job.HourlyRate,
-		&job.Currency,
 		&job.BudgetMin,
 		&job.BudgetMax,
 		&job.Visibility,
@@ -477,11 +475,11 @@ func (r *JobRepo) Update(ctx context.Context, job domain.Job) (domain.Job, error
 	res, err := tx.Exec(ctx, `
 		update jobs set
 			title = $2, description = $3, required_skills = $4, job_type = $5,
-			budget_fixed = $6, hourly_rate = $7, currency = $8, budget_min = $9, budget_max = $10,
-			visibility = $11, deadline = $12, updated_at = $13
+			budget_fixed = $6, hourly_rate = $7, budget_min = $8, budget_max = $9,
+			visibility = $10, deadline = $11, updated_at = $12
 		where id = $1 and status = $14
 	`, job.ID, job.Title, job.Description, skills, job.JobType,
-		job.BudgetFixed, job.HourlyRate, job.Currency, job.BudgetMin, job.BudgetMax,
+		job.BudgetFixed, job.HourlyRate, job.BudgetMin, job.BudgetMax,
 		job.Visibility, job.Deadline, job.UpdatedAt,
 		domain.JobStatusOpen)
 	if err != nil {
@@ -547,7 +545,7 @@ func (r *JobRepo) ListOpenFiltered(ctx context.Context, filter application.ListO
 	whereClause := strings.Join(where, " AND ")
 	query := fmt.Sprintf(`
 		select id, client_id, title, description, required_skills, job_type,
-			budget_fixed, hourly_rate, currency, budget_min, budget_max, visibility,
+			budget_fixed, hourly_rate, budget_min, budget_max, visibility,
 			deadline, status, close_reason, settlement_policy, cancellation_reason,
 			created_at, updated_at, closed_at, paused_at, filled_at, completed_at, canceled_at
 		from jobs
@@ -622,7 +620,7 @@ func (r *JobRepo) ListOpenFilteredV2(ctx context.Context, filter application.Lis
 	whereClause := strings.Join(where, " AND ")
 	query := fmt.Sprintf(`
 		select id, client_id, title, description, required_skills, job_type,
-			budget_fixed, hourly_rate, currency, budget_min, budget_max, visibility,
+			budget_fixed, hourly_rate, budget_min, budget_max, visibility,
 			deadline, status, close_reason, settlement_policy, cancellation_reason,
 			created_at, updated_at, closed_at, paused_at, filled_at, completed_at, canceled_at
 		from jobs

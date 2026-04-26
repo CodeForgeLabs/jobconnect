@@ -46,7 +46,6 @@ type Job struct {
 	JobType            string
 	BudgetFixed        float64
 	HourlyRate         float64
-	Currency           string
 	BudgetMin          float64
 	BudgetMax          float64
 	Visibility         string
@@ -150,12 +149,6 @@ func ValidateCreate(job Job, now time.Time) error {
 		if job.BudgetFixed > 0 {
 			return fmt.Errorf("budget_fixed must be empty for hourly jobs")
 		}
-	}
-	if job.Currency == "" {
-		return fmt.Errorf("currency is required")
-	}
-	if len(job.Currency) > 8 {
-		return fmt.Errorf("currency too long")
 	}
 	if job.Deadline != nil && !job.Deadline.After(now) {
 		return fmt.Errorf("deadline must be in the future")

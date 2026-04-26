@@ -97,3 +97,18 @@ func TestMapSettlementPolicy(t *testing.T) {
 		t.Fatalf("expected fallback refund_remaining settlement enum, got %v", got)
 	}
 }
+
+func TestMapApplicantStageAliases(t *testing.T) {
+	if got := mapApplicantStage("shortlist"); got != jobv1.ApplicantStage_APPLICANT_STAGE_SHORTLISTED {
+		t.Fatalf("expected shortlist alias to map to shortlisted, got %v", got)
+	}
+	if got := mapApplicantStage("shortlisted"); got != jobv1.ApplicantStage_APPLICANT_STAGE_SHORTLISTED {
+		t.Fatalf("expected shortlisted to map to shortlisted, got %v", got)
+	}
+	if got := mapApplicantStage("reject"); got != jobv1.ApplicantStage_APPLICANT_STAGE_REJECTED {
+		t.Fatalf("expected reject alias to map to rejected, got %v", got)
+	}
+	if got := mapApplicantStage("rejected"); got != jobv1.ApplicantStage_APPLICANT_STAGE_REJECTED {
+		t.Fatalf("expected rejected to map to rejected, got %v", got)
+	}
+}

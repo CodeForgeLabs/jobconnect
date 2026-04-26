@@ -49,7 +49,6 @@ type TransferResult struct {
 type VerifyResult struct {
 	Verified    bool
 	AmountMinor int64
-	Currency    string
 	ExternalRef string
 }
 
@@ -70,21 +69,19 @@ type PaymentGateway interface {
 
 // CheckoutInput contains the data needed to start a checkout session.
 type CheckoutInput struct {
-	AmountMinor   int64
-	Currency      string
-	TxRef         string // our idempotency key
-	ReturnURL     string
-	CallbackURL   string
-	Email         string
-	FirstName     string
-	LastName      string
-	PhoneNumber   string
+	AmountMinor int64
+	TxRef       string // our idempotency key
+	ReturnURL   string
+	CallbackURL string
+	Email       string
+	FirstName   string
+	LastName    string
+	PhoneNumber string
 }
 
 // TransferInput contains the data needed for a bank transfer payout.
 type TransferInput struct {
 	AmountMinor       int64
-	Currency          string
 	BankCode          string
 	AccountNumber     string
 	AccountHolderName string
@@ -104,14 +101,16 @@ type WalletClient interface {
 	GetBalance(ctx context.Context, walletID int64) (BalanceInfo, error)
 }
 
-// ContractClient wraps calls to the Contract Service.
-type ContractClient interface {
-	UpdateMilestoneStatus(ctx context.Context, contractID int64, milestoneID int64, status string) error
-}
-
 // VerificationClient wraps calls to the Verification Service.
 type VerificationClient interface {
 	IsKYCVerified(ctx context.Context, userID uuid.UUID) (bool, error)
+}
+
+type ContractClient interface {
+	MarkMilestoneFunded(ctx context.Context, contractID int64, milestoneID int64) error
+	MarkContractBonusPaid(ctx context.Context, bonusID int64, paymentReferenceID string) error
+	CloseHourlyWeek(ctx context.Context, contractID int64, weekStartUnixSeconds int64) error
+	SettleHourlyInvoice(ctx context.Context, invoiceID int64) error
 }
 
 // ──────────────────────────────────────────────
@@ -178,5 +177,4 @@ type BalanceInfo struct {
 	AvailableMinor int64
 	HeldMinor      int64
 	TotalMinor     int64
-	Currency       string
 }

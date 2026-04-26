@@ -11,15 +11,23 @@ import (
 	"syscall"
 	"time"
 
+	userv1 "jobconnect/contract/gen/user"
 	grpcadapter "jobconnect/contract/internal/adapters/grpc"
 	"jobconnect/contract/internal/application"
 	"jobconnect/contract/internal/config"
 	"jobconnect/contract/internal/infrastructure/clock"
 	"jobconnect/contract/internal/infrastructure/db"
+	"jobconnect/contract/internal/infrastructure/disputegrpc"
 	"jobconnect/contract/internal/infrastructure/jobgrpc"
 	"jobconnect/contract/internal/infrastructure/proposalgrpc"
+	"jobconnect/contract/internal/infrastructure/storage"
 	"jobconnect/contract/internal/infrastructure/tokens"
+	"jobconnect/contract/internal/infrastructure/usergrpc"
+	"jobconnect/contract/internal/infrastructure/walletgrpc"
 
+	disputev1 "jobconnect/contract/gen/dispute/v1"
+	walletv1 "jobconnect/contract/gen/wallet/v1"
+	jobv1 "jobconnect/job/gen/job/v1"
 	proposalv1 "jobconnect/proposal/gen/proposal/v1"
 
 	"google.golang.org/grpc"
@@ -51,40 +59,115 @@ func main() {
 	}
 	defer proposalConn.Close()
 
+	jobConn, err := grpc.NewClient(cfg.JobServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("job service dial: %v", err)
+	}
+	defer jobConn.Close()
+
+	userConn, err := grpc.NewClient(cfg.UserServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("user service dial: %v", err)
+	}
+	defer userConn.Close()
+
+	walletConn, err := grpc.NewClient(cfg.WalletServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("wallet service dial: %v", err)
+	}
+	defer walletConn.Close()
+
+	disputeConn, err := grpc.NewClient(cfg.DisputeServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("dispute service dial: %v", err)
+	}
+	defer disputeConn.Close()
+
 	repo := db.NewContractRepo(pool)
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
 	jwtIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
+	hourlyEvidenceStore, err := storage.NewHourlyEvidenceStore(ctx, cfg.HourlyEvidenceStore)
+	if err != nil {
+		log.Fatalf("hourly evidence store: %v", err)
+	}
+	hourlyEvidencePutTTL, err := time.ParseDuration(cfg.HourlyEvidenceStore.PresignPutTTL)
+	if err != nil {
+		log.Fatalf("hourly evidence upload ttl: %v", err)
+	}
 	proposalClient := proposalgrpc.NewProposalClient(proposalv1.NewProposalServiceClient(proposalConn), jwtIssuer)
-	jobClient := jobgrpc.NewNoopJobClient()
+	jobClient := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn), jwtIssuer)
+	userPolicy := usergrpc.NewClient(userv1.NewUserServiceClient(userConn))
+	settlementDispatcher := walletgrpc.NewSettlementDispatcher(walletv1.NewWalletServiceClient(walletConn), jwtIssuer)
+	disputeClient := disputegrpc.NewClient(disputev1.NewDisputeServiceClient(disputeConn), jwtIssuer)
 
-	createUC := &application.CreateContract{Contracts: repo, Clock: clockImpl}
+	createUC := &application.CreateContract{Contracts: repo, Proposals: proposalClient, Jobs: jobClient, Actors: userPolicy, Clock: clockImpl}
 	getUC := &application.GetContract{Contracts: repo}
 	listUC := &application.ListMyContracts{Contracts: repo}
-	acceptUC := &application.AcceptContract{Contracts: repo, Proposals: proposalClient, Jobs: jobClient, Clock: clockImpl}
-	declineUC := &application.DeclineContract{Contracts: repo, Clock: clockImpl}
+	getJobOfferStateUC := &application.GetJobOfferState{Contracts: repo}
+	acceptUC := &application.AcceptContract{Contracts: repo, Proposals: proposalClient, Jobs: jobClient, Actors: userPolicy, Clock: clockImpl}
+	declineUC := &application.DeclineContract{Contracts: repo, Proposals: proposalClient, Clock: clockImpl}
+	revokeUC := &application.RevokeContractOffer{Contracts: repo, Proposals: proposalClient, Actors: userPolicy, Clock: clockImpl}
 	updateMilestoneStatusUC := &application.UpdateMilestoneStatus{Contracts: repo, Clock: clockImpl}
+	submitMilestoneWorkUC := &application.SubmitMilestoneWork{UpdateMilestoneStatus: updateMilestoneStatusUC}
+	requestMilestoneChangesUC := &application.RequestMilestoneChanges{UpdateMilestoneStatus: updateMilestoneStatusUC}
+	approveMilestoneSubmissionUC := &application.ApproveMilestoneSubmission{
+		UpdateMilestoneStatus: updateMilestoneStatusUC,
+		Settlement:            settlementDispatcher,
+		Disputes:              disputeClient,
+	}
 	logHourlyWorkUC := &application.LogHourlyWork{Contracts: repo, Clock: clockImpl}
+	getHourlyLogEvidenceUploadURLUC := &application.GetHourlyLogEvidenceUploadURL{
+		Contracts: repo,
+		Store:     hourlyEvidenceStore,
+		PutTTL:    hourlyEvidencePutTTL,
+	}
 	listHourlyLogsUC := &application.ListHourlyLogs{Contracts: repo}
+	getHourlyWorkSummaryUC := &application.GetHourlyWorkSummary{Contracts: repo, Clock: clockImpl}
+	updateHourlyLogUC := &application.UpdateHourlyLog{Contracts: repo, Clock: clockImpl}
+	deleteHourlyLogUC := &application.DeleteHourlyLog{Contracts: repo, Clock: clockImpl}
 	reviewHourlyLogUC := &application.ReviewHourlyLog{Contracts: repo, Clock: clockImpl}
+	getHourlyInvoiceUC := &application.GetHourlyInvoice{Contracts: repo}
+	listHourlyInvoicesUC := &application.ListHourlyInvoices{Contracts: repo}
+	closeHourlyWeekUC := &application.InternalCloseHourlyWeek{Contracts: repo, Clock: clockImpl}
+	settleHourlyInvoiceUC := &application.InternalSettleHourlyInvoice{Contracts: repo, Disputes: disputeClient, Clock: clockImpl}
+	createContractBonusUC := &application.CreateContractBonus{Contracts: repo, Clock: clockImpl}
+	listContractBonusesUC := &application.ListContractBonuses{Contracts: repo}
+	markContractBonusPaidUC := &application.InternalMarkContractBonusPaid{Contracts: repo, Clock: clockImpl}
 	proposeAmendmentUC := &application.ProposeAmendment{Contracts: repo, Clock: clockImpl}
 	respondAmendmentUC := &application.RespondAmendment{Contracts: repo, Clock: clockImpl}
-	listAmendmentsUC := &application.ListAmendments{Contracts: repo}
+	listAmendmentsUC := &application.ListAmendments{Contracts: repo, Clock: clockImpl}
 	pauseUC := &application.PauseContract{Contracts: repo, Clock: clockImpl}
 	resumeUC := &application.ResumeContract{Contracts: repo, Clock: clockImpl}
-	endUC := &application.EndContract{Contracts: repo, Clock: clockImpl}
+	endUC := &application.EndContract{Contracts: repo, Disputes: disputeClient, Clock: clockImpl}
 	getStatusHistoryUC := &application.GetStatusHistory{Contracts: repo}
 
 	contractServer := grpcadapter.NewContractServer(
 		createUC,
 		getUC,
 		listUC,
+		getJobOfferStateUC,
 		acceptUC,
 		declineUC,
+		revokeUC,
+		submitMilestoneWorkUC,
+		requestMilestoneChangesUC,
+		approveMilestoneSubmissionUC,
 		updateMilestoneStatusUC,
 		logHourlyWorkUC,
+		getHourlyLogEvidenceUploadURLUC,
 		listHourlyLogsUC,
+		getHourlyWorkSummaryUC,
+		updateHourlyLogUC,
+		deleteHourlyLogUC,
 		reviewHourlyLogUC,
+		getHourlyInvoiceUC,
+		listHourlyInvoicesUC,
+		closeHourlyWeekUC,
+		settleHourlyInvoiceUC,
+		createContractBonusUC,
+		listContractBonusesUC,
+		markContractBonusPaidUC,
 		proposeAmendmentUC,
 		respondAmendmentUC,
 		listAmendmentsUC,

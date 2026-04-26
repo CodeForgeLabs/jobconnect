@@ -38,7 +38,8 @@ The login requests automatically store bearer tokens into:
 4. `GET /api/v1/proposals/client/counts`
 5. `POST /api/v1/proposals/{proposalId}/decision`
 6. `GET /api/v1/proposals/{proposalId}/attachments/{attachmentId}/download-url`
-7. Hire applicant through Job API (`POST /api/v1/jobs/hire`), which internally triggers Proposal `InternalHireProposal`.
+7. Open the offer composer in the client UI (no backend mutation yet).
+8. Send the offer through Contract API `CreateContract`, which marks the proposal as `hired` only after the offer is created.
 
 ## RPC coverage matrix
 
@@ -58,7 +59,7 @@ The login requests automatically store bearer tokens into:
 | GetProposalAttachmentUploadUrl | Freelancer | `POST /api/v1/proposals/{proposalId}/attachments/upload-url` | Yes | |
 | GetProposalAttachmentDownloadUrl | Client/Freelancer owner | `GET /api/v1/proposals/{proposalId}/attachments/{attachmentId}/download-url` | Yes | |
 | SetProposalStatus | Client | `POST /api/v1/proposals/{proposalId}/decision` | Yes | Decisions: `shortlisted`, `rejected` |
-| InternalHireProposal | Internal Job service | Not public | No | Triggered by Job service hire flow |
+| InternalHireProposal | Internal Contract service | Not public | No | Triggered when a sent offer marks the selected proposal as `hired` |
 
 ## Sample request payloads
 
@@ -89,7 +90,8 @@ The login requests automatically store bearer tokens into:
 - Freelancer can modify only when proposal status is `sent`.
 - Freelancer can withdraw when status is `sent` or `shortlisted`.
 - Client decisions are `shortlisted` or `rejected`.
-- Hiring transition to `hired` is internal via Job service orchestration.
+- Opening the offer composer does not change proposal state.
+- Proposal transitions to `hired` only after Contract `CreateContract` succeeds.
 
 ## Optional gRPC testing notes
 

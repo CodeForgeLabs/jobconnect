@@ -1,0 +1,482 @@
+﻿[
+  {
+    "rpc": "CreateContract",
+    "actor": "client",
+    "request": {
+      "freelancer_id": "{{freelancer_user_id}}",
+      "job_id": "{{create_job_id}}",
+      "proposal_id": "{{create_proposal_id}}",
+      "contract_type": "CONTRACT_TYPE_FIXED",
+      "title": "Live Test Offer {{run_id}}",
+      "description": "Contract RPC live-test offer",
+      "fixed_total_minor": 120000,
+      "milestones": [
+        {
+          "title": "Milestone A",
+          "description": "Initial delivery",
+          "amount_minor": 120000,
+          "due_at_unix_seconds": "{{future_due_unix}}"
+        }
+      ]
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "freelancer",
+    "invalid_request": {
+      "freelancer_id": "not-a-uuid",
+      "job_id": 0,
+      "proposal_id": 0,
+      "contract_type": "CONTRACT_TYPE_FIXED"
+    },
+    "state_violation_request": {
+      "freelancer_id": "{{freelancer_user_id}}",
+      "job_id": "{{accept_job_id}}",
+      "proposal_id": "{{accept_proposal_id}}",
+      "contract_type": "CONTRACT_TYPE_FIXED",
+      "title": "Duplicate Pending Offer",
+      "description": "Should fail due to existing pending/active state",
+      "fixed_total_minor": 50000,
+      "milestones": [
+        {
+          "title": "Duplicate",
+          "description": "Duplicate",
+          "amount_minor": 50000,
+          "due_at_unix_seconds": "{{future_due_unix}}"
+        }
+      ]
+    },
+    "state_violation_expect_codes": ["FailedPrecondition"]
+  },
+  {
+    "rpc": "GetContract",
+    "actor": "client",
+    "request": { "contract_id": "{{workflow_contract_id}}" },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": { "contract_id": 0 }
+  },
+  {
+    "rpc": "ListMyContracts",
+    "actor": "client",
+    "request": { "page_size": 20 },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null
+  },
+  {
+    "rpc": "InternalGetJobOfferState",
+    "actor": "internal:job-service",
+    "extra_headers": {
+      "authorization": "Bearer {{client_token}}"
+    },
+    "request": { "job_id": "{{revoke_job_id}}" },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": { "job_id": 0 }
+  },
+  {
+    "rpc": "AcceptContract",
+    "actor": "freelancer",
+    "request": { "contract_id": "{{accept_contract_id}}" },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "client",
+    "invalid_request": { "contract_id": 0 }
+  },
+  {
+    "rpc": "DeclineContract",
+    "actor": "freelancer",
+    "request": { "contract_id": "{{decline_contract_id}}", "reason": "Not available" },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "client",
+    "invalid_request": { "contract_id": 0, "reason": "bad" }
+  },
+  {
+    "rpc": "RevokeContractOffer",
+    "actor": "client",
+    "request": { "contract_id": "{{revoke_contract_id}}", "reason": "Position closed" },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "freelancer",
+    "invalid_request": { "contract_id": 0 }
+  },
+  {
+    "rpc": "SubmitMilestoneWork",
+    "actor": "freelancer",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "milestone_id": "{{workflow_milestone_1_id}}",
+      "note": "Submitting milestone one",
+      "attachments": ["https://example.test/workflow-m1.txt"]
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "client",
+    "wrong_role_expect_codes": ["PermissionDenied", "FailedPrecondition"],
+    "invalid_request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "milestone_id": 0,
+      "note": "bad"
+    }
+  },
+  {
+    "rpc": "RequestMilestoneChanges",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "milestone_id": "{{workflow_milestone_2_id}}",
+      "note": "Please update section 2"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "freelancer",
+    "wrong_role_expect_codes": ["PermissionDenied", "FailedPrecondition"],
+    "invalid_request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "milestone_id": 0,
+      "note": "bad"
+    }
+  },
+  {
+    "rpc": "ApproveMilestoneSubmission",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "milestone_id": "{{workflow_milestone_1_id}}"
+    },
+    "expect_success_codes": ["OK", "FailedPrecondition", "NotFound"],
+    "wrong_role_actor": "freelancer",
+    "wrong_role_expect_codes": ["PermissionDenied", "FailedPrecondition"],
+    "invalid_request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "milestone_id": 0
+    }
+  },
+  {
+    "rpc": "InternalMarkMilestoneFunded",
+    "actor": "internal:payment-service",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "milestone_id": "{{workflow_milestone_1_id}}"
+    },
+    "expect_success_codes": ["OK", "FailedPrecondition"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0,
+      "milestone_id": 0
+    }
+  },
+  {
+    "rpc": "LogHourlyWork",
+    "actor": "freelancer",
+    "request": {
+      "contract_id": "{{hourly_contract_id}}",
+      "start_at_unix_seconds": "{{hourly_log_start_unix}}",
+      "end_at_unix_seconds": "{{hourly_log_end_unix}}",
+      "note": "Implemented live-test scenario",
+      "evidence_urls": ["https://example.test/hourly-log-1"]
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "client",
+    "invalid_request": {
+      "contract_id": "{{hourly_contract_id}}",
+      "start_at_unix_seconds": 20,
+      "end_at_unix_seconds": 10,
+      "note": "invalid"
+    },
+    "save_from_response": {
+      "hourly_log_id": "hourly_log.id"
+    }
+  },
+  {
+    "rpc": "GetHourlyLogEvidenceUploadUrl",
+    "actor": "freelancer",
+    "request": {
+      "contract_id": "{{hourly_contract_id}}",
+      "file_name": "evidence-{{run_id}}.txt",
+      "content_type": "text/plain"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "client",
+    "invalid_request": {
+      "contract_id": "{{hourly_contract_id}}",
+      "file_name": "",
+      "content_type": ""
+    }
+  },
+  {
+    "rpc": "ListHourlyLogs",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{hourly_contract_id}}",
+      "page_size": 50
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0,
+      "page_size": 10
+    }
+  },
+  {
+    "rpc": "GetHourlyWorkSummary",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{hourly_contract_id}}"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0
+    }
+  },
+  {
+    "rpc": "UpdateHourlyLog",
+    "actor": "freelancer",
+    "request": {
+      "hourly_log_id": "{{hourly_log_id}}",
+      "start_at_unix_seconds": "{{hourly_log_update_start_unix}}",
+      "end_at_unix_seconds": "{{hourly_log_update_end_unix}}",
+      "note": "Updated note for live test",
+      "evidence_urls": ["https://example.test/hourly-log-updated"]
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "client",
+    "invalid_request": {
+      "hourly_log_id": "{{hourly_log_id}}",
+      "start_at_unix_seconds": 30,
+      "end_at_unix_seconds": 10
+    }
+  },
+  {
+    "rpc": "DeleteHourlyLog",
+    "actor": "freelancer",
+    "request": {
+      "hourly_log_id": "{{hourly_log_delete_id}}"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "client",
+    "invalid_request": {
+      "hourly_log_id": 0
+    }
+  },
+  {
+    "rpc": "ReviewHourlyLog",
+    "actor": "client",
+    "request": {
+      "hourly_log_id": "{{hourly_log_id}}",
+      "status": "HOURLY_LOG_STATUS_APPROVED",
+      "review_note": "Looks good"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "freelancer",
+    "invalid_request": {
+      "hourly_log_id": "{{hourly_log_id}}",
+      "status": "HOURLY_LOG_STATUS_UNSPECIFIED",
+      "review_note": "bad"
+    }
+  },
+  {
+    "rpc": "InternalCloseHourlyWeek",
+    "actor": "internal:scheduler-service",
+    "request": {
+      "contract_id": "{{hourly_contract_id}}"
+    },
+    "expect_success_codes": ["OK", "FailedPrecondition"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0
+    },
+    "save_from_response": {
+      "hourly_invoice_id": "invoice.id"
+    }
+  },
+  {
+    "rpc": "GetHourlyInvoice",
+    "actor": "client",
+    "request": {
+      "invoice_id": "{{hourly_invoice_id}}"
+    },
+    "expect_success_codes": ["OK", "NotFound"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "invoice_id": 0
+    }
+  },
+  {
+    "rpc": "ListHourlyInvoices",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{hourly_contract_id}}",
+      "page_size": 20
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0
+    }
+  },
+  {
+    "rpc": "InternalSettleHourlyInvoice",
+    "actor": "internal:scheduler-service",
+    "request": {
+      "invoice_id": "{{hourly_invoice_id}}"
+    },
+    "expect_success_codes": ["OK", "FailedPrecondition", "NotFound"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "invoice_id": 0
+    }
+  },
+  {
+    "rpc": "CreateContractBonus",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "amount_minor": 20000,
+      "note": "Bonus for quick turnaround"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": "freelancer",
+    "invalid_request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "amount_minor": 0,
+      "note": "bad"
+    },
+    "save_from_response": {
+      "contract_bonus_id": "bonus.id"
+    }
+  },
+  {
+    "rpc": "ListContractBonuses",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "page_size": 20
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0
+    }
+  },
+  {
+    "rpc": "InternalMarkContractBonusPaid",
+    "actor": "internal:payment-service",
+    "extra_headers": {
+      "x-payment-reference-id": "pay-{{run_id}}"
+    },
+    "request": {
+      "bonus_id": "{{contract_bonus_id}}"
+    },
+    "expect_success_codes": ["OK", "FailedPrecondition"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "bonus_id": 0
+    }
+  },
+  {
+    "rpc": "ProposeAmendment",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{hourly_contract_id}}",
+      "summary": "Adjust scope and weekly hours",
+      "payload": {
+        "scope_change": {
+          "new_title": "Updated scope title",
+          "new_description": "Updated scope description"
+        },
+        "weekly_limit_change": {
+          "new_weekly_hour_limit": 35
+        }
+      },
+      "expires_at_unix_seconds": "{{future_due_unix}}"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0,
+      "summary": ""
+    },
+    "save_from_response": {
+      "amendment_id": "amendment.id"
+    }
+  },
+  {
+    "rpc": "RespondAmendment",
+    "actor": "freelancer",
+    "request": {
+      "amendment_id": "{{amendment_id}}",
+      "status": "AMENDMENT_STATUS_REJECTED",
+      "response_note": "Rejected for now"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "amendment_id": 0,
+      "status": "AMENDMENT_STATUS_UNSPECIFIED"
+    }
+  },
+  {
+    "rpc": "ListAmendments",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "page_size": 20
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0
+    }
+  },
+  {
+    "rpc": "PauseContract",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "reason": "Temporary hold"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0,
+      "reason": "bad"
+    }
+  },
+  {
+    "rpc": "ResumeContract",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "reason": "Resuming now"
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0,
+      "reason": "bad"
+    }
+  },
+  {
+    "rpc": "EndContract",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "reason": "Completed"
+    },
+    "expect_success_codes": ["OK", "FailedPrecondition", "Internal"],
+    "wrong_role_actor": "freelancer",
+    "invalid_request": {
+      "contract_id": 0,
+      "reason": "bad"
+    }
+  },
+  {
+    "rpc": "GetStatusHistory",
+    "actor": "client",
+    "request": {
+      "contract_id": "{{workflow_contract_id}}",
+      "page_size": 50
+    },
+    "expect_success_codes": ["OK"],
+    "wrong_role_actor": null,
+    "invalid_request": {
+      "contract_id": 0
+    }
+  }
+]

@@ -117,6 +117,7 @@ type fakeProposalRepo struct {
 	updateEditableFn              func(ctx context.Context, proposalID int64, freelancerID uuid.UUID, coverLetter string, bidAmount float64, estimatedDays int32, attachments []domain.Attachment, updatedAt time.Time) error
 	withdrawFn                    func(ctx context.Context, proposalID int64, freelancerID uuid.UUID, reason string, at time.Time) error
 	setStatusFn                   func(ctx context.Context, proposalID int64, clientID uuid.UUID, status string, reason string, at time.Time) error
+	markOfferSentFn               func(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) (domain.Proposal, error)
 	revertHireFn                  func(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error
 	hireWithRequestIDFn           func(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error)
 	hasHiredProposalForJobFn      func(ctx context.Context, jobID int64) (bool, error)
@@ -188,6 +189,13 @@ func (f *fakeProposalRepo) SetStatus(ctx context.Context, proposalID int64, clie
 		return nil
 	}
 	return f.setStatusFn(ctx, proposalID, clientID, status, reason, at)
+}
+
+func (f *fakeProposalRepo) MarkOfferSent(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) (domain.Proposal, error) {
+	if f.markOfferSentFn == nil {
+		return domain.Proposal{}, fmt.Errorf("mark offer sent not implemented")
+	}
+	return f.markOfferSentFn(ctx, proposalID, clientID, reason, at)
 }
 
 func (f *fakeProposalRepo) RevertHire(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error {
@@ -319,7 +327,9 @@ func buildServer(repo *fakeProposalRepo, jobs *fakeJobReader, connects *fakeConn
 		&application.CountProposalsByJob{Proposals: repo},
 		&application.CountClientProposalInbox{Proposals: repo},
 		&application.SetProposalStatus{Proposals: repo, Clock: clk},
+		&application.InternalMarkProposalOfferSent{Proposals: repo, Clock: clk},
 		&application.InternalHireProposal{Proposals: repo, Clock: clk},
+		&application.ReleaseHiredProposal{Proposals: repo, Clock: clk},
 		fakeTokenParser{},
 	)
 }
@@ -697,10 +707,43 @@ func TestProposalServer_RPCs(t *testing.T) {
 		assertCode(t, err, codes.InvalidArgument)
 	})
 
+	t.Run("InternalMarkProposalOfferSent requires contract service caller", func(t *testing.T) {
+		repo := &fakeProposalRepo{}
+		repo.markOfferSentFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) (domain.Proposal, error) {
+			p := makeProposal(proposalID, domain.StatusOfferSent)
+			p.ClientID = clientID
+			return p, nil
+		}
+
+		srv := buildServer(repo, nil, nil, nil, nil, nil)
+
+		_, err := srv.InternalMarkProposalOfferSent(authCtx("client-token"), &proposalv1.InternalMarkProposalOfferSentRequest{
+			ProposalId: 1440,
+			ClientId:   testClientID.String(),
+			Note:       "offer sent",
+		})
+		assertCode(t, err, codes.PermissionDenied)
+
+		internalMD := metadata.Pairs("authorization", "Bearer client-token", "x-jobconnect-internal", "contract-service")
+		internalCtx := metadata.NewIncomingContext(context.Background(), internalMD)
+
+		resp, err := srv.InternalMarkProposalOfferSent(internalCtx, &proposalv1.InternalMarkProposalOfferSentRequest{
+			ProposalId: 1440,
+			ClientId:   testClientID.String(),
+			Note:       "offer sent",
+		})
+		if err != nil {
+			t.Fatalf("InternalMarkProposalOfferSent error: %v", err)
+		}
+		if got := resp.GetProposal().GetStatus(); got != proposalv1.ProposalStatus_PROPOSAL_STATUS_OFFER_SENT {
+			t.Fatalf("expected offer_sent status, got %v", got)
+		}
+	})
+
 	t.Run("InternalHireProposal requires internal marker and supports idempotency", func(t *testing.T) {
 		repo := &fakeProposalRepo{}
 		repo.getByIDForClientFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID) (domain.Proposal, error) {
-			return makeProposal(1450, domain.StatusShortlisted), nil
+			return makeProposal(1450, domain.StatusOfferSent), nil
 		}
 		repo.hireWithRequestIDFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string, at time.Time) (domain.Proposal, bool, error) {
 			return makeProposal(1450, domain.StatusHired), requestID == "dup", nil
@@ -746,6 +789,46 @@ func TestProposalServer_RPCs(t *testing.T) {
 		}
 	})
 
+	t.Run("InternalReleaseHiredProposal accepts contract service caller", func(t *testing.T) {
+		repo := &fakeProposalRepo{}
+		call := 0
+		repo.getByIDForClientFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID) (domain.Proposal, error) {
+			call++
+			if call == 1 {
+				return makeProposal(1460, domain.StatusHired), nil
+			}
+			return makeProposal(1460, domain.StatusShortlisted), nil
+		}
+		repo.revertHireFn = func(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error {
+			if proposalID != 1460 {
+				t.Fatalf("unexpected proposal id: %d", proposalID)
+			}
+			if clientID != testClientID {
+				t.Fatalf("unexpected client id: %s", clientID)
+			}
+			if reason != "offer revoked" {
+				t.Fatalf("unexpected reason: %q", reason)
+			}
+			return nil
+		}
+
+		srv := buildServer(repo, nil, nil, nil, nil, nil)
+
+		internalMD := metadata.Pairs("authorization", "Bearer client-token", "x-jobconnect-internal", "contract-service")
+		internalCtx := metadata.NewIncomingContext(context.Background(), internalMD)
+		resp, err := srv.InternalReleaseHiredProposal(internalCtx, &proposalv1.InternalReleaseHiredProposalRequest{
+			ProposalId: 1460,
+			ClientId:   testClientID.String(),
+			Reason:     "offer revoked",
+		})
+		if err != nil {
+			t.Fatalf("InternalReleaseHiredProposal error: %v", err)
+		}
+		if got := resp.GetProposal().GetStatus(); got != proposalv1.ProposalStatus_PROPOSAL_STATUS_SHORTLISTED {
+			t.Fatalf("expected shortlisted status, got %v", got)
+		}
+	})
+
 	t.Run("all RPCs reject nil request", func(t *testing.T) {
 		repo := &fakeProposalRepo{}
 		srv := buildServer(repo, nil, nil, nil, nil, nil)
@@ -765,7 +848,9 @@ func TestProposalServer_RPCs(t *testing.T) {
 			{name: "ListClientProposals", fn: func() error { _, err := srv.ListClientProposals(authCtx("client-token"), nil); return err }},
 			{name: "CountProposalsByJob", fn: func() error { _, err := srv.CountProposalsByJob(authCtx("client-token"), nil); return err }},
 			{name: "CountClientProposalInbox", fn: func() error { _, err := srv.CountClientProposalInbox(authCtx("client-token"), nil); return err }},
+			{name: "InternalMarkProposalOfferSent", fn: func() error { _, err := srv.InternalMarkProposalOfferSent(authCtx("client-token"), nil); return err }},
 			{name: "InternalHireProposal", fn: func() error { _, err := srv.InternalHireProposal(authCtx("client-token"), nil); return err }},
+			{name: "InternalReleaseHiredProposal", fn: func() error { _, err := srv.InternalReleaseHiredProposal(authCtx("client-token"), nil); return err }},
 			{name: "GetProposalAttachmentUploadUrl", fn: func() error {
 				_, err := srv.GetProposalAttachmentUploadUrl(authCtx("freelancer-token"), nil)
 				return err

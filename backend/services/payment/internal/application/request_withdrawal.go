@@ -23,7 +23,6 @@ type RequestWithdrawalInput struct {
 	UserID            uuid.UUID
 	Provider          string
 	AmountMinor       int64
-	Currency          string
 	BankCode          string
 	AccountNumber     string
 	AccountHolderName string
@@ -44,10 +43,6 @@ func (uc *RequestWithdrawal) Execute(ctx context.Context, in RequestWithdrawalIn
 	}
 
 	now := uc.Clock.Now()
-	currency := in.Currency
-	if currency == "" {
-		currency = domain.DefaultCurrency
-	}
 	idempotencyKey := fmt.Sprintf("wd_%s_%d", in.UserID, now.UnixMilli())
 
 	session := domain.PaymentSession{
@@ -56,7 +51,6 @@ func (uc *RequestWithdrawal) Execute(ctx context.Context, in RequestWithdrawalIn
 		PaymentType:    domain.TypeWithdrawal,
 		Status:         domain.StatusPending,
 		AmountMinor:    in.AmountMinor,
-		Currency:       currency,
 		IdempotencyKey: idempotencyKey,
 		ReferenceType:  "withdrawal",
 		ReferenceID:    in.AccountNumber,
@@ -88,7 +82,6 @@ func (uc *RequestWithdrawal) Execute(ctx context.Context, in RequestWithdrawalIn
 	gw := uc.Gateway(in.Provider)
 	result, err := gw.InitiateTransfer(ctx, TransferInput{
 		AmountMinor:       in.AmountMinor,
-		Currency:          currency,
 		BankCode:          in.BankCode,
 		AccountNumber:     in.AccountNumber,
 		AccountHolderName: in.AccountHolderName,

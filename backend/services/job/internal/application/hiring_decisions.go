@@ -10,62 +10,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type HireApplicant struct {
-	Jobs      JobRepository
-	Proposals ProposalClient
-	Contracts ContractCreator
-	Clock     Clock
-}
-
-type HireApplicantInput struct {
-	ProposalID int64
-	ClientID   uuid.UUID
-}
-
-type HireApplicantOutput struct {
-	Hired bool
-	JobID int64
-}
-
-func (uc *HireApplicant) Execute(ctx context.Context, in HireApplicantInput) (HireApplicantOutput, error) {
-	if in.ProposalID <= 0 {
-		return HireApplicantOutput{}, fmt.Errorf("proposal_id is required")
-	}
-	if in.ClientID == uuid.Nil {
-		return HireApplicantOutput{}, fmt.Errorf("client_id is required")
-	}
-	if uc.Contracts == nil {
-		return HireApplicantOutput{}, fmt.Errorf("contract creator is not configured")
-	}
-
-	proposal, err := uc.Proposals.GetProposal(ctx, in.ProposalID)
-	if err != nil {
-		return HireApplicantOutput{}, err
-	}
-	proposalClientID, parseErr := uuid.Parse(strings.TrimSpace(proposal.ClientID))
-	if parseErr != nil || proposalClientID != in.ClientID {
-		return HireApplicantOutput{}, fmt.Errorf("proposal not found")
-	}
-
-	requestID := fmt.Sprintf("job-service-hire-%d", in.ProposalID)
-	if err := uc.Proposals.InternalHireProposal(ctx, in.ProposalID, in.ClientID, requestID, ""); err != nil {
-		return HireApplicantOutput{}, err
-	}
-	if err := uc.Contracts.CreateFromProposal(ctx, CreateContractFromProposalInput{
-		FreelancerID: proposal.FreelancerID,
-		JobID:        proposal.JobID,
-		ProposalID:   proposal.ID,
-		BidType:      proposal.BidType,
-		BidAmount:    proposal.BidAmount,
-	}); err != nil {
-		return HireApplicantOutput{}, err
-	}
-	if _, err := uc.Jobs.MarkFilled(ctx, proposal.JobID, in.ClientID, uc.Clock.Now()); err != nil {
-		return HireApplicantOutput{}, err
-	}
-	return HireApplicantOutput{Hired: true, JobID: proposal.JobID}, nil
-}
-
 type RejectAllApplicants struct {
 	Jobs      JobRepository
 	Proposals ProposalClient
@@ -110,8 +54,10 @@ func (uc *RejectAllApplicants) Execute(ctx context.Context, in RejectAllApplican
 }
 
 type ReopenHiringForJob struct {
-	Jobs  JobRepository
-	Clock Clock
+	Jobs      JobRepository
+	Proposals ProposalClient
+	Contracts ContractClient
+	Clock     Clock
 }
 
 type ReopenHiringForJobInput struct {
@@ -130,7 +76,32 @@ func (uc *ReopenHiringForJob) Execute(ctx context.Context, in ReopenHiringForJob
 	if in.ClientID == uuid.Nil {
 		return ReopenHiringForJobOutput{}, fmt.Errorf("client_id is required")
 	}
-	job, err := uc.Jobs.ReopenHiring(ctx, in.JobID, in.ClientID, uc.Clock.Now())
+	job, err := uc.Jobs.GetByIDForClient(ctx, in.JobID, in.ClientID)
+	if err != nil {
+		return ReopenHiringForJobOutput{}, err
+	}
+	contractState, err := uc.Contracts.GetJobOfferState(ctx, in.JobID, in.ClientID)
+	if err != nil {
+		return ReopenHiringForJobOutput{}, err
+	}
+	if contractState.HasPendingOffer || contractState.HasActiveContract {
+		return ReopenHiringForJobOutput{}, fmt.Errorf("revoke active offers before reopening hiring")
+	}
+	if strings.EqualFold(job.Status, domain.JobStatusOpen) {
+		proposals, listErr := uc.Proposals.ListProposalsByJob(ctx, in.JobID)
+		if listErr != nil {
+			return ReopenHiringForJobOutput{}, listErr
+		}
+		for _, proposal := range proposals {
+			if strings.EqualFold(proposal.Status, ApplicantStageHired) {
+				if err := uc.Proposals.ReleaseHiredProposal(ctx, proposal.ID, in.ClientID, "hiring reopened"); err != nil {
+					return ReopenHiringForJobOutput{}, err
+				}
+			}
+		}
+		return ReopenHiringForJobOutput{Job: job}, nil
+	}
+	job, err = uc.Jobs.ReopenHiring(ctx, in.JobID, in.ClientID, uc.Clock.Now())
 	if err != nil {
 		return ReopenHiringForJobOutput{}, err
 	}

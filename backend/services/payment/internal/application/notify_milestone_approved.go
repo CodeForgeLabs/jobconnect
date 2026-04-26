@@ -17,13 +17,12 @@ type NotifyMilestoneApproved struct {
 
 // NotifyMilestoneApprovedInput is the input from the contract service.
 type NotifyMilestoneApprovedInput struct {
-	ContractID          int64
-	MilestoneID         int64
-	HoldID              int64
-	FreelancerID        string
-	FreelancerWalletID  int64
-	AmountMinor         int64
-	Currency            string
+	ContractID         int64
+	MilestoneID        int64
+	HoldID             int64
+	FreelancerID       string
+	FreelancerWalletID int64
+	AmountMinor        int64
 }
 
 // PlatformFeePercentage is the platform service fee (e.g., 5%).
@@ -62,7 +61,7 @@ func (uc *NotifyMilestoneApproved) Execute(ctx context.Context, in NotifyMilesto
 		}
 	}
 
-	_ = now // used for logging/auditing in future
+	_ = now                    // used for logging/auditing in future
 	_ = domain.StatusCompleted // reference to validate import
 
 	return nil
