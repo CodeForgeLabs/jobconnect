@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package reviews.v1;
+
+option go_package = "jobconnect/reviews/gen/reviews/v1;reviewsv1";
+
+import "google/protobuf/timestamp.proto";
+
+// -------------------- ENUMS --------------------
+
+enum ReviewerRole {
+  REVIEWER_ROLE_UNSPECIFIED = 0;
+  CLIENT = 1;
+  FREELANCER = 2;
+}
+
+// -------------------- MODEL --------------------
+
+message Review {
+  int64 id = 1;
+
+  int64 contract_id = 2;
+
+  string client_id = 3;
+  string freelancer_id = 4;
+
+  ReviewerRole reviewer_role = 5;
+
+  int32 rating = 6;
+
+  string title = 7;
+  string comment = 8;
+
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// -------------------- CREATE --------------------
+
+message CreateReviewRequest {
+  int64 contract_id = 1;
+
+  ReviewerRole reviewer_role = 2;
+
+  int32 rating = 3;
+  string title = 4;
+  string comment = 5;
+}
+
+message CreateReviewResponse {
+  Review review = 1;
+}
+
+// -------------------- READ --------------------
+
+message GetReviewRequest {
+  int64 id = 1;
+}
+
+message GetReviewResponse {
+  Review review = 1;
+}
+
+// -------------------- UPDATE --------------------
+
+message UpdateReviewRequest {
+  int64 id = 1;
+
+  int32 rating = 2;
+  string title = 3;
+  string comment = 4;
+}
+
+message UpdateReviewResponse {
+  Review review = 1;
+}
+
+// -------------------- DELETE --------------------
+
+message DeleteReviewRequest {
+  int64 id = 1;
+}
+
+message DeleteReviewResponse {
+  bool success = 1;
+}
+
+// -------------------- LIST --------------------
+
+message ListReviewsByUserRequest {
+  string user_id = 1;
+
+  ReviewerRole role = 2;
+
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message ListReviewsResponse {
+  repeated Review reviews = 1;
+}
+
+// -------------------- SERVICE --------------------
+
+service ReviewService {
+  rpc CreateReview(CreateReviewRequest) returns (CreateReviewResponse);
+
+  rpc GetReview(GetReviewRequest) returns (GetReviewResponse);
+
+  rpc UpdateReview(UpdateReviewRequest) returns (UpdateReviewResponse);
+
+  rpc DeleteReview(DeleteReviewRequest) returns (DeleteReviewResponse);
+
+  rpc ListReviewsByUser(ListReviewsByUserRequest) returns (ListReviewsResponse);
+}
