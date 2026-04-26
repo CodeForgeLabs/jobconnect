@@ -1,23 +1,23 @@
 ﻿{
-    "generated_at_utc":  "2026-04-26T22:22:17.5960455Z",
-    "run_id":  "20260426222123",
+    "generated_at_utc":  "2026-04-26T22:45:41.3853651Z",
+    "run_id":  "20260426224209",
     "totals":  {
                    "total":  120,
                    "passed":  120,
                    "failed":  0
                },
     "context_snapshot":  {
-                             "create_job_id":  59,
-                             "create_proposal_id":  59,
-                             "accept_contract_id":  52,
-                             "decline_contract_id":  53,
-                             "revoke_contract_id":  54,
-                             "workflow_contract_id":  55,
-                             "hourly_contract_id":  56,
-                             "hourly_log_id":  "14",
-                             "hourly_invoice_id":  "5",
-                             "contract_bonus_id":  "5",
-                             "amendment_id":  "5"
+                             "create_job_id":  65,
+                             "create_proposal_id":  65,
+                             "accept_contract_id":  58,
+                             "decline_contract_id":  59,
+                             "revoke_contract_id":  60,
+                             "workflow_contract_id":  61,
+                             "hourly_contract_id":  62,
+                             "hourly_log_id":  "16",
+                             "hourly_invoice_id":  "6",
+                             "contract_bonus_id":  "6",
+                             "amendment_id":  "6"
                          },
     "results":  [
                     {
@@ -27,9 +27,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  186,
-                        "request_id":  "b13154ea65434092901a69b69bfbc3b0",
-                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"57\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"jobId\": \"59\",\r\n    \"proposalId\": \"59\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n    \"title\": \"Live Test Offer 20260426222123\",\r\n    \"description\": \"Contract RPC live-test offer\",\r\n    \"fixedTotalMinor\": \"120000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone A\",\r\n        \"description\": \"Initial delivery\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1779056483\",\r\n        \"status\": \"MILESTONE_STATUS_PENDING\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777242111\",\r\n    \"updatedAtUnixSeconds\": \"1777242111\"\r\n  }\r\n}"
+                        "elapsed_ms":  227,
+                        "request_id":  "2ca5e5f86b7c44c88e5c3cfb163bb94b",
+                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"63\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"jobId\": \"65\",\r\n    \"proposalId\": \"65\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n    \"title\": \"Live Test Offer 20260426224209\",\r\n    \"description\": \"Contract RPC live-test offer\",\r\n    \"fixedTotalMinor\": \"120000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone A\",\r\n        \"description\": \"Initial delivery\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1779057729\",\r\n        \"status\": \"MILESTONE_STATUS_PENDING\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777243513\",\r\n    \"updatedAtUnixSeconds\": \"1777243513\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "CreateContract",
@@ -38,8 +38,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  223,
-                        "request_id":  "630e34ba709b423a87ec14bb07cf5ec1",
+                        "elapsed_ms":  229,
+                        "request_id":  "2a030f881c1849e9a544075c0bc01489",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -49,8 +49,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  186,
-                        "request_id":  "f3c0b8cc3f4b40f189d2a8886af478eb",
+                        "elapsed_ms":  201,
+                        "request_id":  "d91d4a4c62cf458bbe55f92857d31e95",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: client role required"
                     },
                     {
@@ -60,8 +60,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  192,
-                        "request_id":  "bbc94376b18f45df86bdf500cb269131",
+                        "elapsed_ms":  240,
+                        "request_id":  "6cbbf89580254849acdad1ef07206db6",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: invalid freelancer_id"
                     },
                     {
@@ -71,8 +71,8 @@
                         "expected_codes":  "FailedPrecondition",
                         "actual_code":  "FailedPrecondition",
                         "success":  true,
-                        "elapsed_ms":  147,
-                        "request_id":  "0da9dc756d0d4d0f838bc64006174fb2",
+                        "elapsed_ms":  222,
+                        "request_id":  "bc4a7fadf6ee40d8b68cb56ab62a7fbe",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: FailedPrecondition\r\n  Message: job already has a pending offer"
                     },
                     {
@@ -82,9 +82,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  141,
-                        "request_id":  "31e3992beddc44c6b0d2ecc4c35e9cbd",
-                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"55\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"jobId\": \"63\",\r\n    \"proposalId\": \"63\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426222123\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777933309\",\r\n        \"status\": \"MILESTONE_STATUS_FUNDED\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778019709\",\r\n        \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777242111\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777242110\",\r\n    \"updatedAtUnixSeconds\": \"1777242111\",\r\n    \"activatedAtUnixSeconds\": \"1777242110\"\r\n  }\r\n}"
+                        "elapsed_ms":  189,
+                        "request_id":  "6b595e84fabb462a89190c2dfc402d43",
+                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"61\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"jobId\": \"69\",\r\n    \"proposalId\": \"69\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426224209\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777934710\",\r\n        \"status\": \"MILESTONE_STATUS_FUNDED\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778021110\",\r\n        \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777243512\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777243511\",\r\n    \"updatedAtUnixSeconds\": \"1777243512\",\r\n    \"activatedAtUnixSeconds\": \"1777243511\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "GetContract",
@@ -93,8 +93,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  185,
-                        "request_id":  "c80e97fe1649426f984f4d2304eb6db7",
+                        "elapsed_ms":  256,
+                        "request_id":  "0bbe122daff4483aa10051179ebc51b9",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -104,8 +104,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  195,
-                        "request_id":  "92d229727f844a308d13ad6e10d94cdd",
+                        "elapsed_ms":  186,
+                        "request_id":  "ea16f1a17f754d74be77be6f5e1252b8",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id is required"
                     },
                     {
@@ -115,9 +115,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  159,
-                        "request_id":  "0e7b72cb447048aa8bb832e2a533a8d3",
-                        "detail":  "{\r\n  \"contracts\": [\r\n    {\r\n      \"id\": \"57\",\r\n      \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"jobId\": \"59\",\r\n      \"proposalId\": \"59\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"title\": \"Live Test Offer 20260426222123\",\r\n      \"description\": \"Contract RPC live-test offer\",\r\n      \"fixedTotalMinor\": \"120000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone A\",\r\n          \"description\": \"Initial delivery\",\r\n          \"amountMinor\": \"120000\",\r\n          \"dueAtUnixSeconds\": \"1779056483\",\r\n          \"status\": \"MILESTONE_STATUS_PENDING\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777242111\",\r\n      \"updatedAtUnixSeconds\": \"1777242111\"\r\n    },\r\n    {\r\n      \"id\": \"56\",\r\n      \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"jobId\": \"64\",\r\n      \"proposalId\": \"64\",\r\n      \"contractType\": \"CONTRACT_TYPE_HOURLY\",\r\n      \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n      \"title\": \"Hourly Contract 20260426222123\",\r\n      \"description\": \"Hourly live test contract\",\r\n      \"hourlyRateMinor\": \"5500\",\r\n      \"weeklyHourLimit\": 30,\r\n      \"createdAtUnixSeconds\": \"1777242110\",\r\n      \"updatedAtUnixSeconds\": \"1777242110\",\r\n      \"activatedAtUnixSeconds\": \"1777242110\"\r\n    },\r\n    {\r\n      \"id\": \"55\",\r\n      \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"jobId\": \"63\",\r\n      \"proposalId\": \"63\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n      \"title\": \"Fixed Contract 20260426222123\",\r\n      \"description\": \"Fixed live test contract\",\r\n      \"fixedTotalMinor\": \"240000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone 1\",\r\n          \"description\": \"Milestone 1 for live test\",\r\n          \"amountMinor\": \"120000\",\r\n          \"dueAtUnixSeconds\": \"1777933309\",\r\n          \"status\": \"MILESTONE_STATUS_FUNDED\"\r\n        },\r\n        {\r\n          \"id\": \"2\",\r\n          \"title\": \"Milestone 2\",\r\n          \"description\": \"Milestone 2 for live test\",\r\n          \"amountMinor\": \"120000\",\r\n          \"dueAtUnixSeconds\": \"1778019709\",\r\n          \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n          \"submissionNote\": \"Prep submission for request-changes\",\r\n          \"submissionUrls\": [\r\n            \"https://example.test/prep-m2\"\r\n          ],\r\n          \"submittedAtUnixSeconds\": \"1777242111\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777242110\",\r\n      \"updatedAtUnixSeconds\": \"1777242111\",\r\n      \"activatedAtUnixSeconds\": \"1777242110\"\r\n    },\r\n    {\r\n      \"id\": \"54\",\r\n      \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"jobId\": \"62\",\r\n      \"proposalId\": \"62\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"title\": \"Fixed Contract 20260426222123\",\r\n      \"description\": \"Fixed live test contract\",\r\n      \"fixedTotalMinor\": \"240000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone 1\",\r\n          \"description\": \"Milestone 1 for live test\",\r\n          \"amountMinor\": \"240000\",\r\n          \"dueAtUnixSeconds\": \"1777933309\",\r\n          \"status\": \"MILESTONE_STATUS_PENDING\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777242109\",\r\n      \"updatedAtUnixSeconds\": \"1777242109\"\r\n    },\r\n    {\r\n      \"id\": \"53\",\r\n      \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"jobId\": \"61\",\r\n      \"proposalId\": \"61\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"title\": \"Fixed Contract 20260426222123\",\r\n      \"description\": \"Fixed live test contract\",\r\n      \"fixedTotalMinor\": \"240000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone 1\",\r\n          \"description\": \"Milestone 1 for live test\",\r\n          \"amountMinor\": \"240000\",\r\n          \"dueAtUnixSeconds\": \"1777933309\",\r\n          \"status\": \"MILESTONE_STATUS_PENDING\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777242109\",\r\n      \"updatedAtUnixSeconds\": \"1777242109\"\r\n    },\r\n    {\r\n      \"id\": \"52\",\r\n      \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"jobId\": \"60\",\r\n      \"proposalId\": \"60\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"title\": \"Fixed Contract 20260426222123\",\r\n      \"description\": \"Fixed live test contract\",\r\n      \"fixedTotalMinor\": \"240000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone 1\",\r\n          \"description\": \"Milestone 1 for live test\",\r\n          \"amountMinor\": \"240000\",\r\n          \"dueAtUnixSeconds\": \"1777933309\",\r\n          \"status\": \"MILESTONE_STATUS_PENDING\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777242109\",\r\n      \"updatedAtUnixSeconds\": \"1777242109\"\r\n    }\r\n  ]\r\n}"
+                        "elapsed_ms":  169,
+                        "request_id":  "20c777314a5f4ac991924dc9b1c7ceef",
+                        "detail":  "{\r\n  \"contracts\": [\r\n    {\r\n      \"id\": \"63\",\r\n      \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"jobId\": \"65\",\r\n      \"proposalId\": \"65\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"title\": \"Live Test Offer 20260426224209\",\r\n      \"description\": \"Contract RPC live-test offer\",\r\n      \"fixedTotalMinor\": \"120000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone A\",\r\n          \"description\": \"Initial delivery\",\r\n          \"amountMinor\": \"120000\",\r\n          \"dueAtUnixSeconds\": \"1779057729\",\r\n          \"status\": \"MILESTONE_STATUS_PENDING\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777243513\",\r\n      \"updatedAtUnixSeconds\": \"1777243513\"\r\n    },\r\n    {\r\n      \"id\": \"62\",\r\n      \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"jobId\": \"70\",\r\n      \"proposalId\": \"70\",\r\n      \"contractType\": \"CONTRACT_TYPE_HOURLY\",\r\n      \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n      \"title\": \"Hourly Contract 20260426224209\",\r\n      \"description\": \"Hourly live test contract\",\r\n      \"hourlyRateMinor\": \"5500\",\r\n      \"weeklyHourLimit\": 30,\r\n      \"createdAtUnixSeconds\": \"1777243511\",\r\n      \"updatedAtUnixSeconds\": \"1777243511\",\r\n      \"activatedAtUnixSeconds\": \"1777243511\"\r\n    },\r\n    {\r\n      \"id\": \"61\",\r\n      \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"jobId\": \"69\",\r\n      \"proposalId\": \"69\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n      \"title\": \"Fixed Contract 20260426224209\",\r\n      \"description\": \"Fixed live test contract\",\r\n      \"fixedTotalMinor\": \"240000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone 1\",\r\n          \"description\": \"Milestone 1 for live test\",\r\n          \"amountMinor\": \"120000\",\r\n          \"dueAtUnixSeconds\": \"1777934710\",\r\n          \"status\": \"MILESTONE_STATUS_FUNDED\"\r\n        },\r\n        {\r\n          \"id\": \"2\",\r\n          \"title\": \"Milestone 2\",\r\n          \"description\": \"Milestone 2 for live test\",\r\n          \"amountMinor\": \"120000\",\r\n          \"dueAtUnixSeconds\": \"1778021110\",\r\n          \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n          \"submissionNote\": \"Prep submission for request-changes\",\r\n          \"submissionUrls\": [\r\n            \"https://example.test/prep-m2\"\r\n          ],\r\n          \"submittedAtUnixSeconds\": \"1777243512\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777243511\",\r\n      \"updatedAtUnixSeconds\": \"1777243512\",\r\n      \"activatedAtUnixSeconds\": \"1777243511\"\r\n    },\r\n    {\r\n      \"id\": \"60\",\r\n      \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"jobId\": \"68\",\r\n      \"proposalId\": \"68\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"title\": \"Fixed Contract 20260426224209\",\r\n      \"description\": \"Fixed live test contract\",\r\n      \"fixedTotalMinor\": \"240000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone 1\",\r\n          \"description\": \"Milestone 1 for live test\",\r\n          \"amountMinor\": \"240000\",\r\n          \"dueAtUnixSeconds\": \"1777934710\",\r\n          \"status\": \"MILESTONE_STATUS_PENDING\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777243510\",\r\n      \"updatedAtUnixSeconds\": \"1777243510\"\r\n    },\r\n    {\r\n      \"id\": \"59\",\r\n      \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"jobId\": \"67\",\r\n      \"proposalId\": \"67\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"title\": \"Fixed Contract 20260426224209\",\r\n      \"description\": \"Fixed live test contract\",\r\n      \"fixedTotalMinor\": \"240000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone 1\",\r\n          \"description\": \"Milestone 1 for live test\",\r\n          \"amountMinor\": \"240000\",\r\n          \"dueAtUnixSeconds\": \"1777934710\",\r\n          \"status\": \"MILESTONE_STATUS_PENDING\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777243510\",\r\n      \"updatedAtUnixSeconds\": \"1777243510\"\r\n    },\r\n    {\r\n      \"id\": \"58\",\r\n      \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"jobId\": \"66\",\r\n      \"proposalId\": \"66\",\r\n      \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"title\": \"Fixed Contract 20260426224209\",\r\n      \"description\": \"Fixed live test contract\",\r\n      \"fixedTotalMinor\": \"240000\",\r\n      \"milestones\": [\r\n        {\r\n          \"id\": \"1\",\r\n          \"title\": \"Milestone 1\",\r\n          \"description\": \"Milestone 1 for live test\",\r\n          \"amountMinor\": \"240000\",\r\n          \"dueAtUnixSeconds\": \"1777934710\",\r\n          \"status\": \"MILESTONE_STATUS_PENDING\"\r\n        }\r\n      ],\r\n      \"createdAtUnixSeconds\": \"1777243510\",\r\n      \"updatedAtUnixSeconds\": \"1777243510\"\r\n    }\r\n  ]\r\n}"
                     },
                     {
                         "rpc":  "ListMyContracts",
@@ -126,8 +126,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  187,
-                        "request_id":  "2f82de5ef2964e62b9d4b7e684fc7379",
+                        "elapsed_ms":  238,
+                        "request_id":  "09254a06b0a0452ea9e4acc3f06ee369",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -137,9 +137,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  163,
-                        "request_id":  "7ef8c8369ae1461cbef144513b1e0f4f",
-                        "detail":  "{\r\n  \"jobId\": \"62\",\r\n  \"hasPendingOffer\": true,\r\n  \"pendingContractId\": \"54\"\r\n}"
+                        "elapsed_ms":  202,
+                        "request_id":  "1999b3e2f2fa4093b5e2c5e643cd30ef",
+                        "detail":  "{\r\n  \"jobId\": \"68\",\r\n  \"hasPendingOffer\": true,\r\n  \"pendingContractId\": \"60\"\r\n}"
                     },
                     {
                         "rpc":  "InternalGetJobOfferState",
@@ -148,8 +148,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  192,
-                        "request_id":  "f5cc655ce12e4193abf03c8d94173729",
+                        "elapsed_ms":  226,
+                        "request_id":  "67208374b6414828b34c345f722182a2",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller required"
                     },
                     {
@@ -159,8 +159,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  185,
-                        "request_id":  "317f49a09cfc45c5929690f7b1d8dbc9",
+                        "elapsed_ms":  213,
+                        "request_id":  "a85f79212da14b0dbe1d1db003f454c6",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller secret required"
                     },
                     {
@@ -170,8 +170,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  181,
-                        "request_id":  "fbdac220cc7a43c7b5b2c587ea18aa14",
+                        "elapsed_ms":  246,
+                        "request_id":  "08d3da8ea5a04068a21a3bfd2a327770",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: invalid internal caller secret"
                     },
                     {
@@ -181,8 +181,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  165,
-                        "request_id":  "d36a819ba19b4ae4b94501fdb81b88e0",
+                        "elapsed_ms":  243,
+                        "request_id":  "c8a6d6494440487eb226a5451d79b673",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: job_id is required"
                     },
                     {
@@ -192,9 +192,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  166,
-                        "request_id":  "027912db4f2743ba8ee4762261454758",
-                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"52\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"jobId\": \"60\",\r\n    \"proposalId\": \"60\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426222123\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"240000\",\r\n        \"dueAtUnixSeconds\": \"1777933309\",\r\n        \"status\": \"MILESTONE_STATUS_PENDING\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777242109\",\r\n    \"updatedAtUnixSeconds\": \"1777242114\",\r\n    \"activatedAtUnixSeconds\": \"1777242114\"\r\n  }\r\n}"
+                        "elapsed_ms":  193,
+                        "request_id":  "8827842e8c914a84af0898b8705e9857",
+                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"58\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"jobId\": \"66\",\r\n    \"proposalId\": \"66\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426224209\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"240000\",\r\n        \"dueAtUnixSeconds\": \"1777934710\",\r\n        \"status\": \"MILESTONE_STATUS_PENDING\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777243510\",\r\n    \"updatedAtUnixSeconds\": \"1777243517\",\r\n    \"activatedAtUnixSeconds\": \"1777243517\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "AcceptContract",
@@ -203,8 +203,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  220,
-                        "request_id":  "1c88567f1b8b459cbb41554555ff2e6b",
+                        "elapsed_ms":  229,
+                        "request_id":  "c9a88e206f604e57be39728a20ff01fc",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -214,8 +214,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  186,
-                        "request_id":  "2ac8c748212f42e2ad36678d83bce9a4",
+                        "elapsed_ms":  235,
+                        "request_id":  "0ce3c75571644075b5431c6b117526c7",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: freelancer role required"
                     },
                     {
@@ -224,31 +224,31 @@
                         "actor":  "freelancer",
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
-                        "success":  true,
-                        "elapsed_ms":  204,
-                        "request_id":  "5449fa600a234a67bcc067e7a75d52f9",
-                        "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id is required"
-                    },
-                    {
-                        "rpc":  "DeclineContract",
-                        "scenario":  "positive",
-                        "actor":  "freelancer",
-                        "expected_codes":  "OK",
-                        "actual_code":  "OK",
-                        "success":  true,
-                        "elapsed_ms":  176,
-                        "request_id":  "da5e5ccf7820471f8e2030a45607cbf9",
-                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"53\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"jobId\": \"61\",\r\n    \"proposalId\": \"61\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_DECLINED\",\r\n    \"title\": \"Fixed Contract 20260426222123\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"240000\",\r\n        \"dueAtUnixSeconds\": \"1777933309\",\r\n        \"status\": \"MILESTONE_STATUS_PENDING\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777242109\",\r\n    \"updatedAtUnixSeconds\": \"1777242115\",\r\n    \"declinedAtUnixSeconds\": \"1777242115\"\r\n  }\r\n}"
-                    },
-                    {
-                        "rpc":  "DeclineContract",
-                        "scenario":  "negative:unauthenticated",
-                        "actor":  "none",
-                        "expected_codes":  "Unauthenticated,PermissionDenied",
-                        "actual_code":  "Unauthenticated",
                         "success":  true,
                         "elapsed_ms":  207,
-                        "request_id":  "d7a9e769e61642a591b98a554716f461",
+                        "request_id":  "dde77d3fd0b04200bb255c4cc15643d0",
+                        "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id is required"
+                    },
+                    {
+                        "rpc":  "DeclineContract",
+                        "scenario":  "positive",
+                        "actor":  "freelancer",
+                        "expected_codes":  "OK",
+                        "actual_code":  "OK",
+                        "success":  true,
+                        "elapsed_ms":  185,
+                        "request_id":  "e25c9db667b64b5cbc9548802c13a25b",
+                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"59\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"jobId\": \"67\",\r\n    \"proposalId\": \"67\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_DECLINED\",\r\n    \"title\": \"Fixed Contract 20260426224209\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"240000\",\r\n        \"dueAtUnixSeconds\": \"1777934710\",\r\n        \"status\": \"MILESTONE_STATUS_PENDING\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777243510\",\r\n    \"updatedAtUnixSeconds\": \"1777243518\",\r\n    \"declinedAtUnixSeconds\": \"1777243518\"\r\n  }\r\n}"
+                    },
+                    {
+                        "rpc":  "DeclineContract",
+                        "scenario":  "negative:unauthenticated",
+                        "actor":  "none",
+                        "expected_codes":  "Unauthenticated,PermissionDenied",
+                        "actual_code":  "Unauthenticated",
+                        "success":  true,
+                        "elapsed_ms":  206,
+                        "request_id":  "17e721fb5bca44c59afad660b731b00b",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -258,8 +258,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  165,
-                        "request_id":  "d619d95576e74b7799d7ba36bd041103",
+                        "elapsed_ms":  190,
+                        "request_id":  "2beb75555fc1485683ba0d4c397d2532",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: freelancer role required"
                     },
                     {
@@ -269,8 +269,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  185,
-                        "request_id":  "e8b910d558d946fbb78abcb7f7815505",
+                        "elapsed_ms":  189,
+                        "request_id":  "1e937f6fc13944029200233b64397331",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id is required"
                     },
                     {
@@ -280,9 +280,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  195,
-                        "request_id":  "f976c509763645c0a126ff40625f24b7",
-                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"54\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"jobId\": \"62\",\r\n    \"proposalId\": \"62\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_REVOKED\",\r\n    \"title\": \"Fixed Contract 20260426222123\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"240000\",\r\n        \"dueAtUnixSeconds\": \"1777933309\",\r\n        \"status\": \"MILESTONE_STATUS_PENDING\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777242109\",\r\n    \"updatedAtUnixSeconds\": \"1777242116\",\r\n    \"revokedAtUnixSeconds\": \"1777242116\"\r\n  }\r\n}"
+                        "elapsed_ms":  209,
+                        "request_id":  "991de47859ef4489a9d0c8d2329a8cd9",
+                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"60\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"jobId\": \"68\",\r\n    \"proposalId\": \"68\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_REVOKED\",\r\n    \"title\": \"Fixed Contract 20260426224209\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"240000\",\r\n        \"dueAtUnixSeconds\": \"1777934710\",\r\n        \"status\": \"MILESTONE_STATUS_PENDING\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777243510\",\r\n    \"updatedAtUnixSeconds\": \"1777243518\",\r\n    \"revokedAtUnixSeconds\": \"1777243518\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "RevokeContractOffer",
@@ -291,8 +291,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  217,
-                        "request_id":  "dded2eb123be4528b4d5f06546452181",
+                        "elapsed_ms":  192,
+                        "request_id":  "ec27f2d7050d48e9b0ad4fa04bfc64fc",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -302,8 +302,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  196,
-                        "request_id":  "af21feab2c634787a252af5032d52106",
+                        "elapsed_ms":  191,
+                        "request_id":  "5debeaf4d2bf46f783e439dc56d28603",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: client role required"
                     },
                     {
@@ -313,8 +313,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  205,
-                        "request_id":  "49b0fe2b855a4a8396e7f8d3909e7ee5",
+                        "elapsed_ms":  246,
+                        "request_id":  "9b34ca6c26fc4a818dcd5ea6132a5ca3",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id is required"
                     },
                     {
@@ -324,9 +324,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  174,
-                        "request_id":  "de93d86b30a0472a82f6fd44bdf55545",
-                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"55\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"jobId\": \"63\",\r\n    \"proposalId\": \"63\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426222123\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777933309\",\r\n        \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n        \"submissionNote\": \"Submitting milestone one\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/workflow-m1.txt\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777242117\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778019709\",\r\n        \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777242111\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777242110\",\r\n    \"updatedAtUnixSeconds\": \"1777242117\",\r\n    \"activatedAtUnixSeconds\": \"1777242110\"\r\n  }\r\n}"
+                        "elapsed_ms":  180,
+                        "request_id":  "4261233643824e9787eeb26b59141e3b",
+                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"61\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"jobId\": \"69\",\r\n    \"proposalId\": \"69\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426224209\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777934710\",\r\n        \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n        \"submissionNote\": \"Submitting milestone one\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/workflow-m1.txt\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777243519\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778021110\",\r\n        \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777243512\"\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777243511\",\r\n    \"updatedAtUnixSeconds\": \"1777243519\",\r\n    \"activatedAtUnixSeconds\": \"1777243511\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "SubmitMilestoneWork",
@@ -335,8 +335,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  225,
-                        "request_id":  "c91309128068457cb09a3fa84922d678",
+                        "elapsed_ms":  205,
+                        "request_id":  "d194fdc688e44db4a7a64e8f6086ef50",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -346,8 +346,8 @@
                         "expected_codes":  "PermissionDenied,FailedPrecondition",
                         "actual_code":  "FailedPrecondition",
                         "success":  true,
-                        "elapsed_ms":  200,
-                        "request_id":  "0ef4764fc92b4fecb41061289f3cbc32",
+                        "elapsed_ms":  248,
+                        "request_id":  "bcb67383c7334a98897adf3309b687d5",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: FailedPrecondition\r\n  Message: client can only approve for settlement or request changes"
                     },
                     {
@@ -357,8 +357,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  189,
-                        "request_id":  "46589e2626394debbdbf41d2af48649a",
+                        "elapsed_ms":  225,
+                        "request_id":  "4df7b0cc384f4fa0b45a3ab1c06f9c81",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and milestone_id are required"
                     },
                     {
@@ -368,9 +368,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  249,
-                        "request_id":  "0f92f885d65e4fbd8c7796fc9adc651e",
-                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"55\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"jobId\": \"63\",\r\n    \"proposalId\": \"63\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426222123\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777933309\",\r\n        \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n        \"submissionNote\": \"Submitting milestone one\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/workflow-m1.txt\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777242117\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778019709\",\r\n        \"status\": \"MILESTONE_STATUS_CHANGES_REQUESTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777242111\",\r\n        \"reviewNote\": \"Please update section 2\",\r\n        \"reviewedAtUnixSeconds\": \"1777242118\",\r\n        \"revisionCount\": 1\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777242110\",\r\n    \"updatedAtUnixSeconds\": \"1777242118\",\r\n    \"activatedAtUnixSeconds\": \"1777242110\"\r\n  }\r\n}"
+                        "elapsed_ms":  205,
+                        "request_id":  "b8a52f2b7e5d40c0b14e406533001866",
+                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"61\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"jobId\": \"69\",\r\n    \"proposalId\": \"69\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426224209\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777934710\",\r\n        \"status\": \"MILESTONE_STATUS_SUBMITTED\",\r\n        \"submissionNote\": \"Submitting milestone one\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/workflow-m1.txt\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777243519\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778021110\",\r\n        \"status\": \"MILESTONE_STATUS_CHANGES_REQUESTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777243512\",\r\n        \"reviewNote\": \"Please update section 2\",\r\n        \"reviewedAtUnixSeconds\": \"1777243520\",\r\n        \"revisionCount\": 1\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777243511\",\r\n    \"updatedAtUnixSeconds\": \"1777243520\",\r\n    \"activatedAtUnixSeconds\": \"1777243511\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "RequestMilestoneChanges",
@@ -379,8 +379,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  195,
-                        "request_id":  "32e0c98711a44d9abdd5c8defcc4ae8b",
+                        "elapsed_ms":  200,
+                        "request_id":  "bb0f02f106ba4121b07453822ca8e901",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -390,8 +390,8 @@
                         "expected_codes":  "PermissionDenied,FailedPrecondition",
                         "actual_code":  "FailedPrecondition",
                         "success":  true,
-                        "elapsed_ms":  191,
-                        "request_id":  "d8da32c8ecfb417fb1cbb053f6bfc6d2",
+                        "elapsed_ms":  200,
+                        "request_id":  "092fc3a43237461497398db08a3b74da",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: FailedPrecondition\r\n  Message: freelancer can only submit milestones"
                     },
                     {
@@ -401,8 +401,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  208,
-                        "request_id":  "d17b270dfa4c46c3b7ea3555069cbb70",
+                        "elapsed_ms":  244,
+                        "request_id":  "eb6c43a0168c4093b4268164d18fed6f",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and milestone_id are required"
                     },
                     {
@@ -412,8 +412,8 @@
                         "expected_codes":  "OK,FailedPrecondition,NotFound",
                         "actual_code":  "NotFound",
                         "success":  true,
-                        "elapsed_ms":  215,
-                        "request_id":  "8f0605addcfc4c3d83fbcaf318746485",
+                        "elapsed_ms":  245,
+                        "request_id":  "a458a06f5d724e2cac164f147df45557",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: NotFound\r\n  Message: dispatch milestone settlement: rpc error: code = NotFound desc = not found: hold not found"
                     },
                     {
@@ -423,8 +423,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  182,
-                        "request_id":  "d4b9644a477f487793d9d0a7c1805e5b",
+                        "elapsed_ms":  209,
+                        "request_id":  "df1649535d6c4bca8e46f7c67f12fd5f",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -434,8 +434,8 @@
                         "expected_codes":  "PermissionDenied,FailedPrecondition",
                         "actual_code":  "FailedPrecondition",
                         "success":  true,
-                        "elapsed_ms":  215,
-                        "request_id":  "816f08109bd44595ae1fea859f34dfeb",
+                        "elapsed_ms":  174,
+                        "request_id":  "d0c1e364012c46d39962d58424058f99",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: FailedPrecondition\r\n  Message: freelancer can only submit milestones"
                     },
                     {
@@ -445,8 +445,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  167,
-                        "request_id":  "29bdf0d3560e4637ba76ef8737b5a7a6",
+                        "elapsed_ms":  165,
+                        "request_id":  "c156fb65d21c431eb9789709718a9510",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and milestone_id are required"
                     },
                     {
@@ -456,8 +456,8 @@
                         "expected_codes":  "OK,FailedPrecondition",
                         "actual_code":  "FailedPrecondition",
                         "success":  true,
-                        "elapsed_ms":  189,
-                        "request_id":  "27a5f02e98ee47a69cdebcfe3aa82f1c",
+                        "elapsed_ms":  175,
+                        "request_id":  "8ce1be6775af47cb9c8a6936a6113269",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: FailedPrecondition\r\n  Message: funded can only be set from pending"
                     },
                     {
@@ -467,8 +467,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  186,
-                        "request_id":  "967a5353881e42beb77c412bc1ae5e92",
+                        "elapsed_ms":  246,
+                        "request_id":  "00cdc80b393e41d2ac25f19ca5008608",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller required"
                     },
                     {
@@ -478,8 +478,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  185,
-                        "request_id":  "937b3b1de10d4c0aae0ada99af9dd955",
+                        "elapsed_ms":  240,
+                        "request_id":  "0fc0ca7505ea424983590babca5d05a2",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller secret required"
                     },
                     {
@@ -489,8 +489,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  189,
-                        "request_id":  "7d91afb3c1b2464883f9a8d4305fe408",
+                        "elapsed_ms":  241,
+                        "request_id":  "c517779553254cda9efac608cb67e2a2",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: invalid internal caller secret"
                     },
                     {
@@ -500,8 +500,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  169,
-                        "request_id":  "6284d220cd704ef9b46e7218865ffb03",
+                        "elapsed_ms":  253,
+                        "request_id":  "b600c8bcc1b74127b6ef33d8b69cc366",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and milestone_id are required"
                     },
                     {
@@ -511,9 +511,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  194,
-                        "request_id":  "457fc30919384e04bb699a0af59a18af",
-                        "detail":  "{\r\n  \"hourlyLog\": {\r\n    \"id\": \"14\",\r\n    \"contractId\": \"56\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"workDateUnixSeconds\": \"1777161600\",\r\n    \"startAtUnixSeconds\": \"1777234910\",\r\n    \"endAtUnixSeconds\": \"1777238510\",\r\n    \"durationMinutes\": 60,\r\n    \"note\": \"Implemented live-test scenario\",\r\n    \"status\": \"HOURLY_LOG_STATUS_PENDING\",\r\n    \"createdAtUnixSeconds\": \"1777242121\",\r\n    \"evidenceUrls\": [\r\n      \"https://example.test/hourly-log-1\"\r\n    ]\r\n  }\r\n}"
+                        "elapsed_ms":  189,
+                        "request_id":  "dd4aea8905b140e0b17fe334ebdddc60",
+                        "detail":  "{\r\n  \"hourlyLog\": {\r\n    \"id\": \"16\",\r\n    \"contractId\": \"62\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"workDateUnixSeconds\": \"1777161600\",\r\n    \"startAtUnixSeconds\": \"1777236311\",\r\n    \"endAtUnixSeconds\": \"1777239911\",\r\n    \"durationMinutes\": 60,\r\n    \"note\": \"Implemented live-test scenario\",\r\n    \"status\": \"HOURLY_LOG_STATUS_PENDING\",\r\n    \"createdAtUnixSeconds\": \"1777243524\",\r\n    \"evidenceUrls\": [\r\n      \"https://example.test/hourly-log-1\"\r\n    ]\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "LogHourlyWork",
@@ -522,8 +522,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  182,
-                        "request_id":  "f95aafaa06374db3ba9c372d848ad14b",
+                        "elapsed_ms":  210,
+                        "request_id":  "37dba6bde6e944d6ae3b096e5af33123",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -533,8 +533,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  184,
-                        "request_id":  "c087000a31434274bb31bd98a545d31b",
+                        "elapsed_ms":  244,
+                        "request_id":  "b2dc7a22ad4647588b371b0a82d9f907",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: freelancer role required"
                     },
                     {
@@ -544,8 +544,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  217,
-                        "request_id":  "1491c019a54b4cd4b943923d53c83bb9",
+                        "elapsed_ms":  181,
+                        "request_id":  "910371f7b1ed4827ae3480936bb6379f",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: end_at must be after start_at"
                     },
                     {
@@ -555,9 +555,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  157,
-                        "request_id":  "12cf32b2d37c448cba81d065687bef1e",
-                        "detail":  "{\r\n  \"storageKey\": \"contracts/56/hourly-evidence/1267bd26-dd91-4b87-8ef4-2b1cfaa6050f.txt\",\r\n  \"uploadUrl\": \"http://minio:9000/jobconnect-contract-hourly-evidence/contracts/56/hourly-evidence/1267bd26-dd91-4b87-8ef4-2b1cfaa6050f.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256\\u0026X-Amz-Credential=minioadmin%2F20260426%2Fus-east-1%2Fs3%2Faws4_request\\u0026X-Amz-Date=20260426T222202Z\\u0026X-Amz-Expires=900\\u0026X-Amz-SignedHeaders=host\\u0026X-Amz-Signature=c42fd84ebf0d8c925e7a01637ce18964256b0c8c3b50392665e37f26a5955df0\"\r\n}"
+                        "elapsed_ms":  145,
+                        "request_id":  "225176857f6b42e7b5dd7b989adaaf83",
+                        "detail":  "{\r\n  \"storageKey\": \"contracts/62/hourly-evidence/843ae220-09e0-4fc0-9396-e1111e0cec0f.txt\",\r\n  \"uploadUrl\": \"http://minio:9000/jobconnect-contract-hourly-evidence/contracts/62/hourly-evidence/843ae220-09e0-4fc0-9396-e1111e0cec0f.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256\\u0026X-Amz-Credential=minioadmin%2F20260426%2Fus-east-1%2Fs3%2Faws4_request\\u0026X-Amz-Date=20260426T224524Z\\u0026X-Amz-Expires=900\\u0026X-Amz-SignedHeaders=host\\u0026X-Amz-Signature=4b45817f075fc3dab8cbc9b17a3b7569df1c022f060b6d8518173eadd6376357\"\r\n}"
                     },
                     {
                         "rpc":  "GetHourlyLogEvidenceUploadUrl",
@@ -566,8 +566,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  205,
-                        "request_id":  "9473560b9d2d4dc098ac60fc4ae92864",
+                        "elapsed_ms":  182,
+                        "request_id":  "289043d776674824ae76f921fb95bf85",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -577,8 +577,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  206,
-                        "request_id":  "4838825275414a409831049418e543ba",
+                        "elapsed_ms":  190,
+                        "request_id":  "c7a297bcfeb24e28a85704b0c023cbb4",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: freelancer role required"
                     },
                     {
@@ -588,8 +588,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  185,
-                        "request_id":  "a428d944b3cd4a459e0b3842a129c8e3",
+                        "elapsed_ms":  184,
+                        "request_id":  "4fc575c0ab1544ef9fb768708f11947f",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: file_name is required"
                     },
                     {
@@ -599,9 +599,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  151,
-                        "request_id":  "7c89060654154facbfd10d9479dc7da8",
-                        "detail":  "{\r\n  \"hourlyLogs\": [\r\n    {\r\n      \"id\": \"14\",\r\n      \"contractId\": \"56\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"workDateUnixSeconds\": \"1777161600\",\r\n      \"startAtUnixSeconds\": \"1777234910\",\r\n      \"endAtUnixSeconds\": \"1777238510\",\r\n      \"durationMinutes\": 60,\r\n      \"note\": \"Implemented live-test scenario\",\r\n      \"status\": \"HOURLY_LOG_STATUS_PENDING\",\r\n      \"createdAtUnixSeconds\": \"1777242121\",\r\n      \"evidenceUrls\": [\r\n        \"https://example.test/hourly-log-1\"\r\n      ]\r\n    },\r\n    {\r\n      \"id\": \"13\",\r\n      \"contractId\": \"56\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"workDateUnixSeconds\": \"1777161600\",\r\n      \"startAtUnixSeconds\": \"1777231310\",\r\n      \"endAtUnixSeconds\": \"1777233110\",\r\n      \"durationMinutes\": 30,\r\n      \"note\": \"Prep deletable hourly log\",\r\n      \"status\": \"HOURLY_LOG_STATUS_PENDING\",\r\n      \"createdAtUnixSeconds\": \"1777242111\",\r\n      \"evidenceUrls\": [\r\n        \"https://example.test/prep-delete-log\"\r\n      ]\r\n    }\r\n  ]\r\n}"
+                        "elapsed_ms":  150,
+                        "request_id":  "2eadbe0a747f45859243c326c80281f2",
+                        "detail":  "{\r\n  \"hourlyLogs\": [\r\n    {\r\n      \"id\": \"16\",\r\n      \"contractId\": \"62\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"workDateUnixSeconds\": \"1777161600\",\r\n      \"startAtUnixSeconds\": \"1777236311\",\r\n      \"endAtUnixSeconds\": \"1777239911\",\r\n      \"durationMinutes\": 60,\r\n      \"note\": \"Implemented live-test scenario\",\r\n      \"status\": \"HOURLY_LOG_STATUS_PENDING\",\r\n      \"createdAtUnixSeconds\": \"1777243524\",\r\n      \"evidenceUrls\": [\r\n        \"https://example.test/hourly-log-1\"\r\n      ]\r\n    },\r\n    {\r\n      \"id\": \"15\",\r\n      \"contractId\": \"62\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"workDateUnixSeconds\": \"1777161600\",\r\n      \"startAtUnixSeconds\": \"1777232711\",\r\n      \"endAtUnixSeconds\": \"1777234511\",\r\n      \"durationMinutes\": 30,\r\n      \"note\": \"Prep deletable hourly log\",\r\n      \"status\": \"HOURLY_LOG_STATUS_PENDING\",\r\n      \"createdAtUnixSeconds\": \"1777243512\",\r\n      \"evidenceUrls\": [\r\n        \"https://example.test/prep-delete-log\"\r\n      ]\r\n    }\r\n  ]\r\n}"
                     },
                     {
                         "rpc":  "ListHourlyLogs",
@@ -610,8 +610,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  189,
-                        "request_id":  "56f47074085e4cbc8cded4a116a723ff",
+                        "elapsed_ms":  225,
+                        "request_id":  "116a817a0f164c30b8ab77bf62fafbce",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -621,8 +621,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  207,
-                        "request_id":  "b23422e105e24f59a3f90293ad9a1a92",
+                        "elapsed_ms":  211,
+                        "request_id":  "1166625cd06642e28872fd11b397e6a0",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     },
                     {
@@ -632,9 +632,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  144,
-                        "request_id":  "22b0d67e6ffc43889f6e33214889cd6c",
-                        "detail":  "{\r\n  \"contractId\": \"56\",\r\n  \"weekStartUnixSeconds\": \"1776643200\",\r\n  \"weekEndUnixSeconds\": \"1777248000\",\r\n  \"weeklyHourLimit\": 30,\r\n  \"billableMinutes\": 90,\r\n  \"pendingMinutes\": 90,\r\n  \"remainingMinutes\": 1710,\r\n  \"hourlyRateMinor\": \"5500\",\r\n  \"estimatedBillableAmountMinor\": \"8250\"\r\n}"
+                        "elapsed_ms":  167,
+                        "request_id":  "e522d6b640c54d63af4fd54a1a11f8f5",
+                        "detail":  "{\r\n  \"contractId\": \"62\",\r\n  \"weekStartUnixSeconds\": \"1776643200\",\r\n  \"weekEndUnixSeconds\": \"1777248000\",\r\n  \"weeklyHourLimit\": 30,\r\n  \"billableMinutes\": 90,\r\n  \"pendingMinutes\": 90,\r\n  \"remainingMinutes\": 1710,\r\n  \"hourlyRateMinor\": \"5500\",\r\n  \"estimatedBillableAmountMinor\": \"8250\"\r\n}"
                     },
                     {
                         "rpc":  "GetHourlyWorkSummary",
@@ -643,8 +643,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  186,
-                        "request_id":  "e66a3d7516724e5789cf8ce3604e89d0",
+                        "elapsed_ms":  187,
+                        "request_id":  "f5e2a076901c43119a4ea0a9aa0de233",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -654,8 +654,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  217,
-                        "request_id":  "64e8496c35014ba0b7e5b1ecacaefde3",
+                        "elapsed_ms":  199,
+                        "request_id":  "344a37b4236e4ba7969185dbe7203332",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     },
                     {
@@ -665,9 +665,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  201,
-                        "request_id":  "4fc7652bec074cf4873c9d9cdd070ca9",
-                        "detail":  "{\r\n  \"hourlyLog\": {\r\n    \"id\": \"14\",\r\n    \"contractId\": \"56\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"workDateUnixSeconds\": \"1777161600\",\r\n    \"startAtUnixSeconds\": \"1777234610\",\r\n    \"endAtUnixSeconds\": \"1777238210\",\r\n    \"durationMinutes\": 60,\r\n    \"note\": \"Updated note for live test\",\r\n    \"status\": \"HOURLY_LOG_STATUS_PENDING\",\r\n    \"createdAtUnixSeconds\": \"1777242121\",\r\n    \"evidenceUrls\": [\r\n      \"https://example.test/hourly-log-updated\"\r\n    ]\r\n  }\r\n}"
+                        "elapsed_ms":  171,
+                        "request_id":  "08b3bcae00974d6ba986d1ab66a284a8",
+                        "detail":  "{\r\n  \"hourlyLog\": {\r\n    \"id\": \"16\",\r\n    \"contractId\": \"62\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"workDateUnixSeconds\": \"1777161600\",\r\n    \"startAtUnixSeconds\": \"1777236011\",\r\n    \"endAtUnixSeconds\": \"1777239611\",\r\n    \"durationMinutes\": 60,\r\n    \"note\": \"Updated note for live test\",\r\n    \"status\": \"HOURLY_LOG_STATUS_PENDING\",\r\n    \"createdAtUnixSeconds\": \"1777243524\",\r\n    \"evidenceUrls\": [\r\n      \"https://example.test/hourly-log-updated\"\r\n    ]\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "UpdateHourlyLog",
@@ -676,8 +676,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  251,
-                        "request_id":  "bd7f26f6753446e39309cc30c306239b",
+                        "elapsed_ms":  211,
+                        "request_id":  "b418a9caaa994f0798d66a573a037d20",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -687,8 +687,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  199,
-                        "request_id":  "c675b09b61914a2c92666cfb3222e130",
+                        "elapsed_ms":  214,
+                        "request_id":  "fbdc4c03f5ce4e6a9a6ef0a336e599c5",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: freelancer role required"
                     },
                     {
@@ -698,8 +698,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  150,
-                        "request_id":  "25f594f509e440edab3624bd06bf5a74",
+                        "elapsed_ms":  166,
+                        "request_id":  "2160f9a9b65541eb87eb1def3ae9ed49",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: end_at must be after start_at"
                     },
                     {
@@ -709,8 +709,8 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  148,
-                        "request_id":  "1924c91e94184648af2292cbc4741e4e",
+                        "elapsed_ms":  173,
+                        "request_id":  "23b8613f7a0f4530956a048b0376e919",
                         "detail":  "{}"
                     },
                     {
@@ -720,8 +720,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  182,
-                        "request_id":  "e69178ecb60a40599da96050c684e0fc",
+                        "elapsed_ms":  229,
+                        "request_id":  "23402fb764c4447e8a61b74a5e88d7f7",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -731,8 +731,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  199,
-                        "request_id":  "b70a6a29582448b69b990a1ccf438984",
+                        "elapsed_ms":  234,
+                        "request_id":  "d8353f999808429d982dfadbc72132e0",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: freelancer role required"
                     },
                     {
@@ -742,8 +742,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  208,
-                        "request_id":  "0a0aeff099ac490781dee0951686e18a",
+                        "elapsed_ms":  238,
+                        "request_id":  "33a1d43a39bf4139b16cc9081a003505",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: hourly_log_id and freelancer_id are required"
                     },
                     {
@@ -753,9 +753,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  144,
-                        "request_id":  "858648848c8341f991f5038b18a72590",
-                        "detail":  "{\r\n  \"hourlyLog\": {\r\n    \"id\": \"14\",\r\n    \"contractId\": \"56\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"workDateUnixSeconds\": \"1777161600\",\r\n    \"startAtUnixSeconds\": \"1777234610\",\r\n    \"endAtUnixSeconds\": \"1777238210\",\r\n    \"durationMinutes\": 60,\r\n    \"note\": \"Updated note for live test\",\r\n    \"status\": \"HOURLY_LOG_STATUS_APPROVED\",\r\n    \"reviewNote\": \"Looks good\",\r\n    \"createdAtUnixSeconds\": \"1777242121\",\r\n    \"reviewedAtUnixSeconds\": \"1777242125\",\r\n    \"evidenceUrls\": [\r\n      \"https://example.test/hourly-log-updated\"\r\n    ]\r\n  }\r\n}"
+                        "elapsed_ms":  147,
+                        "request_id":  "ba02065e481b461a8d890c49dae5b23a",
+                        "detail":  "{\r\n  \"hourlyLog\": {\r\n    \"id\": \"16\",\r\n    \"contractId\": \"62\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"workDateUnixSeconds\": \"1777161600\",\r\n    \"startAtUnixSeconds\": \"1777236011\",\r\n    \"endAtUnixSeconds\": \"1777239611\",\r\n    \"durationMinutes\": 60,\r\n    \"note\": \"Updated note for live test\",\r\n    \"status\": \"HOURLY_LOG_STATUS_APPROVED\",\r\n    \"reviewNote\": \"Looks good\",\r\n    \"createdAtUnixSeconds\": \"1777243524\",\r\n    \"reviewedAtUnixSeconds\": \"1777243528\",\r\n    \"evidenceUrls\": [\r\n      \"https://example.test/hourly-log-updated\"\r\n    ]\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "ReviewHourlyLog",
@@ -764,8 +764,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  204,
-                        "request_id":  "d58c57f6a221420c8ae1da1e04fe4348",
+                        "elapsed_ms":  215,
+                        "request_id":  "e3347386e1714206b31ba9fa88b62a4c",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -775,8 +775,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  200,
-                        "request_id":  "6594377267004c7fba3a72f700b8f30f",
+                        "elapsed_ms":  254,
+                        "request_id":  "c47ea07c58094883880b55cbd2a13aa1",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: client role required"
                     },
                     {
@@ -786,8 +786,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  192,
-                        "request_id":  "dfafea1de8cc48c7a6615c842721ce8a",
+                        "elapsed_ms":  203,
+                        "request_id":  "c2f7f29ba20a46569ed0b2b81e648f4f",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: status must be approved or rejected"
                     },
                     {
@@ -797,9 +797,9 @@
                         "expected_codes":  "OK,FailedPrecondition",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  160,
-                        "request_id":  "2a31a4d8cd884c548ed33b3d47405c19",
-                        "detail":  "{\r\n  \"invoice\": {\r\n    \"id\": \"5\",\r\n    \"contractId\": \"56\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"weekStartUnixSeconds\": \"1776038400\",\r\n    \"weekEndUnixSeconds\": \"1776643200\",\r\n    \"status\": \"HOURLY_INVOICE_STATUS_IN_REVIEW\",\r\n    \"hourlyRateMinor\": \"5500\",\r\n    \"createdAtUnixSeconds\": \"1777242126\",\r\n    \"submittedAtUnixSeconds\": \"1777242126\"\r\n  }\r\n}"
+                        "elapsed_ms":  219,
+                        "request_id":  "f988807467014e7fab62b4da1e020e06",
+                        "detail":  "{\r\n  \"invoice\": {\r\n    \"id\": \"6\",\r\n    \"contractId\": \"62\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"weekStartUnixSeconds\": \"1776038400\",\r\n    \"weekEndUnixSeconds\": \"1776643200\",\r\n    \"status\": \"HOURLY_INVOICE_STATUS_IN_REVIEW\",\r\n    \"hourlyRateMinor\": \"5500\",\r\n    \"createdAtUnixSeconds\": \"1777243529\",\r\n    \"submittedAtUnixSeconds\": \"1777243529\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "InternalCloseHourlyWeek",
@@ -808,8 +808,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  190,
-                        "request_id":  "e1306dc0271144528ccf9bba20314d6d",
+                        "elapsed_ms":  194,
+                        "request_id":  "51d04d864e2a46caaf55903689502bc3",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller required"
                     },
                     {
@@ -819,8 +819,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  208,
-                        "request_id":  "cebc240e6e964abca6a447d2b9a04e9b",
+                        "elapsed_ms":  212,
+                        "request_id":  "ab96b7854bc3498aa9dd9e5b5912392c",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller secret required"
                     },
                     {
@@ -830,8 +830,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  190,
-                        "request_id":  "111d4d9ac395469c9f804374aa226ba5",
+                        "elapsed_ms":  234,
+                        "request_id":  "1faf04e32f8c4ffab038a704eb8c1b41",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: invalid internal caller secret"
                     },
                     {
@@ -841,8 +841,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  182,
-                        "request_id":  "e47fa40342904d0ea1b15b82c0585c17",
+                        "elapsed_ms":  241,
+                        "request_id":  "d10a8eb33045404398453c34b3f14c13",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id is required"
                     },
                     {
@@ -852,9 +852,9 @@
                         "expected_codes":  "OK,NotFound",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  184,
-                        "request_id":  "404b0a308d6c45a9b291ae8814d7ef50",
-                        "detail":  "{\r\n  \"invoice\": {\r\n    \"id\": \"5\",\r\n    \"contractId\": \"56\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"weekStartUnixSeconds\": \"1776038400\",\r\n    \"weekEndUnixSeconds\": \"1776643200\",\r\n    \"status\": \"HOURLY_INVOICE_STATUS_IN_REVIEW\",\r\n    \"hourlyRateMinor\": \"5500\",\r\n    \"createdAtUnixSeconds\": \"1777242126\",\r\n    \"submittedAtUnixSeconds\": \"1777242126\"\r\n  }\r\n}"
+                        "elapsed_ms":  194,
+                        "request_id":  "382d05627b2f4f428b9d768168521579",
+                        "detail":  "{\r\n  \"invoice\": {\r\n    \"id\": \"6\",\r\n    \"contractId\": \"62\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"weekStartUnixSeconds\": \"1776038400\",\r\n    \"weekEndUnixSeconds\": \"1776643200\",\r\n    \"status\": \"HOURLY_INVOICE_STATUS_IN_REVIEW\",\r\n    \"hourlyRateMinor\": \"5500\",\r\n    \"createdAtUnixSeconds\": \"1777243529\",\r\n    \"submittedAtUnixSeconds\": \"1777243529\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "GetHourlyInvoice",
@@ -863,8 +863,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  196,
-                        "request_id":  "6ab0621138fa40388cac4b3ed97e7a03",
+                        "elapsed_ms":  183,
+                        "request_id":  "27d3c31290794762aac87c4614e51460",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -874,8 +874,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  242,
-                        "request_id":  "f3fe8d60a1494b89b6cce7ec054bb883",
+                        "elapsed_ms":  188,
+                        "request_id":  "83015ccd680c4af4acc1bfad615897dc",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: invoice_id and actor_id are required"
                     },
                     {
@@ -885,9 +885,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  198,
-                        "request_id":  "f7043c9906b04c0b83ac06431b44e5b4",
-                        "detail":  "{\r\n  \"invoices\": [\r\n    {\r\n      \"id\": \"5\",\r\n      \"contractId\": \"56\",\r\n      \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"weekStartUnixSeconds\": \"1776038400\",\r\n      \"weekEndUnixSeconds\": \"1776643200\",\r\n      \"status\": \"HOURLY_INVOICE_STATUS_IN_REVIEW\",\r\n      \"hourlyRateMinor\": \"5500\",\r\n      \"createdAtUnixSeconds\": \"1777242126\",\r\n      \"submittedAtUnixSeconds\": \"1777242126\"\r\n    }\r\n  ]\r\n}"
+                        "elapsed_ms":  155,
+                        "request_id":  "aab989c7773c48cf99e062c35e96951f",
+                        "detail":  "{\r\n  \"invoices\": [\r\n    {\r\n      \"id\": \"6\",\r\n      \"contractId\": \"62\",\r\n      \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"weekStartUnixSeconds\": \"1776038400\",\r\n      \"weekEndUnixSeconds\": \"1776643200\",\r\n      \"status\": \"HOURLY_INVOICE_STATUS_IN_REVIEW\",\r\n      \"hourlyRateMinor\": \"5500\",\r\n      \"createdAtUnixSeconds\": \"1777243529\",\r\n      \"submittedAtUnixSeconds\": \"1777243529\"\r\n    }\r\n  ]\r\n}"
                     },
                     {
                         "rpc":  "ListHourlyInvoices",
@@ -896,8 +896,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  190,
-                        "request_id":  "7af7b6cdf254451ba4c50c1d50552454",
+                        "elapsed_ms":  231,
+                        "request_id":  "4d2f54e9198b4a84b7fd7947b0ca8b35",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -907,8 +907,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  200,
-                        "request_id":  "9f2dca9fc4d7434499670ba7a45a7d0e",
+                        "elapsed_ms":  203,
+                        "request_id":  "ccf880e61890457bbedc02c2381be0aa",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     },
                     {
@@ -918,9 +918,9 @@
                         "expected_codes":  "OK,FailedPrecondition,NotFound",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  171,
-                        "request_id":  "1effd1d783f048d597ba7dbd73f2170f",
-                        "detail":  "{\r\n  \"invoice\": {\r\n    \"id\": \"5\",\r\n    \"contractId\": \"56\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"weekStartUnixSeconds\": \"1776038400\",\r\n    \"weekEndUnixSeconds\": \"1776643200\",\r\n    \"status\": \"HOURLY_INVOICE_STATUS_PAID\",\r\n    \"hourlyRateMinor\": \"5500\",\r\n    \"createdAtUnixSeconds\": \"1777242126\",\r\n    \"submittedAtUnixSeconds\": \"1777242126\",\r\n    \"approvedAtUnixSeconds\": \"1777242129\",\r\n    \"paidAtUnixSeconds\": \"1777242129\"\r\n  }\r\n}"
+                        "elapsed_ms":  197,
+                        "request_id":  "b5114cb764ec41c0b705b1923e06b394",
+                        "detail":  "{\r\n  \"invoice\": {\r\n    \"id\": \"6\",\r\n    \"contractId\": \"62\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"weekStartUnixSeconds\": \"1776038400\",\r\n    \"weekEndUnixSeconds\": \"1776643200\",\r\n    \"status\": \"HOURLY_INVOICE_STATUS_PAID\",\r\n    \"hourlyRateMinor\": \"5500\",\r\n    \"createdAtUnixSeconds\": \"1777243529\",\r\n    \"submittedAtUnixSeconds\": \"1777243529\",\r\n    \"approvedAtUnixSeconds\": \"1777243532\",\r\n    \"paidAtUnixSeconds\": \"1777243532\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "InternalSettleHourlyInvoice",
@@ -929,8 +929,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  184,
-                        "request_id":  "7789b64cd99b41b1843bad3c5e52e7da",
+                        "elapsed_ms":  201,
+                        "request_id":  "79631855d3924476a6c738024e6756b4",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller required"
                     },
                     {
@@ -940,8 +940,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  181,
-                        "request_id":  "493b48b3a77c417fbed980623d1bbafa",
+                        "elapsed_ms":  239,
+                        "request_id":  "e6d8d5766b3e49c1b0916d0a5c73a897",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller secret required"
                     },
                     {
@@ -951,8 +951,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  233,
-                        "request_id":  "0af6e8c5926e47c4988f776fbfaa968a",
+                        "elapsed_ms":  217,
+                        "request_id":  "52eaea4e1cda454ea2bc426e1541105b",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: invalid internal caller secret"
                     },
                     {
@@ -962,8 +962,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  224,
-                        "request_id":  "f9327586b7194fecbbb2f15eca63a0c1",
+                        "elapsed_ms":  222,
+                        "request_id":  "b88cf3f2e8f24959bf728e8f1facd0f8",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: invoice_id is required"
                     },
                     {
@@ -973,9 +973,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  151,
-                        "request_id":  "0ba3d16230fa4ad98dc48d0cd9404b2a",
-                        "detail":  "{\r\n  \"bonus\": {\r\n    \"id\": \"5\",\r\n    \"contractId\": \"55\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"amountMinor\": \"20000\",\r\n    \"note\": \"Bonus for quick turnaround\",\r\n    \"status\": \"CONTRACT_BONUS_STATUS_PENDING\",\r\n    \"createdAtUnixSeconds\": \"1777242130\"\r\n  }\r\n}"
+                        "elapsed_ms":  192,
+                        "request_id":  "567f14f3bdf240fbb3761d18127b07d5",
+                        "detail":  "{\r\n  \"bonus\": {\r\n    \"id\": \"6\",\r\n    \"contractId\": \"61\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"amountMinor\": \"20000\",\r\n    \"note\": \"Bonus for quick turnaround\",\r\n    \"status\": \"CONTRACT_BONUS_STATUS_PENDING\",\r\n    \"createdAtUnixSeconds\": \"1777243533\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "CreateContractBonus",
@@ -985,7 +985,7 @@
                         "actual_code":  "Unauthenticated",
                         "success":  true,
                         "elapsed_ms":  200,
-                        "request_id":  "7a9182d06d44463785737c02b706d8e0",
+                        "request_id":  "88d26a8d5dc546ef9db2d1253b9c0d18",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -995,8 +995,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  241,
-                        "request_id":  "a762af32036d4aacb4b64a26decc9783",
+                        "elapsed_ms":  214,
+                        "request_id":  "d8417113cfed4fb3bd7fd995d2dd15b1",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: client role required"
                     },
                     {
@@ -1006,8 +1006,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  213,
-                        "request_id":  "25e0901d1f674ea5a43111c7671c2a0b",
+                        "elapsed_ms":  185,
+                        "request_id":  "841b9d47afd447fbbdc84c01b7d7be4a",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id, client_id, and positive amount_minor are required"
                     },
                     {
@@ -1017,9 +1017,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  202,
-                        "request_id":  "267ed0b036ac4738b417bc0f2dc9361c",
-                        "detail":  "{\r\n  \"bonuses\": [\r\n    {\r\n      \"id\": \"5\",\r\n      \"contractId\": \"55\",\r\n      \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"amountMinor\": \"20000\",\r\n      \"note\": \"Bonus for quick turnaround\",\r\n      \"status\": \"CONTRACT_BONUS_STATUS_PENDING\",\r\n      \"createdAtUnixSeconds\": \"1777242130\"\r\n    }\r\n  ]\r\n}"
+                        "elapsed_ms":  153,
+                        "request_id":  "63cee030ce104144a53bacd31b0e3ebf",
+                        "detail":  "{\r\n  \"bonuses\": [\r\n    {\r\n      \"id\": \"6\",\r\n      \"contractId\": \"61\",\r\n      \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"amountMinor\": \"20000\",\r\n      \"note\": \"Bonus for quick turnaround\",\r\n      \"status\": \"CONTRACT_BONUS_STATUS_PENDING\",\r\n      \"createdAtUnixSeconds\": \"1777243533\"\r\n    }\r\n  ]\r\n}"
                     },
                     {
                         "rpc":  "ListContractBonuses",
@@ -1028,8 +1028,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  221,
-                        "request_id":  "e25aa7a44d8146b0a1d3c80b97001f80",
+                        "elapsed_ms":  203,
+                        "request_id":  "457dad5c13ec495781f624ccd490f6a1",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -1039,8 +1039,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  214,
-                        "request_id":  "d5be293bf0264ad3ba6b4735b5ec1514",
+                        "elapsed_ms":  209,
+                        "request_id":  "4538be82f316457f9b7dda7ffe0742e7",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     },
                     {
@@ -1050,9 +1050,9 @@
                         "expected_codes":  "OK,FailedPrecondition",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  144,
-                        "request_id":  "7d4d62f16f3642b796cff6843321fbcb",
-                        "detail":  "{\r\n  \"bonus\": {\r\n    \"id\": \"5\",\r\n    \"contractId\": \"55\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"amountMinor\": \"20000\",\r\n    \"note\": \"Bonus for quick turnaround\",\r\n    \"status\": \"CONTRACT_BONUS_STATUS_PAID\",\r\n    \"createdAtUnixSeconds\": \"1777242130\",\r\n    \"paidAtUnixSeconds\": \"1777242131\"\r\n  }\r\n}"
+                        "elapsed_ms":  161,
+                        "request_id":  "3ab0b572701540f3a3659d703d20b404",
+                        "detail":  "{\r\n  \"bonus\": {\r\n    \"id\": \"6\",\r\n    \"contractId\": \"61\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"amountMinor\": \"20000\",\r\n    \"note\": \"Bonus for quick turnaround\",\r\n    \"status\": \"CONTRACT_BONUS_STATUS_PAID\",\r\n    \"createdAtUnixSeconds\": \"1777243533\",\r\n    \"paidAtUnixSeconds\": \"1777243534\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "InternalMarkContractBonusPaid",
@@ -1061,8 +1061,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  184,
-                        "request_id":  "ed78c3ddbeea43aa960a024a790cb35f",
+                        "elapsed_ms":  212,
+                        "request_id":  "7fa676da32104ff0b46ab636e5ff0bfe",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller required"
                     },
                     {
@@ -1072,8 +1072,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  187,
-                        "request_id":  "31fd90bbd465418b9db97f731aa9fb2b",
+                        "elapsed_ms":  235,
+                        "request_id":  "c6ee202b5d7345ebb7ee3612bdcf3601",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: internal caller secret required"
                     },
                     {
@@ -1083,8 +1083,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  236,
-                        "request_id":  "ae1c116933614d1c8ddab35517625cad",
+                        "elapsed_ms":  129,
+                        "request_id":  "c4d0d43246df47b7931185b1b40e528d",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: invalid internal caller secret"
                     },
                     {
@@ -1094,8 +1094,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  247,
-                        "request_id":  "2fa8336730f642deb90ceadd2c691e3c",
+                        "elapsed_ms":  181,
+                        "request_id":  "7b9b030012e3464c9a3e59c6556e7642",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: bonus_id is required"
                     },
                     {
@@ -1105,9 +1105,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  150,
-                        "request_id":  "abbc053186ad45eb941934e1332401c9",
-                        "detail":  "{\r\n  \"amendment\": {\r\n    \"id\": \"5\",\r\n    \"contractId\": \"56\",\r\n    \"proposedBy\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"summary\": \"Adjust scope and weekly hours\",\r\n    \"payload\": {\r\n      \"weeklyLimitChange\": {\r\n        \"newWeeklyHourLimit\": 35\r\n      },\r\n      \"scopeChange\": {\r\n        \"newTitle\": \"Updated scope title\",\r\n        \"newDescription\": \"Updated scope description\"\r\n      }\r\n    },\r\n    \"status\": \"AMENDMENT_STATUS_PENDING\",\r\n    \"expiresAtUnixSeconds\": \"1779056483\",\r\n    \"createdAtUnixSeconds\": \"1777242132\"\r\n  }\r\n}"
+                        "elapsed_ms":  203,
+                        "request_id":  "1e391514e1ef489ba025bda02a1ae940",
+                        "detail":  "{\r\n  \"amendment\": {\r\n    \"id\": \"6\",\r\n    \"contractId\": \"62\",\r\n    \"proposedBy\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"summary\": \"Adjust scope and weekly hours\",\r\n    \"payload\": {\r\n      \"weeklyLimitChange\": {\r\n        \"newWeeklyHourLimit\": 35\r\n      },\r\n      \"scopeChange\": {\r\n        \"newTitle\": \"Updated scope title\",\r\n        \"newDescription\": \"Updated scope description\"\r\n      }\r\n    },\r\n    \"status\": \"AMENDMENT_STATUS_PENDING\",\r\n    \"expiresAtUnixSeconds\": \"1779057729\",\r\n    \"createdAtUnixSeconds\": \"1777243536\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "ProposeAmendment",
@@ -1116,8 +1116,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  203,
-                        "request_id":  "5494601a74b3417fbdf5be90457d64f8",
+                        "elapsed_ms":  234,
+                        "request_id":  "bb53ecccbe5b464c9cddb5743a13591d",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -1127,8 +1127,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  205,
-                        "request_id":  "3989d3728738477980faef5c4514c296",
+                        "elapsed_ms":  241,
+                        "request_id":  "560fdacb4c294b929c0a017b4b7c96e1",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     },
                     {
@@ -1138,9 +1138,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  187,
-                        "request_id":  "b263a2279c564f5699911dc5706a1e86",
-                        "detail":  "{\r\n  \"amendment\": {\r\n    \"id\": \"5\",\r\n    \"contractId\": \"56\",\r\n    \"proposedBy\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"summary\": \"Adjust scope and weekly hours\",\r\n    \"payload\": {\r\n      \"weeklyLimitChange\": {\r\n        \"newWeeklyHourLimit\": 35\r\n      },\r\n      \"scopeChange\": {\r\n        \"newTitle\": \"Updated scope title\",\r\n        \"newDescription\": \"Updated scope description\"\r\n      }\r\n    },\r\n    \"status\": \"AMENDMENT_STATUS_REJECTED\",\r\n    \"expiresAtUnixSeconds\": \"1779056483\",\r\n    \"respondedAtUnixSeconds\": \"1777242133\",\r\n    \"createdAtUnixSeconds\": \"1777242132\",\r\n    \"respondedBy\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"responseNote\": \"Rejected for now\"\r\n  }\r\n}"
+                        "elapsed_ms":  209,
+                        "request_id":  "647dde32f2b149ad9e742bce82cb1b05",
+                        "detail":  "{\r\n  \"amendment\": {\r\n    \"id\": \"6\",\r\n    \"contractId\": \"62\",\r\n    \"proposedBy\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"summary\": \"Adjust scope and weekly hours\",\r\n    \"payload\": {\r\n      \"weeklyLimitChange\": {\r\n        \"newWeeklyHourLimit\": 35\r\n      },\r\n      \"scopeChange\": {\r\n        \"newTitle\": \"Updated scope title\",\r\n        \"newDescription\": \"Updated scope description\"\r\n      }\r\n    },\r\n    \"status\": \"AMENDMENT_STATUS_REJECTED\",\r\n    \"expiresAtUnixSeconds\": \"1779057729\",\r\n    \"respondedAtUnixSeconds\": \"1777243536\",\r\n    \"createdAtUnixSeconds\": \"1777243536\",\r\n    \"respondedBy\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"responseNote\": \"Rejected for now\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "RespondAmendment",
@@ -1149,8 +1149,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  218,
-                        "request_id":  "b2e6a3686f7a491fb37a7f8871349e7b",
+                        "elapsed_ms":  236,
+                        "request_id":  "ce2515151bc144cf940c87ac308c7f96",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -1160,8 +1160,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  238,
-                        "request_id":  "9b99576cc6f44620ac6e105cedbb9653",
+                        "elapsed_ms":  227,
+                        "request_id":  "b1f12008961041c7b549956acf65be97",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: amendment_id and actor_id are required"
                     },
                     {
@@ -1171,8 +1171,8 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  140,
-                        "request_id":  "7605bc7608094b2cafaa58766e07bb1b",
+                        "elapsed_ms":  200,
+                        "request_id":  "02af2784379541d6998d673bab12e47b",
                         "detail":  "{}"
                     },
                     {
@@ -1182,8 +1182,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  190,
-                        "request_id":  "4c89dd84715c4e1187e85e80c23148dd",
+                        "elapsed_ms":  245,
+                        "request_id":  "50ce0786802842b2968d3d43409dbb32",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -1193,8 +1193,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  204,
-                        "request_id":  "7f903bd7d6b64bc4b5abe332628e800e",
+                        "elapsed_ms":  216,
+                        "request_id":  "93bd02478b2f449392c1a48fc38c4ee8",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     },
                     {
@@ -1204,9 +1204,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  167,
-                        "request_id":  "f725722875124ed086abab1b2eabb8c6",
-                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"55\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"jobId\": \"63\",\r\n    \"proposalId\": \"63\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_PAUSED\",\r\n    \"title\": \"Fixed Contract 20260426222123\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777933309\",\r\n        \"status\": \"MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT\",\r\n        \"submissionNote\": \"Submitting milestone one\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/workflow-m1.txt\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777242117\",\r\n        \"reviewedAtUnixSeconds\": \"1777242119\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778019709\",\r\n        \"status\": \"MILESTONE_STATUS_CHANGES_REQUESTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777242111\",\r\n        \"reviewNote\": \"Please update section 2\",\r\n        \"reviewedAtUnixSeconds\": \"1777242118\",\r\n        \"revisionCount\": 1\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777242110\",\r\n    \"updatedAtUnixSeconds\": \"1777242134\",\r\n    \"activatedAtUnixSeconds\": \"1777242110\",\r\n    \"pausedAtUnixSeconds\": \"1777242134\"\r\n  }\r\n}"
+                        "elapsed_ms":  203,
+                        "request_id":  "c6cd5937918e42ed90d2defcee6583e3",
+                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"61\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"jobId\": \"69\",\r\n    \"proposalId\": \"69\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_PAUSED\",\r\n    \"title\": \"Fixed Contract 20260426224209\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777934710\",\r\n        \"status\": \"MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT\",\r\n        \"submissionNote\": \"Submitting milestone one\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/workflow-m1.txt\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777243519\",\r\n        \"reviewedAtUnixSeconds\": \"1777243521\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778021110\",\r\n        \"status\": \"MILESTONE_STATUS_CHANGES_REQUESTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777243512\",\r\n        \"reviewNote\": \"Please update section 2\",\r\n        \"reviewedAtUnixSeconds\": \"1777243520\",\r\n        \"revisionCount\": 1\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777243511\",\r\n    \"updatedAtUnixSeconds\": \"1777243538\",\r\n    \"activatedAtUnixSeconds\": \"1777243511\",\r\n    \"pausedAtUnixSeconds\": \"1777243538\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "PauseContract",
@@ -1215,8 +1215,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  191,
-                        "request_id":  "0c7d7ffee544487f94da95b7b021f74a",
+                        "elapsed_ms":  226,
+                        "request_id":  "74b7d1c24c704b5aaab9ff2b064afe2a",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -1226,8 +1226,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  195,
-                        "request_id":  "5df7d90f52c44ce7b5928032bde61c77",
+                        "elapsed_ms":  237,
+                        "request_id":  "4a2bb54652364650bc1bea36b8cb300d",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     },
                     {
@@ -1237,9 +1237,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  166,
-                        "request_id":  "baef363160d242ea85606791139704e7",
-                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"55\",\r\n    \"clientId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n    \"freelancerId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n    \"jobId\": \"63\",\r\n    \"proposalId\": \"63\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426222123\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777933309\",\r\n        \"status\": \"MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT\",\r\n        \"submissionNote\": \"Submitting milestone one\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/workflow-m1.txt\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777242117\",\r\n        \"reviewedAtUnixSeconds\": \"1777242119\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778019709\",\r\n        \"status\": \"MILESTONE_STATUS_CHANGES_REQUESTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777242111\",\r\n        \"reviewNote\": \"Please update section 2\",\r\n        \"reviewedAtUnixSeconds\": \"1777242118\",\r\n        \"revisionCount\": 1\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777242110\",\r\n    \"updatedAtUnixSeconds\": \"1777242135\",\r\n    \"activatedAtUnixSeconds\": \"1777242110\"\r\n  }\r\n}"
+                        "elapsed_ms":  235,
+                        "request_id":  "3f38ebf8c4e34206b63d3e7cd88feb15",
+                        "detail":  "{\r\n  \"contract\": {\r\n    \"id\": \"61\",\r\n    \"clientId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n    \"freelancerId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n    \"jobId\": \"69\",\r\n    \"proposalId\": \"69\",\r\n    \"contractType\": \"CONTRACT_TYPE_FIXED\",\r\n    \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n    \"title\": \"Fixed Contract 20260426224209\",\r\n    \"description\": \"Fixed live test contract\",\r\n    \"fixedTotalMinor\": \"240000\",\r\n    \"milestones\": [\r\n      {\r\n        \"id\": \"1\",\r\n        \"title\": \"Milestone 1\",\r\n        \"description\": \"Milestone 1 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1777934710\",\r\n        \"status\": \"MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT\",\r\n        \"submissionNote\": \"Submitting milestone one\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/workflow-m1.txt\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777243519\",\r\n        \"reviewedAtUnixSeconds\": \"1777243521\"\r\n      },\r\n      {\r\n        \"id\": \"2\",\r\n        \"title\": \"Milestone 2\",\r\n        \"description\": \"Milestone 2 for live test\",\r\n        \"amountMinor\": \"120000\",\r\n        \"dueAtUnixSeconds\": \"1778021110\",\r\n        \"status\": \"MILESTONE_STATUS_CHANGES_REQUESTED\",\r\n        \"submissionNote\": \"Prep submission for request-changes\",\r\n        \"submissionUrls\": [\r\n          \"https://example.test/prep-m2\"\r\n        ],\r\n        \"submittedAtUnixSeconds\": \"1777243512\",\r\n        \"reviewNote\": \"Please update section 2\",\r\n        \"reviewedAtUnixSeconds\": \"1777243520\",\r\n        \"revisionCount\": 1\r\n      }\r\n    ],\r\n    \"createdAtUnixSeconds\": \"1777243511\",\r\n    \"updatedAtUnixSeconds\": \"1777243539\",\r\n    \"activatedAtUnixSeconds\": \"1777243511\"\r\n  }\r\n}"
                     },
                     {
                         "rpc":  "ResumeContract",
@@ -1248,8 +1248,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  223,
-                        "request_id":  "59a60cfd161b496597faf5d0f620f4ee",
+                        "elapsed_ms":  242,
+                        "request_id":  "11849f66de5e48bc8c47588749801d15",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -1259,8 +1259,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  154,
-                        "request_id":  "15ebc4bb986541b4bd68856c2131a263",
+                        "elapsed_ms":  190,
+                        "request_id":  "2fbd3e70cf34496faffd72b092950d40",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     },
                     {
@@ -1270,8 +1270,8 @@
                         "expected_codes":  "OK,FailedPrecondition,Internal",
                         "actual_code":  "Internal",
                         "success":  true,
-                        "elapsed_ms":  166,
-                        "request_id":  "3665d30c3516432eb2d0ec91e0fe5572",
+                        "elapsed_ms":  205,
+                        "request_id":  "9e9f6a2036f54ad88d4f39416c46eb90",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Internal\r\n  Message: contract has unresolved milestones"
                     },
                     {
@@ -1281,8 +1281,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  233,
-                        "request_id":  "b84cb7ce295040fda87bbb8f389ece3b",
+                        "elapsed_ms":  234,
+                        "request_id":  "447e4667d501417cad52910e734a5b11",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -1292,8 +1292,8 @@
                         "expected_codes":  "PermissionDenied",
                         "actual_code":  "PermissionDenied",
                         "success":  true,
-                        "elapsed_ms":  196,
-                        "request_id":  "953c18548bcb4d30afdbc2caccd90eb7",
+                        "elapsed_ms":  252,
+                        "request_id":  "50647d8f64f9491789dcba580ec186d9",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: PermissionDenied\r\n  Message: client role required"
                     },
                     {
@@ -1303,8 +1303,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  266,
-                        "request_id":  "3a2d4ae5db1646fa9fb55f8a4451a36e",
+                        "elapsed_ms":  241,
+                        "request_id":  "e50b112727be4b6d9608574657244326",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     },
                     {
@@ -1314,9 +1314,9 @@
                         "expected_codes":  "OK",
                         "actual_code":  "OK",
                         "success":  true,
-                        "elapsed_ms":  196,
-                        "request_id":  "4fcb8bbde96044a8a9a453555b56170e",
-                        "detail":  "{\r\n  \"entries\": [\r\n    {\r\n      \"id\": \"148\",\r\n      \"contractId\": \"55\",\r\n      \"reason\": \"contract has unresolved milestones\",\r\n      \"actorId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"createdAtUnixSeconds\": \"1777242136\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_END_BLOCKED\"\r\n    },\r\n    {\r\n      \"id\": \"147\",\r\n      \"contractId\": \"55\",\r\n      \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n      \"reason\": \"Resuming now\",\r\n      \"actorId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"createdAtUnixSeconds\": \"1777242135\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED\"\r\n    },\r\n    {\r\n      \"id\": \"146\",\r\n      \"contractId\": \"55\",\r\n      \"status\": \"CONTRACT_STATUS_PAUSED\",\r\n      \"reason\": \"Temporary hold\",\r\n      \"actorId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"createdAtUnixSeconds\": \"1777242134\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED\"\r\n    },\r\n    {\r\n      \"id\": \"143\",\r\n      \"contractId\": \"55\",\r\n      \"actorId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"createdAtUnixSeconds\": \"1777242119\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_APPROVED_PENDING_SETTLEMENT\",\r\n      \"milestoneId\": \"1\"\r\n    },\r\n    {\r\n      \"id\": \"142\",\r\n      \"contractId\": \"55\",\r\n      \"reason\": \"Please update section 2\",\r\n      \"actorId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"createdAtUnixSeconds\": \"1777242118\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_CHANGES_REQUESTED\",\r\n      \"milestoneId\": \"2\"\r\n    },\r\n    {\r\n      \"id\": \"141\",\r\n      \"contractId\": \"55\",\r\n      \"reason\": \"Submitting milestone one\",\r\n      \"actorId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"createdAtUnixSeconds\": \"1777242117\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_SUBMITTED\",\r\n      \"milestoneId\": \"1\"\r\n    },\r\n    {\r\n      \"id\": \"136\",\r\n      \"contractId\": \"55\",\r\n      \"reason\": \"Prep submission for request-changes\",\r\n      \"actorId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"createdAtUnixSeconds\": \"1777242111\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_SUBMITTED\",\r\n      \"milestoneId\": \"2\"\r\n    },\r\n    {\r\n      \"id\": \"135\",\r\n      \"contractId\": \"55\",\r\n      \"actorId\": \"00000000-0000-0000-0000-00000000c0de\",\r\n      \"createdAtUnixSeconds\": \"1777242111\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_FUNDED\",\r\n      \"milestoneId\": \"2\"\r\n    },\r\n    {\r\n      \"id\": \"134\",\r\n      \"contractId\": \"55\",\r\n      \"actorId\": \"00000000-0000-0000-0000-00000000c0de\",\r\n      \"createdAtUnixSeconds\": \"1777242110\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_FUNDED\",\r\n      \"milestoneId\": \"1\"\r\n    },\r\n    {\r\n      \"id\": \"132\",\r\n      \"contractId\": \"55\",\r\n      \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n      \"reason\": \"accepted by freelancer\",\r\n      \"actorId\": \"bb331f6e-bf8a-4abb-a43c-e11101937e7d\",\r\n      \"createdAtUnixSeconds\": \"1777242110\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED\"\r\n    },\r\n    {\r\n      \"id\": \"130\",\r\n      \"contractId\": \"55\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"reason\": \"offer sent\",\r\n      \"actorId\": \"2a5aa5df-3459-4a0c-a240-5976de6c60ff\",\r\n      \"createdAtUnixSeconds\": \"1777242110\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED\"\r\n    }\r\n  ]\r\n}"
+                        "elapsed_ms":  140,
+                        "request_id":  "4070a4d0824646bd92e735c6076e0099",
+                        "detail":  "{\r\n  \"entries\": [\r\n    {\r\n      \"id\": \"170\",\r\n      \"contractId\": \"61\",\r\n      \"reason\": \"contract has unresolved milestones\",\r\n      \"actorId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"createdAtUnixSeconds\": \"1777243539\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_END_BLOCKED\"\r\n    },\r\n    {\r\n      \"id\": \"169\",\r\n      \"contractId\": \"61\",\r\n      \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n      \"reason\": \"Resuming now\",\r\n      \"actorId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"createdAtUnixSeconds\": \"1777243539\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED\"\r\n    },\r\n    {\r\n      \"id\": \"168\",\r\n      \"contractId\": \"61\",\r\n      \"status\": \"CONTRACT_STATUS_PAUSED\",\r\n      \"reason\": \"Temporary hold\",\r\n      \"actorId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"createdAtUnixSeconds\": \"1777243538\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED\"\r\n    },\r\n    {\r\n      \"id\": \"165\",\r\n      \"contractId\": \"61\",\r\n      \"actorId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"createdAtUnixSeconds\": \"1777243521\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_APPROVED_PENDING_SETTLEMENT\",\r\n      \"milestoneId\": \"1\"\r\n    },\r\n    {\r\n      \"id\": \"164\",\r\n      \"contractId\": \"61\",\r\n      \"reason\": \"Please update section 2\",\r\n      \"actorId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"createdAtUnixSeconds\": \"1777243520\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_CHANGES_REQUESTED\",\r\n      \"milestoneId\": \"2\"\r\n    },\r\n    {\r\n      \"id\": \"163\",\r\n      \"contractId\": \"61\",\r\n      \"reason\": \"Submitting milestone one\",\r\n      \"actorId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"createdAtUnixSeconds\": \"1777243519\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_SUBMITTED\",\r\n      \"milestoneId\": \"1\"\r\n    },\r\n    {\r\n      \"id\": \"158\",\r\n      \"contractId\": \"61\",\r\n      \"reason\": \"Prep submission for request-changes\",\r\n      \"actorId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"createdAtUnixSeconds\": \"1777243512\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_SUBMITTED\",\r\n      \"milestoneId\": \"2\"\r\n    },\r\n    {\r\n      \"id\": \"157\",\r\n      \"contractId\": \"61\",\r\n      \"actorId\": \"00000000-0000-0000-0000-00000000c0de\",\r\n      \"createdAtUnixSeconds\": \"1777243512\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_FUNDED\",\r\n      \"milestoneId\": \"2\"\r\n    },\r\n    {\r\n      \"id\": \"156\",\r\n      \"contractId\": \"61\",\r\n      \"actorId\": \"00000000-0000-0000-0000-00000000c0de\",\r\n      \"createdAtUnixSeconds\": \"1777243512\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_MILESTONE_FUNDED\",\r\n      \"milestoneId\": \"1\"\r\n    },\r\n    {\r\n      \"id\": \"154\",\r\n      \"contractId\": \"61\",\r\n      \"status\": \"CONTRACT_STATUS_ACTIVE\",\r\n      \"reason\": \"accepted by freelancer\",\r\n      \"actorId\": \"bc5bb904-5571-42e6-901e-28ab71d8f109\",\r\n      \"createdAtUnixSeconds\": \"1777243511\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED\"\r\n    },\r\n    {\r\n      \"id\": \"152\",\r\n      \"contractId\": \"61\",\r\n      \"status\": \"CONTRACT_STATUS_PENDING_ACCEPTANCE\",\r\n      \"reason\": \"offer sent\",\r\n      \"actorId\": \"e6b2cdbe-6135-48b6-a849-48664eb02fa8\",\r\n      \"createdAtUnixSeconds\": \"1777243511\",\r\n      \"eventType\": \"STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED\"\r\n    }\r\n  ]\r\n}"
                     },
                     {
                         "rpc":  "GetStatusHistory",
@@ -1325,8 +1325,8 @@
                         "expected_codes":  "Unauthenticated,PermissionDenied",
                         "actual_code":  "Unauthenticated",
                         "success":  true,
-                        "elapsed_ms":  210,
-                        "request_id":  "55ce5b3f48b94c4d936b0003c814adde",
+                        "elapsed_ms":  218,
+                        "request_id":  "ab63e6f0b06540558bd85354d5b9163e",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: Unauthenticated\r\n  Message: missing authorization header"
                     },
                     {
@@ -1336,8 +1336,8 @@
                         "expected_codes":  "InvalidArgument",
                         "actual_code":  "InvalidArgument",
                         "success":  true,
-                        "elapsed_ms":  192,
-                        "request_id":  "b6380f911f1a49ca8dbad7cdba23f6bc",
+                        "elapsed_ms":  231,
+                        "request_id":  "295ae519ee594a82bc051bf53fbc3b1d",
                         "detail":  "grpcurl.exe : ERROR:\r\nAt C:\\JobConnect\\backend\\scripts\\contract-rpc-live-test.ps1:458 char:35\r\n+         $output = ($requestJson | \u0026 grpcurl @args 2\u003e\u00261)\r\n+                                   ~~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : NotSpecified: (ERROR::String) [], RemoteException\r\n    + FullyQualifiedErrorId : NativeCommandError\r\n \r\n  Code: InvalidArgument\r\n  Message: contract_id and actor_id are required"
                     }
                 ]

@@ -477,7 +477,7 @@ func (r *JobRepo) Update(ctx context.Context, job domain.Job) (domain.Job, error
 			title = $2, description = $3, required_skills = $4, job_type = $5,
 			budget_fixed = $6, hourly_rate = $7, budget_min = $8, budget_max = $9,
 			visibility = $10, deadline = $11, updated_at = $12
-		where id = $1 and status = $14
+		where id = $1 and status = $13
 	`, job.ID, job.Title, job.Description, skills, job.JobType,
 		job.BudgetFixed, job.HourlyRate, job.BudgetMin, job.BudgetMax,
 		job.Visibility, job.Deadline, job.UpdatedAt,
