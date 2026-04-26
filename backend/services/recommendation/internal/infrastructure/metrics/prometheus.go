@@ -36,6 +36,7 @@ type PrometheusRecorder struct {
 	invalidationDuration  *prometheus.HistogramVec
 	reviewLookupErrors    *prometheus.CounterVec
 	redisErrors           *prometheus.CounterVec
+	semanticPath          *prometheus.CounterVec
 }
 
 func NewPrometheusRecorder() *PrometheusRecorder {
@@ -97,6 +98,10 @@ func NewPrometheusRecorder() *PrometheusRecorder {
 			Name: "recommendation_cache_redis_errors_total",
 			Help: "Redis cache adapter errors by operation.",
 		}, []string{"op"}),
+		semanticPath: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "recommendation_semantic_path_total",
+			Help: "Per-candidate semantic ranking path used (embedding vs token cosine).",
+		}, []string{"type", "path"}),
 	}
 
 	registry.MustRegister(
@@ -114,6 +119,7 @@ func NewPrometheusRecorder() *PrometheusRecorder {
 		r.invalidationDuration,
 		r.reviewLookupErrors,
 		r.redisErrors,
+		r.semanticPath,
 	)
 
 	return r
@@ -165,4 +171,8 @@ func (r *PrometheusRecorder) RecordReviewLookupError(role string) {
 
 func (r *PrometheusRecorder) RecordRedisError(op string) {
 	r.redisErrors.WithLabelValues(op).Inc()
+}
+
+func (r *PrometheusRecorder) RecordSemanticPath(recommendationType, path string) {
+	r.semanticPath.WithLabelValues(recommendationType, path).Inc()
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -363,16 +364,47 @@ func (s *RecommendationService) rankFreelancers(ctx context.Context, job domain.
 	}, " ")
 	jobVector := buildTokenVector(jobText)
 
-	scored := make([]scoredFreelancerRecommendation, 0, len(candidates))
-	for _, f := range candidates {
+	jobIDStr := strconv.FormatInt(job.ID, 10)
+	embedReqs := make([]EmbeddingRequest, 0, len(candidates)+1)
+	embedReqs = append(embedReqs, EmbeddingRequest{
+		SourceType: EmbeddingSourceTypeJob,
+		SourceID:   jobIDStr,
+		Text:       jobText,
+	})
+	candidateTexts := make([]string, len(candidates))
+	for i, f := range candidates {
 		profileText := strings.Join([]string{
 			f.Headline,
 			f.Bio,
 			strings.Join(f.Skills, " "),
 		}, " ")
+		candidateTexts[i] = profileText
+		embedReqs = append(embedReqs, EmbeddingRequest{
+			SourceType: EmbeddingSourceTypeFreelancer,
+			SourceID:   f.ID,
+			Text:       profileText,
+		})
+	}
+	vectors := s.resolveEmbeddings(ctx, embedReqs)
+	jobVec, jobVecOK := vectors.lookup(EmbeddingSourceTypeJob, jobIDStr)
+
+	scored := make([]scoredFreelancerRecommendation, 0, len(candidates))
+	for i, f := range candidates {
+		profileText := candidateTexts[i]
 
 		skillMatches, skillOverlap := calculateSkillOverlap(f.Skills, job.RequiredSkills)
-		semanticScore := cosineSimilarity(jobVector, buildTokenVector(profileText))
+		semanticScore := 0.0
+		semanticPath := "token"
+		if jobVecOK {
+			if candVec, ok := vectors.lookup(EmbeddingSourceTypeFreelancer, f.ID); ok {
+				semanticScore = denseCosineSimilarity(jobVec, candVec)
+				semanticPath = "embedding"
+			}
+		}
+		if semanticPath == "token" {
+			semanticScore = cosineSimilarity(jobVector, buildTokenVector(profileText))
+		}
+		s.metrics.RecordSemanticPath("freelancers", semanticPath)
 		rateScore := calculateFreelancerRateScore(f, job)
 		availabilityScore := calculateAvailabilityScore(f.Availability)
 		ratingScore := clamp01(f.Rating / 5)
@@ -616,16 +648,48 @@ func (s *RecommendationService) rankJobs(ctx context.Context, user domain.UserDa
 	}, " ")
 	profileVector := buildTokenVector(profileText)
 
-	scored := make([]scoredJobRecommendation, 0, len(jobs))
-	for _, job := range jobs {
+	embedReqs := make([]EmbeddingRequest, 0, len(jobs)+1)
+	embedReqs = append(embedReqs, EmbeddingRequest{
+		SourceType: EmbeddingSourceTypeFreelancer,
+		SourceID:   user.ID,
+		Text:       profileText,
+	})
+	jobTexts := make([]string, len(jobs))
+	jobIDStrs := make([]string, len(jobs))
+	for i, job := range jobs {
 		jobText := strings.Join([]string{
 			job.Title,
 			job.Description,
 			strings.Join(job.RequiredSkills, " "),
 		}, " ")
+		jobTexts[i] = jobText
+		jobIDStrs[i] = strconv.FormatInt(job.ID, 10)
+		embedReqs = append(embedReqs, EmbeddingRequest{
+			SourceType: EmbeddingSourceTypeJob,
+			SourceID:   jobIDStrs[i],
+			Text:       jobText,
+		})
+	}
+	vectors := s.resolveEmbeddings(ctx, embedReqs)
+	profileVec, profileVecOK := vectors.lookup(EmbeddingSourceTypeFreelancer, user.ID)
+
+	scored := make([]scoredJobRecommendation, 0, len(jobs))
+	for i, job := range jobs {
+		jobText := jobTexts[i]
 
 		skillMatches, skillOverlap := calculateSkillOverlap(user.Skills, job.RequiredSkills)
-		semanticScore := cosineSimilarity(profileVector, buildTokenVector(jobText))
+		semanticScore := 0.0
+		semanticPath := "token"
+		if profileVecOK {
+			if jobVec, ok := vectors.lookup(EmbeddingSourceTypeJob, jobIDStrs[i]); ok {
+				semanticScore = denseCosineSimilarity(profileVec, jobVec)
+				semanticPath = "embedding"
+			}
+		}
+		if semanticPath == "token" {
+			semanticScore = cosineSimilarity(profileVector, buildTokenVector(jobText))
+		}
+		s.metrics.RecordSemanticPath("jobs", semanticPath)
 		budgetScore := calculateBudgetScore(user, preferences, job)
 		freshnessScore := calculateFreshnessScore(job.CreatedAt, time.Now())
 
@@ -913,6 +977,24 @@ func cosineSimilarity(left, right map[string]float64) float64 {
 	}
 	for _, rightValue := range right {
 		rightNorm += rightValue * rightValue
+	}
+	if leftNorm == 0 || rightNorm == 0 {
+		return 0
+	}
+	return dot / (math.Sqrt(leftNorm) * math.Sqrt(rightNorm))
+}
+
+func denseCosineSimilarity(left, right []float32) float64 {
+	if len(left) == 0 || len(right) == 0 || len(left) != len(right) {
+		return 0
+	}
+	var dot, leftNorm, rightNorm float64
+	for i := range left {
+		l := float64(left[i])
+		r := float64(right[i])
+		dot += l * r
+		leftNorm += l * l
+		rightNorm += r * r
 	}
 	if leftNorm == 0 || rightNorm == 0 {
 		return 0

@@ -98,6 +98,7 @@ type MetricsRecorder interface {
 	RecordInvalidation(scope string, deleted int, elapsed time.Duration)
 	RecordReviewLookupError(role string)
 	RecordRedisError(op string)
+	RecordSemanticPath(recommendationType, path string)
 }
 
 type noopMetricsRecorder struct{}
@@ -112,3 +113,4 @@ func (noopMetricsRecorder) RecordInvalidation(string, int, time.Duration) {
 }
 func (noopMetricsRecorder) RecordReviewLookupError(string) {}
 func (noopMetricsRecorder) RecordRedisError(string)        {}
+func (noopMetricsRecorder) RecordSemanticPath(string, string) {}

@@ -810,3 +810,195 @@ func TestInvalidateRecommendationCacheClearAll(t *testing.T) {
 		t.Fatalf("expected clear to be called once, got %d", cache.clearCount)
 	}
 }
+
+type fakeMetricsRecorder struct {
+	noopMetricsRecorder
+	semanticPaths map[string]int
+}
+
+func newFakeMetricsRecorder() *fakeMetricsRecorder {
+	return &fakeMetricsRecorder{semanticPaths: map[string]int{}}
+}
+
+func (f *fakeMetricsRecorder) RecordSemanticPath(recommendationType, path string) {
+	f.semanticPaths[recommendationType+":"+path]++
+}
+
+func phase4dJobsTestData(now time.Time) (*fakeJobClient, *fakeUserClient) {
+	job := domain.JobData{
+		ID:             101,
+		Title:          "Senior Go backend engineer",
+		Description:    "Build gRPC APIs and PostgreSQL services",
+		RequiredSkills: []string{"Go", "gRPC", "PostgreSQL"},
+		JobType:        "hourly",
+		HourlyRate:     55,
+		Visibility:     "public",
+		CreatedAt:      now.Add(-2 * time.Hour),
+	}
+	return &fakeJobClient{
+			recentJobs:       []domain.JobData{job},
+			skillJobsBySkill: map[string][]domain.JobData{"Go": {job}},
+		}, &fakeUserClient{
+			user: domain.UserData{
+				ID:           "freelancer-1",
+				Headline:     "Backend Go engineer",
+				Bio:          "I build PostgreSQL-backed gRPC APIs",
+				Skills:       []string{"Go", "gRPC", "PostgreSQL"},
+				HourlyRate:   50,
+				CanApplyJobs: true,
+			},
+		}
+}
+
+func TestGetRecommendedJobsTakesEmbeddingPathWhenEmbedderAvailable(t *testing.T) {
+	now := time.Now().UTC()
+	jobs, user := phase4dJobsTestData(now)
+	rec := newFakeMetricsRecorder()
+	emb := &fakeEmbedder{response: [][]float32{{1, 0, 0}, {1, 0, 0}}}
+	store := newFakeEmbeddingStore()
+
+	svc := NewRecommendationService(
+		jobs, user, nil, nil, rec, emb, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+
+	if _, err := svc.GetRecommendedJobs(context.Background(), "freelancer-1", 10); err != nil {
+		t.Fatalf("GetRecommendedJobs returned error: %v", err)
+	}
+	if rec.semanticPaths["jobs:embedding"] == 0 {
+		t.Fatalf("expected embedding path metric, got %v", rec.semanticPaths)
+	}
+	if rec.semanticPaths["jobs:token"] != 0 {
+		t.Fatalf("expected zero token-path emissions when embedder is healthy, got %d", rec.semanticPaths["jobs:token"])
+	}
+}
+
+func TestGetRecommendedJobsFallsBackToTokenPathWhenEmbedderUnavailable(t *testing.T) {
+	now := time.Now().UTC()
+	jobs, user := phase4dJobsTestData(now)
+	rec := newFakeMetricsRecorder()
+	emb := &fakeEmbedder{err: ErrEmbedderUnavailable}
+	store := newFakeEmbeddingStore()
+
+	svc := NewRecommendationService(
+		jobs, user, nil, nil, rec, emb, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+
+	recs, err := svc.GetRecommendedJobs(context.Background(), "freelancer-1", 10)
+	if err != nil {
+		t.Fatalf("GetRecommendedJobs returned error: %v", err)
+	}
+	if len(recs) == 0 {
+		t.Fatal("expected at least one recommendation on token-cosine fallback")
+	}
+	if rec.semanticPaths["jobs:token"] == 0 {
+		t.Fatalf("expected token path metric on embedder failure, got %v", rec.semanticPaths)
+	}
+	if rec.semanticPaths["jobs:embedding"] != 0 {
+		t.Fatalf("embedding path must not be recorded when embedder is down, got %d", rec.semanticPaths["jobs:embedding"])
+	}
+}
+
+func TestGetRecommendedJobsScoreDiffersBetweenEmbeddingAndTokenPaths(t *testing.T) {
+	now := time.Now().UTC()
+
+	jobsA, userA := phase4dJobsTestData(now)
+	rec := newFakeMetricsRecorder()
+	// Embedder vectors are intentionally different from what token cosine
+	// would produce so the resulting MatchScore must change.
+	emb := &fakeEmbedder{response: [][]float32{{1, 0, 0}, {0, 1, 0}}}
+	store := newFakeEmbeddingStore()
+	embedSvc := NewRecommendationService(
+		jobsA, userA, nil, nil, rec, emb, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+	embedRecs, err := embedSvc.GetRecommendedJobs(context.Background(), "freelancer-1", 10)
+	if err != nil {
+		t.Fatalf("embedding-path GetRecommendedJobs error: %v", err)
+	}
+	if len(embedRecs) == 0 {
+		t.Fatal("embedding-path produced no recommendations")
+	}
+
+	jobsB, userB := phase4dJobsTestData(now)
+	tokenSvc := NewRecommendationService(
+		jobsB, userB, nil, nil, nil, nil, nil,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+	tokenRecs, err := tokenSvc.GetRecommendedJobs(context.Background(), "freelancer-1", 10)
+	if err != nil {
+		t.Fatalf("token-path GetRecommendedJobs error: %v", err)
+	}
+	if len(tokenRecs) == 0 {
+		t.Fatal("token-path produced no recommendations")
+	}
+	if embedRecs[0].MatchScore == tokenRecs[0].MatchScore {
+		t.Fatalf("expected MatchScore to differ between embedding and token paths, got %v", embedRecs[0].MatchScore)
+	}
+}
+
+func phase4dFreelancerTestData() (int64, *fakeJobClient, *fakeUserClient) {
+	const jobID = int64(900)
+	job := domain.JobData{
+		ID:             jobID,
+		Title:          "Backend Go engineer needed",
+		Description:    "Build a Postgres-backed service",
+		RequiredSkills: []string{"Go", "PostgreSQL"},
+		JobType:        "hourly",
+		HourlyRate:     70,
+		Visibility:     "public",
+		ClientID:       "client-1",
+	}
+	users := &fakeUserClient{
+		discoverable: []domain.FreelancerData{{
+			ID:           "freelancer-x",
+			Headline:     "Senior Go developer",
+			Bio:          "PostgreSQL and gRPC",
+			Skills:       []string{"Go", "PostgreSQL"},
+			HourlyRate:   65,
+			Availability: availabilityFullTime,
+		}},
+	}
+	return jobID, &fakeJobClient{jobsByID: map[int64]domain.JobData{jobID: job}}, users
+}
+
+func TestGetRecommendedFreelancersTakesEmbeddingPathWhenEmbedderAvailable(t *testing.T) {
+	jobID, jobs, users := phase4dFreelancerTestData()
+	rec := newFakeMetricsRecorder()
+	emb := &fakeEmbedder{response: [][]float32{{1, 0}, {1, 0}}}
+	store := newFakeEmbeddingStore()
+	svc := NewRecommendationService(jobs, users, nil, nil, rec, emb, store, newFreelancerTestConfig())
+
+	if _, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a"); err != nil {
+		t.Fatalf("GetRecommendedFreelancers error: %v", err)
+	}
+	if rec.semanticPaths["freelancers:embedding"] == 0 {
+		t.Fatalf("expected embedding path metric, got %v", rec.semanticPaths)
+	}
+	if rec.semanticPaths["freelancers:token"] != 0 {
+		t.Fatalf("expected zero token-path emissions when embedder is healthy, got %d", rec.semanticPaths["freelancers:token"])
+	}
+}
+
+func TestGetRecommendedFreelancersFallsBackToTokenPathWhenEmbedderUnavailable(t *testing.T) {
+	jobID, jobs, users := phase4dFreelancerTestData()
+	rec := newFakeMetricsRecorder()
+	emb := &fakeEmbedder{err: ErrEmbedderUnavailable}
+	store := newFakeEmbeddingStore()
+	svc := NewRecommendationService(jobs, users, nil, nil, rec, emb, store, newFreelancerTestConfig())
+
+	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a")
+	if err != nil {
+		t.Fatalf("GetRecommendedFreelancers error: %v", err)
+	}
+	if len(recs) == 0 {
+		t.Fatal("expected at least one recommendation on token-cosine fallback")
+	}
+	if rec.semanticPaths["freelancers:token"] == 0 {
+		t.Fatalf("expected token path metric on embedder failure, got %v", rec.semanticPaths)
+	}
+	if rec.semanticPaths["freelancers:embedding"] != 0 {
+		t.Fatalf("embedding path must not be recorded when embedder is down, got %d", rec.semanticPaths["freelancers:embedding"])
+	}
+}

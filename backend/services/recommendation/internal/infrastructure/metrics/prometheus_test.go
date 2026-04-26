@@ -19,6 +19,8 @@ func TestPrometheusRecorderScrapeExposesInstrumentedMetrics(t *testing.T) {
 	r.RecordInvalidation("user", 2, 1*time.Millisecond)
 	r.RecordReviewLookupError("freelancer")
 	r.RecordRedisError("get")
+	r.RecordSemanticPath("jobs", "embedding")
+	r.RecordSemanticPath("freelancers", "token")
 
 	req := httptest.NewRequest("GET", "/metrics", nil)
 	rec := httptest.NewRecorder()
@@ -43,6 +45,8 @@ func TestPrometheusRecorderScrapeExposesInstrumentedMetrics(t *testing.T) {
 		`recommendation_invalidation_deletions_total{scope="user"} 2`,
 		`recommendation_review_lookup_errors_total{role="freelancer"} 1`,
 		`recommendation_cache_redis_errors_total{op="get"} 1`,
+		`recommendation_semantic_path_total{path="embedding",type="jobs"} 1`,
+		`recommendation_semantic_path_total{path="token",type="freelancers"} 1`,
 	}
 	for _, w := range wants {
 		if !strings.Contains(out, w) {
