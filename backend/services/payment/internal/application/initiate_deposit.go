@@ -21,7 +21,6 @@ type InitiateDepositInput struct {
 	UserID        uuid.UUID
 	Provider      string
 	AmountMinor   int64
-	Currency      string
 	ReferenceType string // "milestone"
 	ReferenceID   string // milestone ID
 	ReturnURL     string
@@ -42,18 +41,12 @@ func (uc *InitiateDeposit) Execute(ctx context.Context, in InitiateDepositInput)
 		return existing, existing.ExternalRef, nil
 	}
 
-	currency := in.Currency
-	if currency == "" {
-		currency = domain.DefaultCurrency
-	}
-
 	session := domain.PaymentSession{
 		UserID:         in.UserID,
 		Provider:       in.Provider,
 		PaymentType:    domain.TypeDeposit,
 		Status:         domain.StatusPending,
 		AmountMinor:    in.AmountMinor,
-		Currency:       currency,
 		IdempotencyKey: idempotencyKey,
 		ReferenceType:  in.ReferenceType,
 		ReferenceID:    in.ReferenceID,
@@ -64,7 +57,6 @@ func (uc *InitiateDeposit) Execute(ctx context.Context, in InitiateDepositInput)
 	gw := uc.Gateway(in.Provider)
 	result, err := gw.InitiateCheckout(ctx, CheckoutInput{
 		AmountMinor: in.AmountMinor,
-		Currency:    currency,
 		TxRef:       idempotencyKey,
 		ReturnURL:   in.ReturnURL,
 	})

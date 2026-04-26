@@ -52,13 +52,14 @@ enum PaymentSessionStatus {
 // ──────────────────────────────────────────────
 
 message PaymentSession {
+  reserved 7;
+  reserved "currency";
   int64 id = 1;
   string user_id = 2;
   PaymentProvider provider = 3;
   PaymentType payment_type = 4;
   PaymentSessionStatus status = 5;
   int64 amount_minor = 6;
-  string currency = 7;
   string idempotency_key = 8;
   string external_ref = 9;          // checkout URL or tx reference
   string receipt_storage_key = 10;   // MinIO key for uploaded receipt
@@ -75,9 +76,10 @@ message PaymentSession {
 // ──────────────────────────────────────────────
 
 message InitiateDepositRequest {
+  reserved 3;
+  reserved "currency";
   PaymentProvider provider = 1;
   int64 amount_minor = 2;
-  string currency = 3;
   string reference_type = 4;        // "milestone"
   string reference_id = 5;          // milestone ID
   string return_url = 6;            // where to redirect after payment
@@ -101,9 +103,10 @@ message VerifyDepositResponse {
 // ──────────────────────────────────────────────
 
 message RequestWithdrawalRequest {
+  reserved 3;
+  reserved "currency";
   PaymentProvider provider = 1;
   int64 amount_minor = 2;
-  string currency = 3;
   string bank_code = 4;             // e.g. "CBE", "Abyssinia", etc.
   string account_number = 5;
   string account_holder_name = 6;
@@ -133,13 +136,14 @@ message UploadReceiptResponse {
 // ──────────────────────────────────────────────
 
 message NotifyMilestoneApprovedRequest {
+  reserved 7;
+  reserved "currency";
   int64 contract_id = 1;
   int64 milestone_id = 2;
   int64 hold_id = 3;
   string freelancer_id = 4;
   int64 freelancer_wallet_id = 5;
   int64 amount_minor = 6;
-  string currency = 7;
 }
 
 message NotifyMilestoneApprovedResponse {

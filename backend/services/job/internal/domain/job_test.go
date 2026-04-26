@@ -16,7 +16,6 @@ func TestValidateCreateFixedJob(t *testing.T) {
 		RequiredSkills: []string{"go", "grpc"},
 		JobType:        JobTypeFixed,
 		BudgetFixed:    500,
-		Currency:       "USD",
 		Status:         JobStatusOpen,
 		CreatedAt:      now,
 		UpdatedAt:      now,
@@ -33,7 +32,6 @@ func TestValidateCreateRequiresHourlyRateForHourly(t *testing.T) {
 		Title:       "Need support",
 		Description: "Support needed",
 		JobType:     JobTypeHourly,
-		Currency:    "USD",
 	}, now)
 	if err == nil {
 		t.Fatal("expected error for missing hourly_rate")

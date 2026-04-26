@@ -561,6 +561,58 @@ func (s *UserServer) UpsertFreelancerNote(ctx context.Context, req *userv1.Upser
 	return &userv1.UpsertFreelancerNoteResponse{Note: toProtoFreelancerNote(out)}, nil
 }
 
+func (s *UserServer) ListDiscoverableFreelancers(ctx context.Context, req *userv1.ListDiscoverableFreelancersRequest) (*userv1.ListDiscoverableFreelancersResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+
+	pageSize := uint32(20)
+	pageToken := ""
+	if req.GetPageSize() > 0 {
+		pageSize = req.GetPageSize()
+	}
+	pageToken = strings.TrimSpace(req.GetPageToken())
+
+	filter := application.DiscoverableFreelancerFilter{
+		Skills:                req.GetSkills(),
+		MinSkills:             s.CapabilityPolicy.MinSkillsForDiscovery,
+		RequireHeadline:       s.CapabilityPolicy.RequireHeadlineForFreelancer,
+		RequireActiveAccount:  true,
+		RequireNotSoftDeleted: true,
+	}
+
+	out, err := s.ProfileDetailsRepo.ListDiscoverableFreelancers(ctx, filter, pageSize, pageToken)
+	if err != nil {
+		return nil, toStatus(err)
+	}
+
+	items := make([]*userv1.DiscoverableFreelancer, 0, len(out.Items))
+	for _, item := range out.Items {
+		card := &userv1.DiscoverableFreelancer{
+			UserId:          item.UserID.String(),
+			Headline:        item.Headline,
+			Bio:             item.Bio,
+			Skills:          append([]string(nil), item.Skills...),
+			HourlyRate:      item.HourlyRate,
+			Availability:    toProtoAvailability(item.Availability),
+			Rating:          item.Rating,
+			TotalReviews:    item.TotalReviews,
+			CanBeDiscovered: true,
+			Location:        item.Location,
+		}
+		if item.LastActiveAt != nil {
+			unix := item.LastActiveAt.Unix()
+			card.LastActiveAtUnix = &unix
+		}
+		items = append(items, card)
+	}
+
+	return &userv1.ListDiscoverableFreelancersResponse{
+		Freelancers: items,
+		Page:        &userv1.PagingResponse{NextPageToken: out.NextPageToken},
+	}, nil
+}
+
 func (s *UserServer) GetFreelancerNote(ctx context.Context, req *userv1.GetFreelancerNoteRequest) (*userv1.GetFreelancerNoteResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")

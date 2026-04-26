@@ -59,6 +59,8 @@ func (uc *GetJobStats) Execute(ctx context.Context, in GetJobStatsInput) (GetJob
 			out.ShortlistedCount++
 		case ApplicantStageRejected:
 			out.RejectedCount++
+		case ApplicantStageOfferSent:
+			out.ShortlistedCount++
 		case ApplicantStageHired:
 			out.HiredCount++
 		}

@@ -13,7 +13,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, contractHandler *handlers.ContractHandler, disputeHandler *handlers.DisputeHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -34,6 +34,8 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerAdminVerificationRoutes(api, verificationHandler, jwtParser, sensitiveLimiter)
 	registerJobRoutes(api, jobHandler, jwtParser)
 	registerProposalRoutes(api, proposalHandler, jwtParser)
+	registerContractRoutes(api, contractHandler, jwtParser)
+	registerDisputeRoutes(api, disputeHandler, jwtParser)
 	registerRecommendationRoutes(api, recommendationHandler, jwtParser)
 	registerChatRoutes(api, chatHandler, jwtParser)
 
@@ -42,8 +44,15 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 
 func registerRecommendationRoutes(api *gin.RouterGroup, recommendationHandler *handlers.RecommendationHandler, jwtParser *auth.JWTParser) {
 	recommendationRoutes := api.Group("/recommendations")
-	recommendationRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("freelancer"))
-	recommendationRoutes.GET("/jobs", recommendationHandler.GetRecommendedJobs)
+	recommendationRoutes.Use(middleware.RequireAuth(jwtParser))
+
+	freelancerRecommendationRoutes := recommendationRoutes.Group("")
+	freelancerRecommendationRoutes.Use(middleware.RequireRoles("freelancer"))
+	freelancerRecommendationRoutes.GET("/jobs", recommendationHandler.GetRecommendedJobs)
+
+	clientRecommendationRoutes := recommendationRoutes.Group("")
+	clientRecommendationRoutes.Use(middleware.RequireRoles("client"))
+	clientRecommendationRoutes.GET("/jobs/:jobId/freelancers", recommendationHandler.GetRecommendedFreelancers)
 }
 
 func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.ProposalHandler, jwtParser *auth.JWTParser) {
@@ -65,6 +74,52 @@ func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.Prop
 	clientRoutes.GET("/client/counts", proposalHandler.CountClientProposalInbox)
 	clientRoutes.GET("/jobs/:jobId/counts", proposalHandler.CountProposalsByJob)
 	clientRoutes.POST("/:proposalId/decision", proposalHandler.SetProposalDecision)
+}
+
+func registerContractRoutes(api *gin.RouterGroup, contractHandler *handlers.ContractHandler, jwtParser *auth.JWTParser) {
+	contractRoutes := api.Group("/contracts")
+	contractRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("client", "freelancer"))
+	contractRoutes.GET("/bootstrap", middleware.RequireRoles("client"), contractHandler.Bootstrap)
+	contractRoutes.POST("", middleware.RequireRoles("client"), contractHandler.CreateContract)
+	contractRoutes.GET("", contractHandler.ListMyContracts)
+	contractRoutes.GET("/:contractId", contractHandler.GetContract)
+	contractRoutes.POST("/:contractId/accept", middleware.RequireRoles("freelancer"), contractHandler.AcceptContract)
+	contractRoutes.POST("/:contractId/decline", middleware.RequireRoles("freelancer"), contractHandler.DeclineContract)
+	contractRoutes.POST("/:contractId/revoke", middleware.RequireRoles("client"), contractHandler.RevokeContractOffer)
+	contractRoutes.POST("/:contractId/milestones/:milestoneId/submit", middleware.RequireRoles("freelancer"), contractHandler.SubmitMilestoneWork)
+	contractRoutes.POST("/:contractId/milestones/:milestoneId/request-changes", middleware.RequireRoles("client"), contractHandler.RequestMilestoneChanges)
+	contractRoutes.POST("/:contractId/milestones/:milestoneId/approve", middleware.RequireRoles("client"), contractHandler.ApproveMilestoneSubmission)
+	contractRoutes.POST("/:contractId/hourly-logs", middleware.RequireRoles("freelancer"), contractHandler.LogHourlyWork)
+	contractRoutes.POST("/:contractId/hourly-logs/evidence/upload-url", middleware.RequireRoles("freelancer"), contractHandler.GetHourlyLogEvidenceUploadUrl)
+	contractRoutes.GET("/:contractId/hourly-logs", contractHandler.ListHourlyLogs)
+	contractRoutes.GET("/:contractId/hourly-summary", contractHandler.GetHourlyWorkSummary)
+	contractRoutes.PATCH("/hourly-logs/:hourlyLogId", middleware.RequireRoles("freelancer"), contractHandler.UpdateHourlyLog)
+	contractRoutes.DELETE("/hourly-logs/:hourlyLogId", middleware.RequireRoles("freelancer"), contractHandler.DeleteHourlyLog)
+	contractRoutes.POST("/hourly-logs/:hourlyLogId/review", middleware.RequireRoles("client"), contractHandler.ReviewHourlyLog)
+	contractRoutes.GET("/hourly-invoices/:invoiceId", contractHandler.GetHourlyInvoice)
+	contractRoutes.GET("/:contractId/hourly-invoices", contractHandler.ListHourlyInvoices)
+	contractRoutes.POST("/:contractId/bonuses", middleware.RequireRoles("client"), contractHandler.CreateContractBonus)
+	contractRoutes.GET("/:contractId/bonuses", contractHandler.ListContractBonuses)
+
+	// Amendment endpoints
+	contractRoutes.POST("/:contractId/amendments", contractHandler.ProposeAmendment)
+	contractRoutes.GET("/:contractId/amendments", contractHandler.ListAmendments)
+	contractRoutes.POST("/:contractId/amendments/:amendmentId/respond", contractHandler.RespondAmendment)
+	contractRoutes.GET("/:contractId/status-history", contractHandler.GetStatusHistory)
+
+	// Lifecycle endpoints
+	contractRoutes.POST("/:contractId/pause", contractHandler.PauseContract)
+	contractRoutes.POST("/:contractId/resume", contractHandler.ResumeContract)
+	contractRoutes.POST("/:contractId/end", middleware.RequireRoles("client"), contractHandler.EndContract)
+}
+
+func registerDisputeRoutes(api *gin.RouterGroup, disputeHandler *handlers.DisputeHandler, jwtParser *auth.JWTParser) {
+	disputeRoutes := api.Group("/disputes")
+	disputeRoutes.Use(middleware.RequireAuth(jwtParser))
+	disputeRoutes.POST("", disputeHandler.OpenDispute)
+	disputeRoutes.GET("", disputeHandler.ListDisputes)
+	disputeRoutes.GET("/:disputeId", disputeHandler.GetDispute)
+	disputeRoutes.POST("/:disputeId/resolve", middleware.RequireRoles("admin"), disputeHandler.ResolveDispute)
 }
 
 func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jwtParser *auth.JWTParser) {
@@ -89,10 +144,8 @@ func registerJobRoutes(api *gin.RouterGroup, jobHandler *handlers.JobHandler, jw
 	clientJobs.POST("/:jobId/budget-range", jobHandler.SetJobBudgetRange)
 	clientJobs.POST("/:jobId/invite", jobHandler.InviteFreelancerToJob)
 	clientJobs.GET("/:jobId/applicants", jobHandler.ListJobApplicants)
-	clientJobs.POST("/applicants/:proposalId/stage", jobHandler.SetApplicantStage)
 	clientJobs.POST("/:jobId/reject-all", jobHandler.RejectAllApplicants)
 	clientJobs.POST("/:jobId/reopen-hiring", jobHandler.ReopenHiringForJob)
-	clientJobs.POST("/hire", jobHandler.HireApplicant)
 	clientJobs.GET("/:jobId/stats", jobHandler.GetJobStats)
 	clientJobs.POST("/:jobId/mark-completed", jobHandler.MarkJobCompleted)
 	clientJobs.POST("/:jobId/cancel-with-settlement", jobHandler.CancelJobWithSettlementPolicy)

@@ -107,9 +107,8 @@ func main() {
 	saveJobUC := &application.SaveJob{Jobs: jobRepo, Clock: clockImpl}
 	unsaveJobUC := &application.UnsaveJob{Jobs: jobRepo}
 	listSavedJobsUC := &application.ListSavedJobs{Jobs: jobRepo}
-	hireApplicantUC := &application.HireApplicant{Jobs: jobRepo, Proposals: proposalCli, Contracts: contractCli, Clock: clockImpl}
 	rejectAllUC := &application.RejectAllApplicants{Jobs: jobRepo, Proposals: proposalCli}
-	reopenHiringUC := &application.ReopenHiringForJob{Jobs: jobRepo, Clock: clockImpl}
+	reopenHiringUC := &application.ReopenHiringForJob{Jobs: jobRepo, Proposals: proposalCli, Contracts: contractCli, Clock: clockImpl}
 	getJobStatsUC := &application.GetJobStats{Jobs: jobRepo, Proposals: proposalCli}
 	searchJobsV2UC := &application.SearchJobsV2{Jobs: jobRepo}
 	markCompletedUC := &application.MarkJobCompleted{Jobs: jobRepo, Clock: clockImpl}
@@ -143,7 +142,6 @@ func main() {
 		SaveJobUC:          saveJobUC,
 		UnsaveJobUC:        unsaveJobUC,
 		ListSavedJobsUC:    listSavedJobsUC,
-		HireApplicantUC:    hireApplicantUC,
 		RejectAllUC:        rejectAllUC,
 		ReopenHiringUC:     reopenHiringUC,
 		GetJobStatsUC:      getJobStatsUC,

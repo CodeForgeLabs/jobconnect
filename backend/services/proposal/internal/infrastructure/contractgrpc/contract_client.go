@@ -3,6 +3,7 @@ package contractgrpc
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 
 	contractv1 "jobconnect/contract/gen/contract/v1"
@@ -20,15 +21,15 @@ func NewContractClient(client contractv1.ContractServiceClient) *ContractClient 
 	return &ContractClient{client: client}
 }
 
-func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.CreateContractFromProposalInput) error {
+func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.CreateContractFromProposalInput) (int64, error) {
 	if c == nil || c.client == nil {
-		return fmt.Errorf("contract client is nil")
+		return 0, fmt.Errorf("contract client is nil")
 	}
 	if in.JobID <= 0 {
-		return fmt.Errorf("job_id is required")
+		return 0, fmt.Errorf("job_id is required")
 	}
 	if in.ProposalID <= 0 {
-		return fmt.Errorf("proposal_id is required")
+		return 0, fmt.Errorf("proposal_id is required")
 	}
 	contractType := contractv1.ContractType_CONTRACT_TYPE_FIXED
 	hourlyRate := 0.0
@@ -40,22 +41,32 @@ func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.
 	}
 
 	forwardCtx := forwardAuthorization(ctx)
-	_, err := c.client.CreateContract(forwardCtx, &contractv1.CreateContractRequest{
+	hourlyRateMinor, err := moneyToMinorUnits(hourlyRate)
+	if err != nil {
+		return 0, fmt.Errorf("invalid hourly rate: %w", err)
+	}
+	fixedTotalMinor, err := moneyToMinorUnits(fixedTotal)
+	if err != nil {
+		return 0, fmt.Errorf("invalid fixed total: %w", err)
+	}
+	res, err := c.client.CreateContract(forwardCtx, &contractv1.CreateContractRequest{
 		FreelancerId:    in.FreelancerID.String(),
 		JobId:           in.JobID,
 		ProposalId:      in.ProposalID,
 		ContractType:    contractType,
 		Title:           fmt.Sprintf("Contract for job %d", in.JobID),
 		Description:     fmt.Sprintf("Auto-created from proposal %d", in.ProposalID),
-		Currency:        "USD",
-		HourlyRate:      hourlyRate,
-		FixedTotal:      fixedTotal,
+		HourlyRateMinor: hourlyRateMinor,
+		FixedTotalMinor: fixedTotalMinor,
 		WeeklyHourLimit: 0,
 	})
 	if err != nil {
-		return fmt.Errorf("create contract: %w", err)
+		return 0, fmt.Errorf("create contract: %w", err)
 	}
-	return nil
+	if res == nil || res.Contract == nil {
+		return 0, fmt.Errorf("create contract: empty response")
+	}
+	return res.Contract.Id, nil
 }
 
 func forwardAuthorization(ctx context.Context) context.Context {
@@ -68,4 +79,14 @@ func forwardAuthorization(ctx context.Context) context.Context {
 		return ctx
 	}
 	return metadata.NewOutgoingContext(ctx, metadata.Pairs("authorization", vals[0]))
+}
+
+func moneyToMinorUnits(value float64) (int64, error) {
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return 0, fmt.Errorf("amount must be a finite number")
+	}
+	if value < 0 {
+		return 0, fmt.Errorf("amount must be non-negative")
+	}
+	return int64(math.Round(value * 100)), nil
 }

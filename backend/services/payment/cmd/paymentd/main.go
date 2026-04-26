@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	paymentv1 "jobconnect/payment/gen/payment/v1"
 	"jobconnect/payment/internal/adapters/grpc"
 	webhook "jobconnect/payment/internal/adapters/http"
 	"jobconnect/payment/internal/application"
@@ -18,13 +19,13 @@ import (
 	"jobconnect/payment/internal/infrastructure/db"
 	"jobconnect/payment/internal/infrastructure/gateway"
 	"jobconnect/payment/internal/infrastructure/storage"
-	paymentv1 "jobconnect/payment/gen/payment/v1"
 
 	grpc_server "google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 type RealClock struct{}
+
 func (c RealClock) Now() time.Time { return time.Now() }
 
 func main() {
@@ -104,11 +105,11 @@ func main() {
 		Clock:    clock,
 	}
 	requestWithdrawalUseCase := &application.RequestWithdrawal{
-		Sessions: repo,
-		Gateway:  gatewayFactory,
-		Wallet:   walletClient,
+		Sessions:     repo,
+		Gateway:      gatewayFactory,
+		Wallet:       walletClient,
 		Verification: verificationClient,
-		Clock:    clock,
+		Clock:        clock,
 	}
 	getSessionUseCase := &application.GetSession{
 		Sessions: repo,

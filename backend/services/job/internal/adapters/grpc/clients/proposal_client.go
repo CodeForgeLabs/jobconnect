@@ -99,17 +99,16 @@ func (c *ProposalClient) SetProposalStatus(ctx context.Context, proposalID int64
 	return nil
 }
 
-func (c *ProposalClient) InternalHireProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, requestID string, reason string) error {
+func (c *ProposalClient) ReleaseHiredProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
 	forwardCtx := forwardAuthorization(ctx)
 	forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal", "job-service")
-	_, err := c.client.InternalHireProposal(forwardCtx, &proposalv1.InternalHireProposalRequest{
+	_, err := c.client.InternalReleaseHiredProposal(forwardCtx, &proposalv1.InternalReleaseHiredProposalRequest{
 		ProposalId: proposalID,
 		ClientId:   clientID.String(),
-		RequestId:  requestID,
-		Note:       reason,
+		Reason:     reason,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to transition proposal to hired: %w", err)
+		return fmt.Errorf("failed to release hired proposal: %w", err)
 	}
 	return nil
 }
@@ -120,6 +119,8 @@ func proposalStatusToApplicantStage(in proposalv1.ProposalStatus) string {
 		return application.ApplicantStageShortlisted
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_REJECTED:
 		return application.ApplicantStageRejected
+	case proposalv1.ProposalStatus_PROPOSAL_STATUS_OFFER_SENT:
+		return application.ApplicantStageOfferSent
 	case proposalv1.ProposalStatus_PROPOSAL_STATUS_HIRED:
 		return application.ApplicantStageHired
 	default:

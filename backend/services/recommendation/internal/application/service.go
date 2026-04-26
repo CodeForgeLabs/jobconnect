@@ -17,6 +17,17 @@ const (
 	publicVisibility = "public"
 	jobTypeFixed     = "fixed"
 	jobTypeHourly    = "hourly"
+
+	availabilityFullTime    = "AVAILABILITY_FULL_TIME"
+	availabilityPartTime    = "AVAILABILITY_PART_TIME"
+	availabilityAsNeeded    = "AVAILABILITY_AS_NEEDED"
+	availabilityUnavailable = "AVAILABILITY_UNAVAILABLE"
+
+	trustEnrichmentLimit = 50
+	neutralTrustScore    = 0.5
+
+	recommendationTypeJobs        = "jobs"
+	recommendationTypeFreelancers = "freelancers"
 )
 
 type ServiceConfig struct {
@@ -28,24 +39,30 @@ type ServiceConfig struct {
 }
 
 type RecommendationService struct {
-	jobClient  JobServiceClient
-	userClient UserServiceClient
-	cache      RecommendationCache
-	cfg        ServiceConfig
+	jobClient    JobServiceClient
+	userClient   UserServiceClient
+	reviewClient ReviewServiceClient
+	cache        RecommendationCache
+	cfg          ServiceConfig
 }
 
 type scoredJobRecommendation struct {
 	recommendation domain.JobRecommendation
 	score          float64
+	clientID       string
 	skillMatches   []string
+	skillScore     float64
 	semanticScore  float64
 	budgetScore    float64
 	freshnessScore float64
+	trustScore     float64
+	ratingSummary  domain.RatingSummary
 }
 
 func NewRecommendationService(
 	jobClient JobServiceClient,
 	userClient UserServiceClient,
+	reviewClient ReviewServiceClient,
 	cache RecommendationCache,
 	cfg ServiceConfig,
 ) *RecommendationService {
@@ -66,10 +83,11 @@ func NewRecommendationService(
 	}
 
 	return &RecommendationService{
-		jobClient:  jobClient,
-		userClient: userClient,
-		cache:      cache,
-		cfg:        cfg,
+		jobClient:    jobClient,
+		userClient:   userClient,
+		reviewClient: reviewClient,
+		cache:        cache,
+		cfg:          cfg,
 	}
 }
 
@@ -78,35 +96,46 @@ func (s *RecommendationService) GetRecommendedJobs(ctx context.Context, userID s
 		return nil, fmt.Errorf("user_id is required")
 	}
 
+	startedAt := time.Now()
 	normalizedLimit := s.normalizeLimit(limit)
 	if s.cache != nil {
 		if cached, ok := s.cache.GetRecommendedJobs(userID); ok {
-			return limitRecommendations(cached, normalizedLimit), nil
+			limited := limitRecommendations(cached, normalizedLimit)
+			logRecommendationCacheHit(recommendationTypeJobs, len(cached), len(limited), normalizedLimit, time.Since(startedAt))
+			return limited, nil
 		}
+		logRecommendationCacheMiss(recommendationTypeJobs, normalizedLimit)
+	} else {
+		logRecommendationCacheDisabled(recommendationTypeJobs, normalizedLimit)
 	}
 
 	user, err := s.userClient.GetFreelancer(ctx, userID)
 	if err != nil {
+		logRecommendationComputeError(recommendationTypeJobs, time.Since(startedAt), err)
 		return nil, fmt.Errorf("fetch freelancer profile: %w", err)
 	}
 	if !user.CanApplyJobs {
+		logRecommendationComputed(recommendationTypeJobs, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, nil
 	}
 
 	preferences, err := s.userClient.GetWorkPreferences(ctx, userID)
 	if err != nil {
+		logRecommendationComputeError(recommendationTypeJobs, time.Since(startedAt), err)
 		return nil, fmt.Errorf("fetch freelancer work preferences: %w", err)
 	}
 
 	candidates, err := s.collectCandidates(ctx, user, preferences)
 	if err != nil {
+		logRecommendationComputeError(recommendationTypeJobs, time.Since(startedAt), err)
 		return nil, err
 	}
 	if len(candidates) == 0 {
+		logRecommendationComputed(recommendationTypeJobs, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, nil
 	}
 
-	ranked := s.rankJobs(user, preferences, candidates)
+	ranked := s.rankJobs(ctx, user, preferences, candidates)
 	recommendations := make([]domain.JobRecommendation, 0, len(ranked))
 	for _, rankedJob := range ranked {
 		recommendations = append(recommendations, rankedJob.recommendation)
@@ -115,11 +144,373 @@ func (s *RecommendationService) GetRecommendedJobs(ctx context.Context, userID s
 	if s.cache != nil {
 		s.cache.SetRecommendedJobs(userID, recommendations)
 	}
-	return limitRecommendations(recommendations, normalizedLimit), nil
+	limited := limitRecommendations(recommendations, normalizedLimit)
+	logRecommendationComputed(recommendationTypeJobs, len(candidates), len(recommendations), len(limited), normalizedLimit, time.Since(startedAt))
+	return limited, nil
 }
 
-func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, jobID int64, limit int32) ([]domain.FreelancerRecommendation, error) {
-	return nil, fmt.Errorf("freelancer recommendations are not implemented in phase 1")
+func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, jobID int64, limit int32, callerScope string) ([]domain.FreelancerRecommendation, error) {
+	if jobID <= 0 {
+		return nil, fmt.Errorf("job_id is required")
+	}
+
+	startedAt := time.Now()
+	normalizedLimit := s.normalizeLimit(limit)
+	job, err := s.jobClient.GetJob(ctx, jobID)
+	if err != nil {
+		logRecommendationComputeError(recommendationTypeFreelancers, time.Since(startedAt), err)
+		return nil, fmt.Errorf("fetch job: %w", err)
+	}
+	if job.ID == 0 {
+		logRecommendationComputed(recommendationTypeFreelancers, 0, 0, 0, normalizedLimit, time.Since(startedAt))
+		return nil, fmt.Errorf("job %d not found", jobID)
+	}
+
+	cacheKey := freelancerCacheKey(jobID, callerScope)
+	if s.cache != nil {
+		if cached, ok := s.cache.GetRecommendedFreelancers(cacheKey); ok {
+			limited := limitFreelancerRecommendations(cached, normalizedLimit)
+			logRecommendationCacheHit(recommendationTypeFreelancers, len(cached), len(limited), normalizedLimit, time.Since(startedAt))
+			return limited, nil
+		}
+		logRecommendationCacheMiss(recommendationTypeFreelancers, normalizedLimit)
+	} else {
+		logRecommendationCacheDisabled(recommendationTypeFreelancers, normalizedLimit)
+	}
+
+	candidates, err := s.collectFreelancerCandidates(ctx, job)
+	if err != nil {
+		logRecommendationComputeError(recommendationTypeFreelancers, time.Since(startedAt), err)
+		return nil, err
+	}
+	if len(candidates) == 0 {
+		logRecommendationComputed(recommendationTypeFreelancers, 0, 0, 0, normalizedLimit, time.Since(startedAt))
+		return nil, nil
+	}
+
+	ranked := s.rankFreelancers(ctx, job, candidates)
+	recommendations := make([]domain.FreelancerRecommendation, 0, len(ranked))
+	for _, entry := range ranked {
+		recommendations = append(recommendations, entry.recommendation)
+	}
+
+	if s.cache != nil {
+		s.cache.SetRecommendedFreelancers(cacheKey, recommendations)
+	}
+	limited := limitFreelancerRecommendations(recommendations, normalizedLimit)
+	logRecommendationComputed(recommendationTypeFreelancers, len(candidates), len(recommendations), len(limited), normalizedLimit, time.Since(startedAt))
+	return limited, nil
+}
+
+func logRecommendationCacheHit(recommendationType string, cachedCount, returnedCount int, limit int32, elapsed time.Duration) {
+	log.Printf(
+		"recommendation: type=%s cache=hit cached_count=%d returned_count=%d limit=%d elapsed=%s",
+		recommendationType,
+		cachedCount,
+		returnedCount,
+		limit,
+		elapsed,
+	)
+}
+
+func logRecommendationCacheMiss(recommendationType string, limit int32) {
+	log.Printf("recommendation: type=%s cache=miss limit=%d", recommendationType, limit)
+}
+
+func logRecommendationCacheDisabled(recommendationType string, limit int32) {
+	log.Printf("recommendation: type=%s cache=disabled limit=%d", recommendationType, limit)
+}
+
+func logRecommendationComputed(recommendationType string, candidateCount, rankedCount, returnedCount int, limit int32, elapsed time.Duration) {
+	log.Printf(
+		"recommendation: type=%s recompute=complete candidate_count=%d ranked_count=%d returned_count=%d limit=%d elapsed=%s",
+		recommendationType,
+		candidateCount,
+		rankedCount,
+		returnedCount,
+		limit,
+		elapsed,
+	)
+}
+
+func logRecommendationComputeError(recommendationType string, elapsed time.Duration, err error) {
+	log.Printf("recommendation: type=%s recompute=error elapsed=%s error=%v", recommendationType, elapsed, err)
+}
+
+func (s *RecommendationService) InvalidateRecommendationCache(ctx context.Context, userIDs []string, jobIDs []int64, all bool) (int, error) {
+	_ = ctx
+	if s.cache == nil {
+		log.Printf("recommendation: cache invalidation skipped cache=disabled users=%d jobs=%d all=%t", len(userIDs), len(jobIDs), all)
+		return 0, nil
+	}
+
+	startedAt := time.Now()
+	if all {
+		deleted := s.cache.Clear()
+		logRecommendationInvalidated("all", deleted, len(userIDs), len(jobIDs), time.Since(startedAt))
+		return deleted, nil
+	}
+
+	deleted := 0
+	for _, userID := range uniqueNonEmptyStrings(userIDs) {
+		deleted += s.cache.DeleteRecommendedJobs(userID)
+	}
+	for _, jobID := range uniquePositiveInt64s(jobIDs) {
+		deleted += s.cache.DeleteRecommendedFreelancersForJob(jobID)
+	}
+
+	logRecommendationInvalidated("targeted", deleted, len(userIDs), len(jobIDs), time.Since(startedAt))
+	return deleted, nil
+}
+
+func logRecommendationInvalidated(scope string, deleted, userIDCount, jobIDCount int, elapsed time.Duration) {
+	log.Printf(
+		"recommendation: cache=invalidate scope=%s deleted_count=%d user_id_count=%d job_id_count=%d elapsed=%s",
+		scope,
+		deleted,
+		userIDCount,
+		jobIDCount,
+		elapsed,
+	)
+}
+
+func freelancerCacheKey(jobID int64, callerScope string) string {
+	return fmt.Sprintf("freelancers:%d:%s", jobID, strings.TrimSpace(callerScope))
+}
+
+type scoredFreelancerRecommendation struct {
+	recommendation    domain.FreelancerRecommendation
+	score             float64
+	skillMatches      []string
+	skillScore        float64
+	semanticScore     float64
+	rateScore         float64
+	availabilityScore float64
+	trustScore        float64
+	ratingSummary     domain.RatingSummary
+}
+
+func (s *RecommendationService) collectFreelancerCandidates(ctx context.Context, job domain.JobData) ([]domain.FreelancerData, error) {
+	candidateMap := make(map[string]domain.FreelancerData)
+
+	topJobSkills := topSkills(job.RequiredSkills, s.cfg.MaxSkillQueries)
+	base, err := s.userClient.ListDiscoverableFreelancers(ctx, topJobSkills, s.cfg.CandidatePageSize)
+	if err != nil {
+		return nil, fmt.Errorf("list discoverable freelancers: %w", err)
+	}
+	for _, f := range base {
+		if f.ID == "" {
+			continue
+		}
+		candidateMap[f.ID] = f
+	}
+
+	if len(candidateMap) == 0 && len(topJobSkills) == 0 {
+		return nil, nil
+	}
+
+	candidates := make([]domain.FreelancerData, 0, len(candidateMap))
+	for _, f := range candidateMap {
+		if !isEligibleFreelancer(f, job) {
+			continue
+		}
+		candidates = append(candidates, f)
+	}
+	return candidates, nil
+}
+
+func isEligibleFreelancer(f domain.FreelancerData, job domain.JobData) bool {
+	if strings.EqualFold(strings.TrimSpace(f.Availability), availabilityUnavailable) {
+		return false
+	}
+	if strings.EqualFold(strings.TrimSpace(job.JobType), jobTypeHourly) {
+		if f.HourlyRate > 0 && job.HourlyRate > 0 && f.HourlyRate > job.HourlyRate*2 {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *RecommendationService) rankFreelancers(ctx context.Context, job domain.JobData, candidates []domain.FreelancerData) []scoredFreelancerRecommendation {
+	jobText := strings.Join([]string{
+		job.Title,
+		job.Description,
+		strings.Join(job.RequiredSkills, " "),
+	}, " ")
+	jobVector := buildTokenVector(jobText)
+
+	scored := make([]scoredFreelancerRecommendation, 0, len(candidates))
+	for _, f := range candidates {
+		profileText := strings.Join([]string{
+			f.Headline,
+			f.Bio,
+			strings.Join(f.Skills, " "),
+		}, " ")
+
+		skillMatches, skillOverlap := calculateSkillOverlap(f.Skills, job.RequiredSkills)
+		semanticScore := cosineSimilarity(jobVector, buildTokenVector(profileText))
+		rateScore := calculateFreelancerRateScore(f, job)
+		availabilityScore := calculateAvailabilityScore(f.Availability)
+		ratingScore := clamp01(f.Rating / 5)
+
+		preTrustScore := 0.40*semanticScore +
+			0.30*skillOverlap +
+			0.15*rateScore +
+			0.05*availabilityScore +
+			0.10*ratingScore
+
+		if preTrustScore <= 0 {
+			continue
+		}
+		if len(skillMatches) == 0 && semanticScore < 0.2 {
+			continue
+		}
+
+		scored = append(scored, scoredFreelancerRecommendation{
+			recommendation: domain.FreelancerRecommendation{
+				UserID:      f.ID,
+				MatchScore:  float32(math.Min(preTrustScore, 0.999)),
+				MatchReason: buildFreelancerMatchReason(skillMatches, semanticScore, rateScore, neutralTrustScore, domain.RatingSummary{}),
+			},
+			score:             preTrustScore,
+			skillMatches:      skillMatches,
+			skillScore:        skillOverlap,
+			semanticScore:     semanticScore,
+			rateScore:         rateScore,
+			availabilityScore: availabilityScore,
+			trustScore:        neutralTrustScore,
+		})
+	}
+
+	sort.SliceStable(scored, func(i, j int) bool {
+		if math.Abs(scored[i].score-scored[j].score) > 0.0001 {
+			return scored[i].score > scored[j].score
+		}
+		return scored[i].recommendation.UserID < scored[j].recommendation.UserID
+	})
+
+	s.enrichFreelancerTrust(ctx, scored)
+	for i := range scored {
+		scored[i].score = 0.35*scored[i].semanticScore +
+			0.30*scored[i].skillScore +
+			0.15*scored[i].rateScore +
+			0.15*scored[i].trustScore +
+			0.05*scored[i].availabilityScore
+		scored[i].recommendation.MatchScore = float32(math.Min(scored[i].score, 0.999))
+		scored[i].recommendation.MatchReason = buildFreelancerMatchReason(
+			scored[i].skillMatches,
+			scored[i].semanticScore,
+			scored[i].rateScore,
+			scored[i].trustScore,
+			scored[i].ratingSummary,
+		)
+	}
+
+	sort.SliceStable(scored, func(i, j int) bool {
+		if math.Abs(scored[i].score-scored[j].score) > 0.0001 {
+			return scored[i].score > scored[j].score
+		}
+		return scored[i].recommendation.UserID < scored[j].recommendation.UserID
+	})
+	return scored
+}
+
+func (s *RecommendationService) enrichFreelancerTrust(ctx context.Context, scored []scoredFreelancerRecommendation) {
+	for i := range scored {
+		scored[i].trustScore = neutralTrustScore
+	}
+	if s.reviewClient == nil {
+		return
+	}
+
+	limit := min(len(scored), trustEnrichmentLimit)
+	summaries := make(map[string]domain.RatingSummary, limit)
+	for i := 0; i < limit; i++ {
+		userID := strings.TrimSpace(scored[i].recommendation.UserID)
+		if userID == "" {
+			continue
+		}
+		summary, ok := summaries[userID]
+		if !ok {
+			var err error
+			summary, err = s.reviewClient.GetUserRatingSummary(ctx, userID)
+			if err != nil {
+				log.Printf("recommendation: review summary lookup failed for freelancer %q: %v", userID, err)
+				continue
+			}
+			summaries[userID] = summary
+		}
+		scored[i].ratingSummary = summary
+		scored[i].trustScore = calculateTrustScore(summary)
+	}
+}
+
+func calculateFreelancerRateScore(f domain.FreelancerData, job domain.JobData) float64 {
+	switch strings.TrimSpace(strings.ToLower(job.JobType)) {
+	case jobTypeHourly:
+		if f.HourlyRate <= 0 || job.HourlyRate <= 0 {
+			return 0.5
+		}
+		ratio := job.HourlyRate / f.HourlyRate
+		switch {
+		case ratio >= 1:
+			return 1
+		case ratio >= 0.85:
+			return 0.85
+		case ratio >= 0.7:
+			return 0.65
+		case ratio >= 0.5:
+			return 0.4
+		default:
+			return 0
+		}
+	case jobTypeFixed:
+		return 0.6
+	default:
+		return 0.5
+	}
+}
+
+func calculateAvailabilityScore(availability string) float64 {
+	switch strings.ToUpper(strings.TrimSpace(availability)) {
+	case availabilityFullTime:
+		return 1
+	case availabilityPartTime:
+		return 0.75
+	case availabilityAsNeeded:
+		return 0.5
+	case availabilityUnavailable:
+		return 0
+	default:
+		return 0.4
+	}
+}
+
+func buildFreelancerMatchReason(skillMatches []string, semanticScore, rateScore, trustScore float64, summary domain.RatingSummary) string {
+	if len(skillMatches) > 0 {
+		preview := skillMatches
+		if len(preview) > 3 {
+			preview = preview[:3]
+		}
+		return fmt.Sprintf("Matches required skills: %s", strings.Join(preview, ", "))
+	}
+	if trustScore >= 0.8 && summary.TotalReviews > 0 {
+		return fmt.Sprintf("Top-rated freelancer (%.1f avg, %d reviews)", summary.AverageRating, summary.TotalReviews)
+	}
+	if semanticScore >= 0.35 {
+		return "Strong profile match for this job"
+	}
+	if rateScore >= 0.85 {
+		return "Rate aligns with job budget"
+	}
+	return "Broad match based on profile and availability"
+}
+
+func limitFreelancerRecommendations(recommendations []domain.FreelancerRecommendation, limit int32) []domain.FreelancerRecommendation {
+	if int32(len(recommendations)) <= limit {
+		return recommendations
+	}
+	return recommendations[:limit]
 }
 
 func (s *RecommendationService) collectCandidates(ctx context.Context, user domain.UserData, preferences domain.WorkPreferences) ([]domain.JobData, error) {
@@ -192,7 +583,7 @@ func matchesContractType(jobType string, contractTypes []string) bool {
 	return false
 }
 
-func (s *RecommendationService) rankJobs(user domain.UserData, preferences domain.WorkPreferences, jobs []domain.JobData) []scoredJobRecommendation {
+func (s *RecommendationService) rankJobs(ctx context.Context, user domain.UserData, preferences domain.WorkPreferences, jobs []domain.JobData) []scoredJobRecommendation {
 	profileText := strings.Join([]string{
 		user.Headline,
 		user.Bio,
@@ -213,22 +604,25 @@ func (s *RecommendationService) rankJobs(user domain.UserData, preferences domai
 		budgetScore := calculateBudgetScore(user, preferences, job)
 		freshnessScore := calculateFreshnessScore(job.CreatedAt, time.Now())
 
-		score := 0.55*semanticScore + 0.25*skillOverlap + 0.15*budgetScore + 0.05*freshnessScore
-		if score <= 0 {
+		preTrustScore := 0.55*semanticScore + 0.25*skillOverlap + 0.15*budgetScore + 0.05*freshnessScore
+		if preTrustScore <= 0 {
 			continue
 		}
 
 		scored = append(scored, scoredJobRecommendation{
 			recommendation: domain.JobRecommendation{
 				JobID:       job.ID,
-				MatchScore:  float32(math.Min(score, 0.999)),
-				MatchReason: buildMatchReason(skillMatches, semanticScore, budgetScore, freshnessScore),
+				MatchScore:  float32(math.Min(preTrustScore, 0.999)),
+				MatchReason: buildMatchReason(skillMatches, semanticScore, budgetScore, freshnessScore, neutralTrustScore, domain.RatingSummary{}),
 			},
-			score:          score,
+			score:          preTrustScore,
+			clientID:       job.ClientID,
 			skillMatches:   skillMatches,
+			skillScore:     skillOverlap,
 			semanticScore:  semanticScore,
 			budgetScore:    budgetScore,
 			freshnessScore: freshnessScore,
+			trustScore:     neutralTrustScore,
 		})
 	}
 
@@ -239,7 +633,79 @@ func (s *RecommendationService) rankJobs(user domain.UserData, preferences domai
 		return scored[i].recommendation.JobID < scored[j].recommendation.JobID
 	})
 
+	s.enrichJobTrust(ctx, scored)
+	for i := range scored {
+		scored[i].score = 0.45*scored[i].semanticScore +
+			0.25*scored[i].skillScore +
+			0.15*scored[i].budgetScore +
+			0.05*scored[i].freshnessScore +
+			0.10*scored[i].trustScore
+		scored[i].recommendation.MatchScore = float32(math.Min(scored[i].score, 0.999))
+		scored[i].recommendation.MatchReason = buildMatchReason(
+			scored[i].skillMatches,
+			scored[i].semanticScore,
+			scored[i].budgetScore,
+			scored[i].freshnessScore,
+			scored[i].trustScore,
+			scored[i].ratingSummary,
+		)
+	}
+
+	sort.SliceStable(scored, func(i, j int) bool {
+		if math.Abs(scored[i].score-scored[j].score) > 0.0001 {
+			return scored[i].score > scored[j].score
+		}
+		return scored[i].recommendation.JobID < scored[j].recommendation.JobID
+	})
+
 	return scored
+}
+
+func (s *RecommendationService) enrichJobTrust(ctx context.Context, scored []scoredJobRecommendation) {
+	for i := range scored {
+		scored[i].trustScore = neutralTrustScore
+	}
+	if s.reviewClient == nil {
+		return
+	}
+
+	limit := min(len(scored), trustEnrichmentLimit)
+	summaries := make(map[string]domain.RatingSummary, limit)
+	for i := 0; i < limit; i++ {
+		clientID := strings.TrimSpace(scored[i].clientID)
+		if clientID == "" {
+			continue
+		}
+		summary, ok := summaries[clientID]
+		if !ok {
+			var err error
+			summary, err = s.reviewClient.GetUserRatingSummary(ctx, clientID)
+			if err != nil {
+				log.Printf("recommendation: review summary lookup failed for client %q: %v", clientID, err)
+				continue
+			}
+			summaries[clientID] = summary
+		}
+		scored[i].ratingSummary = summary
+		scored[i].trustScore = calculateTrustScore(summary)
+	}
+}
+
+func calculateTrustScore(summary domain.RatingSummary) float64 {
+	if summary.TotalReviews <= 0 {
+		return neutralTrustScore
+	}
+	return clamp01(summary.AverageRating / 5)
+}
+
+func clamp01(value float64) float64 {
+	if math.IsNaN(value) || value < 0 {
+		return 0
+	}
+	if value > 1 {
+		return 1
+	}
+	return value
 }
 
 func calculateSkillOverlap(userSkills, requiredSkills []string) ([]string, float64) {
@@ -330,13 +796,16 @@ func calculateFreshnessScore(createdAt, now time.Time) float64 {
 	}
 }
 
-func buildMatchReason(skillMatches []string, semanticScore, budgetScore, freshnessScore float64) string {
+func buildMatchReason(skillMatches []string, semanticScore, budgetScore, freshnessScore, trustScore float64, summary domain.RatingSummary) string {
 	if len(skillMatches) > 0 {
 		preview := skillMatches
 		if len(preview) > 3 {
 			preview = preview[:3]
 		}
 		return fmt.Sprintf("Matches your skills in %s", strings.Join(preview, ", "))
+	}
+	if trustScore >= 0.8 && summary.TotalReviews > 0 {
+		return fmt.Sprintf("Highly rated client (%.1f avg, %d reviews)", summary.AverageRating, summary.TotalReviews)
 	}
 	if semanticScore >= 0.35 {
 		return "Strong semantic match for your profile"
@@ -442,6 +911,39 @@ func uniqueStrings(values []string) []string {
 		}
 		seen[normalized] = struct{}{}
 		out = append(out, strings.TrimSpace(value))
+	}
+	return out
+}
+
+func uniqueNonEmptyStrings(values []string) []string {
+	seen := make(map[string]struct{}, len(values))
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		trimmed := strings.TrimSpace(value)
+		if trimmed == "" {
+			continue
+		}
+		if _, ok := seen[trimmed]; ok {
+			continue
+		}
+		seen[trimmed] = struct{}{}
+		out = append(out, trimmed)
+	}
+	return out
+}
+
+func uniquePositiveInt64s(values []int64) []int64 {
+	seen := make(map[int64]struct{}, len(values))
+	out := make([]int64, 0, len(values))
+	for _, value := range values {
+		if value <= 0 {
+			continue
+		}
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
 	}
 	return out
 }

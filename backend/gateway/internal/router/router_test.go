@@ -27,6 +27,8 @@ func TestUserPortfolioUpdateRouteUsesPut(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -66,6 +68,8 @@ func TestUserRoutesDoNotExposePublicAdminInternalUserRoutes(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -98,6 +102,8 @@ func TestUserRoutes_DoNotExposeCreateProfileButExposeGetSinglePortfolioEndpoint(
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -131,6 +137,8 @@ func TestUserRoutesExposePortfolioMediaUploadURLRoute(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -157,6 +165,8 @@ func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -170,6 +180,62 @@ func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
 
 	if rec.Code != http.StatusForbidden {
 		t.Fatalf("expected %d for non-freelancer role, got %d", http.StatusForbidden, rec.Code)
+	}
+}
+
+func TestRecommendationRoutesExposeClientFreelancerRecommendations(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	cfg := config.Config{
+		JWTSecret: []byte("test-secret"),
+	}
+
+	engine := New(
+		cfg,
+		&handlers.AuthHandler{},
+		&handlers.VerificationHandler{},
+		&handlers.UserHandler{},
+		&handlers.JobHandler{},
+		&handlers.ProposalHandler{},
+		&handlers.RecommendationHandler{},
+		&handlers.ChatHandler{},
+	)
+
+	for _, route := range engine.Routes() {
+		if route.Method == http.MethodGet && route.Path == "/api/v1/recommendations/jobs/:jobId/freelancers" {
+			return
+		}
+	}
+
+	t.Fatalf("expected GET /api/v1/recommendations/jobs/:jobId/freelancers to be registered")
+}
+
+func TestRecommendationFreelancerRouteRejectsFreelancerRole(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	secret := []byte("test-secret")
+	cfg := config.Config{JWTSecret: secret}
+
+	engine := New(
+		cfg,
+		&handlers.AuthHandler{},
+		&handlers.VerificationHandler{},
+		&handlers.UserHandler{},
+		&handlers.JobHandler{},
+		&handlers.ProposalHandler{},
+		&handlers.RecommendationHandler{},
+		&handlers.ChatHandler{},
+	)
+
+	freelancerToken := signTestAccessToken(t, secret, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "freelancer")
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/recommendations/jobs/11/freelancers", nil)
+	req.Header.Set("Authorization", "Bearer "+freelancerToken)
+	rec := httptest.NewRecorder()
+
+	engine.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("expected %d for freelancer role, got %d", http.StatusForbidden, rec.Code)
 	}
 }
 

@@ -11,6 +11,7 @@ type Config struct {
 	GRPCListenAddr    string
 	PostgresURL       string
 	JWTSecret         []byte
+	UserServiceAddr   string
 	AttachmentStorage AttachmentStorageConfig
 }
 
@@ -28,8 +29,9 @@ type AttachmentStorageConfig struct {
 
 func LoadFromEnv() (Config, error) {
 	cfg := Config{
-		GRPCListenAddr: getEnv("JOB_GRPC_LISTEN_ADDR", ":50053"),
-		PostgresURL:    os.Getenv("JOB_POSTGRES_URL"),
+		GRPCListenAddr:  getEnv("JOB_GRPC_LISTEN_ADDR", ":50053"),
+		PostgresURL:     os.Getenv("JOB_POSTGRES_URL"),
+		UserServiceAddr: getEnv("USER_SERVICE_GRPC_ADDR", "localhost:50052"),
 		AttachmentStorage: AttachmentStorageConfig{
 			Provider:     strings.ToLower(strings.TrimSpace(getEnv("JOB_ATTACHMENT_STORAGE_PROVIDER", "minio"))),
 			Bucket:       strings.TrimSpace(getEnv("JOB_ATTACHMENT_STORAGE_BUCKET", "jobconnect-job-attachments")),
@@ -44,6 +46,9 @@ func LoadFromEnv() (Config, error) {
 	}
 	if cfg.PostgresURL == "" {
 		return Config{}, fmt.Errorf("JOB_POSTGRES_URL is required")
+	}
+	if cfg.UserServiceAddr == "" {
+		return Config{}, fmt.Errorf("USER_SERVICE_GRPC_ADDR is required")
 	}
 	secret := os.Getenv("AUTH_JWT_SECRET")
 	if secret == "" {

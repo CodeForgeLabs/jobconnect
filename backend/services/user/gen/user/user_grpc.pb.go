@@ -49,6 +49,7 @@ const (
 	UserService_RemoveSavedFreelancer_FullMethodName        = "/user.v1.UserService/RemoveSavedFreelancer"
 	UserService_UpsertFreelancerNote_FullMethodName         = "/user.v1.UserService/UpsertFreelancerNote"
 	UserService_GetFreelancerNote_FullMethodName            = "/user.v1.UserService/GetFreelancerNote"
+	UserService_ListDiscoverableFreelancers_FullMethodName  = "/user.v1.UserService/ListDiscoverableFreelancers"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -86,6 +87,9 @@ type UserServiceClient interface {
 	RemoveSavedFreelancer(ctx context.Context, in *RemoveSavedFreelancerRequest, opts ...grpc.CallOption) (*RemoveSavedFreelancerResponse, error)
 	UpsertFreelancerNote(ctx context.Context, in *UpsertFreelancerNoteRequest, opts ...grpc.CallOption) (*UpsertFreelancerNoteResponse, error)
 	GetFreelancerNote(ctx context.Context, in *GetFreelancerNoteRequest, opts ...grpc.CallOption) (*GetFreelancerNoteResponse, error)
+	// Discovery endpoint: returns public freelancer cards for service-to-service
+	// recommendation use. Callers MUST be server-side (recommendation service).
+	ListDiscoverableFreelancers(ctx context.Context, in *ListDiscoverableFreelancersRequest, opts ...grpc.CallOption) (*ListDiscoverableFreelancersResponse, error)
 }
 
 type userServiceClient struct {
@@ -396,6 +400,16 @@ func (c *userServiceClient) GetFreelancerNote(ctx context.Context, in *GetFreela
 	return out, nil
 }
 
+func (c *userServiceClient) ListDiscoverableFreelancers(ctx context.Context, in *ListDiscoverableFreelancersRequest, opts ...grpc.CallOption) (*ListDiscoverableFreelancersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListDiscoverableFreelancersResponse)
+	err := c.cc.Invoke(ctx, UserService_ListDiscoverableFreelancers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -431,6 +445,9 @@ type UserServiceServer interface {
 	RemoveSavedFreelancer(context.Context, *RemoveSavedFreelancerRequest) (*RemoveSavedFreelancerResponse, error)
 	UpsertFreelancerNote(context.Context, *UpsertFreelancerNoteRequest) (*UpsertFreelancerNoteResponse, error)
 	GetFreelancerNote(context.Context, *GetFreelancerNoteRequest) (*GetFreelancerNoteResponse, error)
+	// Discovery endpoint: returns public freelancer cards for service-to-service
+	// recommendation use. Callers MUST be server-side (recommendation service).
+	ListDiscoverableFreelancers(context.Context, *ListDiscoverableFreelancersRequest) (*ListDiscoverableFreelancersResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -530,6 +547,9 @@ func (UnimplementedUserServiceServer) UpsertFreelancerNote(context.Context, *Ups
 }
 func (UnimplementedUserServiceServer) GetFreelancerNote(context.Context, *GetFreelancerNoteRequest) (*GetFreelancerNoteResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetFreelancerNote not implemented")
+}
+func (UnimplementedUserServiceServer) ListDiscoverableFreelancers(context.Context, *ListDiscoverableFreelancersRequest) (*ListDiscoverableFreelancersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListDiscoverableFreelancers not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -1092,6 +1112,24 @@ func _UserService_GetFreelancerNote_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_ListDiscoverableFreelancers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListDiscoverableFreelancersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).ListDiscoverableFreelancers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_ListDiscoverableFreelancers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).ListDiscoverableFreelancers(ctx, req.(*ListDiscoverableFreelancersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1218,6 +1256,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFreelancerNote",
 			Handler:    _UserService_GetFreelancerNote_Handler,
+		},
+		{
+			MethodName: "ListDiscoverableFreelancers",
+			Handler:    _UserService_ListDiscoverableFreelancers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -182,7 +182,6 @@ type PaymentSession struct {
 	PaymentType            PaymentType            `protobuf:"varint,4,opt,name=payment_type,json=paymentType,proto3,enum=payment.v1.PaymentType" json:"payment_type,omitempty"`
 	Status                 PaymentSessionStatus   `protobuf:"varint,5,opt,name=status,proto3,enum=payment.v1.PaymentSessionStatus" json:"status,omitempty"`
 	AmountMinor            int64                  `protobuf:"varint,6,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
-	Currency               string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
 	IdempotencyKey         string                 `protobuf:"bytes,8,opt,name=idempotency_key,json=idempotencyKey,proto3" json:"idempotency_key,omitempty"`
 	ExternalRef            string                 `protobuf:"bytes,9,opt,name=external_ref,json=externalRef,proto3" json:"external_ref,omitempty"`                      // checkout URL or tx reference
 	ReceiptStorageKey      string                 `protobuf:"bytes,10,opt,name=receipt_storage_key,json=receiptStorageKey,proto3" json:"receipt_storage_key,omitempty"` // MinIO key for uploaded receipt
@@ -268,13 +267,6 @@ func (x *PaymentSession) GetAmountMinor() int64 {
 	return 0
 }
 
-func (x *PaymentSession) GetCurrency() string {
-	if x != nil {
-		return x.Currency
-	}
-	return ""
-}
-
 func (x *PaymentSession) GetIdempotencyKey() string {
 	if x != nil {
 		return x.IdempotencyKey
@@ -342,7 +334,6 @@ type InitiateDepositRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Provider      PaymentProvider        `protobuf:"varint,1,opt,name=provider,proto3,enum=payment.v1.PaymentProvider" json:"provider,omitempty"`
 	AmountMinor   int64                  `protobuf:"varint,2,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
-	Currency      string                 `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`
 	ReferenceType string                 `protobuf:"bytes,4,opt,name=reference_type,json=referenceType,proto3" json:"reference_type,omitempty"` // "milestone"
 	ReferenceId   string                 `protobuf:"bytes,5,opt,name=reference_id,json=referenceId,proto3" json:"reference_id,omitempty"`       // milestone ID
 	ReturnUrl     string                 `protobuf:"bytes,6,opt,name=return_url,json=returnUrl,proto3" json:"return_url,omitempty"`             // where to redirect after payment
@@ -392,13 +383,6 @@ func (x *InitiateDepositRequest) GetAmountMinor() int64 {
 		return x.AmountMinor
 	}
 	return 0
-}
-
-func (x *InitiateDepositRequest) GetCurrency() string {
-	if x != nil {
-		return x.Currency
-	}
-	return ""
 }
 
 func (x *InitiateDepositRequest) GetReferenceType() string {
@@ -566,7 +550,6 @@ type RequestWithdrawalRequest struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	Provider          PaymentProvider        `protobuf:"varint,1,opt,name=provider,proto3,enum=payment.v1.PaymentProvider" json:"provider,omitempty"`
 	AmountMinor       int64                  `protobuf:"varint,2,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
-	Currency          string                 `protobuf:"bytes,3,opt,name=currency,proto3" json:"currency,omitempty"`
 	BankCode          string                 `protobuf:"bytes,4,opt,name=bank_code,json=bankCode,proto3" json:"bank_code,omitempty"` // e.g. "CBE", "Abyssinia", etc.
 	AccountNumber     string                 `protobuf:"bytes,5,opt,name=account_number,json=accountNumber,proto3" json:"account_number,omitempty"`
 	AccountHolderName string                 `protobuf:"bytes,6,opt,name=account_holder_name,json=accountHolderName,proto3" json:"account_holder_name,omitempty"`
@@ -616,13 +599,6 @@ func (x *RequestWithdrawalRequest) GetAmountMinor() int64 {
 		return x.AmountMinor
 	}
 	return 0
-}
-
-func (x *RequestWithdrawalRequest) GetCurrency() string {
-	if x != nil {
-		return x.Currency
-	}
-	return ""
 }
 
 func (x *RequestWithdrawalRequest) GetBankCode() string {
@@ -810,7 +786,6 @@ type NotifyMilestoneApprovedRequest struct {
 	FreelancerId       string                 `protobuf:"bytes,4,opt,name=freelancer_id,json=freelancerId,proto3" json:"freelancer_id,omitempty"`
 	FreelancerWalletId int64                  `protobuf:"varint,5,opt,name=freelancer_wallet_id,json=freelancerWalletId,proto3" json:"freelancer_wallet_id,omitempty"`
 	AmountMinor        int64                  `protobuf:"varint,6,opt,name=amount_minor,json=amountMinor,proto3" json:"amount_minor,omitempty"`
-	Currency           string                 `protobuf:"bytes,7,opt,name=currency,proto3" json:"currency,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -885,13 +860,6 @@ func (x *NotifyMilestoneApprovedRequest) GetAmountMinor() int64 {
 		return x.AmountMinor
 	}
 	return 0
-}
-
-func (x *NotifyMilestoneApprovedRequest) GetCurrency() string {
-	if x != nil {
-		return x.Currency
-	}
-	return ""
 }
 
 type NotifyMilestoneApprovedResponse struct {
@@ -1151,15 +1119,14 @@ var File_payment_v1_payment_proto protoreflect.FileDescriptor
 const file_payment_v1_payment_proto_rawDesc = "" +
 	"\n" +
 	"\x18payment/v1/payment.proto\x12\n" +
-	"payment.v1\"\xbb\x05\n" +
+	"payment.v1\"\xaf\x05\n" +
 	"\x0ePaymentSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x127\n" +
 	"\bprovider\x18\x03 \x01(\x0e2\x1b.payment.v1.PaymentProviderR\bprovider\x12:\n" +
 	"\fpayment_type\x18\x04 \x01(\x0e2\x17.payment.v1.PaymentTypeR\vpaymentType\x128\n" +
 	"\x06status\x18\x05 \x01(\x0e2 .payment.v1.PaymentSessionStatusR\x06status\x12!\n" +
-	"\famount_minor\x18\x06 \x01(\x03R\vamountMinor\x12\x1a\n" +
-	"\bcurrency\x18\a \x01(\tR\bcurrency\x12'\n" +
+	"\famount_minor\x18\x06 \x01(\x03R\vamountMinor\x12'\n" +
 	"\x0fidempotency_key\x18\b \x01(\tR\x0eidempotencyKey\x12!\n" +
 	"\fexternal_ref\x18\t \x01(\tR\vexternalRef\x12.\n" +
 	"\x13receipt_storage_key\x18\n" +
@@ -1169,15 +1136,14 @@ const file_payment_v1_payment_proto_rawDesc = "" +
 	"\rerror_message\x18\r \x01(\tR\ferrorMessage\x125\n" +
 	"\x17created_at_unix_seconds\x18\x0e \x01(\x03R\x14createdAtUnixSeconds\x125\n" +
 	"\x17updated_at_unix_seconds\x18\x0f \x01(\x03R\x14updatedAtUnixSeconds\x129\n" +
-	"\x19completed_at_unix_seconds\x18\x10 \x01(\x03R\x16completedAtUnixSeconds\"\xf9\x01\n" +
+	"\x19completed_at_unix_seconds\x18\x10 \x01(\x03R\x16completedAtUnixSecondsJ\x04\b\a\x10\bR\bcurrency\"\xed\x01\n" +
 	"\x16InitiateDepositRequest\x127\n" +
 	"\bprovider\x18\x01 \x01(\x0e2\x1b.payment.v1.PaymentProviderR\bprovider\x12!\n" +
-	"\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12\x1a\n" +
-	"\bcurrency\x18\x03 \x01(\tR\bcurrency\x12%\n" +
+	"\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12%\n" +
 	"\x0ereference_type\x18\x04 \x01(\tR\rreferenceType\x12!\n" +
 	"\freference_id\x18\x05 \x01(\tR\vreferenceId\x12\x1d\n" +
 	"\n" +
-	"return_url\x18\x06 \x01(\tR\treturnUrl\"r\n" +
+	"return_url\x18\x06 \x01(\tR\treturnUrlJ\x04\b\x03\x10\x04R\bcurrency\"r\n" +
 	"\x17InitiateDepositResponse\x124\n" +
 	"\asession\x18\x01 \x01(\v2\x1a.payment.v1.PaymentSessionR\asession\x12!\n" +
 	"\fcheckout_url\x18\x02 \x01(\tR\vcheckoutUrl\"5\n" +
@@ -1185,14 +1151,13 @@ const file_payment_v1_payment_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\x03R\tsessionId\"M\n" +
 	"\x15VerifyDepositResponse\x124\n" +
-	"\asession\x18\x01 \x01(\v2\x1a.payment.v1.PaymentSessionR\asession\"\x86\x02\n" +
+	"\asession\x18\x01 \x01(\v2\x1a.payment.v1.PaymentSessionR\asession\"\xfa\x01\n" +
 	"\x18RequestWithdrawalRequest\x127\n" +
 	"\bprovider\x18\x01 \x01(\x0e2\x1b.payment.v1.PaymentProviderR\bprovider\x12!\n" +
-	"\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12\x1a\n" +
-	"\bcurrency\x18\x03 \x01(\tR\bcurrency\x12\x1b\n" +
+	"\famount_minor\x18\x02 \x01(\x03R\vamountMinor\x12\x1b\n" +
 	"\tbank_code\x18\x04 \x01(\tR\bbankCode\x12%\n" +
 	"\x0eaccount_number\x18\x05 \x01(\tR\raccountNumber\x12.\n" +
-	"\x13account_holder_name\x18\x06 \x01(\tR\x11accountHolderName\"Q\n" +
+	"\x13account_holder_name\x18\x06 \x01(\tR\x11accountHolderNameJ\x04\b\x03\x10\x04R\bcurrency\"Q\n" +
 	"\x19RequestWithdrawalResponse\x124\n" +
 	"\asession\x18\x01 \x01(\v2\x1a.payment.v1.PaymentSessionR\asession\"{\n" +
 	"\x14UploadReceiptRequest\x12\x1d\n" +
@@ -1203,7 +1168,7 @@ const file_payment_v1_payment_proto_rawDesc = "" +
 	"\x15UploadReceiptResponse\x124\n" +
 	"\asession\x18\x01 \x01(\v2\x1a.payment.v1.PaymentSessionR\asession\x12\x1f\n" +
 	"\vreceipt_url\x18\x02 \x01(\tR\n" +
-	"receiptUrl\"\x93\x02\n" +
+	"receiptUrl\"\x87\x02\n" +
 	"\x1eNotifyMilestoneApprovedRequest\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\x03R\n" +
 	"contractId\x12!\n" +
@@ -1211,8 +1176,7 @@ const file_payment_v1_payment_proto_rawDesc = "" +
 	"\ahold_id\x18\x03 \x01(\x03R\x06holdId\x12#\n" +
 	"\rfreelancer_id\x18\x04 \x01(\tR\ffreelancerId\x120\n" +
 	"\x14freelancer_wallet_id\x18\x05 \x01(\x03R\x12freelancerWalletId\x12!\n" +
-	"\famount_minor\x18\x06 \x01(\x03R\vamountMinor\x12\x1a\n" +
-	"\bcurrency\x18\a \x01(\tR\bcurrency\"W\n" +
+	"\famount_minor\x18\x06 \x01(\x03R\vamountMinorJ\x04\b\a\x10\bR\bcurrency\"W\n" +
 	"\x1fNotifyMilestoneApprovedResponse\x124\n" +
 	"\asession\x18\x01 \x01(\v2\x1a.payment.v1.PaymentSessionR\asession\"9\n" +
 	"\x18GetPaymentSessionRequest\x12\x1d\n" +

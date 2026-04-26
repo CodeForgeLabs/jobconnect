@@ -22,7 +22,7 @@ func NewWalletClient(addr string) (*WalletClient, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to wallet service: %w", err)
 	}
-	
+
 	return &WalletClient{
 		client: walletv1.NewWalletServiceClient(conn),
 		conn:   conn,
@@ -74,12 +74,12 @@ func (c *WalletClient) DebitWalletInternal(ctx context.Context, in application.D
 
 func (c *WalletClient) PlaceHold(ctx context.Context, in application.PlaceHoldInput) (int64, error) {
 	req := &walletv1.PlaceHoldRequest{
-		WalletId:       in.WalletID,
-		AmountMinor:    in.AmountMinor,
-		IdempotencyKey: in.IdempotencyKey,
-		ReferenceType:  in.ReferenceType,
-		ReferenceId:    in.ReferenceID,
-		Note:           in.Note,
+		WalletId:             in.WalletID,
+		AmountMinor:          in.AmountMinor,
+		IdempotencyKey:       in.IdempotencyKey,
+		ReferenceType:        in.ReferenceType,
+		ReferenceId:          in.ReferenceID,
+		Note:                 in.Note,
 		ExpiresAtUnixSeconds: time.Now().Add(30 * 24 * time.Hour).Unix(), // Arbitrary default
 	}
 
@@ -123,6 +123,5 @@ func (c *WalletClient) GetBalance(ctx context.Context, walletID int64) (applicat
 		AvailableMinor: res.Balance.AvailableMinor,
 		HeldMinor:      res.Balance.HeldMinor,
 		TotalMinor:     res.Balance.TotalMinor,
-		Currency:       res.Balance.Currency,
 	}, nil
 }

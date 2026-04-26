@@ -2,7 +2,6 @@ package domain
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,14 +10,11 @@ import (
 const (
 	WalletStatusActive = "active"
 	WalletStatusFrozen = "frozen"
-
-	DefaultCurrency = "ETB"
 )
 
 type WalletAccount struct {
 	ID             int64
 	OwnerID        uuid.UUID
-	Currency       string
 	Status         string
 	AvailableMinor int64
 	HeldMinor      int64
@@ -28,7 +24,6 @@ type WalletAccount struct {
 
 type BalanceSnapshot struct {
 	WalletID       int64
-	Currency       string
 	AvailableMinor int64
 	HeldMinor      int64
 }
@@ -37,20 +32,9 @@ func (b BalanceSnapshot) TotalMinor() int64 {
 	return b.AvailableMinor + b.HeldMinor
 }
 
-func NormalizeCurrency(currency string) string {
-	c := strings.ToUpper(strings.TrimSpace(currency))
-	if c == "" {
-		return DefaultCurrency
-	}
-	return c
-}
-
-func ValidateWalletCreate(ownerID uuid.UUID, currency string) error {
+func ValidateWalletCreate(ownerID uuid.UUID) error {
 	if ownerID == uuid.Nil {
 		return fmt.Errorf("%w: owner_id is required", ErrInvalidArgument)
-	}
-	if NormalizeCurrency(currency) == "" {
-		return fmt.Errorf("%w: currency is required", ErrInvalidArgument)
 	}
 	return nil
 }

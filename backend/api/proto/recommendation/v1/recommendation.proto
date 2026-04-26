@@ -4,14 +4,15 @@ package recommendation.v1;
 
 option go_package = "jobconnect/recommendation/gen/recommendation/v1;recommendationv1";
 
-import "google/protobuf/timestamp.proto";
-
 service RecommendationService {
   // GetRecommendedJobs returns a list of jobs tailored for a specific freelancer
   rpc GetRecommendedJobs(GetRecommendedJobsRequest) returns (GetRecommendedJobsResponse);
 
   // GetRecommendedFreelancers returns a list of freelancers best suited for a specific job
   rpc GetRecommendedFreelancers(GetRecommendedFreelancersRequest) returns (GetRecommendedFreelancersResponse);
+
+  // InvalidateRecommendationCache clears cached recommendation entries after upstream changes.
+  rpc InvalidateRecommendationCache(InvalidateRecommendationCacheRequest) returns (InvalidateRecommendationCacheResponse);
 }
 
 message GetRecommendedJobsRequest {
@@ -42,4 +43,14 @@ message FreelancerRecommendation {
 
 message GetRecommendedFreelancersResponse {
   repeated FreelancerRecommendation recommendations = 1;
+}
+
+message InvalidateRecommendationCacheRequest {
+  repeated string user_ids = 1; // Job recommendation caches for these freelancers/users
+  repeated int64 job_ids = 2;   // Freelancer recommendation caches for these jobs
+  bool all = 3;                 // Clear all recommendation cache entries
+}
+
+message InvalidateRecommendationCacheResponse {
+  int64 deleted_entries = 1;
 }

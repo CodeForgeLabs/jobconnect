@@ -16,6 +16,8 @@ type Config struct {
 	VerificationServiceGRPCAddr   string
 	JobServiceGRPCAddr            string
 	ProposalServiceGRPCAddr       string
+	ContractServiceGRPCAddr       string
+	DisputeServiceGRPCAddr        string
 	RecommendationServiceGRPCAddr string
 	JWTSecret                     []byte
 	OAuthStateSecret              []byte
@@ -57,6 +59,8 @@ func LoadFromEnv() (Config, error) {
 		JobServiceGRPCAddr:            getEnv("JOB_SERVICE_GRPC_ADDR", "job:50053"),
 		ChatServiceGRPCAddr:           getEnv("CHAT_SERVICE_GRPC_ADDR", "chat:50054"),
 		ProposalServiceGRPCAddr:       getEnv("PROPOSAL_SERVICE_GRPC_ADDR", "proposal:50054"),
+		ContractServiceGRPCAddr:       getEnv("CONTRACT_SERVICE_GRPC_ADDR", "contract:50055"),
+		DisputeServiceGRPCAddr:        getEnv("DISPUTE_SERVICE_GRPC_ADDR", "dispute:50066"),
 		RecommendationServiceGRPCAddr: getEnv("RECOMMENDATION_SERVICE_GRPC_ADDR", "recommendation:50064"),
 		JWTSecret:                     []byte(secret),
 		OAuthStateSecret:              []byte(getEnv("GATEWAY_OAUTH_STATE_SECRET", secret)),
@@ -95,6 +99,12 @@ func LoadFromEnv() (Config, error) {
 	}
 	if cfg.ProposalServiceGRPCAddr == "" {
 		return Config{}, fmt.Errorf("PROPOSAL_SERVICE_GRPC_ADDR is required")
+	}
+	if cfg.ContractServiceGRPCAddr == "" {
+		return Config{}, fmt.Errorf("CONTRACT_SERVICE_GRPC_ADDR is required")
+	}
+	if cfg.DisputeServiceGRPCAddr == "" {
+		return Config{}, fmt.Errorf("DISPUTE_SERVICE_GRPC_ADDR is required")
 	}
 	if cfg.RecommendationServiceGRPCAddr == "" {
 		return Config{}, fmt.Errorf("RECOMMENDATION_SERVICE_GRPC_ADDR is required")

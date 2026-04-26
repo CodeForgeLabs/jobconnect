@@ -9,7 +9,6 @@ package recommendationv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -334,11 +333,115 @@ func (x *GetRecommendedFreelancersResponse) GetRecommendations() []*FreelancerRe
 	return nil
 }
 
+type InvalidateRecommendationCacheRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserIds       []string               `protobuf:"bytes,1,rep,name=user_ids,json=userIds,proto3" json:"user_ids,omitempty"`      // Job recommendation caches for these freelancers/users
+	JobIds        []int64                `protobuf:"varint,2,rep,packed,name=job_ids,json=jobIds,proto3" json:"job_ids,omitempty"` // Freelancer recommendation caches for these jobs
+	All           bool                   `protobuf:"varint,3,opt,name=all,proto3" json:"all,omitempty"`                            // Clear all recommendation cache entries
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InvalidateRecommendationCacheRequest) Reset() {
+	*x = InvalidateRecommendationCacheRequest{}
+	mi := &file_recommendation_v1_recommendation_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InvalidateRecommendationCacheRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvalidateRecommendationCacheRequest) ProtoMessage() {}
+
+func (x *InvalidateRecommendationCacheRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_recommendation_v1_recommendation_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvalidateRecommendationCacheRequest.ProtoReflect.Descriptor instead.
+func (*InvalidateRecommendationCacheRequest) Descriptor() ([]byte, []int) {
+	return file_recommendation_v1_recommendation_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *InvalidateRecommendationCacheRequest) GetUserIds() []string {
+	if x != nil {
+		return x.UserIds
+	}
+	return nil
+}
+
+func (x *InvalidateRecommendationCacheRequest) GetJobIds() []int64 {
+	if x != nil {
+		return x.JobIds
+	}
+	return nil
+}
+
+func (x *InvalidateRecommendationCacheRequest) GetAll() bool {
+	if x != nil {
+		return x.All
+	}
+	return false
+}
+
+type InvalidateRecommendationCacheResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	DeletedEntries int64                  `protobuf:"varint,1,opt,name=deleted_entries,json=deletedEntries,proto3" json:"deleted_entries,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *InvalidateRecommendationCacheResponse) Reset() {
+	*x = InvalidateRecommendationCacheResponse{}
+	mi := &file_recommendation_v1_recommendation_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InvalidateRecommendationCacheResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvalidateRecommendationCacheResponse) ProtoMessage() {}
+
+func (x *InvalidateRecommendationCacheResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_recommendation_v1_recommendation_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvalidateRecommendationCacheResponse.ProtoReflect.Descriptor instead.
+func (*InvalidateRecommendationCacheResponse) Descriptor() ([]byte, []int) {
+	return file_recommendation_v1_recommendation_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *InvalidateRecommendationCacheResponse) GetDeletedEntries() int64 {
+	if x != nil {
+		return x.DeletedEntries
+	}
+	return 0
+}
+
 var File_recommendation_v1_recommendation_proto protoreflect.FileDescriptor
 
 const file_recommendation_v1_recommendation_proto_rawDesc = "" +
 	"\n" +
-	"&recommendation/v1/recommendation.proto\x12\x11recommendation.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"J\n" +
+	"&recommendation/v1/recommendation.proto\x12\x11recommendation.v1\"J\n" +
 	"\x19GetRecommendedJobsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\"n\n" +
@@ -358,10 +461,17 @@ const file_recommendation_v1_recommendation_proto_rawDesc = "" +
 	"matchScore\x12!\n" +
 	"\fmatch_reason\x18\x03 \x01(\tR\vmatchReason\"z\n" +
 	"!GetRecommendedFreelancersResponse\x12U\n" +
-	"\x0frecommendations\x18\x01 \x03(\v2+.recommendation.v1.FreelancerRecommendationR\x0frecommendations2\x93\x02\n" +
+	"\x0frecommendations\x18\x01 \x03(\v2+.recommendation.v1.FreelancerRecommendationR\x0frecommendations\"l\n" +
+	"$InvalidateRecommendationCacheRequest\x12\x19\n" +
+	"\buser_ids\x18\x01 \x03(\tR\auserIds\x12\x17\n" +
+	"\ajob_ids\x18\x02 \x03(\x03R\x06jobIds\x12\x10\n" +
+	"\x03all\x18\x03 \x01(\bR\x03all\"P\n" +
+	"%InvalidateRecommendationCacheResponse\x12'\n" +
+	"\x0fdeleted_entries\x18\x01 \x01(\x03R\x0edeletedEntries2\xa8\x03\n" +
 	"\x15RecommendationService\x12q\n" +
 	"\x12GetRecommendedJobs\x12,.recommendation.v1.GetRecommendedJobsRequest\x1a-.recommendation.v1.GetRecommendedJobsResponse\x12\x86\x01\n" +
-	"\x19GetRecommendedFreelancers\x123.recommendation.v1.GetRecommendedFreelancersRequest\x1a4.recommendation.v1.GetRecommendedFreelancersResponseBBZ@jobconnect/recommendation/gen/recommendation/v1;recommendationv1b\x06proto3"
+	"\x19GetRecommendedFreelancers\x123.recommendation.v1.GetRecommendedFreelancersRequest\x1a4.recommendation.v1.GetRecommendedFreelancersResponse\x12\x92\x01\n" +
+	"\x1dInvalidateRecommendationCache\x127.recommendation.v1.InvalidateRecommendationCacheRequest\x1a8.recommendation.v1.InvalidateRecommendationCacheResponseBBZ@jobconnect/recommendation/gen/recommendation/v1;recommendationv1b\x06proto3"
 
 var (
 	file_recommendation_v1_recommendation_proto_rawDescOnce sync.Once
@@ -375,24 +485,28 @@ func file_recommendation_v1_recommendation_proto_rawDescGZIP() []byte {
 	return file_recommendation_v1_recommendation_proto_rawDescData
 }
 
-var file_recommendation_v1_recommendation_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_recommendation_v1_recommendation_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_recommendation_v1_recommendation_proto_goTypes = []any{
-	(*GetRecommendedJobsRequest)(nil),         // 0: recommendation.v1.GetRecommendedJobsRequest
-	(*JobRecommendation)(nil),                 // 1: recommendation.v1.JobRecommendation
-	(*GetRecommendedJobsResponse)(nil),        // 2: recommendation.v1.GetRecommendedJobsResponse
-	(*GetRecommendedFreelancersRequest)(nil),  // 3: recommendation.v1.GetRecommendedFreelancersRequest
-	(*FreelancerRecommendation)(nil),          // 4: recommendation.v1.FreelancerRecommendation
-	(*GetRecommendedFreelancersResponse)(nil), // 5: recommendation.v1.GetRecommendedFreelancersResponse
+	(*GetRecommendedJobsRequest)(nil),             // 0: recommendation.v1.GetRecommendedJobsRequest
+	(*JobRecommendation)(nil),                     // 1: recommendation.v1.JobRecommendation
+	(*GetRecommendedJobsResponse)(nil),            // 2: recommendation.v1.GetRecommendedJobsResponse
+	(*GetRecommendedFreelancersRequest)(nil),      // 3: recommendation.v1.GetRecommendedFreelancersRequest
+	(*FreelancerRecommendation)(nil),              // 4: recommendation.v1.FreelancerRecommendation
+	(*GetRecommendedFreelancersResponse)(nil),     // 5: recommendation.v1.GetRecommendedFreelancersResponse
+	(*InvalidateRecommendationCacheRequest)(nil),  // 6: recommendation.v1.InvalidateRecommendationCacheRequest
+	(*InvalidateRecommendationCacheResponse)(nil), // 7: recommendation.v1.InvalidateRecommendationCacheResponse
 }
 var file_recommendation_v1_recommendation_proto_depIdxs = []int32{
 	1, // 0: recommendation.v1.GetRecommendedJobsResponse.recommendations:type_name -> recommendation.v1.JobRecommendation
 	4, // 1: recommendation.v1.GetRecommendedFreelancersResponse.recommendations:type_name -> recommendation.v1.FreelancerRecommendation
 	0, // 2: recommendation.v1.RecommendationService.GetRecommendedJobs:input_type -> recommendation.v1.GetRecommendedJobsRequest
 	3, // 3: recommendation.v1.RecommendationService.GetRecommendedFreelancers:input_type -> recommendation.v1.GetRecommendedFreelancersRequest
-	2, // 4: recommendation.v1.RecommendationService.GetRecommendedJobs:output_type -> recommendation.v1.GetRecommendedJobsResponse
-	5, // 5: recommendation.v1.RecommendationService.GetRecommendedFreelancers:output_type -> recommendation.v1.GetRecommendedFreelancersResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
+	6, // 4: recommendation.v1.RecommendationService.InvalidateRecommendationCache:input_type -> recommendation.v1.InvalidateRecommendationCacheRequest
+	2, // 5: recommendation.v1.RecommendationService.GetRecommendedJobs:output_type -> recommendation.v1.GetRecommendedJobsResponse
+	5, // 6: recommendation.v1.RecommendationService.GetRecommendedFreelancers:output_type -> recommendation.v1.GetRecommendedFreelancersResponse
+	7, // 7: recommendation.v1.RecommendationService.InvalidateRecommendationCache:output_type -> recommendation.v1.InvalidateRecommendationCacheResponse
+	5, // [5:8] is the sub-list for method output_type
+	2, // [2:5] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -409,7 +523,7 @@ func file_recommendation_v1_recommendation_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_recommendation_v1_recommendation_proto_rawDesc), len(file_recommendation_v1_recommendation_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

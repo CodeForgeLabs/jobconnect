@@ -63,6 +63,17 @@ func main() {
 	}
 	defer proposalConn.Close()
 
+	contractConn, err := grpc.NewClient(cfg.ContractServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("contract service dial: %v", err)
+	}
+	defer contractConn.Close()
+	disputeConn, err := grpc.NewClient(cfg.DisputeServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("dispute service dial: %v", err)
+	}
+	defer disputeConn.Close()
+
 	recommendationConn, err := grpc.NewClient(cfg.RecommendationServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("recommendation service dial: %v", err)
@@ -79,6 +90,8 @@ func main() {
 	verificationClient := clients.NewVerificationClient(verificationConn)
 	jobClient := clients.NewJobClient(jobConn)
 	proposalClient := clients.NewProposalClient(proposalConn)
+	contractClient := clients.NewContractClient(contractConn)
+	disputeClient := clients.NewDisputeClient(disputeConn)
 	recommendationClient := clients.NewRecommendationClient(recommendationConn)
 	chatClient := clients.NewChatClient(chatConn)
 	authHandler := handlers.NewAuthHandler(cfg, authClient)
@@ -86,9 +99,11 @@ func main() {
 	verificationHandler := handlers.NewVerificationHandler(verificationClient)
 	jobHandler := handlers.NewJobHandler(jobClient)
 	proposalHandler := handlers.NewProposalHandler(proposalClient)
+	contractHandler := handlers.NewContractHandler(contractClient, jobClient, proposalClient)
+	disputeHandler := handlers.NewDisputeHandler(disputeClient)
 	recommendationHandler := handlers.NewRecommendationHandler(recommendationClient)
 	chatHandler := handlers.NewChatHandler(chatClient)
-	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler, proposalHandler, recommendationHandler, chatHandler)
+	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler, proposalHandler, contractHandler, disputeHandler, recommendationHandler, chatHandler)
 
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPListenAddr,

@@ -31,6 +31,8 @@ func TestCanTransition(t *testing.T) {
 	}{
 		{name: "sent to shortlisted", current: StatusSent, next: StatusShortlisted, want: true},
 		{name: "sent to rejected", current: StatusSent, next: StatusRejected, want: true},
+		{name: "shortlisted to offer_sent", current: StatusShortlisted, next: StatusOfferSent, want: true},
+		{name: "offer_sent to hired", current: StatusOfferSent, next: StatusHired, want: true},
 		{name: "shortlisted to hired", current: StatusShortlisted, next: StatusHired, want: true},
 		{name: "hired to rejected not allowed", current: StatusHired, next: StatusRejected, want: false},
 		{name: "withdrawn to shortlisted not allowed", current: StatusWithdrawn, next: StatusShortlisted, want: false},

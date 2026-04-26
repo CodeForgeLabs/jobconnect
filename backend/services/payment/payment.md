@@ -40,7 +40,7 @@ The Payment Service is highly collaborative and sits at the center of the backen
 5.  **Internal Sync**:
     -   `payment` calls `wallet.CreditWalletInternal` (Internal Credit).
     -   `payment` calls `wallet.PlaceHold` (Escrow/Hold for the milestone).
-    -   `payment` calls `contract.UpdateMilestoneStatus` (to `FUNDED`).
+    -   `payment` leaves milestone state changes to action-based contract RPCs and wallet settlement callbacks.
 
 ### 3.2 Milestone Approval (The "Payday")
 1.  **Approval**: Client approves the freelancer's work in the `contract` service.

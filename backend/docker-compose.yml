@@ -1,157 +1,17 @@
 services:
-  auth-db:
+  postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: auth
-      POSTGRES_PASSWORD: auth
-      POSTGRES_DB: jobconnect_auth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
-      - auth-db-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/postgres/init-multi-db.sql:/docker-entrypoint-initdb.d/001-init-multi-db.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U auth -d jobconnect_auth"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  user-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: user
-      POSTGRES_DB: jobconnect_user
-    ports:
-      - "5433:5432"
-    volumes:
-      - user-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d jobconnect_user"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  job-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: job
-      POSTGRES_PASSWORD: job
-      POSTGRES_DB: jobconnect_job
-    ports:
-      - "5434:5432"
-    volumes:
-      - job-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U job -d jobconnect_job"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  proposal-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: proposal
-      POSTGRES_PASSWORD: proposal
-      POSTGRES_DB: jobconnect_proposal
-    ports:
-      - "5435:5432"
-    volumes:
-      - proposal-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U proposal -d jobconnect_proposal"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  contract-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: contract
-      POSTGRES_PASSWORD: contract
-      POSTGRES_DB: jobconnect_contract
-    ports:
-      - "5436:5432"
-    volumes:
-      - contract-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U contract -d jobconnect_contract"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  wallet-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: wallet
-      POSTGRES_PASSWORD: wallet
-      POSTGRES_DB: jobconnect_wallet
-    ports:
-      - "5437:5432"
-    volumes:
-      - wallet-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U wallet -d jobconnect_wallet"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  chat-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: chat
-      POSTGRES_PASSWORD: chat
-      POSTGRES_DB: jobconnect_chat
-    ports:
-      - "5438:5432"
-    volumes:
-      - chat-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U chat -d jobconnect_chat"]
-  verification-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: verification
-      POSTGRES_PASSWORD: verification
-      POSTGRES_DB: jobconnect_verification
-    ports:
-      - "5440:5432"
-    volumes:
-      - verification-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test:
-        ["CMD-SHELL", "pg_isready -U verification -d jobconnect_verification"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  payment-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: payment
-      POSTGRES_PASSWORD: payment
-      POSTGRES_DB: jobconnect_payment
-    ports:
-      - "5439:5432"
-    volumes:
-      - payment-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U payment -d jobconnect_payment"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  connects-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: connects
-      POSTGRES_PASSWORD: connects
-      POSTGRES_DB: jobconnect_connects
-    ports:
-      - "5441:5432"
-    volumes:
-      - connects-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U connects -d jobconnect_connects"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -173,6 +33,18 @@ services:
       timeout: 5s
       retries: 20
 
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   user:
     build:
       context: .
@@ -185,7 +57,7 @@ services:
     ports:
       - "50052:50052"
     depends_on:
-      user-db:
+      postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -202,7 +74,7 @@ services:
     ports:
       - "50051:50051"
     depends_on:
-      auth-db:
+      postgres:
         condition: service_healthy
       user:
         condition: service_started
@@ -219,7 +91,7 @@ services:
     ports:
       - "50053:50053"
     depends_on:
-      job-db:
+      postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -236,7 +108,7 @@ services:
     ports:
       - "50054:50054"
     depends_on:
-      proposal-db:
+      postgres:
         condition: service_healthy
       job:
         condition: service_started
@@ -255,7 +127,7 @@ services:
     env_file:
       - .env
     depends_on:
-      connects-db:
+      postgres:
         condition: service_healthy
 
   contract:
@@ -270,10 +142,30 @@ services:
     ports:
       - "50055:50055"
     depends_on:
-      contract-db:
+      postgres:
         condition: service_healthy
       proposal:
         condition: service_started
+      dispute:
+        condition: service_started
+
+  review:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: review
+        CMD_PATH: ./cmd/reviewd
+    env_file:
+      - .env
+    environment:
+      REVIEW_GRPC_LISTEN_ADDR: ":50056"
+      REVIEW_POSTGRES_URL: "postgres://review:review@postgres:5432/jobconnect_review?sslmode=disable"
+    ports:
+      - "50056:50056"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   wallet:
     build:
@@ -287,7 +179,7 @@ services:
     ports:
       - "50059:50059"
     depends_on:
-      wallet-db:
+      postgres:
         condition: service_healthy
   chat:
     build:
@@ -302,7 +194,7 @@ services:
       - "50063:50060"
       - "8081:8080"
     depends_on:
-      chat-db:
+      postgres:
         condition: service_healthy
 
   verification:
@@ -315,10 +207,30 @@ services:
     env_file:
       - .env
     ports:
-      - "51062:50060"
+      - "52062:50060"
     depends_on:
-      verification-db:
+      postgres:
         condition: service_healthy
+
+  dispute:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: dispute
+        CMD_PATH: ./cmd/disputed
+    env_file:
+      - .env
+    environment:
+      DISPUTE_SERVICE_GRPC_ADDR: ":50066"
+      WALLET_SERVICE_ADDR: "wallet:50059"
+    ports:
+      - "50066:50066"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      wallet:
+        condition: service_started
 
   payment:
     build:
@@ -330,10 +242,10 @@ services:
     env_file:
       - .env
     ports:
-      - "51061:50061"
-      - "8081:8081"
+      - "52061:50061"
+      - "8082:8081"
     depends_on:
-      payment-db:
+      postgres:
         condition: service_healthy
       minio:
         condition: service_healthy
@@ -353,6 +265,12 @@ services:
         CMD_PATH: ./cmd/recommendationd
     env_file:
       - .env
+    environment:
+      JOB_SERVICE_ADDR: job:50053
+      USER_SERVICE_ADDR: user:50052
+      REVIEW_SERVICE_ADDR: review:50056
+      RECOMMENDATION_CACHE_BACKEND: redis
+      RECOMMENDATION_REDIS_ADDR: redis:6379
     ports:
       - "50064:50064"
     depends_on:
@@ -360,6 +278,10 @@ services:
         condition: service_started
       job:
         condition: service_started
+      review:
+        condition: service_started
+      redis:
+        condition: service_healthy
 
   gateway:
     build:
@@ -423,4 +345,6 @@ volumes:
   payment-db-data:
   connects-db-data:
   reviews-db-data:
+  postgres-data:
   minio-data:
+  redis-data:
