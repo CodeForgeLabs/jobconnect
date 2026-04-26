@@ -20,6 +20,7 @@ import (
 	"jobconnect/recommendation/internal/config"
 	"jobconnect/recommendation/internal/infrastructure/cache"
 	"jobconnect/recommendation/internal/infrastructure/jobgrpc"
+	"jobconnect/recommendation/internal/infrastructure/reviewgrpc"
 	"jobconnect/recommendation/internal/infrastructure/usergrpc"
 )
 
@@ -48,10 +49,20 @@ func main() {
 	}
 	defer userConn.Close()
 
+	reviewConn, err := grpc.NewClient(cfg.ReviewServiceAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("review service dial: %v", err)
+	}
+	defer reviewConn.Close()
+
+	recommendationCache, closeCache := buildRecommendationCache(cfg)
+	defer closeCache()
+
 	app := application.NewRecommendationService(
 		jobgrpc.NewClient(jobConn),
 		usergrpc.NewClient(userConn),
-		cache.NewMemoryCache(cfg.RecommendationCacheTTL),
+		reviewgrpc.NewClient(reviewConn),
+		recommendationCache,
 		application.ServiceConfig{
 			DefaultLimit:      cfg.DefaultRecommendationLimit,
 			MaxLimit:          cfg.MaxRecommendationLimit,
@@ -87,6 +98,32 @@ func main() {
 	}
 
 	gracefulStop(grpcServer)
+}
+
+func buildRecommendationCache(cfg config.Config) (application.RecommendationCache, func()) {
+	switch cfg.RecommendationCacheBackend {
+	case "redis":
+		redisCache := cache.NewRedisCache(cache.RedisConfig{
+			Addr:     cfg.RecommendationRedisAddr,
+			Password: cfg.RecommendationRedisPassword,
+			DB:       cfg.RecommendationRedisDB,
+			TTL:      cfg.RecommendationCacheTTL,
+		})
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		if err := redisCache.Ping(ctx); err != nil {
+			log.Fatalf("redis cache ping: %v", err)
+		}
+		log.Printf("recommendation cache backend: redis addr=%s db=%d ttl=%s", cfg.RecommendationRedisAddr, cfg.RecommendationRedisDB, cfg.RecommendationCacheTTL)
+		return redisCache, func() {
+			if err := redisCache.Close(); err != nil {
+				log.Printf("redis cache close: %v", err)
+			}
+		}
+	default:
+		log.Printf("recommendation cache backend: memory ttl=%s", cfg.RecommendationCacheTTL)
+		return cache.NewMemoryCache(cfg.RecommendationCacheTTL), func() {}
+	}
 }
 
 func gracefulStop(srv *grpc.Server) {

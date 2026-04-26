@@ -183,7 +183,7 @@ func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
 	}
 }
 
-func TestProposalDecisionRouteIsCanonicalAndApplicantStageRouteIsRemoved(t *testing.T) {
+func TestRecommendationRoutesExposeClientFreelancerRecommendations(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	cfg := config.Config{
@@ -197,74 +197,20 @@ func TestProposalDecisionRouteIsCanonicalAndApplicantStageRouteIsRemoved(t *test
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
-		nil,
-		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
 
-	var hasProposalDecision bool
-	var hasApplicantStage bool
 	for _, route := range engine.Routes() {
-		if route.Method == http.MethodPost && route.Path == "/api/v1/proposals/:proposalId/decision" {
-			hasProposalDecision = true
-		}
-		if route.Method == http.MethodPost && route.Path == "/api/v1/jobs/applicants/:proposalId/stage" {
-			hasApplicantStage = true
+		if route.Method == http.MethodGet && route.Path == "/api/v1/recommendations/jobs/:jobId/freelancers" {
+			return
 		}
 	}
 
-	if !hasProposalDecision {
-		t.Fatalf("expected POST /api/v1/proposals/:proposalId/decision to be registered")
-	}
-	if hasApplicantStage {
-		t.Fatalf("did not expect POST /api/v1/jobs/applicants/:proposalId/stage to be registered")
-	}
+	t.Fatalf("expected GET /api/v1/recommendations/jobs/:jobId/freelancers to be registered")
 }
 
-func TestContractRoutesExposeLifecycleAndBootstrap(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
-	cfg := config.Config{JWTSecret: []byte("test-secret")}
-
-	engine := New(
-		cfg,
-		&handlers.AuthHandler{},
-		&handlers.VerificationHandler{},
-		&handlers.UserHandler{},
-		&handlers.JobHandler{},
-		&handlers.ProposalHandler{},
-		&handlers.ContractHandler{},
-		nil,
-		&handlers.RecommendationHandler{},
-		&handlers.ChatHandler{},
-	)
-
-	want := map[string]bool{
-		"GET /api/v1/contracts/bootstrap":            false,
-		"POST /api/v1/contracts":                     false,
-		"GET /api/v1/contracts":                      false,
-		"GET /api/v1/contracts/:contractId":          false,
-		"POST /api/v1/contracts/:contractId/accept":  false,
-		"POST /api/v1/contracts/:contractId/decline": false,
-		"POST /api/v1/contracts/:contractId/revoke":  false,
-	}
-
-	for _, route := range engine.Routes() {
-		key := route.Method + " " + route.Path
-		if _, ok := want[key]; ok {
-			want[key] = true
-		}
-	}
-
-	for key, found := range want {
-		if !found {
-			t.Fatalf("expected route to be registered: %s", key)
-		}
-	}
-}
-
-func TestContractBootstrapRouteRejectsFreelancerRole(t *testing.T) {
+func TestRecommendationFreelancerRouteRejectsFreelancerRole(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	secret := []byte("test-secret")
@@ -277,14 +223,12 @@ func TestContractBootstrapRouteRejectsFreelancerRole(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
-		&handlers.ContractHandler{},
-		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
 
-	freelancerToken := signTestAccessToken(t, secret, "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "freelancer")
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/contracts/bootstrap?job_id=21&proposal_id=44", nil)
+	freelancerToken := signTestAccessToken(t, secret, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "freelancer")
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/recommendations/jobs/11/freelancers", nil)
 	req.Header.Set("Authorization", "Bearer "+freelancerToken)
 	rec := httptest.NewRecorder()
 

@@ -2,6 +2,7 @@ package jobgrpc
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -37,6 +38,18 @@ func (c *Client) ListRecentPublicOpenJobs(ctx context.Context, pageSize int32) (
 	return mapJobs(resp.Jobs), nil
 }
 
+func (c *Client) GetJob(ctx context.Context, jobID int64) (domain.JobData, error) {
+	resp, err := c.grpcClient.GetJob(ctx, &jobv1.GetJobRequest{JobId: jobID})
+	if err != nil {
+		return domain.JobData{}, err
+	}
+	job := resp.GetJob()
+	if job == nil {
+		return domain.JobData{}, fmt.Errorf("job %d not found", jobID)
+	}
+	return mapJob(job), nil
+}
+
 func (c *Client) SearchPublicOpenJobsBySkill(ctx context.Context, skill string, pageSize int32) ([]domain.JobData, error) {
 	resp, err := c.grpcClient.SearchJobsV2(ctx, &jobv1.SearchJobsV2Request{
 		PageSize:   pageSize,
@@ -56,21 +69,25 @@ func mapJobs(jobs []*jobv1.Job) []domain.JobData {
 		if job == nil {
 			continue
 		}
-		out = append(out, domain.JobData{
-			ID:             job.Id,
-			ClientID:       job.ClientId,
-			Title:          job.Title,
-			Description:    job.Description,
-			RequiredSkills: append([]string(nil), job.RequiredSkills...),
-			BudgetMin:      job.BudgetMin,
-			BudgetMax:      job.BudgetMax,
-			HourlyRate:     job.HourlyRate,
-			JobType:        mapJobType(job.JobTypeEnum),
-			Visibility:     mapVisibility(job.Visibility),
-			CreatedAt:      time.Unix(job.CreatedAtUnixSeconds, 0).UTC(),
-		})
+		out = append(out, mapJob(job))
 	}
 	return out
+}
+
+func mapJob(job *jobv1.Job) domain.JobData {
+	return domain.JobData{
+		ID:             job.Id,
+		ClientID:       job.ClientId,
+		Title:          job.Title,
+		Description:    job.Description,
+		RequiredSkills: append([]string(nil), job.RequiredSkills...),
+		BudgetMin:      job.BudgetMin,
+		BudgetMax:      job.BudgetMax,
+		HourlyRate:     job.HourlyRate,
+		JobType:        mapJobType(job.JobTypeEnum),
+		Visibility:     mapVisibility(job.Visibility),
+		CreatedAt:      time.Unix(job.CreatedAtUnixSeconds, 0).UTC(),
+	}
 }
 
 func mapJobType(jobType jobv1.JobType) string {
