@@ -27,6 +27,42 @@ func (noopEmbedder) Embed(context.Context, []string) ([][]float32, error) {
 	return nil, ErrEmbedderUnavailable
 }
 
+// EmbeddingSourceType identifies what kind of entity an embedding represents.
+// Used as part of the store key so freelancer and job IDs cannot collide.
+type EmbeddingSourceType string
+
+const (
+	EmbeddingSourceTypeFreelancer EmbeddingSourceType = "freelancer"
+	EmbeddingSourceTypeJob        EmbeddingSourceType = "job"
+)
+
+// StoredEmbedding is a persisted vector plus the hash of the text it was
+// computed from. The hash lets callers detect when the source text has
+// changed and the vector needs to be recomputed.
+type StoredEmbedding struct {
+	SourceType EmbeddingSourceType
+	SourceID   string
+	TextHash   string
+	Vector     []float32
+}
+
+// EmbeddingStore persists and retrieves embeddings keyed by (sourceType,
+// sourceID). Get returns (_, false, nil) on a clean miss; the error channel
+// is reserved for transport/encoding failures. Implementations must be safe
+// for concurrent use.
+type EmbeddingStore interface {
+	Get(ctx context.Context, sourceType EmbeddingSourceType, sourceID string) (StoredEmbedding, bool, error)
+	Upsert(ctx context.Context, embedding StoredEmbedding) error
+}
+
+type noopEmbeddingStore struct{}
+
+func (noopEmbeddingStore) Get(context.Context, EmbeddingSourceType, string) (StoredEmbedding, bool, error) {
+	return StoredEmbedding{}, false, nil
+}
+
+func (noopEmbeddingStore) Upsert(context.Context, StoredEmbedding) error { return nil }
+
 type JobServiceClient interface {
 	ListRecentPublicOpenJobs(ctx context.Context, pageSize int32) ([]domain.JobData, error)
 	SearchPublicOpenJobsBySkill(ctx context.Context, skill string, pageSize int32) ([]domain.JobData, error)

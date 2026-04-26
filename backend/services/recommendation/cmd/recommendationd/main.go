@@ -22,6 +22,7 @@ import (
 	"jobconnect/recommendation/internal/config"
 	"jobconnect/recommendation/internal/infrastructure/cache"
 	embedderpython "jobconnect/recommendation/internal/infrastructure/embedder/python"
+	embeddingstorememory "jobconnect/recommendation/internal/infrastructure/embeddingstore/memory"
 	"jobconnect/recommendation/internal/infrastructure/jobgrpc"
 	"jobconnect/recommendation/internal/infrastructure/metrics"
 	"jobconnect/recommendation/internal/infrastructure/reviewgrpc"
@@ -67,6 +68,8 @@ func main() {
 	embedder, closeEmbedder := buildEmbedder(ctx, cfg)
 	defer closeEmbedder()
 
+	embeddingStore := buildEmbeddingStore(cfg)
+
 	app := application.NewRecommendationService(
 		jobgrpc.NewClient(jobConn),
 		usergrpc.NewClient(userConn),
@@ -74,6 +77,7 @@ func main() {
 		recommendationCache,
 		recorder,
 		embedder,
+		embeddingStore,
 		application.ServiceConfig{
 			DefaultLimit:      cfg.DefaultRecommendationLimit,
 			MaxLimit:          cfg.MaxRecommendationLimit,
@@ -138,6 +142,17 @@ func buildRecommendationCache(cfg config.Config, recorder cache.MetricsRecorder)
 	default:
 		log.Printf("recommendation cache backend: memory ttl=%s", cfg.RecommendationCacheTTL)
 		return cache.NewMemoryCache(cfg.RecommendationCacheTTL), func() {}
+	}
+}
+
+func buildEmbeddingStore(cfg config.Config) application.EmbeddingStore {
+	switch cfg.EmbeddingStoreBackend {
+	case "memory":
+		log.Printf("recommendation embedding store backend: memory")
+		return embeddingstorememory.New()
+	default:
+		log.Printf("recommendation embedding store backend: noop (lazy embedding disabled)")
+		return nil
 	}
 }
 

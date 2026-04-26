@@ -32,6 +32,7 @@ type Config struct {
 	EmbedderBatchSize           int
 	EmbedderOperationTimeout    time.Duration
 	EmbedderStartupTimeout      time.Duration
+	EmbeddingStoreBackend       string
 }
 
 func LoadFromEnv() (Config, error) {
@@ -59,6 +60,7 @@ func LoadFromEnv() (Config, error) {
 		EmbedderBatchSize:           getIntEnv("RECOMMENDATION_EMBEDDER_BATCH_SIZE", 32),
 		EmbedderOperationTimeout:    getDurationEnv("RECOMMENDATION_EMBEDDER_TIMEOUT", 5*time.Second),
 		EmbedderStartupTimeout:      getDurationEnv("RECOMMENDATION_EMBEDDER_STARTUP_TIMEOUT", 30*time.Second),
+		EmbeddingStoreBackend:       strings.ToLower(getEnv("RECOMMENDATION_EMBEDDING_STORE_BACKEND", "memory")),
 	}
 
 	if cfg.DefaultRecommendationLimit <= 0 {
@@ -107,6 +109,9 @@ func LoadFromEnv() (Config, error) {
 	}
 	if cfg.EmbedderStartupTimeout <= 0 {
 		return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDER_STARTUP_TIMEOUT must be greater than zero")
+	}
+	if cfg.EmbeddingStoreBackend != "memory" && cfg.EmbeddingStoreBackend != "noop" {
+		return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDING_STORE_BACKEND must be memory or noop")
 	}
 
 	return cfg, nil

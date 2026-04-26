@@ -39,13 +39,14 @@ type ServiceConfig struct {
 }
 
 type RecommendationService struct {
-	jobClient    JobServiceClient
-	userClient   UserServiceClient
-	reviewClient ReviewServiceClient
-	cache        RecommendationCache
-	metrics      MetricsRecorder
-	embedder     Embedder
-	cfg          ServiceConfig
+	jobClient      JobServiceClient
+	userClient     UserServiceClient
+	reviewClient   ReviewServiceClient
+	cache          RecommendationCache
+	metrics        MetricsRecorder
+	embedder       Embedder
+	embeddingStore EmbeddingStore
+	cfg            ServiceConfig
 }
 
 type scoredJobRecommendation struct {
@@ -68,6 +69,7 @@ func NewRecommendationService(
 	cache RecommendationCache,
 	metrics MetricsRecorder,
 	embedder Embedder,
+	embeddingStore EmbeddingStore,
 	cfg ServiceConfig,
 ) *RecommendationService {
 	if cfg.DefaultLimit <= 0 {
@@ -91,15 +93,19 @@ func NewRecommendationService(
 	if embedder == nil {
 		embedder = noopEmbedder{}
 	}
+	if embeddingStore == nil {
+		embeddingStore = noopEmbeddingStore{}
+	}
 
 	return &RecommendationService{
-		jobClient:    jobClient,
-		userClient:   userClient,
-		reviewClient: reviewClient,
-		cache:        cache,
-		metrics:      metrics,
-		embedder:     embedder,
-		cfg:          cfg,
+		jobClient:      jobClient,
+		userClient:     userClient,
+		reviewClient:   reviewClient,
+		cache:          cache,
+		metrics:        metrics,
+		embedder:       embedder,
+		embeddingStore: embeddingStore,
+		cfg:            cfg,
 	}
 }
 
