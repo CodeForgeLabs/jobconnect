@@ -34,6 +34,13 @@ type CreateJobOutput struct {
 
 func (uc *CreateJob) Execute(ctx context.Context, in CreateJobInput) (CreateJobOutput, error) {
 	now := uc.Clock.Now()
+	visibility, err := domain.ValidateVisibility(in.Visibility)
+	if err != nil {
+		return CreateJobOutput{}, err
+	}
+	if visibility == "" {
+		visibility = domain.VisibilityPublic
+	}
 	job := domain.Job{
 		ClientID:       in.ClientID,
 		Title:          strings.TrimSpace(in.Title),
@@ -42,7 +49,6 @@ func (uc *CreateJob) Execute(ctx context.Context, in CreateJobInput) (CreateJobO
 		JobType:        strings.ToLower(strings.TrimSpace(in.JobType)),
 		BudgetFixed:    in.BudgetFixed,
 		HourlyRate:     in.HourlyRate,
-		Visibility:     domain.VisibilityPublic,
 		Attachments:    in.Attachments,
 		Status:         domain.JobStatusOpen,
 		CreatedAt:      now,

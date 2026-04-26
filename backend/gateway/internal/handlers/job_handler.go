@@ -66,6 +66,11 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 }
 
 func (h *JobHandler) ListMyJobs(c *gin.Context) {
+	statusEnum, ok := mapJobStatusQuery(c.Query("status"))
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+		return
+	}
 	resp, err := h.client.ListMyJobs(c.Request.Context(), &jobv1.ListMyJobsRequest{
 		StatusEnum: mapJobStatus(strings.TrimSpace(c.Query("status"))),
 		PageSize:   int32(parseIntQuery(c, "page_size", 20)),
@@ -84,12 +89,17 @@ func (h *JobHandler) ListMyJobs(c *gin.Context) {
 }
 
 func (h *JobHandler) ListOpenJobs(c *gin.Context) {
+	jobTypeEnum, ok := mapJobTypeQuery(c.Query("job_type"))
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid job_type"})
+		return
+	}
 	resp, err := h.client.ListOpenJobs(c.Request.Context(), &jobv1.ListOpenJobsRequest{
 		PageSize:    int32(parseIntQuery(c, "page_size", 20)),
 		PageToken:   strings.TrimSpace(c.Query("page_token")),
 		SearchQuery: strings.TrimSpace(c.Query("query")),
 		Skills:      c.QueryArray("skills"),
-		JobTypeEnum: mapJobType(strings.TrimSpace(c.Query("job_type"))),
+		JobTypeEnum: jobTypeEnum,
 	})
 	if err != nil {
 		writeGRPCError(c, err)
@@ -135,7 +145,12 @@ func (h *JobHandler) SetJobVisibility(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	resp, err := h.client.SetJobVisibility(c.Request.Context(), &jobv1.SetJobVisibilityRequest{JobId: jobID, Visibility: mapVisibility(body.Visibility)})
+	visibility, ok := mapVisibilityBody(body.Visibility)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid visibility"})
+		return
+	}
+	resp, err := h.client.SetJobVisibility(c.Request.Context(), &jobv1.SetJobVisibilityRequest{JobId: jobID, Visibility: visibility})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -215,7 +230,12 @@ func (h *JobHandler) CloseJob(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	resp, err := h.client.CloseJob(c.Request.Context(), &jobv1.CloseJobRequest{JobId: jobID, ReasonEnum: mapCloseReason(body.Reason)})
+	reasonEnum, ok := mapCloseReasonBody(body.Reason)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid reason"})
+		return
+	}
+	resp, err := h.client.CloseJob(c.Request.Context(), &jobv1.CloseJobRequest{JobId: jobID, ReasonEnum: reasonEnum})
 	if err != nil {
 		writeGRPCError(c, err)
 		return
@@ -548,53 +568,63 @@ func parseInt64Param(c *gin.Context, key string) (int64, bool) {
 	return n, true
 }
 
-func mapVisibility(in string) jobv1.Visibility {
+func mapVisibilityBody(in string) (jobv1.Visibility, bool) {
 	switch strings.ToLower(strings.TrimSpace(in)) {
+	case "":
+		return jobv1.Visibility_VISIBILITY_UNSPECIFIED, true
+	case "public":
+		return jobv1.Visibility_VISIBILITY_PUBLIC, true
 	case "private":
-		return jobv1.Visibility_VISIBILITY_PRIVATE
+		return jobv1.Visibility_VISIBILITY_PRIVATE, true
 	case "invite_only":
-		return jobv1.Visibility_VISIBILITY_INVITE_ONLY
+		return jobv1.Visibility_VISIBILITY_INVITE_ONLY, true
 	default:
-		return jobv1.Visibility_VISIBILITY_PUBLIC
+		return jobv1.Visibility_VISIBILITY_UNSPECIFIED, false
 	}
 }
 
-func mapJobType(in string) jobv1.JobType {
+func mapJobStatusQuery(in string) (jobv1.JobStatus, bool) {
 	switch strings.ToLower(strings.TrimSpace(in)) {
-	case "hourly":
-		return jobv1.JobType_JOB_TYPE_HOURLY
-	case "fixed":
-		return jobv1.JobType_JOB_TYPE_FIXED
-	default:
-		return jobv1.JobType_JOB_TYPE_UNSPECIFIED
-	}
-}
-
-func mapJobStatus(in string) jobv1.JobStatus {
-	switch strings.ToLower(strings.TrimSpace(in)) {
+	case "":
+		return jobv1.JobStatus_JOB_STATUS_UNSPECIFIED, true
 	case "open":
-		return jobv1.JobStatus_JOB_STATUS_OPEN
+		return jobv1.JobStatus_JOB_STATUS_OPEN, true
 	case "paused":
-		return jobv1.JobStatus_JOB_STATUS_PAUSED
+		return jobv1.JobStatus_JOB_STATUS_PAUSED, true
 	case "filled":
-		return jobv1.JobStatus_JOB_STATUS_FILLED
+		return jobv1.JobStatus_JOB_STATUS_FILLED, true
 	case "closed":
-		return jobv1.JobStatus_JOB_STATUS_CLOSED
+		return jobv1.JobStatus_JOB_STATUS_CLOSED, true
 	case "completed":
-		return jobv1.JobStatus_JOB_STATUS_COMPLETED
+		return jobv1.JobStatus_JOB_STATUS_COMPLETED, true
 	case "canceled":
-		return jobv1.JobStatus_JOB_STATUS_CANCELED
+		return jobv1.JobStatus_JOB_STATUS_CANCELED, true
 	default:
-		return jobv1.JobStatus_JOB_STATUS_UNSPECIFIED
+		return jobv1.JobStatus_JOB_STATUS_UNSPECIFIED, false
 	}
 }
 
-func mapCloseReason(in string) jobv1.CloseReason {
+func mapJobTypeQuery(in string) (jobv1.JobType, bool) {
 	switch strings.ToLower(strings.TrimSpace(in)) {
-	case "canceled":
-		return jobv1.CloseReason_CLOSE_REASON_CANCELED
+	case "":
+		return jobv1.JobType_JOB_TYPE_UNSPECIFIED, true
+	case "fixed":
+		return jobv1.JobType_JOB_TYPE_FIXED, true
+	case "hourly":
+		return jobv1.JobType_JOB_TYPE_HOURLY, true
 	default:
-		return jobv1.CloseReason_CLOSE_REASON_UNSPECIFIED
+		return jobv1.JobType_JOB_TYPE_UNSPECIFIED, false
+	}
+}
+
+func mapCloseReasonBody(in string) (jobv1.CloseReason, bool) {
+	switch strings.ToLower(strings.TrimSpace(in)) {
+	case "":
+		return jobv1.CloseReason_CLOSE_REASON_UNSPECIFIED, true
+	case "canceled":
+		return jobv1.CloseReason_CLOSE_REASON_CANCELED, true
+	default:
+		return jobv1.CloseReason_CLOSE_REASON_UNSPECIFIED, false
 	}
 }
 

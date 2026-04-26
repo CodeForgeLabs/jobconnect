@@ -160,6 +160,15 @@ func (s *JobServer) CreateJob(ctx context.Context, req *jobv1.CreateJobRequest) 
 		return nil, status.Error(codes.InvalidArgument, mapErr.Error())
 	}
 
+	var visibility string
+	if req.Visibility != nil {
+		v, vErr := visibilityFromEnum(*req.Visibility)
+		if vErr != nil {
+			return nil, vErr
+		}
+		visibility = v
+	}
+
 	out, err := s.CreateJobUC.Execute(ctx, application.CreateJobInput{
 		ClientID:       callerID,
 		Title:          req.Title,

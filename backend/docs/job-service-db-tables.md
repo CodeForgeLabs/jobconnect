@@ -56,8 +56,6 @@
 - `job_invites` via `job_id`
 - `saved_jobs` via `job_id`
 
-> **Note:** `experience_level` column exists in the DB from `0003_job_enrichment` but has been removed from the proto. The column is inert — a future migration should drop it and its check constraint.
-
 ---
 
 ## Attachments
@@ -128,9 +126,4 @@
 
 ## Pending migrations
 
-The following schema changes are needed to align the DB with the current proto:
-
-| Change | Reason |
-|---|---|
-| Add `completed` and `canceled` to `jobs_status_check` constraint | `JOB_STATUS_COMPLETED` and `JOB_STATUS_CANCELED` added to proto |
-| Drop `experience_level` column and its check constraint from `jobs` | `ExperienceLevel` removed from proto |
+All proto-driven schema changes are resolved by migration `0006_status_and_experience_cleanup`, which expands `jobs_status_check` to include `completed` and `canceled` and drops the legacy `experience_level` column and its check constraint.

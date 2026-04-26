@@ -409,6 +409,59 @@ func TestCreateJob_Execute_HappyPath(t *testing.T) {
 	}
 }
 
+func TestCreateJob_Execute_ExplicitPrivateVisibilityIsPreserved(t *testing.T) {
+	now := time.Date(2026, time.April, 9, 12, 0, 0, 0, time.UTC)
+	deadline := now.Add(24 * time.Hour).Unix()
+	clientID := uuid.New()
+	repo := &fakeJobRepo{
+		createID:   1,
+		getByIDJob: domain.Job{ID: 1, ClientID: clientID, Status: domain.JobStatusOpen},
+	}
+
+	uc := &CreateJob{Jobs: repo, Clock: fixedClock{now: now}}
+	_, err := uc.Execute(context.Background(), CreateJobInput{
+		ClientID:    clientID,
+		Title:       "Build API",
+		Description: "Integrate billing",
+		JobType:     domain.JobTypeFixed,
+		BudgetFixed: 500,
+		Currency:    "USD",
+		Visibility:  domain.VisibilityPrivate,
+		Deadline:    &deadline,
+	})
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+	if repo.lastCreateJob.Visibility != domain.VisibilityPrivate {
+		t.Fatalf("expected private visibility, got %q", repo.lastCreateJob.Visibility)
+	}
+}
+
+func TestCreateJob_Execute_InvalidVisibilityFails(t *testing.T) {
+	now := time.Date(2026, time.April, 9, 12, 0, 0, 0, time.UTC)
+	deadline := now.Add(24 * time.Hour).Unix()
+	clientID := uuid.New()
+	repo := &fakeJobRepo{}
+
+	uc := &CreateJob{Jobs: repo, Clock: fixedClock{now: now}}
+	_, err := uc.Execute(context.Background(), CreateJobInput{
+		ClientID:    clientID,
+		Title:       "Build API",
+		Description: "Integrate billing",
+		JobType:     domain.JobTypeFixed,
+		BudgetFixed: 500,
+		Currency:    "USD",
+		Visibility:  "weird",
+		Deadline:    &deadline,
+	})
+	if err == nil {
+		t.Fatal("expected validation error for invalid visibility")
+	}
+	if repo.lastCreateJob.ClientID != uuid.Nil {
+		t.Fatal("expected repo not to be called on visibility validation failure")
+	}
+}
+
 func TestCreateJob_Execute_ValidationError(t *testing.T) {
 	repo := &fakeJobRepo{}
 	uc := &CreateJob{Jobs: repo, Clock: fixedClock{now: time.Now().UTC()}}
