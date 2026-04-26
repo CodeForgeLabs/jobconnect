@@ -12,6 +12,7 @@ const (
 	StatusSent        = "sent"
 	StatusShortlisted = "shortlisted"
 	StatusRejected    = "rejected"
+	StatusOfferSent   = "offer_sent"
 	StatusHired       = "hired"
 	StatusWithdrawn   = "withdrawn"
 
@@ -52,6 +53,7 @@ type Proposal struct {
 	UpdatedAt     time.Time
 	ShortlistedAt *time.Time
 	RejectedAt    *time.Time
+	OfferSentAt   *time.Time
 	HiredAt       *time.Time
 	WithdrawnAt   *time.Time
 
@@ -71,7 +73,7 @@ func ValidateBidType(v string) error {
 func ValidateStatus(v string) error {
 	s := strings.ToLower(strings.TrimSpace(v))
 	switch s {
-	case StatusSent, StatusShortlisted, StatusRejected, StatusHired, StatusWithdrawn:
+	case StatusSent, StatusShortlisted, StatusRejected, StatusOfferSent, StatusHired, StatusWithdrawn:
 		return nil
 	default:
 		return fmt.Errorf("invalid status")
@@ -170,9 +172,11 @@ func CanTransition(currentStatus, nextStatus string) bool {
 
 	switch current {
 	case StatusSent:
-		return next == StatusShortlisted || next == StatusRejected || next == StatusHired || next == StatusWithdrawn
+		return next == StatusShortlisted || next == StatusRejected || next == StatusOfferSent || next == StatusHired || next == StatusWithdrawn
 	case StatusShortlisted:
-		return next == StatusRejected || next == StatusHired || next == StatusWithdrawn
+		return next == StatusRejected || next == StatusOfferSent || next == StatusHired || next == StatusWithdrawn
+	case StatusOfferSent:
+		return next == StatusHired
 	default:
 		return false
 	}

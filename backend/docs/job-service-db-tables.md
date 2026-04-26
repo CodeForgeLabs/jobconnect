@@ -20,7 +20,6 @@
 - `job_type` (TEXT, NOT NULL) — check: `fixed` | `hourly`
 - `budget_fixed` (DOUBLE PRECISION, NOT NULL, default 0)
 - `hourly_rate` (DOUBLE PRECISION, NOT NULL, default 0)
-- `currency` (VARCHAR(8), NOT NULL, default `USD`)
 - `deadline` (TIMESTAMPTZ, NULL)
 - `budget_min` (DOUBLE PRECISION, NOT NULL, default 0) — optional range set via `SetJobBudgetRange`
 - `budget_max` (DOUBLE PRECISION, NOT NULL, default 0) — optional range set via `SetJobBudgetRange`

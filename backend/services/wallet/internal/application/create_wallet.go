@@ -14,8 +14,7 @@ type CreateWallet struct {
 }
 
 type CreateWalletInput struct {
-	OwnerID  uuid.UUID
-	Currency string
+	OwnerID uuid.UUID
 }
 
 type CreateWalletOutput struct {
@@ -26,10 +25,10 @@ func (uc *CreateWallet) Execute(ctx context.Context, in CreateWalletInput) (Crea
 	if uc.Wallets == nil {
 		return CreateWalletOutput{}, fmt.Errorf("wallet dependencies are not configured")
 	}
-	if err := domain.ValidateWalletCreate(in.OwnerID, in.Currency); err != nil {
+	if err := domain.ValidateWalletCreate(in.OwnerID); err != nil {
 		return CreateWalletOutput{}, err
 	}
-	w, err := uc.Wallets.CreateWallet(ctx, in.OwnerID, domain.NormalizeCurrency(in.Currency))
+	w, err := uc.Wallets.CreateWallet(ctx, in.OwnerID)
 	if err != nil {
 		return CreateWalletOutput{}, err
 	}

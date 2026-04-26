@@ -15,6 +15,7 @@ import (
 )
 
 const chapaBaseURL = "https://api.chapa.co/v1"
+const paymentCurrency = "ETB"
 
 type ChapaGateway struct {
 	secretKey  string
@@ -33,15 +34,13 @@ var _ application.PaymentGateway = (*ChapaGateway)(nil)
 
 func (g *ChapaGateway) InitiateCheckout(ctx context.Context, in application.CheckoutInput) (application.CheckoutResult, error) {
 	url := fmt.Sprintf("%s/transaction/initialize", chapaBaseURL)
-	
-	// Convert AmountMinor to major currency (e.g. 100 ETB cents = 1 ETB)
-	// We assume AmountMinor is in the smallest unit. Chapa expects major unit for amount?
-	// Actually, typically if it's ETB, you pass the full amount in ETB. Let's assume minor is cents, so /100.
+
+	// Convert AmountMinor to major currency (ETB minor units to provider major units).
 	amountMajor := float64(in.AmountMinor) / 100.0
 
 	payload := map[string]interface{}{
 		"amount":       amountMajor,
-		"currency":     in.Currency,
+		"currency":     paymentCurrency,
 		"email":        in.Email,
 		"first_name":   in.FirstName,
 		"last_name":    in.LastName,
@@ -137,7 +136,6 @@ func (g *ChapaGateway) VerifyPayment(ctx context.Context, externalRef string) (a
 	return application.VerifyResult{
 		Verified:    isVerified,
 		AmountMinor: amountMinor,
-		Currency:    result.Data.Currency,
 		ExternalRef: result.Data.TxRef,
 	}, nil
 }
@@ -150,7 +148,7 @@ func (g *ChapaGateway) InitiateTransfer(ctx context.Context, in application.Tran
 		"account_name":   in.AccountHolderName,
 		"account_number": in.AccountNumber,
 		"amount":         amountMajor,
-		"currency":       in.Currency,
+		"currency":       paymentCurrency,
 		"reference":      in.TxRef,
 		"bank_code":      in.BankCode,
 	}

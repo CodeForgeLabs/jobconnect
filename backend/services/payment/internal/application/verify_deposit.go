@@ -3,6 +3,8 @@ package application
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"jobconnect/payment/internal/domain"
 )
@@ -80,9 +82,68 @@ func (uc *VerifyDeposit) Execute(ctx context.Context, sessionID int64) (domain.P
 			return session, fmt.Errorf("wallet hold: %w", err)
 		}
 
-		// 3. Notify the contract service.
-		if err := uc.Contract.UpdateMilestoneStatus(ctx, 0, 0, "FUNDED"); err != nil {
-			return session, fmt.Errorf("contract update: %w", err)
+		if strings.TrimSpace(session.ReferenceID) == "" || !strings.Contains(session.ReferenceID, ":") {
+			return session, fmt.Errorf("milestone reference_id must be <contract_id>:<milestone_id>")
+		}
+		parts := strings.SplitN(session.ReferenceID, ":", 2)
+		contractID, parseContractErr := strconv.ParseInt(strings.TrimSpace(parts[0]), 10, 64)
+		milestoneID, parseMilestoneErr := strconv.ParseInt(strings.TrimSpace(parts[1]), 10, 64)
+		if parseContractErr != nil || parseMilestoneErr != nil || contractID <= 0 || milestoneID <= 0 {
+			return session, fmt.Errorf("milestone reference_id must be <contract_id>:<milestone_id>")
+		}
+		if uc.Contract != nil {
+			if err := uc.Contract.MarkMilestoneFunded(ctx, contractID, milestoneID); err != nil {
+				return session, err
+			}
+		}
+	}
+	if session.ReferenceType == "contract_bonus" {
+		bonusID, parseErr := strconv.ParseInt(strings.TrimSpace(session.ReferenceID), 10, 64)
+		if parseErr != nil || bonusID <= 0 {
+			return session, fmt.Errorf("contract_bonus reference_id must be <bonus_id>")
+		}
+		if uc.Contract != nil {
+			paymentReferenceID := strings.TrimSpace(session.ExternalRef)
+			if paymentReferenceID == "" {
+				paymentReferenceID = fmt.Sprintf("payment_session:%d", session.ID)
+			}
+			if err := uc.Contract.MarkContractBonusPaid(ctx, bonusID, paymentReferenceID); err != nil {
+				return session, err
+			}
+		}
+	}
+	if session.ReferenceType == "hourly_week_close" {
+		if strings.TrimSpace(session.ReferenceID) == "" {
+			return session, fmt.Errorf("hourly_week_close reference_id must be <contract_id> or <contract_id>:<week_start_unix_seconds>")
+		}
+		parts := strings.SplitN(session.ReferenceID, ":", 2)
+		contractID, parseContractErr := strconv.ParseInt(strings.TrimSpace(parts[0]), 10, 64)
+		if parseContractErr != nil || contractID <= 0 {
+			return session, fmt.Errorf("hourly_week_close reference_id must be <contract_id> or <contract_id>:<week_start_unix_seconds>")
+		}
+		var weekStartUnixSeconds int64
+		if len(parts) == 2 && strings.TrimSpace(parts[1]) != "" {
+			parsed, parseWeekErr := strconv.ParseInt(strings.TrimSpace(parts[1]), 10, 64)
+			if parseWeekErr != nil || parsed <= 0 {
+				return session, fmt.Errorf("hourly_week_close reference_id must be <contract_id> or <contract_id>:<week_start_unix_seconds>")
+			}
+			weekStartUnixSeconds = parsed
+		}
+		if uc.Contract != nil {
+			if err := uc.Contract.CloseHourlyWeek(ctx, contractID, weekStartUnixSeconds); err != nil {
+				return session, err
+			}
+		}
+	}
+	if session.ReferenceType == "hourly_invoice_settlement" {
+		invoiceID, parseErr := strconv.ParseInt(strings.TrimSpace(session.ReferenceID), 10, 64)
+		if parseErr != nil || invoiceID <= 0 {
+			return session, fmt.Errorf("hourly_invoice_settlement reference_id must be <invoice_id>")
+		}
+		if uc.Contract != nil {
+			if err := uc.Contract.SettleHourlyInvoice(ctx, invoiceID); err != nil {
+				return session, err
+			}
 		}
 	}
 

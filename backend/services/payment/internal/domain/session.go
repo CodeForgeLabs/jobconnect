@@ -11,8 +11,6 @@ import (
 // Constants
 // ──────────────────────────────────────────────
 
-const DefaultCurrency = "ETB"
-
 // Provider constants.
 const (
 	ProviderChapa    = "chapa"
@@ -42,22 +40,21 @@ const SessionTimeout = 30 * time.Minute
 
 // PaymentSession tracks a single deposit or withdrawal attempt.
 type PaymentSession struct {
-	ID              int64
-	UserID          uuid.UUID
-	Provider        string // "chapa" | "telebirr"
-	PaymentType     string // "deposit" | "withdrawal"
-	Status          string // "pending" | "completed" | "failed" | "refunded"
-	AmountMinor     int64
-	Currency        string
-	IdempotencyKey  string
-	ExternalRef     string // checkout URL or tx reference from gateway
-	ReceiptKey      string // MinIO object key for uploaded receipt
-	ReferenceType   string // "milestone", "topup", etc.
-	ReferenceID     string // e.g. milestone ID
-	ErrorMessage    string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	CompletedAt     *time.Time
+	ID             int64
+	UserID         uuid.UUID
+	Provider       string // "chapa" | "telebirr"
+	PaymentType    string // "deposit" | "withdrawal"
+	Status         string // "pending" | "completed" | "failed" | "refunded"
+	AmountMinor    int64
+	IdempotencyKey string
+	ExternalRef    string // checkout URL or tx reference from gateway
+	ReceiptKey     string // MinIO object key for uploaded receipt
+	ReferenceType  string // "milestone", "topup", etc.
+	ReferenceID    string // e.g. milestone ID
+	ErrorMessage   string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	CompletedAt    *time.Time
 }
 
 // ──────────────────────────────────────────────

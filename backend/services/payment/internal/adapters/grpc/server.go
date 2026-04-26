@@ -3,10 +3,11 @@ package grpc
 import (
 	"context"
 
-	"github.com/google/uuid"
 	paymentv1 "jobconnect/payment/gen/payment/v1"
 	"jobconnect/payment/internal/application"
 	"jobconnect/payment/internal/domain"
+
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -45,13 +46,12 @@ func (s *Server) InitiateDeposit(ctx context.Context, req *paymentv1.InitiateDep
 	userId := uuid.Nil
 
 	res, checkoutURL, err := s.initiateDeposit.Execute(ctx, application.InitiateDepositInput{
-		UserID:      userId,
-		Provider:    req.Provider.String(),
-		AmountMinor: req.AmountMinor,
-		Currency:    req.Currency,
-		ReferenceID: req.ReferenceId,
+		UserID:        userId,
+		Provider:      req.Provider.String(),
+		AmountMinor:   req.AmountMinor,
+		ReferenceID:   req.ReferenceId,
 		ReferenceType: req.ReferenceType,
-		ReturnURL:   req.ReturnUrl,
+		ReturnURL:     req.ReturnUrl,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to initiate deposit: %v", err)
@@ -81,7 +81,6 @@ func (s *Server) RequestWithdrawal(ctx context.Context, req *paymentv1.RequestWi
 		UserID:            userId,
 		Provider:          req.Provider.String(),
 		AmountMinor:       req.AmountMinor,
-		Currency:          req.Currency,
 		BankCode:          req.BankCode,
 		AccountNumber:     req.AccountNumber,
 		AccountHolderName: req.AccountHolderName,
@@ -173,7 +172,7 @@ func mapToProtoSession(s domain.PaymentSession) *paymentv1.PaymentSession {
 	var protoProvider paymentv1.PaymentProvider
 	if s.Provider == "CHAPA" || s.Provider == "PAYMENT_PROVIDER_CHAPA" {
 		protoProvider = paymentv1.PaymentProvider_PAYMENT_PROVIDER_CHAPA
-	} else if s.Provider == "TELEBIRR" || s.Provider == "PAYMENT_PROVIDER_TELEBIRR"{
+	} else if s.Provider == "TELEBIRR" || s.Provider == "PAYMENT_PROVIDER_TELEBIRR" {
 		protoProvider = paymentv1.PaymentProvider_PAYMENT_PROVIDER_TELEBIRR
 	} else {
 		protoProvider = paymentv1.PaymentProvider_PAYMENT_PROVIDER_UNSPECIFIED
@@ -200,19 +199,18 @@ func mapToProtoSession(s domain.PaymentSession) *paymentv1.PaymentSession {
 	}
 
 	return &paymentv1.PaymentSession{
-		Id:                 s.ID,
-		UserId:             s.UserID.String(),
-		Provider:           protoProvider,
-		PaymentType:        protoType,
-		Status:             protoStatus,
-		AmountMinor:        s.AmountMinor,
-		Currency:           s.Currency,
-		IdempotencyKey:     s.IdempotencyKey,
-		ExternalRef:        s.ExternalRef,
-		ReceiptStorageKey:  s.ReceiptKey,
-		ReferenceType:      s.ReferenceType,
-		ReferenceId:        s.ReferenceID,
-		ErrorMessage:       s.ErrorMessage,
+		Id:                   s.ID,
+		UserId:               s.UserID.String(),
+		Provider:             protoProvider,
+		PaymentType:          protoType,
+		Status:               protoStatus,
+		AmountMinor:          s.AmountMinor,
+		IdempotencyKey:       s.IdempotencyKey,
+		ExternalRef:          s.ExternalRef,
+		ReceiptStorageKey:    s.ReceiptKey,
+		ReferenceType:        s.ReferenceType,
+		ReferenceId:          s.ReferenceID,
+		ErrorMessage:         s.ErrorMessage,
 		CreatedAtUnixSeconds: s.CreatedAt.Unix(),
 		UpdatedAtUnixSeconds: s.UpdatedAt.Unix(),
 	}

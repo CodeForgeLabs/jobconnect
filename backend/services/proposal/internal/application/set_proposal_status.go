@@ -38,7 +38,7 @@ func (uc *SetProposalStatus) Execute(ctx context.Context, in SetProposalStatusIn
 	}
 
 	nextStatus := strings.ToLower(strings.TrimSpace(in.Status))
-	if nextStatus == domain.StatusWithdrawn || nextStatus == domain.StatusSent || nextStatus == domain.StatusHired {
+	if nextStatus == domain.StatusWithdrawn || nextStatus == domain.StatusSent || nextStatus == domain.StatusOfferSent || nextStatus == domain.StatusHired {
 		return SetProposalStatusOutput{}, fmt.Errorf("invalid target status")
 	}
 	if err := domain.ValidateStatus(nextStatus); err != nil {

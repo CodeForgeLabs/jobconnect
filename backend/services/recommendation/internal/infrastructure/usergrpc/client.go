@@ -3,6 +3,7 @@ package usergrpc
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -38,6 +39,44 @@ func (c *Client) GetFreelancer(ctx context.Context, userID string) (domain.UserD
 		Rating:       freelancer.GetMetrics().GetRating(),
 		CanApplyJobs: resp.GetProfile().GetCapabilities().GetCanApplyJobs(),
 	}, nil
+}
+
+func (c *Client) ListDiscoverableFreelancers(ctx context.Context, skills []string, pageSize int32) ([]domain.FreelancerData, error) {
+	req := &userv1.ListDiscoverableFreelancersRequest{
+		PageSize: uint32(pageSize),
+	}
+	if len(skills) > 0 {
+		req.Skills = append([]string(nil), skills...)
+	}
+
+	resp, err := c.grpcClient.ListDiscoverableFreelancers(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]domain.FreelancerData, 0, len(resp.GetFreelancers()))
+	for _, card := range resp.GetFreelancers() {
+		if card == nil {
+			continue
+		}
+		data := domain.FreelancerData{
+			ID:           card.GetUserId(),
+			Headline:     card.GetHeadline(),
+			Bio:          card.GetBio(),
+			Skills:       append([]string(nil), card.GetSkills()...),
+			HourlyRate:   card.GetHourlyRate(),
+			Availability: card.GetAvailability().String(),
+			Rating:       card.GetRating(),
+			TotalReviews: card.GetTotalReviews(),
+			Location:     card.GetLocation(),
+		}
+		if card.LastActiveAtUnix != nil {
+			t := time.Unix(*card.LastActiveAtUnix, 0).UTC()
+			data.LastActiveAt = &t
+		}
+		out = append(out, data)
+	}
+	return out, nil
 }
 
 func (c *Client) GetWorkPreferences(ctx context.Context, userID string) (domain.WorkPreferences, error) {

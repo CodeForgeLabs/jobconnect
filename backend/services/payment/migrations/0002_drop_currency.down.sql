@@ -1,0 +1,2 @@
+ALTER TABLE payment_sessions
+    ADD COLUMN IF NOT EXISTS currency VARCHAR(8) NOT NULL DEFAULT 'ETB';

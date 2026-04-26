@@ -19,7 +19,9 @@ service ProposalService {
   rpc GetProposalAttachmentUploadUrl(GetProposalAttachmentUploadUrlRequest) returns (GetProposalAttachmentUploadUrlResponse);
   rpc GetProposalAttachmentDownloadUrl(GetProposalAttachmentDownloadUrlRequest) returns (GetProposalAttachmentDownloadUrlResponse);
   rpc SetProposalStatus(SetProposalStatusRequest) returns (SetProposalStatusResponse);
+  rpc InternalMarkProposalOfferSent(InternalMarkProposalOfferSentRequest) returns (InternalMarkProposalOfferSentResponse);
   rpc InternalHireProposal(InternalHireProposalRequest) returns (InternalHireProposalResponse);
+  rpc InternalReleaseHiredProposal(InternalReleaseHiredProposalRequest) returns (InternalReleaseHiredProposalResponse);
 }
 
 enum ProposalStatus {
@@ -29,6 +31,7 @@ enum ProposalStatus {
   PROPOSAL_STATUS_REJECTED = 3;
   PROPOSAL_STATUS_HIRED = 4;
   PROPOSAL_STATUS_WITHDRAWN = 5;
+  PROPOSAL_STATUS_OFFER_SENT = 6;
 }
 
 enum SortBy {
@@ -73,6 +76,7 @@ message Proposal {
   int64 hired_at_unix_seconds = 16;
   int64 withdrawn_at_unix_seconds = 17;
   int32 connects_spent = 18;
+  int64 offer_sent_at_unix_seconds = 19;
 }
 
 message SubmitProposalRequest {
@@ -200,6 +204,16 @@ message CountClientProposalInboxResponse {
   repeated ProposalStatusCount by_status = 2;
 }
 
+message InternalMarkProposalOfferSentRequest {
+  int64 proposal_id = 1;
+  string client_id = 2;
+  string note = 3;
+}
+
+message InternalMarkProposalOfferSentResponse {
+  Proposal proposal = 1;
+}
+
 message InternalHireProposalRequest {
   int64 proposal_id = 1;
   string client_id = 2;
@@ -210,6 +224,16 @@ message InternalHireProposalRequest {
 message InternalHireProposalResponse {
   Proposal proposal = 1;
   bool reused_idempotent_result = 2;
+}
+
+message InternalReleaseHiredProposalRequest {
+  int64 proposal_id = 1;
+  string client_id = 2;
+  string reason = 3;
+}
+
+message InternalReleaseHiredProposalResponse {
+  Proposal proposal = 1;
 }
 
 message GetProposalAttachmentUploadUrlRequest {

@@ -14,6 +14,11 @@ type FreelancerRecommendation struct {
 	MatchReason string
 }
 
+type RatingSummary struct {
+	AverageRating float64
+	TotalReviews  int64
+}
+
 type JobData struct {
 	ID             int64
 	ClientID       string
@@ -37,6 +42,20 @@ type UserData struct {
 	Availability string
 	Rating       float64
 	CanApplyJobs bool
+}
+
+// FreelancerData is the candidate pool for freelancer recommendations.
+type FreelancerData struct {
+	ID           string
+	Headline     string
+	Bio          string
+	Skills       []string
+	HourlyRate   float64
+	Availability string
+	Rating       float64
+	TotalReviews uint32
+	Location     string
+	LastActiveAt *time.Time
 }
 
 type WorkPreferences struct {

@@ -69,6 +69,31 @@ type FreelancerNote struct {
 	UpdatedAt        time.Time
 }
 
+// DiscoverableFreelancer is a public freelancer card returned to trusted
+// server-to-server callers (e.g. the recommendation service).
+type DiscoverableFreelancer struct {
+	UserID       uuid.UUID
+	Headline     string
+	Bio          string
+	Skills       []string
+	HourlyRate   float64
+	Availability string
+	Rating       float64
+	TotalReviews uint32
+	Location     string
+	LastActiveAt *time.Time
+}
+
+// DiscoverableFreelancerFilter narrows the candidate pool at query time.
+// All fields are optional.
+type DiscoverableFreelancerFilter struct {
+	Skills                []string
+	MinSkills             int
+	RequireHeadline       bool
+	RequireActiveAccount  bool
+	RequireNotSoftDeleted bool
+}
+
 type ListResult[T any] struct {
 	Items         []T
 	NextPageToken string
@@ -91,6 +116,7 @@ type ProfileDetailsRepository interface {
 	RemoveSavedFreelancer(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (bool, error)
 	UpsertFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID, note string) (FreelancerNote, error)
 	GetFreelancerNote(ctx context.Context, userID uuid.UUID, freelancerUserID uuid.UUID) (FreelancerNote, error)
+	ListDiscoverableFreelancers(ctx context.Context, filter DiscoverableFreelancerFilter, pageSize uint32, pageToken string) (ListResult[DiscoverableFreelancer], error)
 }
 
 // CVObjectStore persists CV binary content outside the primary database.

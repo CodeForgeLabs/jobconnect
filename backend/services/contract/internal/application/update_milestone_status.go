@@ -45,17 +45,27 @@ func (uc *UpdateMilestoneStatus) Execute(ctx context.Context, in UpdateMilestone
 		return UpdateMilestoneStatusOutput{}, err
 	}
 	role := strings.ToLower(strings.TrimSpace(in.ActorRole))
-	if role != "client" && role != "freelancer" {
-		return UpdateMilestoneStatusOutput{}, fmt.Errorf("client or freelancer role required")
+	isInternal := role == "service" || role == "system" || role == "internal"
+	if role != "client" && role != "freelancer" && !isInternal {
+		return UpdateMilestoneStatusOutput{}, fmt.Errorf("client, freelancer, or internal role required")
 	}
 	if role == "freelancer" && status != domain.MilestoneStatusSubmitted {
 		return UpdateMilestoneStatusOutput{}, fmt.Errorf("freelancer can only submit milestones")
 	}
-	if role == "client" && status != domain.MilestoneStatusApproved && status != domain.MilestoneStatusChangesRequested {
-		return UpdateMilestoneStatusOutput{}, fmt.Errorf("client can only approve or request changes")
+	if role == "client" && status != domain.MilestoneStatusApprovedPendingSettlement && status != domain.MilestoneStatusChangesRequested {
+		return UpdateMilestoneStatusOutput{}, fmt.Errorf("client can only approve for settlement or request changes")
+	}
+	if isInternal && status != domain.MilestoneStatusFunded && status != domain.MilestoneStatusReleased {
+		return UpdateMilestoneStatusOutput{}, fmt.Errorf("internal role can only set funded or released")
 	}
 
-	current, err := uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ActorID)
+	var current domain.Contract
+	var err error
+	if isInternal {
+		current, err = uc.Contracts.GetByID(ctx, in.ContractID)
+	} else {
+		current, err = uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ActorID)
+	}
 	if err != nil {
 		return UpdateMilestoneStatusOutput{}, err
 	}
@@ -65,8 +75,8 @@ func (uc *UpdateMilestoneStatus) Execute(ctx context.Context, in UpdateMilestone
 		if current.Milestones[i].ID == in.MilestoneID {
 			curr := strings.ToLower(strings.TrimSpace(current.Milestones[i].Status))
 			if role == "freelancer" {
-				if curr != domain.MilestoneStatusPending && curr != domain.MilestoneStatusChangesRequested {
-					return UpdateMilestoneStatusOutput{}, fmt.Errorf("milestone can only be submitted from pending or changes_requested")
+				if curr != domain.MilestoneStatusFunded && curr != domain.MilestoneStatusChangesRequested {
+					return UpdateMilestoneStatusOutput{}, fmt.Errorf("milestone can only be submitted from funded or changes_requested")
 				}
 				note := strings.TrimSpace(in.SubmissionNote)
 				urls := make([]string, 0, len(in.SubmissionURLs))
@@ -85,7 +95,7 @@ func (uc *UpdateMilestoneStatus) Execute(ctx context.Context, in UpdateMilestone
 				current.Milestones[i].SubmittedAt = &submittedAt
 				current.Milestones[i].ReviewNote = ""
 				current.Milestones[i].ReviewedAt = nil
-			} else {
+			} else if role == "client" {
 				if curr != domain.MilestoneStatusSubmitted {
 					return UpdateMilestoneStatusOutput{}, fmt.Errorf("client can only review submitted milestones")
 				}
@@ -99,6 +109,17 @@ func (uc *UpdateMilestoneStatus) Execute(ctx context.Context, in UpdateMilestone
 				if status == domain.MilestoneStatusChangesRequested {
 					current.Milestones[i].RevisionCount++
 				}
+			} else {
+				switch status {
+				case domain.MilestoneStatusFunded:
+					if curr != domain.MilestoneStatusPending {
+						return UpdateMilestoneStatusOutput{}, fmt.Errorf("funded can only be set from pending")
+					}
+				case domain.MilestoneStatusReleased:
+					if curr != domain.MilestoneStatusApprovedPendingSettlement {
+						return UpdateMilestoneStatusOutput{}, fmt.Errorf("released can only be set from approved_pending_settlement")
+					}
+				}
 			}
 			current.Milestones[i].Status = status
 			found = true
@@ -108,8 +129,14 @@ func (uc *UpdateMilestoneStatus) Execute(ctx context.Context, in UpdateMilestone
 	if !found {
 		return UpdateMilestoneStatusOutput{}, fmt.Errorf("milestone not found")
 	}
-	if err := uc.Contracts.ReplaceMilestonesForActor(ctx, in.ContractID, in.ActorID, current.Milestones, now); err != nil {
-		return UpdateMilestoneStatusOutput{}, err
+	if isInternal {
+		if err := uc.Contracts.ReplaceMilestones(ctx, in.ContractID, current.Milestones, now); err != nil {
+			return UpdateMilestoneStatusOutput{}, err
+		}
+	} else {
+		if err := uc.Contracts.ReplaceMilestonesForActor(ctx, in.ContractID, in.ActorID, current.Milestones, now); err != nil {
+			return UpdateMilestoneStatusOutput{}, err
+		}
 	}
 	reason := ""
 	if reason == "" {
@@ -119,16 +146,41 @@ func (uc *UpdateMilestoneStatus) Execute(ctx context.Context, in UpdateMilestone
 			reason = strings.TrimSpace(in.ReviewNote)
 		}
 	}
-	_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
-		ContractID: in.ContractID,
-		Status:     "milestone_" + status,
-		Reason:     reason,
-		ActorID:    in.ActorID,
-		CreatedAt:  now,
-	})
-	updated, err := uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ActorID)
+	if eventType := milestoneHistoryEvent(status); eventType != "" {
+		_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{
+			ContractID:  in.ContractID,
+			EventType:   eventType,
+			MilestoneID: in.MilestoneID,
+			Reason:      reason,
+			ActorID:     in.ActorID,
+			CreatedAt:   now,
+		})
+	}
+	var updated domain.Contract
+	if isInternal {
+		updated, err = uc.Contracts.GetByID(ctx, in.ContractID)
+	} else {
+		updated, err = uc.Contracts.GetByIDForActor(ctx, in.ContractID, in.ActorID)
+	}
 	if err != nil {
 		return UpdateMilestoneStatusOutput{}, err
 	}
 	return UpdateMilestoneStatusOutput{Contract: updated}, nil
+}
+
+func milestoneHistoryEvent(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case domain.MilestoneStatusSubmitted:
+		return domain.StatusHistoryEventMilestoneSubmitted
+	case domain.MilestoneStatusChangesRequested:
+		return domain.StatusHistoryEventMilestoneChangesRequested
+	case domain.MilestoneStatusApprovedPendingSettlement:
+		return domain.StatusHistoryEventMilestoneApprovedPendingSettlement
+	case domain.MilestoneStatusFunded:
+		return domain.StatusHistoryEventMilestoneFunded
+	case domain.MilestoneStatusReleased:
+		return domain.StatusHistoryEventMilestoneReleased
+	default:
+		return ""
+	}
 }

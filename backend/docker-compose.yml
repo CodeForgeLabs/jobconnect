@@ -49,6 +49,18 @@ services:
       timeout: 5s
       retries: 20
 
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   user:
     build:
       context: .
@@ -167,6 +179,26 @@ services:
         condition: service_healthy
       proposal:
         condition: service_started
+      dispute:
+        condition: service_started
+
+  review:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: review
+        CMD_PATH: ./cmd/reviewd
+    env_file:
+      - .env
+    environment:
+      REVIEW_GRPC_LISTEN_ADDR: ":50056"
+      REVIEW_POSTGRES_URL: "postgres://review:review@postgres:5432/jobconnect_review?sslmode=disable"
+    ports:
+      - "50056:50056"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   wallet:
     build:
@@ -208,10 +240,30 @@ services:
     env_file:
       - .env
     ports:
-      - "51062:50060"
+      - "52062:50060"
     depends_on:
       postgres:
         condition: service_healthy
+
+  dispute:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: dispute
+        CMD_PATH: ./cmd/disputed
+    env_file:
+      - .env
+    environment:
+      DISPUTE_SERVICE_GRPC_ADDR: ":50066"
+      WALLET_SERVICE_ADDR: "wallet:50059"
+    ports:
+      - "50066:50066"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      wallet:
+        condition: service_started
 
   payment:
     build:
@@ -223,8 +275,8 @@ services:
     env_file:
       - .env
     ports:
-      - "51061:50061"
-      - "8081:8081"
+      - "52061:50061"
+      - "8082:8081"
     depends_on:
       postgres:
         condition: service_healthy
@@ -246,6 +298,12 @@ services:
         CMD_PATH: ./cmd/recommendationd
     env_file:
       - .env
+    environment:
+      JOB_SERVICE_ADDR: job:50053
+      USER_SERVICE_ADDR: user:50052
+      REVIEW_SERVICE_ADDR: review:50056
+      RECOMMENDATION_CACHE_BACKEND: redis
+      RECOMMENDATION_REDIS_ADDR: redis:6379
     ports:
       - "50064:50064"
     depends_on:
@@ -253,6 +311,10 @@ services:
         condition: service_started
       job:
         condition: service_started
+      review:
+        condition: service_started
+      redis:
+        condition: service_healthy
 
   gateway:
     build:
@@ -273,7 +335,49 @@ services:
         condition: service_started
       recommendation:
         condition: service_started
-
+  reviews-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: reviews
+      POSTGRES_PASSWORD: reviews
+      POSTGRES_DB: jobconnect_reviews
+    ports:
+      - "5442:5432"
+    volumes:
+      - reviews-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reviews -d jobconnect_reviews"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  reviews:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: reviews
+        CMD_PATH: ./cmd/reviewsd
+    env_file:
+      - .env
+    ports:
+      - "50065:50065"
+    depends_on:
+      reviews-db:
+        condition: service_healthy
+      contract:
+        condition: service_started
 volumes:
+  auth-db-data:
+  user-db-data:
+  job-db-data:
+  proposal-db-data:
+  contract-db-data:
+  wallet-db-data:
+  chat-db-data:
+  verification-db-data:
+  payment-db-data:
+  connects-db-data:
+  reviews-db-data:
   postgres-data:
   minio-data:
+  redis-data:

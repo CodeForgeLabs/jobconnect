@@ -24,18 +24,18 @@ func NewWalletRepo(pool *pgxpool.Pool) *WalletRepo {
 	return &WalletRepo{pool: pool}
 }
 
-func (r *WalletRepo) CreateWallet(ctx context.Context, ownerID uuid.UUID, currency string) (domain.WalletAccount, error) {
+func (r *WalletRepo) CreateWallet(ctx context.Context, ownerID uuid.UUID) (domain.WalletAccount, error) {
 	const q = `
-		INSERT INTO wallet_accounts (owner_id, currency, status, available_minor, held_minor)
-		VALUES ($1, $2, $3, 0, 0)
-		RETURNING id, owner_id, currency, status, available_minor, held_minor, created_at, updated_at
+		INSERT INTO wallet_accounts (owner_id, status, available_minor, held_minor)
+		VALUES ($1, $2, 0, 0)
+		RETURNING id, owner_id, status, available_minor, held_minor, created_at, updated_at
 	`
 	var w domain.WalletAccount
-	err := r.pool.QueryRow(ctx, q, ownerID, domain.NormalizeCurrency(currency), domain.WalletStatusActive).
-		Scan(&w.ID, &w.OwnerID, &w.Currency, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
+	err := r.pool.QueryRow(ctx, q, ownerID, domain.WalletStatusActive).
+		Scan(&w.ID, &w.OwnerID, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
 	if err != nil {
 		if isUniqueViolation(err) {
-			return domain.WalletAccount{}, fmt.Errorf("%w: wallet already exists for owner and currency", domain.ErrAlreadyExists)
+			return domain.WalletAccount{}, fmt.Errorf("%w: wallet already exists for owner", domain.ErrAlreadyExists)
 		}
 		return domain.WalletAccount{}, err
 	}
@@ -44,13 +44,13 @@ func (r *WalletRepo) CreateWallet(ctx context.Context, ownerID uuid.UUID, curren
 
 func (r *WalletRepo) GetWalletByID(ctx context.Context, walletID int64) (domain.WalletAccount, error) {
 	const q = `
-		SELECT id, owner_id, currency, status, available_minor, held_minor, created_at, updated_at
+		SELECT id, owner_id, status, available_minor, held_minor, created_at, updated_at
 		FROM wallet_accounts
 		WHERE id = $1
 	`
 	var w domain.WalletAccount
 	err := r.pool.QueryRow(ctx, q, walletID).
-		Scan(&w.ID, &w.OwnerID, &w.Currency, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
+		Scan(&w.ID, &w.OwnerID, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return domain.WalletAccount{}, fmt.Errorf("%w: wallet not found", domain.ErrNotFound)
 	}
@@ -60,15 +60,15 @@ func (r *WalletRepo) GetWalletByID(ctx context.Context, walletID int64) (domain.
 	return w, nil
 }
 
-func (r *WalletRepo) GetWalletByOwnerCurrency(ctx context.Context, ownerID uuid.UUID, currency string) (domain.WalletAccount, error) {
+func (r *WalletRepo) GetWalletByOwner(ctx context.Context, ownerID uuid.UUID) (domain.WalletAccount, error) {
 	const q = `
-		SELECT id, owner_id, currency, status, available_minor, held_minor, created_at, updated_at
+		SELECT id, owner_id, status, available_minor, held_minor, created_at, updated_at
 		FROM wallet_accounts
-		WHERE owner_id = $1 AND currency = $2
+		WHERE owner_id = $1
 	`
 	var w domain.WalletAccount
-	err := r.pool.QueryRow(ctx, q, ownerID, domain.NormalizeCurrency(currency)).
-		Scan(&w.ID, &w.OwnerID, &w.Currency, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
+	err := r.pool.QueryRow(ctx, q, ownerID).
+		Scan(&w.ID, &w.OwnerID, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return domain.WalletAccount{}, fmt.Errorf("%w: wallet not found", domain.ErrNotFound)
 	}
@@ -85,7 +85,6 @@ func (r *WalletRepo) GetBalance(ctx context.Context, walletID int64) (domain.Bal
 	}
 	return domain.BalanceSnapshot{
 		WalletID:       w.ID,
-		Currency:       w.Currency,
 		AvailableMinor: w.AvailableMinor,
 		HeldMinor:      w.HeldMinor,
 	}, nil
@@ -140,7 +139,7 @@ func (r *WalletRepo) applySimpleMutation(
 	newAvailable := wallet.AvailableMinor
 	newHeld := wallet.HeldMinor
 	if isDebit {
-		if wallet.AvailableMinor < amountMinor {
+		if newAvailable < amountMinor {
 			return application.MutationResult{}, fmt.Errorf("%w: available balance too low", domain.ErrInsufficientFunds)
 		}
 		newAvailable -= amountMinor
@@ -152,6 +151,7 @@ func (r *WalletRepo) applySimpleMutation(
 	if err != nil {
 		return application.MutationResult{}, err
 	}
+
 	entry, err := insertLedgerEntry(ctx, tx, ledgerInsertInput{
 		WalletID:            walletID,
 		EntryType:           entryType,
@@ -170,7 +170,9 @@ func (r *WalletRepo) applySimpleMutation(
 				return application.MutationResult{}, replayErr
 			}
 			if ok {
-				_ = tx.Commit(ctx)
+				if err := tx.Commit(ctx); err != nil {
+					return application.MutationResult{}, err
+				}
 				return application.MutationResult{Wallet: wallet, Entry: replayed}, nil
 			}
 		}
@@ -220,9 +222,13 @@ func (r *WalletRepo) PlaceHold(ctx context.Context, in application.PlaceHoldInpu
 		}
 		return application.HoldMutationResult{Wallet: wallet, Hold: hold, Entry: replayed}, nil
 	}
-
 	if wallet.AvailableMinor < in.AmountMinor {
 		return application.HoldMutationResult{}, fmt.Errorf("%w: available balance too low", domain.ErrInsufficientFunds)
+	}
+
+	wallet, err = updateWalletBalances(ctx, tx, wallet.ID, wallet.AvailableMinor-in.AmountMinor, wallet.HeldMinor+in.AmountMinor)
+	if err != nil {
+		return application.HoldMutationResult{}, err
 	}
 
 	hold, err := insertHold(ctx, tx, holdInsertInput{
@@ -239,10 +245,6 @@ func (r *WalletRepo) PlaceHold(ctx context.Context, in application.PlaceHoldInpu
 		return application.HoldMutationResult{}, err
 	}
 
-	wallet, err = updateWalletBalances(ctx, tx, wallet.ID, wallet.AvailableMinor-in.AmountMinor, wallet.HeldMinor+in.AmountMinor)
-	if err != nil {
-		return application.HoldMutationResult{}, err
-	}
 	entry, err := insertLedgerEntry(ctx, tx, ledgerInsertInput{
 		WalletID:            wallet.ID,
 		EntryType:           domain.LedgerTypeHoldPlaced,
@@ -449,16 +451,47 @@ func (r *WalletRepo) ListLedgerEntries(ctx context.Context, walletID int64, limi
 	return result, nil
 }
 
+func (r *WalletRepo) GetHoldByReference(ctx context.Context, referenceType, referenceID string) (domain.Hold, error) {
+	const q = `
+		SELECT id, wallet_id, reference_type, reference_id, amount_minor, captured_minor, status,
+		       expires_at, created_at, updated_at
+		FROM wallet_holds
+		WHERE reference_type = $1 AND reference_id = $2
+		ORDER BY id DESC
+		LIMIT 1
+	`
+	var hold domain.Hold
+	err := r.pool.QueryRow(ctx, q, strings.TrimSpace(referenceType), strings.TrimSpace(referenceID)).Scan(
+		&hold.ID,
+		&hold.WalletID,
+		&hold.ReferenceType,
+		&hold.ReferenceID,
+		&hold.AmountMinor,
+		&hold.CapturedMinor,
+		&hold.Status,
+		&hold.ExpiresAt,
+		&hold.CreatedAt,
+		&hold.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.Hold{}, fmt.Errorf("%w: hold not found", domain.ErrNotFound)
+	}
+	if err != nil {
+		return domain.Hold{}, err
+	}
+	return hold, nil
+}
+
 func getWalletForUpdate(ctx context.Context, tx pgx.Tx, walletID int64) (domain.WalletAccount, error) {
 	const q = `
-		SELECT id, owner_id, currency, status, available_minor, held_minor, created_at, updated_at
+		SELECT id, owner_id, status, available_minor, held_minor, created_at, updated_at
 		FROM wallet_accounts
 		WHERE id = $1
 		FOR UPDATE
 	`
 	var w domain.WalletAccount
 	err := tx.QueryRow(ctx, q, walletID).
-		Scan(&w.ID, &w.OwnerID, &w.Currency, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
+		Scan(&w.ID, &w.OwnerID, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return domain.WalletAccount{}, fmt.Errorf("%w: wallet not found", domain.ErrNotFound)
 	}
@@ -475,11 +508,11 @@ func updateWalletBalances(ctx context.Context, tx pgx.Tx, walletID, availableMin
 		    held_minor = $3,
 		    updated_at = NOW()
 		WHERE id = $1
-		RETURNING id, owner_id, currency, status, available_minor, held_minor, created_at, updated_at
+		RETURNING id, owner_id, status, available_minor, held_minor, created_at, updated_at
 	`
 	var w domain.WalletAccount
 	err := tx.QueryRow(ctx, q, walletID, availableMinor, heldMinor).
-		Scan(&w.ID, &w.OwnerID, &w.Currency, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
+		Scan(&w.ID, &w.OwnerID, &w.Status, &w.AvailableMinor, &w.HeldMinor, &w.CreatedAt, &w.UpdatedAt)
 	if err != nil {
 		return domain.WalletAccount{}, err
 	}

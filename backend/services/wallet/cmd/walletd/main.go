@@ -50,6 +50,7 @@ func main() {
 	creditWalletInternalUC := &application.CreditWalletInternal{Wallets: repo}
 	debitWalletInternalUC := &application.DebitWalletInternal{Wallets: repo}
 	placeHoldUC := &application.PlaceHold{Wallets: repo, Clock: clockImpl}
+	getHoldByReferenceUC := &application.GetHoldByReference{Wallets: repo}
 	releaseHoldUC := &application.ReleaseHold{Wallets: repo}
 	captureHoldUC := &application.CaptureHold{Wallets: repo}
 	listTransactionsUC := &application.ListTransactions{Wallets: repo}
@@ -61,6 +62,7 @@ func main() {
 		creditWalletInternalUC,
 		debitWalletInternalUC,
 		placeHoldUC,
+		getHoldByReferenceUC,
 		releaseHoldUC,
 		captureHoldUC,
 		listTransactionsUC,

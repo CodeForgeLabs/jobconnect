@@ -79,7 +79,7 @@ func (r *ProposalRepo) HasActiveProposal(ctx context.Context, jobID int64, freel
 	err := r.pool.QueryRow(ctx, `
 		select exists(
 			select 1 from proposals
-			where job_id = $1 and freelancer_id = $2 and status in ('sent','shortlisted')
+			where job_id = $1 and freelancer_id = $2 and status in ('sent','shortlisted','offer_sent','hired')
 		)
 	`, jobID, freelancerID).Scan(&exists)
 	if err != nil {
@@ -143,6 +143,7 @@ func (r *ProposalRepo) SetStatus(ctx context.Context, proposalID int64, clientID
 			status_reason = $4,
 			shortlisted_at = case when $3 = 'shortlisted' then $5 else shortlisted_at end,
 			rejected_at = case when $3 = 'rejected' then $5 else rejected_at end,
+			offer_sent_at = case when $3 = 'offer_sent' then $5 else offer_sent_at end,
 			hired_at = case when $3 = 'hired' then $5 else hired_at end,
 			updated_at = $5
 		where id = $1 and client_id = $2
@@ -156,11 +157,31 @@ func (r *ProposalRepo) SetStatus(ctx context.Context, proposalID int64, clientID
 	return nil
 }
 
+func (r *ProposalRepo) MarkOfferSent(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) (domain.Proposal, error) {
+	res, err := r.pool.Exec(ctx, `
+		update proposals
+		set status = 'offer_sent',
+			status_reason = $3,
+			offer_sent_at = coalesce(offer_sent_at, $4),
+			hired_at = null,
+			updated_at = $4
+		where id = $1 and client_id = $2 and status in ('sent', 'shortlisted', 'offer_sent', 'hired')
+	`, proposalID, clientID, reason, at)
+	if err != nil {
+		return domain.Proposal{}, err
+	}
+	if res.RowsAffected() == 0 {
+		return domain.Proposal{}, ErrNotFound
+	}
+	return r.GetByIDForClient(ctx, proposalID, clientID)
+}
+
 func (r *ProposalRepo) RevertHire(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string, at time.Time) error {
 	res, err := r.pool.Exec(ctx, `
 		update proposals
 		set status = 'shortlisted',
 			status_reason = $3,
+			offer_sent_at = null,
 			hired_at = null,
 			updated_at = $4
 		where id = $1 and client_id = $2 and status = 'hired'
@@ -221,7 +242,7 @@ func (r *ProposalRepo) HireWithRequestID(ctx context.Context, proposalID int64, 
 			status_reason = $3,
 			hired_at = $4,
 			updated_at = $4
-		where id = $1 and client_id = $2 and status in ('sent', 'shortlisted')
+		where id = $1 and client_id = $2 and status in ('offer_sent', 'hired')
 	`, proposalID, clientID, reason, at)
 	if err != nil {
 		if isUniqueViolation(err, "uq_proposals_single_hired_per_job") {
@@ -268,7 +289,7 @@ func (r *ProposalRepo) ListByJob(ctx context.Context, filter application.ListByJ
 	idx := 3
 	query := `
 		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
-			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at, connects_spent
+			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, offer_sent_at, hired_at, withdrawn_at, connects_spent
 		from proposals
 		where client_id = $1 and job_id = $2
 	`
@@ -331,7 +352,7 @@ func (r *ProposalRepo) ListByFreelancer(ctx context.Context, filter application.
 	idx := 2
 	query := `
 		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
-			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at, connects_spent
+			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, offer_sent_at, hired_at, withdrawn_at, connects_spent
 		from proposals
 		where freelancer_id = $1
 	`
@@ -394,7 +415,7 @@ func (r *ProposalRepo) ListByClient(ctx context.Context, filter application.List
 	idx := 2
 	query := `
 		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
-			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at, connects_spent
+			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, offer_sent_at, hired_at, withdrawn_at, connects_spent
 		from proposals
 		where client_id = $1
 	`
@@ -524,7 +545,7 @@ func (r *ProposalRepo) CountClientInbox(ctx context.Context, clientID uuid.UUID,
 func (r *ProposalRepo) getByWhere(ctx context.Context, where string, args ...any) (domain.Proposal, error) {
 	query := fmt.Sprintf(`
 		select id, job_id, client_id, freelancer_id, cover_letter, bid_type, bid_amount, estimated_days,
-			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, hired_at, withdrawn_at, connects_spent
+			status, status_reason, created_at, updated_at, shortlisted_at, rejected_at, offer_sent_at, hired_at, withdrawn_at, connects_spent
 		from proposals
 		%s
 	`, where)
@@ -621,6 +642,7 @@ func scanProposal(scanner rowScanner) (domain.Proposal, error) {
 		&p.UpdatedAt,
 		&p.ShortlistedAt,
 		&p.RejectedAt,
+		&p.OfferSentAt,
 		&p.HiredAt,
 		&p.WithdrawnAt,
 		&p.ConnectsSpent,

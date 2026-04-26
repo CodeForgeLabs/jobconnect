@@ -48,7 +48,7 @@ func (uc *InternalHireProposal) Execute(ctx context.Context, in InternalHireProp
 	if err != nil {
 		return InternalHireProposalOutput{}, err
 	}
-	if !domain.CanTransition(current.Status, domain.StatusHired) {
+	if !strings.EqualFold(current.Status, domain.StatusOfferSent) && !strings.EqualFold(current.Status, domain.StatusHired) {
 		return InternalHireProposalOutput{}, fmt.Errorf("invalid proposal status transition")
 	}
 

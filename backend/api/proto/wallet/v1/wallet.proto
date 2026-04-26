@@ -13,6 +13,7 @@ service WalletService {
   rpc DebitWalletInternal(DebitWalletInternalRequest) returns (DebitWalletInternalResponse);
 
   rpc PlaceHold(PlaceHoldRequest) returns (PlaceHoldResponse);
+  rpc GetHoldByReference(GetHoldByReferenceRequest) returns (GetHoldByReferenceResponse);
   rpc ReleaseHold(ReleaseHoldRequest) returns (ReleaseHoldResponse);
   rpc CaptureHold(CaptureHoldRequest) returns (CaptureHoldResponse);
 
@@ -42,9 +43,10 @@ enum HoldStatus {
 }
 
 message Wallet {
+  reserved 3;
+  reserved "currency";
   int64 id = 1;
   string owner_id = 2;
-  string currency = 3;
   WalletStatus status = 4;
   int64 available_minor = 5;
   int64 held_minor = 6;
@@ -53,10 +55,11 @@ message Wallet {
 }
 
 message Balance {
+  reserved 4;
+  reserved "currency";
   int64 available_minor = 1;
   int64 held_minor = 2;
   int64 total_minor = 3;
-  string currency = 4;
 }
 
 message LedgerEntry {
@@ -87,8 +90,9 @@ message Hold {
 }
 
 message CreateWalletRequest {
+  reserved 2;
+  reserved "currency";
   string owner_id = 1;
-  string currency = 2;
 }
 
 message CreateWalletResponse {
@@ -98,13 +102,8 @@ message CreateWalletResponse {
 message GetWalletRequest {
   oneof target {
     int64 wallet_id = 1;
-    OwnerCurrency owner_currency = 2;
+    string owner_id = 3;
   }
-}
-
-message OwnerCurrency {
-  string owner_id = 1;
-  string currency = 2;
 }
 
 message GetWalletResponse {
@@ -161,6 +160,15 @@ message PlaceHoldResponse {
   Wallet wallet = 1;
   Hold hold = 2;
   LedgerEntry transaction = 3;
+}
+
+message GetHoldByReferenceRequest {
+  string reference_type = 1;
+  string reference_id = 2;
+}
+
+message GetHoldByReferenceResponse {
+  Hold hold = 1;
 }
 
 message ReleaseHoldRequest {

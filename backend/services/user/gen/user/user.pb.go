@@ -5711,6 +5711,245 @@ func (x *GetFreelancerNoteResponse) GetNote() *FreelancerNote {
 	return nil
 }
 
+// Discoverable freelancer card returned by ListDiscoverableFreelancers.
+type DiscoverableFreelancer struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	UserId           string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Headline         string                 `protobuf:"bytes,2,opt,name=headline,proto3" json:"headline,omitempty"`
+	Bio              string                 `protobuf:"bytes,3,opt,name=bio,proto3" json:"bio,omitempty"`
+	Skills           []string               `protobuf:"bytes,4,rep,name=skills,proto3" json:"skills,omitempty"`
+	HourlyRate       float64                `protobuf:"fixed64,5,opt,name=hourly_rate,json=hourlyRate,proto3" json:"hourly_rate,omitempty"`
+	Availability     Availability           `protobuf:"varint,6,opt,name=availability,proto3,enum=user.v1.Availability" json:"availability,omitempty"`
+	Rating           float64                `protobuf:"fixed64,7,opt,name=rating,proto3" json:"rating,omitempty"`
+	TotalReviews     uint32                 `protobuf:"varint,8,opt,name=total_reviews,json=totalReviews,proto3" json:"total_reviews,omitempty"`
+	CanBeDiscovered  bool                   `protobuf:"varint,9,opt,name=can_be_discovered,json=canBeDiscovered,proto3" json:"can_be_discovered,omitempty"`
+	Location         string                 `protobuf:"bytes,10,opt,name=location,proto3" json:"location,omitempty"`
+	LastActiveAtUnix *int64                 `protobuf:"varint,11,opt,name=last_active_at_unix,json=lastActiveAtUnix,proto3,oneof" json:"last_active_at_unix,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *DiscoverableFreelancer) Reset() {
+	*x = DiscoverableFreelancer{}
+	mi := &file_user_user_proto_msgTypes[88]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DiscoverableFreelancer) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DiscoverableFreelancer) ProtoMessage() {}
+
+func (x *DiscoverableFreelancer) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[88]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DiscoverableFreelancer.ProtoReflect.Descriptor instead.
+func (*DiscoverableFreelancer) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{88}
+}
+
+func (x *DiscoverableFreelancer) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *DiscoverableFreelancer) GetHeadline() string {
+	if x != nil {
+		return x.Headline
+	}
+	return ""
+}
+
+func (x *DiscoverableFreelancer) GetBio() string {
+	if x != nil {
+		return x.Bio
+	}
+	return ""
+}
+
+func (x *DiscoverableFreelancer) GetSkills() []string {
+	if x != nil {
+		return x.Skills
+	}
+	return nil
+}
+
+func (x *DiscoverableFreelancer) GetHourlyRate() float64 {
+	if x != nil {
+		return x.HourlyRate
+	}
+	return 0
+}
+
+func (x *DiscoverableFreelancer) GetAvailability() Availability {
+	if x != nil {
+		return x.Availability
+	}
+	return Availability_AVAILABILITY_UNSPECIFIED
+}
+
+func (x *DiscoverableFreelancer) GetRating() float64 {
+	if x != nil {
+		return x.Rating
+	}
+	return 0
+}
+
+func (x *DiscoverableFreelancer) GetTotalReviews() uint32 {
+	if x != nil {
+		return x.TotalReviews
+	}
+	return 0
+}
+
+func (x *DiscoverableFreelancer) GetCanBeDiscovered() bool {
+	if x != nil {
+		return x.CanBeDiscovered
+	}
+	return false
+}
+
+func (x *DiscoverableFreelancer) GetLocation() string {
+	if x != nil {
+		return x.Location
+	}
+	return ""
+}
+
+func (x *DiscoverableFreelancer) GetLastActiveAtUnix() int64 {
+	if x != nil && x.LastActiveAtUnix != nil {
+		return *x.LastActiveAtUnix
+	}
+	return 0
+}
+
+type ListDiscoverableFreelancersRequest struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	PageSize  uint32                 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PageToken string                 `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	// Optional: restrict to freelancers whose profile skills include any of
+	// these (case-insensitive).
+	Skills        []string `protobuf:"bytes,3,rep,name=skills,proto3" json:"skills,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListDiscoverableFreelancersRequest) Reset() {
+	*x = ListDiscoverableFreelancersRequest{}
+	mi := &file_user_user_proto_msgTypes[89]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListDiscoverableFreelancersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListDiscoverableFreelancersRequest) ProtoMessage() {}
+
+func (x *ListDiscoverableFreelancersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[89]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListDiscoverableFreelancersRequest.ProtoReflect.Descriptor instead.
+func (*ListDiscoverableFreelancersRequest) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{89}
+}
+
+func (x *ListDiscoverableFreelancersRequest) GetPageSize() uint32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListDiscoverableFreelancersRequest) GetPageToken() string {
+	if x != nil {
+		return x.PageToken
+	}
+	return ""
+}
+
+func (x *ListDiscoverableFreelancersRequest) GetSkills() []string {
+	if x != nil {
+		return x.Skills
+	}
+	return nil
+}
+
+type ListDiscoverableFreelancersResponse struct {
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	Freelancers   []*DiscoverableFreelancer `protobuf:"bytes,1,rep,name=freelancers,proto3" json:"freelancers,omitempty"`
+	Page          *PagingResponse           `protobuf:"bytes,2,opt,name=page,proto3" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListDiscoverableFreelancersResponse) Reset() {
+	*x = ListDiscoverableFreelancersResponse{}
+	mi := &file_user_user_proto_msgTypes[90]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListDiscoverableFreelancersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListDiscoverableFreelancersResponse) ProtoMessage() {}
+
+func (x *ListDiscoverableFreelancersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_user_proto_msgTypes[90]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListDiscoverableFreelancersResponse.ProtoReflect.Descriptor instead.
+func (*ListDiscoverableFreelancersResponse) Descriptor() ([]byte, []int) {
+	return file_user_user_proto_rawDescGZIP(), []int{90}
+}
+
+func (x *ListDiscoverableFreelancersResponse) GetFreelancers() []*DiscoverableFreelancer {
+	if x != nil {
+		return x.Freelancers
+	}
+	return nil
+}
+
+func (x *ListDiscoverableFreelancersResponse) GetPage() *PagingResponse {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
 var File_user_user_proto protoreflect.FileDescriptor
 
 const file_user_user_proto_rawDesc = "" +
@@ -6141,7 +6380,30 @@ const file_user_user_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12,\n" +
 	"\x12freelancer_user_id\x18\x02 \x01(\tR\x10freelancerUserId\"H\n" +
 	"\x19GetFreelancerNoteResponse\x12+\n" +
-	"\x04note\x18\x01 \x01(\v2\x17.user.v1.FreelancerNoteR\x04note*j\n" +
+	"\x04note\x18\x01 \x01(\v2\x17.user.v1.FreelancerNoteR\x04note\"\xa4\x03\n" +
+	"\x16DiscoverableFreelancer\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
+	"\bheadline\x18\x02 \x01(\tR\bheadline\x12\x10\n" +
+	"\x03bio\x18\x03 \x01(\tR\x03bio\x12\x16\n" +
+	"\x06skills\x18\x04 \x03(\tR\x06skills\x12\x1f\n" +
+	"\vhourly_rate\x18\x05 \x01(\x01R\n" +
+	"hourlyRate\x129\n" +
+	"\favailability\x18\x06 \x01(\x0e2\x15.user.v1.AvailabilityR\favailability\x12\x16\n" +
+	"\x06rating\x18\a \x01(\x01R\x06rating\x12#\n" +
+	"\rtotal_reviews\x18\b \x01(\rR\ftotalReviews\x12*\n" +
+	"\x11can_be_discovered\x18\t \x01(\bR\x0fcanBeDiscovered\x12\x1a\n" +
+	"\blocation\x18\n" +
+	" \x01(\tR\blocation\x122\n" +
+	"\x13last_active_at_unix\x18\v \x01(\x03H\x00R\x10lastActiveAtUnix\x88\x01\x01B\x16\n" +
+	"\x14_last_active_at_unix\"x\n" +
+	"\"ListDiscoverableFreelancersRequest\x12\x1b\n" +
+	"\tpage_size\x18\x01 \x01(\rR\bpageSize\x12\x1d\n" +
+	"\n" +
+	"page_token\x18\x02 \x01(\tR\tpageToken\x12\x16\n" +
+	"\x06skills\x18\x03 \x03(\tR\x06skills\"\x95\x01\n" +
+	"#ListDiscoverableFreelancersResponse\x12A\n" +
+	"\vfreelancers\x18\x01 \x03(\v2\x1f.user.v1.DiscoverableFreelancerR\vfreelancers\x12+\n" +
+	"\x04page\x18\x02 \x01(\v2\x17.user.v1.PagingResponseR\x04page*j\n" +
 	"\bUserRole\x12\x19\n" +
 	"\x15USER_ROLE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10USER_ROLE_CLIENT\x10\x01\x12\x18\n" +
@@ -6179,7 +6441,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\x14OnboardingStepStatus\x12&\n" +
 	"\"ONBOARDING_STEP_STATUS_UNSPECIFIED\x10\x00\x12&\n" +
 	"\"ONBOARDING_STEP_STATUS_NOT_STARTED\x10\x01\x12$\n" +
-	" ONBOARDING_STEP_STATUS_COMPLETED\x10\x022\xe7\x15\n" +
+	" ONBOARDING_STEP_STATUS_COMPLETED\x10\x022\xe1\x16\n" +
 	"\vUserService\x12T\n" +
 	"\x0fCreateMyProfile\x12\x1f.user.v1.CreateMyProfileRequest\x1a .user.v1.CreateMyProfileResponse\x12K\n" +
 	"\fGetMyProfile\x12\x1c.user.v1.GetMyProfileRequest\x1a\x1d.user.v1.GetMyProfileResponse\x12Q\n" +
@@ -6212,7 +6474,8 @@ const file_user_user_proto_rawDesc = "" +
 	"\x14ListSavedFreelancers\x12$.user.v1.ListSavedFreelancersRequest\x1a%.user.v1.ListSavedFreelancersResponse\x12f\n" +
 	"\x15RemoveSavedFreelancer\x12%.user.v1.RemoveSavedFreelancerRequest\x1a&.user.v1.RemoveSavedFreelancerResponse\x12c\n" +
 	"\x14UpsertFreelancerNote\x12$.user.v1.UpsertFreelancerNoteRequest\x1a%.user.v1.UpsertFreelancerNoteResponse\x12Z\n" +
-	"\x11GetFreelancerNote\x12!.user.v1.GetFreelancerNoteRequest\x1a\".user.v1.GetFreelancerNoteResponseB!Z\x1fjobconnect/user/gen/user;userv1b\x06proto3"
+	"\x11GetFreelancerNote\x12!.user.v1.GetFreelancerNoteRequest\x1a\".user.v1.GetFreelancerNoteResponse\x12x\n" +
+	"\x1bListDiscoverableFreelancers\x12+.user.v1.ListDiscoverableFreelancersRequest\x1a,.user.v1.ListDiscoverableFreelancersResponseB!Z\x1fjobconnect/user/gen/user;userv1b\x06proto3"
 
 var (
 	file_user_user_proto_rawDescOnce sync.Once
@@ -6227,7 +6490,7 @@ func file_user_user_proto_rawDescGZIP() []byte {
 }
 
 var file_user_user_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
-var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 88)
+var file_user_user_proto_msgTypes = make([]protoimpl.MessageInfo, 91)
 var file_user_user_proto_goTypes = []any{
 	(UserRole)(0),                                // 0: user.v1.UserRole
 	(AccountStatus)(0),                           // 1: user.v1.AccountStatus
@@ -6324,6 +6587,9 @@ var file_user_user_proto_goTypes = []any{
 	(*UpsertFreelancerNoteResponse)(nil),         // 92: user.v1.UpsertFreelancerNoteResponse
 	(*GetFreelancerNoteRequest)(nil),             // 93: user.v1.GetFreelancerNoteRequest
 	(*GetFreelancerNoteResponse)(nil),            // 94: user.v1.GetFreelancerNoteResponse
+	(*DiscoverableFreelancer)(nil),               // 95: user.v1.DiscoverableFreelancer
+	(*ListDiscoverableFreelancersRequest)(nil),   // 96: user.v1.ListDiscoverableFreelancersRequest
+	(*ListDiscoverableFreelancersResponse)(nil),  // 97: user.v1.ListDiscoverableFreelancersResponse
 }
 var file_user_user_proto_depIdxs = []int32{
 	0,  // 0: user.v1.UserCore.role:type_name -> user.v1.UserRole
@@ -6386,71 +6652,76 @@ var file_user_user_proto_depIdxs = []int32{
 	9,  // 57: user.v1.ListSavedFreelancersResponse.page:type_name -> user.v1.PagingResponse
 	90, // 58: user.v1.UpsertFreelancerNoteResponse.note:type_name -> user.v1.FreelancerNote
 	90, // 59: user.v1.GetFreelancerNoteResponse.note:type_name -> user.v1.FreelancerNote
-	20, // 60: user.v1.UserService.CreateMyProfile:input_type -> user.v1.CreateMyProfileRequest
-	24, // 61: user.v1.UserService.GetMyProfile:input_type -> user.v1.GetMyProfileRequest
-	29, // 62: user.v1.UserService.PatchMyProfile:input_type -> user.v1.PatchMyProfileRequest
-	36, // 63: user.v1.UserService.DeleteMyProfile:input_type -> user.v1.DeleteMyProfileRequest
-	38, // 64: user.v1.UserService.GetMyOnboardingStatus:input_type -> user.v1.GetMyOnboardingStatusRequest
-	32, // 65: user.v1.UserService.GetMySettings:input_type -> user.v1.GetMySettingsRequest
-	34, // 66: user.v1.UserService.PatchMySettings:input_type -> user.v1.PatchMySettingsRequest
-	40, // 67: user.v1.UserService.GetMyAvatarUploadUrl:input_type -> user.v1.GetMyAvatarUploadUrlRequest
-	42, // 68: user.v1.UserService.UpsertMyAvatar:input_type -> user.v1.UploadMyAvatarRequest
-	44, // 69: user.v1.UserService.GetMyAvatar:input_type -> user.v1.GetMyAvatarRequest
-	46, // 70: user.v1.UserService.RemoveMyAvatar:input_type -> user.v1.RemoveMyAvatarRequest
-	52, // 71: user.v1.UserService.GetMyCVUploadUrl:input_type -> user.v1.GetMyCVUploadUrlRequest
-	49, // 72: user.v1.UserService.UpsertMyCV:input_type -> user.v1.UploadMyCVRequest
-	51, // 73: user.v1.UserService.GetMyCV:input_type -> user.v1.GetMyCVRequest
-	57, // 74: user.v1.UserService.RemoveMyCV:input_type -> user.v1.RemoveMyCVRequest
-	55, // 75: user.v1.UserService.GetMyPortfolioMediaUploadUrl:input_type -> user.v1.GetMyPortfolioMediaUploadUrlRequest
-	61, // 76: user.v1.UserService.CreateMyPortfolioItem:input_type -> user.v1.CreateMyPortfolioItemRequest
-	64, // 77: user.v1.UserService.GetMyPortfolioItem:input_type -> user.v1.GetMyPortfolioItemRequest
-	66, // 78: user.v1.UserService.UpdateMyPortfolioItem:input_type -> user.v1.UpdateMyPortfolioItemRequest
-	69, // 79: user.v1.UserService.DeleteMyPortfolioItem:input_type -> user.v1.DeleteMyPortfolioItemRequest
-	71, // 80: user.v1.UserService.ListMyPortfolioItems:input_type -> user.v1.ListMyPortfolioItemsRequest
-	74, // 81: user.v1.UserService.PatchMyWorkPreferences:input_type -> user.v1.PatchMyWorkPreferencesRequest
-	76, // 82: user.v1.UserService.GetMyWorkPreferences:input_type -> user.v1.GetMyWorkPreferencesRequest
-	79, // 83: user.v1.UserService.GetMyHiringPreferences:input_type -> user.v1.GetMyHiringPreferencesRequest
-	81, // 84: user.v1.UserService.PatchMyHiringPreferences:input_type -> user.v1.PatchMyHiringPreferencesRequest
-	84, // 85: user.v1.UserService.SaveFreelancer:input_type -> user.v1.SaveFreelancerRequest
-	86, // 86: user.v1.UserService.ListSavedFreelancers:input_type -> user.v1.ListSavedFreelancersRequest
-	88, // 87: user.v1.UserService.RemoveSavedFreelancer:input_type -> user.v1.RemoveSavedFreelancerRequest
-	91, // 88: user.v1.UserService.UpsertFreelancerNote:input_type -> user.v1.UpsertFreelancerNoteRequest
-	93, // 89: user.v1.UserService.GetFreelancerNote:input_type -> user.v1.GetFreelancerNoteRequest
-	23, // 90: user.v1.UserService.CreateMyProfile:output_type -> user.v1.CreateMyProfileResponse
-	25, // 91: user.v1.UserService.GetMyProfile:output_type -> user.v1.GetMyProfileResponse
-	30, // 92: user.v1.UserService.PatchMyProfile:output_type -> user.v1.PatchMyProfileResponse
-	37, // 93: user.v1.UserService.DeleteMyProfile:output_type -> user.v1.DeleteMyProfileResponse
-	39, // 94: user.v1.UserService.GetMyOnboardingStatus:output_type -> user.v1.GetMyOnboardingStatusResponse
-	33, // 95: user.v1.UserService.GetMySettings:output_type -> user.v1.GetMySettingsResponse
-	35, // 96: user.v1.UserService.PatchMySettings:output_type -> user.v1.PatchMySettingsResponse
-	41, // 97: user.v1.UserService.GetMyAvatarUploadUrl:output_type -> user.v1.GetMyAvatarUploadUrlResponse
-	43, // 98: user.v1.UserService.UpsertMyAvatar:output_type -> user.v1.UploadMyAvatarResponse
-	45, // 99: user.v1.UserService.GetMyAvatar:output_type -> user.v1.GetMyAvatarResponse
-	47, // 100: user.v1.UserService.RemoveMyAvatar:output_type -> user.v1.RemoveMyAvatarResponse
-	53, // 101: user.v1.UserService.GetMyCVUploadUrl:output_type -> user.v1.GetMyCVUploadUrlResponse
-	50, // 102: user.v1.UserService.UpsertMyCV:output_type -> user.v1.UploadMyCVResponse
-	54, // 103: user.v1.UserService.GetMyCV:output_type -> user.v1.GetMyCVResponse
-	58, // 104: user.v1.UserService.RemoveMyCV:output_type -> user.v1.RemoveMyCVResponse
-	56, // 105: user.v1.UserService.GetMyPortfolioMediaUploadUrl:output_type -> user.v1.GetMyPortfolioMediaUploadUrlResponse
-	63, // 106: user.v1.UserService.CreateMyPortfolioItem:output_type -> user.v1.CreateMyPortfolioItemResponse
-	65, // 107: user.v1.UserService.GetMyPortfolioItem:output_type -> user.v1.GetMyPortfolioItemResponse
-	68, // 108: user.v1.UserService.UpdateMyPortfolioItem:output_type -> user.v1.UpdateMyPortfolioItemResponse
-	70, // 109: user.v1.UserService.DeleteMyPortfolioItem:output_type -> user.v1.DeleteMyPortfolioItemResponse
-	72, // 110: user.v1.UserService.ListMyPortfolioItems:output_type -> user.v1.ListMyPortfolioItemsResponse
-	75, // 111: user.v1.UserService.PatchMyWorkPreferences:output_type -> user.v1.PatchMyWorkPreferencesResponse
-	77, // 112: user.v1.UserService.GetMyWorkPreferences:output_type -> user.v1.GetMyWorkPreferencesResponse
-	80, // 113: user.v1.UserService.GetMyHiringPreferences:output_type -> user.v1.GetMyHiringPreferencesResponse
-	82, // 114: user.v1.UserService.PatchMyHiringPreferences:output_type -> user.v1.PatchMyHiringPreferencesResponse
-	85, // 115: user.v1.UserService.SaveFreelancer:output_type -> user.v1.SaveFreelancerResponse
-	87, // 116: user.v1.UserService.ListSavedFreelancers:output_type -> user.v1.ListSavedFreelancersResponse
-	89, // 117: user.v1.UserService.RemoveSavedFreelancer:output_type -> user.v1.RemoveSavedFreelancerResponse
-	92, // 118: user.v1.UserService.UpsertFreelancerNote:output_type -> user.v1.UpsertFreelancerNoteResponse
-	94, // 119: user.v1.UserService.GetFreelancerNote:output_type -> user.v1.GetFreelancerNoteResponse
-	90, // [90:120] is the sub-list for method output_type
-	60, // [60:90] is the sub-list for method input_type
-	60, // [60:60] is the sub-list for extension type_name
-	60, // [60:60] is the sub-list for extension extendee
-	0,  // [0:60] is the sub-list for field type_name
+	3,  // 60: user.v1.DiscoverableFreelancer.availability:type_name -> user.v1.Availability
+	95, // 61: user.v1.ListDiscoverableFreelancersResponse.freelancers:type_name -> user.v1.DiscoverableFreelancer
+	9,  // 62: user.v1.ListDiscoverableFreelancersResponse.page:type_name -> user.v1.PagingResponse
+	20, // 63: user.v1.UserService.CreateMyProfile:input_type -> user.v1.CreateMyProfileRequest
+	24, // 64: user.v1.UserService.GetMyProfile:input_type -> user.v1.GetMyProfileRequest
+	29, // 65: user.v1.UserService.PatchMyProfile:input_type -> user.v1.PatchMyProfileRequest
+	36, // 66: user.v1.UserService.DeleteMyProfile:input_type -> user.v1.DeleteMyProfileRequest
+	38, // 67: user.v1.UserService.GetMyOnboardingStatus:input_type -> user.v1.GetMyOnboardingStatusRequest
+	32, // 68: user.v1.UserService.GetMySettings:input_type -> user.v1.GetMySettingsRequest
+	34, // 69: user.v1.UserService.PatchMySettings:input_type -> user.v1.PatchMySettingsRequest
+	40, // 70: user.v1.UserService.GetMyAvatarUploadUrl:input_type -> user.v1.GetMyAvatarUploadUrlRequest
+	42, // 71: user.v1.UserService.UpsertMyAvatar:input_type -> user.v1.UploadMyAvatarRequest
+	44, // 72: user.v1.UserService.GetMyAvatar:input_type -> user.v1.GetMyAvatarRequest
+	46, // 73: user.v1.UserService.RemoveMyAvatar:input_type -> user.v1.RemoveMyAvatarRequest
+	52, // 74: user.v1.UserService.GetMyCVUploadUrl:input_type -> user.v1.GetMyCVUploadUrlRequest
+	49, // 75: user.v1.UserService.UpsertMyCV:input_type -> user.v1.UploadMyCVRequest
+	51, // 76: user.v1.UserService.GetMyCV:input_type -> user.v1.GetMyCVRequest
+	57, // 77: user.v1.UserService.RemoveMyCV:input_type -> user.v1.RemoveMyCVRequest
+	55, // 78: user.v1.UserService.GetMyPortfolioMediaUploadUrl:input_type -> user.v1.GetMyPortfolioMediaUploadUrlRequest
+	61, // 79: user.v1.UserService.CreateMyPortfolioItem:input_type -> user.v1.CreateMyPortfolioItemRequest
+	64, // 80: user.v1.UserService.GetMyPortfolioItem:input_type -> user.v1.GetMyPortfolioItemRequest
+	66, // 81: user.v1.UserService.UpdateMyPortfolioItem:input_type -> user.v1.UpdateMyPortfolioItemRequest
+	69, // 82: user.v1.UserService.DeleteMyPortfolioItem:input_type -> user.v1.DeleteMyPortfolioItemRequest
+	71, // 83: user.v1.UserService.ListMyPortfolioItems:input_type -> user.v1.ListMyPortfolioItemsRequest
+	74, // 84: user.v1.UserService.PatchMyWorkPreferences:input_type -> user.v1.PatchMyWorkPreferencesRequest
+	76, // 85: user.v1.UserService.GetMyWorkPreferences:input_type -> user.v1.GetMyWorkPreferencesRequest
+	79, // 86: user.v1.UserService.GetMyHiringPreferences:input_type -> user.v1.GetMyHiringPreferencesRequest
+	81, // 87: user.v1.UserService.PatchMyHiringPreferences:input_type -> user.v1.PatchMyHiringPreferencesRequest
+	84, // 88: user.v1.UserService.SaveFreelancer:input_type -> user.v1.SaveFreelancerRequest
+	86, // 89: user.v1.UserService.ListSavedFreelancers:input_type -> user.v1.ListSavedFreelancersRequest
+	88, // 90: user.v1.UserService.RemoveSavedFreelancer:input_type -> user.v1.RemoveSavedFreelancerRequest
+	91, // 91: user.v1.UserService.UpsertFreelancerNote:input_type -> user.v1.UpsertFreelancerNoteRequest
+	93, // 92: user.v1.UserService.GetFreelancerNote:input_type -> user.v1.GetFreelancerNoteRequest
+	96, // 93: user.v1.UserService.ListDiscoverableFreelancers:input_type -> user.v1.ListDiscoverableFreelancersRequest
+	23, // 94: user.v1.UserService.CreateMyProfile:output_type -> user.v1.CreateMyProfileResponse
+	25, // 95: user.v1.UserService.GetMyProfile:output_type -> user.v1.GetMyProfileResponse
+	30, // 96: user.v1.UserService.PatchMyProfile:output_type -> user.v1.PatchMyProfileResponse
+	37, // 97: user.v1.UserService.DeleteMyProfile:output_type -> user.v1.DeleteMyProfileResponse
+	39, // 98: user.v1.UserService.GetMyOnboardingStatus:output_type -> user.v1.GetMyOnboardingStatusResponse
+	33, // 99: user.v1.UserService.GetMySettings:output_type -> user.v1.GetMySettingsResponse
+	35, // 100: user.v1.UserService.PatchMySettings:output_type -> user.v1.PatchMySettingsResponse
+	41, // 101: user.v1.UserService.GetMyAvatarUploadUrl:output_type -> user.v1.GetMyAvatarUploadUrlResponse
+	43, // 102: user.v1.UserService.UpsertMyAvatar:output_type -> user.v1.UploadMyAvatarResponse
+	45, // 103: user.v1.UserService.GetMyAvatar:output_type -> user.v1.GetMyAvatarResponse
+	47, // 104: user.v1.UserService.RemoveMyAvatar:output_type -> user.v1.RemoveMyAvatarResponse
+	53, // 105: user.v1.UserService.GetMyCVUploadUrl:output_type -> user.v1.GetMyCVUploadUrlResponse
+	50, // 106: user.v1.UserService.UpsertMyCV:output_type -> user.v1.UploadMyCVResponse
+	54, // 107: user.v1.UserService.GetMyCV:output_type -> user.v1.GetMyCVResponse
+	58, // 108: user.v1.UserService.RemoveMyCV:output_type -> user.v1.RemoveMyCVResponse
+	56, // 109: user.v1.UserService.GetMyPortfolioMediaUploadUrl:output_type -> user.v1.GetMyPortfolioMediaUploadUrlResponse
+	63, // 110: user.v1.UserService.CreateMyPortfolioItem:output_type -> user.v1.CreateMyPortfolioItemResponse
+	65, // 111: user.v1.UserService.GetMyPortfolioItem:output_type -> user.v1.GetMyPortfolioItemResponse
+	68, // 112: user.v1.UserService.UpdateMyPortfolioItem:output_type -> user.v1.UpdateMyPortfolioItemResponse
+	70, // 113: user.v1.UserService.DeleteMyPortfolioItem:output_type -> user.v1.DeleteMyPortfolioItemResponse
+	72, // 114: user.v1.UserService.ListMyPortfolioItems:output_type -> user.v1.ListMyPortfolioItemsResponse
+	75, // 115: user.v1.UserService.PatchMyWorkPreferences:output_type -> user.v1.PatchMyWorkPreferencesResponse
+	77, // 116: user.v1.UserService.GetMyWorkPreferences:output_type -> user.v1.GetMyWorkPreferencesResponse
+	80, // 117: user.v1.UserService.GetMyHiringPreferences:output_type -> user.v1.GetMyHiringPreferencesResponse
+	82, // 118: user.v1.UserService.PatchMyHiringPreferences:output_type -> user.v1.PatchMyHiringPreferencesResponse
+	85, // 119: user.v1.UserService.SaveFreelancer:output_type -> user.v1.SaveFreelancerResponse
+	87, // 120: user.v1.UserService.ListSavedFreelancers:output_type -> user.v1.ListSavedFreelancersResponse
+	89, // 121: user.v1.UserService.RemoveSavedFreelancer:output_type -> user.v1.RemoveSavedFreelancerResponse
+	92, // 122: user.v1.UserService.UpsertFreelancerNote:output_type -> user.v1.UpsertFreelancerNoteResponse
+	94, // 123: user.v1.UserService.GetFreelancerNote:output_type -> user.v1.GetFreelancerNoteResponse
+	97, // 124: user.v1.UserService.ListDiscoverableFreelancers:output_type -> user.v1.ListDiscoverableFreelancersResponse
+	94, // [94:125] is the sub-list for method output_type
+	63, // [63:94] is the sub-list for method input_type
+	63, // [63:63] is the sub-list for extension type_name
+	63, // [63:63] is the sub-list for extension extendee
+	0,  // [0:63] is the sub-list for field type_name
 }
 
 func init() { file_user_user_proto_init() }
@@ -6477,13 +6748,14 @@ func file_user_user_proto_init() {
 	file_user_user_proto_msgTypes[59].OneofWrappers = []any{}
 	file_user_user_proto_msgTypes[67].OneofWrappers = []any{}
 	file_user_user_proto_msgTypes[74].OneofWrappers = []any{}
+	file_user_user_proto_msgTypes[88].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_user_proto_rawDesc), len(file_user_user_proto_rawDesc)),
 			NumEnums:      7,
-			NumMessages:   88,
+			NumMessages:   91,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
