@@ -67,7 +67,7 @@ func requireInternalCaller(ctx context.Context, services ...string) error {
 		if strings.EqualFold(caller, service) {
 			requiredSecret := strings.TrimSpace(os.Getenv("JOBCONNECT_INTERNAL_CALLER_SECRET"))
 			if requiredSecret == "" {
-				return nil
+				return status.Error(codes.PermissionDenied, "internal caller secret is not configured")
 			}
 			secretVals := md.Get("x-jobconnect-internal-secret")
 			if len(secretVals) == 0 {

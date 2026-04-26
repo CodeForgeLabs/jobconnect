@@ -101,14 +101,16 @@ type WalletClient interface {
 	GetBalance(ctx context.Context, walletID int64) (BalanceInfo, error)
 }
 
-// ContractClient wraps calls to the Contract Service.
-type ContractClient interface {
-	UpdateMilestoneStatus(ctx context.Context, contractID int64, milestoneID int64, status string) error
-}
-
 // VerificationClient wraps calls to the Verification Service.
 type VerificationClient interface {
 	IsKYCVerified(ctx context.Context, userID uuid.UUID) (bool, error)
+}
+
+type ContractClient interface {
+	MarkMilestoneFunded(ctx context.Context, contractID int64, milestoneID int64) error
+	MarkContractBonusPaid(ctx context.Context, bonusID int64, paymentReferenceID string) error
+	CloseHourlyWeek(ctx context.Context, contractID int64, weekStartUnixSeconds int64) error
+	SettleHourlyInvoice(ctx context.Context, invoiceID int64) error
 }
 
 // ──────────────────────────────────────────────

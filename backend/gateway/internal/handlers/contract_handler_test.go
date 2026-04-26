@@ -181,7 +181,7 @@ func (s *contractHandlerContractStub) GetContract(context.Context, *contractv1.G
 func (s *contractHandlerContractStub) CreateContract(context.Context, *contractv1.CreateContractRequest, ...grpc.CallOption) (*contractv1.CreateContractResponse, error) {
 	return nil, nil
 }
-func (s *contractHandlerContractStub) GetJobOfferState(context.Context, *contractv1.GetJobOfferStateRequest, ...grpc.CallOption) (*contractv1.GetJobOfferStateResponse, error) {
+func (s *contractHandlerContractStub) InternalGetJobOfferState(context.Context, *contractv1.GetJobOfferStateRequest, ...grpc.CallOption) (*contractv1.GetJobOfferStateResponse, error) {
 	return nil, nil
 }
 func (s *contractHandlerContractStub) AcceptContract(context.Context, *contractv1.AcceptContractRequest, ...grpc.CallOption) (*contractv1.AcceptContractResponse, error) {
@@ -202,16 +202,37 @@ func (s *contractHandlerContractStub) RequestMilestoneChanges(context.Context, *
 func (s *contractHandlerContractStub) ApproveMilestoneSubmission(context.Context, *contractv1.ApproveMilestoneSubmissionRequest, ...grpc.CallOption) (*contractv1.ApproveMilestoneSubmissionResponse, error) {
 	return nil, nil
 }
-func (s *contractHandlerContractStub) UpdateMilestoneStatus(context.Context, *contractv1.UpdateMilestoneStatusRequest, ...grpc.CallOption) (*contractv1.UpdateMilestoneStatusResponse, error) {
+func (s *contractHandlerContractStub) LogHourlyWork(context.Context, *contractv1.LogHourlyWorkRequest, ...grpc.CallOption) (*contractv1.LogHourlyWorkResponse, error) {
 	return nil, nil
 }
-func (s *contractHandlerContractStub) LogHourlyWork(context.Context, *contractv1.LogHourlyWorkRequest, ...grpc.CallOption) (*contractv1.LogHourlyWorkResponse, error) {
+func (s *contractHandlerContractStub) GetHourlyLogEvidenceUploadUrl(context.Context, *contractv1.GetHourlyLogEvidenceUploadUrlRequest, ...grpc.CallOption) (*contractv1.GetHourlyLogEvidenceUploadUrlResponse, error) {
 	return nil, nil
 }
 func (s *contractHandlerContractStub) ListHourlyLogs(context.Context, *contractv1.ListHourlyLogsRequest, ...grpc.CallOption) (*contractv1.ListHourlyLogsResponse, error) {
 	return nil, nil
 }
+func (s *contractHandlerContractStub) GetHourlyWorkSummary(context.Context, *contractv1.GetHourlyWorkSummaryRequest, ...grpc.CallOption) (*contractv1.GetHourlyWorkSummaryResponse, error) {
+	return nil, nil
+}
+func (s *contractHandlerContractStub) UpdateHourlyLog(context.Context, *contractv1.UpdateHourlyLogRequest, ...grpc.CallOption) (*contractv1.UpdateHourlyLogResponse, error) {
+	return nil, nil
+}
+func (s *contractHandlerContractStub) DeleteHourlyLog(context.Context, *contractv1.DeleteHourlyLogRequest, ...grpc.CallOption) (*contractv1.DeleteHourlyLogResponse, error) {
+	return nil, nil
+}
 func (s *contractHandlerContractStub) ReviewHourlyLog(context.Context, *contractv1.ReviewHourlyLogRequest, ...grpc.CallOption) (*contractv1.ReviewHourlyLogResponse, error) {
+	return nil, nil
+}
+func (s *contractHandlerContractStub) GetHourlyInvoice(context.Context, *contractv1.GetHourlyInvoiceRequest, ...grpc.CallOption) (*contractv1.GetHourlyInvoiceResponse, error) {
+	return nil, nil
+}
+func (s *contractHandlerContractStub) ListHourlyInvoices(context.Context, *contractv1.ListHourlyInvoicesRequest, ...grpc.CallOption) (*contractv1.ListHourlyInvoicesResponse, error) {
+	return nil, nil
+}
+func (s *contractHandlerContractStub) CreateContractBonus(context.Context, *contractv1.CreateContractBonusRequest, ...grpc.CallOption) (*contractv1.CreateContractBonusResponse, error) {
+	return nil, nil
+}
+func (s *contractHandlerContractStub) ListContractBonuses(context.Context, *contractv1.ListContractBonusesRequest, ...grpc.CallOption) (*contractv1.ListContractBonusesResponse, error) {
 	return nil, nil
 }
 func (s *contractHandlerContractStub) ProposeAmendment(context.Context, *contractv1.ProposeAmendmentRequest, ...grpc.CallOption) (*contractv1.ProposeAmendmentResponse, error) {

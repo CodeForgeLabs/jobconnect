@@ -71,7 +71,7 @@ func registerProposalRoutes(api *gin.RouterGroup, proposalHandler *handlers.Prop
 
 func registerContractRoutes(api *gin.RouterGroup, contractHandler *handlers.ContractHandler, jwtParser *auth.JWTParser) {
 	contractRoutes := api.Group("/contracts")
-	contractRoutes.Use(middleware.RequireAuth(jwtParser))
+	contractRoutes.Use(middleware.RequireAuth(jwtParser), middleware.RequireRoles("client", "freelancer"))
 	contractRoutes.GET("/bootstrap", middleware.RequireRoles("client"), contractHandler.Bootstrap)
 	contractRoutes.POST("", middleware.RequireRoles("client"), contractHandler.CreateContract)
 	contractRoutes.GET("", contractHandler.ListMyContracts)
@@ -82,16 +82,28 @@ func registerContractRoutes(api *gin.RouterGroup, contractHandler *handlers.Cont
 	contractRoutes.POST("/:contractId/milestones/:milestoneId/submit", middleware.RequireRoles("freelancer"), contractHandler.SubmitMilestoneWork)
 	contractRoutes.POST("/:contractId/milestones/:milestoneId/request-changes", middleware.RequireRoles("client"), contractHandler.RequestMilestoneChanges)
 	contractRoutes.POST("/:contractId/milestones/:milestoneId/approve", middleware.RequireRoles("client"), contractHandler.ApproveMilestoneSubmission)
+	contractRoutes.POST("/:contractId/hourly-logs", middleware.RequireRoles("freelancer"), contractHandler.LogHourlyWork)
+	contractRoutes.POST("/:contractId/hourly-logs/evidence/upload-url", middleware.RequireRoles("freelancer"), contractHandler.GetHourlyLogEvidenceUploadUrl)
+	contractRoutes.GET("/:contractId/hourly-logs", contractHandler.ListHourlyLogs)
+	contractRoutes.GET("/:contractId/hourly-summary", contractHandler.GetHourlyWorkSummary)
+	contractRoutes.PATCH("/hourly-logs/:hourlyLogId", middleware.RequireRoles("freelancer"), contractHandler.UpdateHourlyLog)
+	contractRoutes.DELETE("/hourly-logs/:hourlyLogId", middleware.RequireRoles("freelancer"), contractHandler.DeleteHourlyLog)
+	contractRoutes.POST("/hourly-logs/:hourlyLogId/review", middleware.RequireRoles("client"), contractHandler.ReviewHourlyLog)
+	contractRoutes.GET("/hourly-invoices/:invoiceId", contractHandler.GetHourlyInvoice)
+	contractRoutes.GET("/:contractId/hourly-invoices", contractHandler.ListHourlyInvoices)
+	contractRoutes.POST("/:contractId/bonuses", middleware.RequireRoles("client"), contractHandler.CreateContractBonus)
+	contractRoutes.GET("/:contractId/bonuses", contractHandler.ListContractBonuses)
 
 	// Amendment endpoints
 	contractRoutes.POST("/:contractId/amendments", contractHandler.ProposeAmendment)
 	contractRoutes.GET("/:contractId/amendments", contractHandler.ListAmendments)
 	contractRoutes.POST("/:contractId/amendments/:amendmentId/respond", contractHandler.RespondAmendment)
+	contractRoutes.GET("/:contractId/status-history", contractHandler.GetStatusHistory)
 
 	// Lifecycle endpoints
 	contractRoutes.POST("/:contractId/pause", contractHandler.PauseContract)
 	contractRoutes.POST("/:contractId/resume", contractHandler.ResumeContract)
-	contractRoutes.POST("/:contractId/end", contractHandler.EndContract)
+	contractRoutes.POST("/:contractId/end", middleware.RequireRoles("client"), contractHandler.EndContract)
 }
 
 func registerDisputeRoutes(api *gin.RouterGroup, disputeHandler *handlers.DisputeHandler, jwtParser *auth.JWTParser) {

@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"fmt"
-	"math"
 	"strings"
 
 	"jobconnect/contract/internal/domain"
@@ -34,11 +33,11 @@ func (uc *ApproveMilestoneSubmission) Execute(ctx context.Context, in ApproveMil
 	}
 	referenceID := fmt.Sprintf("%d:%d", in.ContractID, in.MilestoneID)
 	if uc.Disputes != nil {
-		hasOpen, err := uc.Disputes.HasOpenDispute(ctx, "milestone", referenceID)
+		openDisputeID, err := uc.Disputes.GetOpenDisputeID(ctx, "milestone", referenceID)
 		if err != nil {
 			return ApproveMilestoneSubmissionOutput{}, err
 		}
-		if hasOpen {
+		if strings.TrimSpace(openDisputeID) != "" {
 			return ApproveMilestoneSubmissionOutput{}, fmt.Errorf("open dispute exists for milestone")
 		}
 	}
@@ -47,7 +46,7 @@ func (uc *ApproveMilestoneSubmission) Execute(ctx context.Context, in ApproveMil
 		MilestoneID: in.MilestoneID,
 		ActorID:     in.ActorID,
 		ActorRole:   in.ActorRole,
-		Status:      domain.MilestoneStatusApproved,
+		Status:      domain.MilestoneStatusApprovedPendingSettlement,
 	})
 	if err != nil {
 		return ApproveMilestoneSubmissionOutput{}, err
@@ -58,7 +57,10 @@ func (uc *ApproveMilestoneSubmission) Execute(ctx context.Context, in ApproveMil
 	var amountMinor int64
 	for _, m := range out.Contract.Milestones {
 		if m.ID == in.MilestoneID {
-			amountMinor = int64(math.Round(m.Amount * 100))
+			amountMinor, err = domain.MoneyToMinorUnits(m.Amount, "milestone amount")
+			if err != nil {
+				return ApproveMilestoneSubmissionOutput{}, err
+			}
 			break
 		}
 	}
@@ -75,16 +77,6 @@ func (uc *ApproveMilestoneSubmission) Execute(ctx context.Context, in ApproveMil
 		FreelancerID: strings.TrimSpace(out.Contract.FreelancerID.String()),
 	}
 	if err := uc.Settlement.DispatchMilestoneApproved(ctx, command); err != nil {
-		pendingOut, pendingErr := uc.UpdateMilestoneStatus.Execute(ctx, UpdateMilestoneStatusInput{
-			ContractID:  in.ContractID,
-			MilestoneID: in.MilestoneID,
-			ActorID:     in.ActorID,
-			ActorRole:   "internal",
-			Status:      domain.MilestoneStatusApprovedPendingSettlement,
-		})
-		if pendingErr == nil {
-			return ApproveMilestoneSubmissionOutput{Contract: pendingOut.Contract}, nil
-		}
 		return ApproveMilestoneSubmissionOutput{}, fmt.Errorf("dispatch milestone settlement: %w", err)
 	}
 	return ApproveMilestoneSubmissionOutput{Contract: out.Contract}, nil

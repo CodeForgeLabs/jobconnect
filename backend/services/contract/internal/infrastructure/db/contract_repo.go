@@ -198,10 +198,29 @@ func (r *ContractRepo) SetStatusForFreelancer(ctx context.Context, contractID in
 	var err error
 	switch status {
 	case domain.StatusActive:
+		// Resume path (paused -> active) for freelancer actor.
 		res, execErr := r.pool.Exec(ctx, `
 			update contracts
-			set status = $3, updated_at = $4, activated_at = $4
-			where id = $1 and freelancer_id = $2
+			set status = $3, updated_at = $4, paused_at = null
+			where id = $1 and freelancer_id = $2 and status = 'paused'
+		`, contractID, freelancerID, status, at)
+		err = execErr
+		tag = res.RowsAffected()
+		if err == nil && tag == 0 {
+			// Accept path (pending_acceptance -> active) for freelancer actor.
+			res, execErr = r.pool.Exec(ctx, `
+				update contracts
+				set status = $3, updated_at = $4, activated_at = $4
+				where id = $1 and freelancer_id = $2 and status = 'pending_acceptance'
+			`, contractID, freelancerID, status, at)
+			err = execErr
+			tag = res.RowsAffected()
+		}
+	case domain.StatusPaused:
+		res, execErr := r.pool.Exec(ctx, `
+			update contracts
+			set status = $3, updated_at = $4, paused_at = $4
+			where id = $1 and freelancer_id = $2 and status = 'active'
 		`, contractID, freelancerID, status, at)
 		err = execErr
 		tag = res.RowsAffected()
@@ -209,7 +228,7 @@ func (r *ContractRepo) SetStatusForFreelancer(ctx context.Context, contractID in
 		res, execErr := r.pool.Exec(ctx, `
 			update contracts
 			set status = $3, updated_at = $4, declined_at = $4
-			where id = $1 and freelancer_id = $2
+			where id = $1 and freelancer_id = $2 and status = 'pending_acceptance'
 		`, contractID, freelancerID, status, at)
 		err = execErr
 		tag = res.RowsAffected()
@@ -217,7 +236,7 @@ func (r *ContractRepo) SetStatusForFreelancer(ctx context.Context, contractID in
 		res, execErr := r.pool.Exec(ctx, `
 			update contracts
 			set status = $3, updated_at = $4, revoked_at = $4
-			where id = $1 and freelancer_id = $2
+			where id = $1 and freelancer_id = $2 and status = 'pending_acceptance'
 		`, contractID, freelancerID, status, at)
 		err = execErr
 		tag = res.RowsAffected()
@@ -225,7 +244,15 @@ func (r *ContractRepo) SetStatusForFreelancer(ctx context.Context, contractID in
 		res, execErr := r.pool.Exec(ctx, `
 			update contracts
 			set status = $3, updated_at = $4, activated_at = null, declined_at = null, revoked_at = null
-			where id = $1 and freelancer_id = $2
+			where id = $1 and freelancer_id = $2 and status in ('active', 'declined', 'revoked', 'pending_acceptance')
+		`, contractID, freelancerID, status, at)
+		err = execErr
+		tag = res.RowsAffected()
+	case domain.StatusEnded:
+		res, execErr := r.pool.Exec(ctx, `
+			update contracts
+			set status = $3, updated_at = $4, ended_at = $4
+			where id = $1 and freelancer_id = $2 and status in ('active', 'paused')
 		`, contractID, freelancerID, status, at)
 		err = execErr
 		tag = res.RowsAffected()

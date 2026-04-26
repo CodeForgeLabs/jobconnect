@@ -553,7 +553,7 @@ func (s *ProposalServer) InternalHireProposal(ctx context.Context, req *proposal
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request required")
 	}
-	if err := requireInternalJobServiceCaller(ctx); err != nil {
+	if err := requireInternalCaller(ctx, "job-service", "contract-service"); err != nil {
 		return nil, err
 	}
 	if s.InternalHireUC == nil {

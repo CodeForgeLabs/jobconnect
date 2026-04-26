@@ -19,27 +19,37 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ContractService_CreateContract_FullMethodName             = "/contract.v1.ContractService/CreateContract"
-	ContractService_GetContract_FullMethodName                = "/contract.v1.ContractService/GetContract"
-	ContractService_ListMyContracts_FullMethodName            = "/contract.v1.ContractService/ListMyContracts"
-	ContractService_GetJobOfferState_FullMethodName           = "/contract.v1.ContractService/GetJobOfferState"
-	ContractService_AcceptContract_FullMethodName             = "/contract.v1.ContractService/AcceptContract"
-	ContractService_DeclineContract_FullMethodName            = "/contract.v1.ContractService/DeclineContract"
-	ContractService_RevokeContractOffer_FullMethodName        = "/contract.v1.ContractService/RevokeContractOffer"
-	ContractService_SubmitMilestoneWork_FullMethodName        = "/contract.v1.ContractService/SubmitMilestoneWork"
-	ContractService_RequestMilestoneChanges_FullMethodName    = "/contract.v1.ContractService/RequestMilestoneChanges"
-	ContractService_ApproveMilestoneSubmission_FullMethodName = "/contract.v1.ContractService/ApproveMilestoneSubmission"
-	ContractService_UpdateMilestoneStatus_FullMethodName      = "/contract.v1.ContractService/UpdateMilestoneStatus"
-	ContractService_LogHourlyWork_FullMethodName              = "/contract.v1.ContractService/LogHourlyWork"
-	ContractService_ListHourlyLogs_FullMethodName             = "/contract.v1.ContractService/ListHourlyLogs"
-	ContractService_ReviewHourlyLog_FullMethodName            = "/contract.v1.ContractService/ReviewHourlyLog"
-	ContractService_ProposeAmendment_FullMethodName           = "/contract.v1.ContractService/ProposeAmendment"
-	ContractService_RespondAmendment_FullMethodName           = "/contract.v1.ContractService/RespondAmendment"
-	ContractService_ListAmendments_FullMethodName             = "/contract.v1.ContractService/ListAmendments"
-	ContractService_PauseContract_FullMethodName              = "/contract.v1.ContractService/PauseContract"
-	ContractService_ResumeContract_FullMethodName             = "/contract.v1.ContractService/ResumeContract"
-	ContractService_EndContract_FullMethodName                = "/contract.v1.ContractService/EndContract"
-	ContractService_GetStatusHistory_FullMethodName           = "/contract.v1.ContractService/GetStatusHistory"
+	ContractService_CreateContract_FullMethodName                = "/contract.v1.ContractService/CreateContract"
+	ContractService_GetContract_FullMethodName                   = "/contract.v1.ContractService/GetContract"
+	ContractService_ListMyContracts_FullMethodName               = "/contract.v1.ContractService/ListMyContracts"
+	ContractService_InternalGetJobOfferState_FullMethodName      = "/contract.v1.ContractService/InternalGetJobOfferState"
+	ContractService_AcceptContract_FullMethodName                = "/contract.v1.ContractService/AcceptContract"
+	ContractService_DeclineContract_FullMethodName               = "/contract.v1.ContractService/DeclineContract"
+	ContractService_RevokeContractOffer_FullMethodName           = "/contract.v1.ContractService/RevokeContractOffer"
+	ContractService_SubmitMilestoneWork_FullMethodName           = "/contract.v1.ContractService/SubmitMilestoneWork"
+	ContractService_RequestMilestoneChanges_FullMethodName       = "/contract.v1.ContractService/RequestMilestoneChanges"
+	ContractService_ApproveMilestoneSubmission_FullMethodName    = "/contract.v1.ContractService/ApproveMilestoneSubmission"
+	ContractService_InternalMarkMilestoneFunded_FullMethodName   = "/contract.v1.ContractService/InternalMarkMilestoneFunded"
+	ContractService_LogHourlyWork_FullMethodName                 = "/contract.v1.ContractService/LogHourlyWork"
+	ContractService_ListHourlyLogs_FullMethodName                = "/contract.v1.ContractService/ListHourlyLogs"
+	ContractService_GetHourlyWorkSummary_FullMethodName          = "/contract.v1.ContractService/GetHourlyWorkSummary"
+	ContractService_UpdateHourlyLog_FullMethodName               = "/contract.v1.ContractService/UpdateHourlyLog"
+	ContractService_DeleteHourlyLog_FullMethodName               = "/contract.v1.ContractService/DeleteHourlyLog"
+	ContractService_ReviewHourlyLog_FullMethodName               = "/contract.v1.ContractService/ReviewHourlyLog"
+	ContractService_GetHourlyInvoice_FullMethodName              = "/contract.v1.ContractService/GetHourlyInvoice"
+	ContractService_ListHourlyInvoices_FullMethodName            = "/contract.v1.ContractService/ListHourlyInvoices"
+	ContractService_InternalCloseHourlyWeek_FullMethodName       = "/contract.v1.ContractService/InternalCloseHourlyWeek"
+	ContractService_InternalSettleHourlyInvoice_FullMethodName   = "/contract.v1.ContractService/InternalSettleHourlyInvoice"
+	ContractService_CreateContractBonus_FullMethodName           = "/contract.v1.ContractService/CreateContractBonus"
+	ContractService_ListContractBonuses_FullMethodName           = "/contract.v1.ContractService/ListContractBonuses"
+	ContractService_InternalMarkContractBonusPaid_FullMethodName = "/contract.v1.ContractService/InternalMarkContractBonusPaid"
+	ContractService_ProposeAmendment_FullMethodName              = "/contract.v1.ContractService/ProposeAmendment"
+	ContractService_RespondAmendment_FullMethodName              = "/contract.v1.ContractService/RespondAmendment"
+	ContractService_ListAmendments_FullMethodName                = "/contract.v1.ContractService/ListAmendments"
+	ContractService_PauseContract_FullMethodName                 = "/contract.v1.ContractService/PauseContract"
+	ContractService_ResumeContract_FullMethodName                = "/contract.v1.ContractService/ResumeContract"
+	ContractService_EndContract_FullMethodName                   = "/contract.v1.ContractService/EndContract"
+	ContractService_GetStatusHistory_FullMethodName              = "/contract.v1.ContractService/GetStatusHistory"
 )
 
 // ContractServiceClient is the client API for ContractService service.
@@ -49,7 +59,8 @@ type ContractServiceClient interface {
 	CreateContract(ctx context.Context, in *CreateContractRequest, opts ...grpc.CallOption) (*CreateContractResponse, error)
 	GetContract(ctx context.Context, in *GetContractRequest, opts ...grpc.CallOption) (*GetContractResponse, error)
 	ListMyContracts(ctx context.Context, in *ListMyContractsRequest, opts ...grpc.CallOption) (*ListMyContractsResponse, error)
-	GetJobOfferState(ctx context.Context, in *GetJobOfferStateRequest, opts ...grpc.CallOption) (*GetJobOfferStateResponse, error)
+	// Internal RPC for job-service hiring decisions.
+	InternalGetJobOfferState(ctx context.Context, in *GetJobOfferStateRequest, opts ...grpc.CallOption) (*GetJobOfferStateResponse, error)
 	// Accepting the offer activates the contract and finalizes the hire.
 	AcceptContract(ctx context.Context, in *AcceptContractRequest, opts ...grpc.CallOption) (*AcceptContractResponse, error)
 	DeclineContract(ctx context.Context, in *DeclineContractRequest, opts ...grpc.CallOption) (*DeclineContractResponse, error)
@@ -60,19 +71,30 @@ type ContractServiceClient interface {
 	RequestMilestoneChanges(ctx context.Context, in *RequestMilestoneChangesRequest, opts ...grpc.CallOption) (*RequestMilestoneChangesResponse, error)
 	// Client approves a submitted milestone and triggers settlement orchestration.
 	ApproveMilestoneSubmission(ctx context.Context, in *ApproveMilestoneSubmissionRequest, opts ...grpc.CallOption) (*ApproveMilestoneSubmissionResponse, error)
-	UpdateMilestoneStatus(ctx context.Context, in *UpdateMilestoneStatusRequest, opts ...grpc.CallOption) (*UpdateMilestoneStatusResponse, error)
+	// Internal RPC for payment-service escrow funding callbacks.
+	InternalMarkMilestoneFunded(ctx context.Context, in *InternalMarkMilestoneFundedRequest, opts ...grpc.CallOption) (*InternalMarkMilestoneFundedResponse, error)
 	LogHourlyWork(ctx context.Context, in *LogHourlyWorkRequest, opts ...grpc.CallOption) (*LogHourlyWorkResponse, error)
 	ListHourlyLogs(ctx context.Context, in *ListHourlyLogsRequest, opts ...grpc.CallOption) (*ListHourlyLogsResponse, error)
+	GetHourlyWorkSummary(ctx context.Context, in *GetHourlyWorkSummaryRequest, opts ...grpc.CallOption) (*GetHourlyWorkSummaryResponse, error)
+	UpdateHourlyLog(ctx context.Context, in *UpdateHourlyLogRequest, opts ...grpc.CallOption) (*UpdateHourlyLogResponse, error)
+	DeleteHourlyLog(ctx context.Context, in *DeleteHourlyLogRequest, opts ...grpc.CallOption) (*DeleteHourlyLogResponse, error)
 	ReviewHourlyLog(ctx context.Context, in *ReviewHourlyLogRequest, opts ...grpc.CallOption) (*ReviewHourlyLogResponse, error)
+	GetHourlyInvoice(ctx context.Context, in *GetHourlyInvoiceRequest, opts ...grpc.CallOption) (*GetHourlyInvoiceResponse, error)
+	ListHourlyInvoices(ctx context.Context, in *ListHourlyInvoicesRequest, opts ...grpc.CallOption) (*ListHourlyInvoicesResponse, error)
+	InternalCloseHourlyWeek(ctx context.Context, in *InternalCloseHourlyWeekRequest, opts ...grpc.CallOption) (*InternalCloseHourlyWeekResponse, error)
+	InternalSettleHourlyInvoice(ctx context.Context, in *InternalSettleHourlyInvoiceRequest, opts ...grpc.CallOption) (*InternalSettleHourlyInvoiceResponse, error)
+	CreateContractBonus(ctx context.Context, in *CreateContractBonusRequest, opts ...grpc.CallOption) (*CreateContractBonusResponse, error)
+	ListContractBonuses(ctx context.Context, in *ListContractBonusesRequest, opts ...grpc.CallOption) (*ListContractBonusesResponse, error)
+	InternalMarkContractBonusPaid(ctx context.Context, in *InternalMarkContractBonusPaidRequest, opts ...grpc.CallOption) (*InternalMarkContractBonusPaidResponse, error)
 	// Propose an amendment to the contract. Only allowed when contract is ACTIVE or PAUSED. Either party may propose.
 	ProposeAmendment(ctx context.Context, in *ProposeAmendmentRequest, opts ...grpc.CallOption) (*ProposeAmendmentResponse, error)
 	// Respond to an amendment. Only the counterparty (not proposer) may respond, only when amendment is PENDING, only ACCEPT/REJECT allowed, and only when contract is ACTIVE or PAUSED.
 	RespondAmendment(ctx context.Context, in *RespondAmendmentRequest, opts ...grpc.CallOption) (*RespondAmendmentResponse, error)
 	// List all amendments for a contract. Both parties may read.
 	ListAmendments(ctx context.Context, in *ListAmendmentsRequest, opts ...grpc.CallOption) (*ListAmendmentsResponse, error)
-	// Pause the contract. Client-only. Only allowed from ACTIVE state.
+	// Pause the contract. Client or freelancer may pause. Only allowed from ACTIVE state.
 	PauseContract(ctx context.Context, in *PauseContractRequest, opts ...grpc.CallOption) (*PauseContractResponse, error)
-	// Resume the contract. Client-only. Only allowed from PAUSED state.
+	// Resume the contract. Client or freelancer may resume. Only allowed from PAUSED state.
 	ResumeContract(ctx context.Context, in *ResumeContractRequest, opts ...grpc.CallOption) (*ResumeContractResponse, error)
 	// End the contract. Client-only. Only allowed from ACTIVE or PAUSED state. Once ended, terminal.
 	EndContract(ctx context.Context, in *EndContractRequest, opts ...grpc.CallOption) (*EndContractResponse, error)
@@ -117,10 +139,10 @@ func (c *contractServiceClient) ListMyContracts(ctx context.Context, in *ListMyC
 	return out, nil
 }
 
-func (c *contractServiceClient) GetJobOfferState(ctx context.Context, in *GetJobOfferStateRequest, opts ...grpc.CallOption) (*GetJobOfferStateResponse, error) {
+func (c *contractServiceClient) InternalGetJobOfferState(ctx context.Context, in *GetJobOfferStateRequest, opts ...grpc.CallOption) (*GetJobOfferStateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetJobOfferStateResponse)
-	err := c.cc.Invoke(ctx, ContractService_GetJobOfferState_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, ContractService_InternalGetJobOfferState_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -187,10 +209,10 @@ func (c *contractServiceClient) ApproveMilestoneSubmission(ctx context.Context, 
 	return out, nil
 }
 
-func (c *contractServiceClient) UpdateMilestoneStatus(ctx context.Context, in *UpdateMilestoneStatusRequest, opts ...grpc.CallOption) (*UpdateMilestoneStatusResponse, error) {
+func (c *contractServiceClient) InternalMarkMilestoneFunded(ctx context.Context, in *InternalMarkMilestoneFundedRequest, opts ...grpc.CallOption) (*InternalMarkMilestoneFundedResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateMilestoneStatusResponse)
-	err := c.cc.Invoke(ctx, ContractService_UpdateMilestoneStatus_FullMethodName, in, out, cOpts...)
+	out := new(InternalMarkMilestoneFundedResponse)
+	err := c.cc.Invoke(ctx, ContractService_InternalMarkMilestoneFunded_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -217,10 +239,110 @@ func (c *contractServiceClient) ListHourlyLogs(ctx context.Context, in *ListHour
 	return out, nil
 }
 
+func (c *contractServiceClient) GetHourlyWorkSummary(ctx context.Context, in *GetHourlyWorkSummaryRequest, opts ...grpc.CallOption) (*GetHourlyWorkSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetHourlyWorkSummaryResponse)
+	err := c.cc.Invoke(ctx, ContractService_GetHourlyWorkSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) UpdateHourlyLog(ctx context.Context, in *UpdateHourlyLogRequest, opts ...grpc.CallOption) (*UpdateHourlyLogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateHourlyLogResponse)
+	err := c.cc.Invoke(ctx, ContractService_UpdateHourlyLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) DeleteHourlyLog(ctx context.Context, in *DeleteHourlyLogRequest, opts ...grpc.CallOption) (*DeleteHourlyLogResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteHourlyLogResponse)
+	err := c.cc.Invoke(ctx, ContractService_DeleteHourlyLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contractServiceClient) ReviewHourlyLog(ctx context.Context, in *ReviewHourlyLogRequest, opts ...grpc.CallOption) (*ReviewHourlyLogResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ReviewHourlyLogResponse)
 	err := c.cc.Invoke(ctx, ContractService_ReviewHourlyLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) GetHourlyInvoice(ctx context.Context, in *GetHourlyInvoiceRequest, opts ...grpc.CallOption) (*GetHourlyInvoiceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetHourlyInvoiceResponse)
+	err := c.cc.Invoke(ctx, ContractService_GetHourlyInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) ListHourlyInvoices(ctx context.Context, in *ListHourlyInvoicesRequest, opts ...grpc.CallOption) (*ListHourlyInvoicesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListHourlyInvoicesResponse)
+	err := c.cc.Invoke(ctx, ContractService_ListHourlyInvoices_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) InternalCloseHourlyWeek(ctx context.Context, in *InternalCloseHourlyWeekRequest, opts ...grpc.CallOption) (*InternalCloseHourlyWeekResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InternalCloseHourlyWeekResponse)
+	err := c.cc.Invoke(ctx, ContractService_InternalCloseHourlyWeek_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) InternalSettleHourlyInvoice(ctx context.Context, in *InternalSettleHourlyInvoiceRequest, opts ...grpc.CallOption) (*InternalSettleHourlyInvoiceResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InternalSettleHourlyInvoiceResponse)
+	err := c.cc.Invoke(ctx, ContractService_InternalSettleHourlyInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) CreateContractBonus(ctx context.Context, in *CreateContractBonusRequest, opts ...grpc.CallOption) (*CreateContractBonusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateContractBonusResponse)
+	err := c.cc.Invoke(ctx, ContractService_CreateContractBonus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) ListContractBonuses(ctx context.Context, in *ListContractBonusesRequest, opts ...grpc.CallOption) (*ListContractBonusesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListContractBonusesResponse)
+	err := c.cc.Invoke(ctx, ContractService_ListContractBonuses_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) InternalMarkContractBonusPaid(ctx context.Context, in *InternalMarkContractBonusPaidRequest, opts ...grpc.CallOption) (*InternalMarkContractBonusPaidResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InternalMarkContractBonusPaidResponse)
+	err := c.cc.Invoke(ctx, ContractService_InternalMarkContractBonusPaid_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +426,8 @@ type ContractServiceServer interface {
 	CreateContract(context.Context, *CreateContractRequest) (*CreateContractResponse, error)
 	GetContract(context.Context, *GetContractRequest) (*GetContractResponse, error)
 	ListMyContracts(context.Context, *ListMyContractsRequest) (*ListMyContractsResponse, error)
-	GetJobOfferState(context.Context, *GetJobOfferStateRequest) (*GetJobOfferStateResponse, error)
+	// Internal RPC for job-service hiring decisions.
+	InternalGetJobOfferState(context.Context, *GetJobOfferStateRequest) (*GetJobOfferStateResponse, error)
 	// Accepting the offer activates the contract and finalizes the hire.
 	AcceptContract(context.Context, *AcceptContractRequest) (*AcceptContractResponse, error)
 	DeclineContract(context.Context, *DeclineContractRequest) (*DeclineContractResponse, error)
@@ -315,19 +438,30 @@ type ContractServiceServer interface {
 	RequestMilestoneChanges(context.Context, *RequestMilestoneChangesRequest) (*RequestMilestoneChangesResponse, error)
 	// Client approves a submitted milestone and triggers settlement orchestration.
 	ApproveMilestoneSubmission(context.Context, *ApproveMilestoneSubmissionRequest) (*ApproveMilestoneSubmissionResponse, error)
-	UpdateMilestoneStatus(context.Context, *UpdateMilestoneStatusRequest) (*UpdateMilestoneStatusResponse, error)
+	// Internal RPC for payment-service escrow funding callbacks.
+	InternalMarkMilestoneFunded(context.Context, *InternalMarkMilestoneFundedRequest) (*InternalMarkMilestoneFundedResponse, error)
 	LogHourlyWork(context.Context, *LogHourlyWorkRequest) (*LogHourlyWorkResponse, error)
 	ListHourlyLogs(context.Context, *ListHourlyLogsRequest) (*ListHourlyLogsResponse, error)
+	GetHourlyWorkSummary(context.Context, *GetHourlyWorkSummaryRequest) (*GetHourlyWorkSummaryResponse, error)
+	UpdateHourlyLog(context.Context, *UpdateHourlyLogRequest) (*UpdateHourlyLogResponse, error)
+	DeleteHourlyLog(context.Context, *DeleteHourlyLogRequest) (*DeleteHourlyLogResponse, error)
 	ReviewHourlyLog(context.Context, *ReviewHourlyLogRequest) (*ReviewHourlyLogResponse, error)
+	GetHourlyInvoice(context.Context, *GetHourlyInvoiceRequest) (*GetHourlyInvoiceResponse, error)
+	ListHourlyInvoices(context.Context, *ListHourlyInvoicesRequest) (*ListHourlyInvoicesResponse, error)
+	InternalCloseHourlyWeek(context.Context, *InternalCloseHourlyWeekRequest) (*InternalCloseHourlyWeekResponse, error)
+	InternalSettleHourlyInvoice(context.Context, *InternalSettleHourlyInvoiceRequest) (*InternalSettleHourlyInvoiceResponse, error)
+	CreateContractBonus(context.Context, *CreateContractBonusRequest) (*CreateContractBonusResponse, error)
+	ListContractBonuses(context.Context, *ListContractBonusesRequest) (*ListContractBonusesResponse, error)
+	InternalMarkContractBonusPaid(context.Context, *InternalMarkContractBonusPaidRequest) (*InternalMarkContractBonusPaidResponse, error)
 	// Propose an amendment to the contract. Only allowed when contract is ACTIVE or PAUSED. Either party may propose.
 	ProposeAmendment(context.Context, *ProposeAmendmentRequest) (*ProposeAmendmentResponse, error)
 	// Respond to an amendment. Only the counterparty (not proposer) may respond, only when amendment is PENDING, only ACCEPT/REJECT allowed, and only when contract is ACTIVE or PAUSED.
 	RespondAmendment(context.Context, *RespondAmendmentRequest) (*RespondAmendmentResponse, error)
 	// List all amendments for a contract. Both parties may read.
 	ListAmendments(context.Context, *ListAmendmentsRequest) (*ListAmendmentsResponse, error)
-	// Pause the contract. Client-only. Only allowed from ACTIVE state.
+	// Pause the contract. Client or freelancer may pause. Only allowed from ACTIVE state.
 	PauseContract(context.Context, *PauseContractRequest) (*PauseContractResponse, error)
-	// Resume the contract. Client-only. Only allowed from PAUSED state.
+	// Resume the contract. Client or freelancer may resume. Only allowed from PAUSED state.
 	ResumeContract(context.Context, *ResumeContractRequest) (*ResumeContractResponse, error)
 	// End the contract. Client-only. Only allowed from ACTIVE or PAUSED state. Once ended, terminal.
 	EndContract(context.Context, *EndContractRequest) (*EndContractResponse, error)
@@ -351,8 +485,8 @@ func (UnimplementedContractServiceServer) GetContract(context.Context, *GetContr
 func (UnimplementedContractServiceServer) ListMyContracts(context.Context, *ListMyContractsRequest) (*ListMyContractsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMyContracts not implemented")
 }
-func (UnimplementedContractServiceServer) GetJobOfferState(context.Context, *GetJobOfferStateRequest) (*GetJobOfferStateResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetJobOfferState not implemented")
+func (UnimplementedContractServiceServer) InternalGetJobOfferState(context.Context, *GetJobOfferStateRequest) (*GetJobOfferStateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InternalGetJobOfferState not implemented")
 }
 func (UnimplementedContractServiceServer) AcceptContract(context.Context, *AcceptContractRequest) (*AcceptContractResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AcceptContract not implemented")
@@ -372,8 +506,8 @@ func (UnimplementedContractServiceServer) RequestMilestoneChanges(context.Contex
 func (UnimplementedContractServiceServer) ApproveMilestoneSubmission(context.Context, *ApproveMilestoneSubmissionRequest) (*ApproveMilestoneSubmissionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ApproveMilestoneSubmission not implemented")
 }
-func (UnimplementedContractServiceServer) UpdateMilestoneStatus(context.Context, *UpdateMilestoneStatusRequest) (*UpdateMilestoneStatusResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method UpdateMilestoneStatus not implemented")
+func (UnimplementedContractServiceServer) InternalMarkMilestoneFunded(context.Context, *InternalMarkMilestoneFundedRequest) (*InternalMarkMilestoneFundedResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InternalMarkMilestoneFunded not implemented")
 }
 func (UnimplementedContractServiceServer) LogHourlyWork(context.Context, *LogHourlyWorkRequest) (*LogHourlyWorkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method LogHourlyWork not implemented")
@@ -381,8 +515,38 @@ func (UnimplementedContractServiceServer) LogHourlyWork(context.Context, *LogHou
 func (UnimplementedContractServiceServer) ListHourlyLogs(context.Context, *ListHourlyLogsRequest) (*ListHourlyLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListHourlyLogs not implemented")
 }
+func (UnimplementedContractServiceServer) GetHourlyWorkSummary(context.Context, *GetHourlyWorkSummaryRequest) (*GetHourlyWorkSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetHourlyWorkSummary not implemented")
+}
+func (UnimplementedContractServiceServer) UpdateHourlyLog(context.Context, *UpdateHourlyLogRequest) (*UpdateHourlyLogResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateHourlyLog not implemented")
+}
+func (UnimplementedContractServiceServer) DeleteHourlyLog(context.Context, *DeleteHourlyLogRequest) (*DeleteHourlyLogResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteHourlyLog not implemented")
+}
 func (UnimplementedContractServiceServer) ReviewHourlyLog(context.Context, *ReviewHourlyLogRequest) (*ReviewHourlyLogResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReviewHourlyLog not implemented")
+}
+func (UnimplementedContractServiceServer) GetHourlyInvoice(context.Context, *GetHourlyInvoiceRequest) (*GetHourlyInvoiceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetHourlyInvoice not implemented")
+}
+func (UnimplementedContractServiceServer) ListHourlyInvoices(context.Context, *ListHourlyInvoicesRequest) (*ListHourlyInvoicesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListHourlyInvoices not implemented")
+}
+func (UnimplementedContractServiceServer) InternalCloseHourlyWeek(context.Context, *InternalCloseHourlyWeekRequest) (*InternalCloseHourlyWeekResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InternalCloseHourlyWeek not implemented")
+}
+func (UnimplementedContractServiceServer) InternalSettleHourlyInvoice(context.Context, *InternalSettleHourlyInvoiceRequest) (*InternalSettleHourlyInvoiceResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InternalSettleHourlyInvoice not implemented")
+}
+func (UnimplementedContractServiceServer) CreateContractBonus(context.Context, *CreateContractBonusRequest) (*CreateContractBonusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateContractBonus not implemented")
+}
+func (UnimplementedContractServiceServer) ListContractBonuses(context.Context, *ListContractBonusesRequest) (*ListContractBonusesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListContractBonuses not implemented")
+}
+func (UnimplementedContractServiceServer) InternalMarkContractBonusPaid(context.Context, *InternalMarkContractBonusPaidRequest) (*InternalMarkContractBonusPaidResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InternalMarkContractBonusPaid not implemented")
 }
 func (UnimplementedContractServiceServer) ProposeAmendment(context.Context, *ProposeAmendmentRequest) (*ProposeAmendmentResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ProposeAmendment not implemented")
@@ -480,20 +644,20 @@ func _ContractService_ListMyContracts_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ContractService_GetJobOfferState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ContractService_InternalGetJobOfferState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetJobOfferStateRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ContractServiceServer).GetJobOfferState(ctx, in)
+		return srv.(ContractServiceServer).InternalGetJobOfferState(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ContractService_GetJobOfferState_FullMethodName,
+		FullMethod: ContractService_InternalGetJobOfferState_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ContractServiceServer).GetJobOfferState(ctx, req.(*GetJobOfferStateRequest))
+		return srv.(ContractServiceServer).InternalGetJobOfferState(ctx, req.(*GetJobOfferStateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -606,20 +770,20 @@ func _ContractService_ApproveMilestoneSubmission_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ContractService_UpdateMilestoneStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateMilestoneStatusRequest)
+func _ContractService_InternalMarkMilestoneFunded_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InternalMarkMilestoneFundedRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ContractServiceServer).UpdateMilestoneStatus(ctx, in)
+		return srv.(ContractServiceServer).InternalMarkMilestoneFunded(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ContractService_UpdateMilestoneStatus_FullMethodName,
+		FullMethod: ContractService_InternalMarkMilestoneFunded_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ContractServiceServer).UpdateMilestoneStatus(ctx, req.(*UpdateMilestoneStatusRequest))
+		return srv.(ContractServiceServer).InternalMarkMilestoneFunded(ctx, req.(*InternalMarkMilestoneFundedRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -660,6 +824,60 @@ func _ContractService_ListHourlyLogs_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ContractService_GetHourlyWorkSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHourlyWorkSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).GetHourlyWorkSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_GetHourlyWorkSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).GetHourlyWorkSummary(ctx, req.(*GetHourlyWorkSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_UpdateHourlyLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateHourlyLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).UpdateHourlyLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_UpdateHourlyLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).UpdateHourlyLog(ctx, req.(*UpdateHourlyLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_DeleteHourlyLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteHourlyLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).DeleteHourlyLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_DeleteHourlyLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).DeleteHourlyLog(ctx, req.(*DeleteHourlyLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ContractService_ReviewHourlyLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReviewHourlyLogRequest)
 	if err := dec(in); err != nil {
@@ -674,6 +892,132 @@ func _ContractService_ReviewHourlyLog_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ContractServiceServer).ReviewHourlyLog(ctx, req.(*ReviewHourlyLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_GetHourlyInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHourlyInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).GetHourlyInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_GetHourlyInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).GetHourlyInvoice(ctx, req.(*GetHourlyInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_ListHourlyInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListHourlyInvoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).ListHourlyInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_ListHourlyInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).ListHourlyInvoices(ctx, req.(*ListHourlyInvoicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_InternalCloseHourlyWeek_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InternalCloseHourlyWeekRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).InternalCloseHourlyWeek(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_InternalCloseHourlyWeek_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).InternalCloseHourlyWeek(ctx, req.(*InternalCloseHourlyWeekRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_InternalSettleHourlyInvoice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InternalSettleHourlyInvoiceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).InternalSettleHourlyInvoice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_InternalSettleHourlyInvoice_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).InternalSettleHourlyInvoice(ctx, req.(*InternalSettleHourlyInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_CreateContractBonus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateContractBonusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).CreateContractBonus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_CreateContractBonus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).CreateContractBonus(ctx, req.(*CreateContractBonusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_ListContractBonuses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListContractBonusesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).ListContractBonuses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_ListContractBonuses_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).ListContractBonuses(ctx, req.(*ListContractBonusesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_InternalMarkContractBonusPaid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InternalMarkContractBonusPaidRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).InternalMarkContractBonusPaid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_InternalMarkContractBonusPaid_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).InternalMarkContractBonusPaid(ctx, req.(*InternalMarkContractBonusPaidRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -824,8 +1168,8 @@ var ContractService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ContractService_ListMyContracts_Handler,
 		},
 		{
-			MethodName: "GetJobOfferState",
-			Handler:    _ContractService_GetJobOfferState_Handler,
+			MethodName: "InternalGetJobOfferState",
+			Handler:    _ContractService_InternalGetJobOfferState_Handler,
 		},
 		{
 			MethodName: "AcceptContract",
@@ -852,8 +1196,8 @@ var ContractService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ContractService_ApproveMilestoneSubmission_Handler,
 		},
 		{
-			MethodName: "UpdateMilestoneStatus",
-			Handler:    _ContractService_UpdateMilestoneStatus_Handler,
+			MethodName: "InternalMarkMilestoneFunded",
+			Handler:    _ContractService_InternalMarkMilestoneFunded_Handler,
 		},
 		{
 			MethodName: "LogHourlyWork",
@@ -864,8 +1208,48 @@ var ContractService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ContractService_ListHourlyLogs_Handler,
 		},
 		{
+			MethodName: "GetHourlyWorkSummary",
+			Handler:    _ContractService_GetHourlyWorkSummary_Handler,
+		},
+		{
+			MethodName: "UpdateHourlyLog",
+			Handler:    _ContractService_UpdateHourlyLog_Handler,
+		},
+		{
+			MethodName: "DeleteHourlyLog",
+			Handler:    _ContractService_DeleteHourlyLog_Handler,
+		},
+		{
 			MethodName: "ReviewHourlyLog",
 			Handler:    _ContractService_ReviewHourlyLog_Handler,
+		},
+		{
+			MethodName: "GetHourlyInvoice",
+			Handler:    _ContractService_GetHourlyInvoice_Handler,
+		},
+		{
+			MethodName: "ListHourlyInvoices",
+			Handler:    _ContractService_ListHourlyInvoices_Handler,
+		},
+		{
+			MethodName: "InternalCloseHourlyWeek",
+			Handler:    _ContractService_InternalCloseHourlyWeek_Handler,
+		},
+		{
+			MethodName: "InternalSettleHourlyInvoice",
+			Handler:    _ContractService_InternalSettleHourlyInvoice_Handler,
+		},
+		{
+			MethodName: "CreateContractBonus",
+			Handler:    _ContractService_CreateContractBonus_Handler,
+		},
+		{
+			MethodName: "ListContractBonuses",
+			Handler:    _ContractService_ListContractBonuses_Handler,
+		},
+		{
+			MethodName: "InternalMarkContractBonusPaid",
+			Handler:    _ContractService_InternalMarkContractBonusPaid_Handler,
 		},
 		{
 			MethodName: "ProposeAmendment",

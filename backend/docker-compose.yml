@@ -134,6 +134,8 @@ services:
         condition: service_healthy
       proposal:
         condition: service_started
+      dispute:
+        condition: service_started
 
   wallet:
     build:
@@ -175,10 +177,30 @@ services:
     env_file:
       - .env
     ports:
-      - "51062:50060"
+      - "52062:50060"
     depends_on:
       postgres:
         condition: service_healthy
+
+  dispute:
+    build:
+      context: .
+      dockerfile: services/Dockerfile
+      args:
+        SERVICE: dispute
+        CMD_PATH: ./cmd/disputed
+    env_file:
+      - .env
+    environment:
+      DISPUTE_SERVICE_GRPC_ADDR: ":50066"
+      WALLET_SERVICE_ADDR: "wallet:50059"
+    ports:
+      - "50066:50066"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      wallet:
+        condition: service_started
 
   payment:
     build:
@@ -190,8 +212,8 @@ services:
     env_file:
       - .env
     ports:
-      - "51061:50061"
-      - "8081:8081"
+      - "52061:50061"
+      - "8082:8081"
     depends_on:
       postgres:
         condition: service_healthy

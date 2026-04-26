@@ -28,14 +28,14 @@ func NewClient(grpc disputev1.DisputeServiceClient, issuer tokenIssuer) *Client 
 	return &Client{grpc: grpc, issuer: issuer}
 }
 
-func (c *Client) HasOpenDispute(ctx context.Context, referenceType, referenceID string) (bool, error) {
+func (c *Client) GetOpenDisputeID(ctx context.Context, referenceType, referenceID string) (string, error) {
 	if c.grpc == nil || c.issuer == nil {
-		return false, fmt.Errorf("dispute client dependencies are not configured")
+		return "", fmt.Errorf("dispute client dependencies are not configured")
 	}
 	actorID, _ := uuid.Parse(serviceActorID)
 	token, err := c.issuer.IssueAccessToken(actorID, "service", 2*time.Minute)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 	ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+token)
 	ctx = metadata.AppendToOutgoingContext(ctx, "x-jobconnect-internal", "contract-service")
@@ -47,9 +47,17 @@ func (c *Client) HasOpenDispute(ctx context.Context, referenceType, referenceID 
 		PageSize:      1,
 	})
 	if err != nil {
-		return false, err
+		return "", err
 	}
-	return len(resp.GetDisputes()) > 0, nil
+	for _, d := range resp.GetDisputes() {
+		if d == nil {
+			continue
+		}
+		if d.GetId() > 0 {
+			return fmt.Sprintf("%d", d.GetId()), nil
+		}
+	}
+	return "", nil
 }
 
 var _ application.DisputeReader = (*Client)(nil)

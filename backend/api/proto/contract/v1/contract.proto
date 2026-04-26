@@ -8,7 +8,8 @@ service ContractService {
   rpc CreateContract(CreateContractRequest) returns (CreateContractResponse);
   rpc GetContract(GetContractRequest) returns (GetContractResponse);
   rpc ListMyContracts(ListMyContractsRequest) returns (ListMyContractsResponse);
-  rpc GetJobOfferState(GetJobOfferStateRequest) returns (GetJobOfferStateResponse);
+  // Internal RPC for job-service hiring decisions.
+  rpc InternalGetJobOfferState(GetJobOfferStateRequest) returns (GetJobOfferStateResponse);
 
   // Accepting the offer activates the contract and finalizes the hire.
   rpc AcceptContract(AcceptContractRequest) returns (AcceptContractResponse);
@@ -21,12 +22,23 @@ service ContractService {
   rpc RequestMilestoneChanges(RequestMilestoneChangesRequest) returns (RequestMilestoneChangesResponse);
   // Client approves a submitted milestone and triggers settlement orchestration.
   rpc ApproveMilestoneSubmission(ApproveMilestoneSubmissionRequest) returns (ApproveMilestoneSubmissionResponse);
-
-  rpc UpdateMilestoneStatus(UpdateMilestoneStatusRequest) returns (UpdateMilestoneStatusResponse);
+  // Internal RPC for payment-service escrow funding callbacks.
+  rpc InternalMarkMilestoneFunded(InternalMarkMilestoneFundedRequest) returns (InternalMarkMilestoneFundedResponse);
 
   rpc LogHourlyWork(LogHourlyWorkRequest) returns (LogHourlyWorkResponse);
+  rpc GetHourlyLogEvidenceUploadUrl(GetHourlyLogEvidenceUploadUrlRequest) returns (GetHourlyLogEvidenceUploadUrlResponse);
   rpc ListHourlyLogs(ListHourlyLogsRequest) returns (ListHourlyLogsResponse);
+  rpc GetHourlyWorkSummary(GetHourlyWorkSummaryRequest) returns (GetHourlyWorkSummaryResponse);
+  rpc UpdateHourlyLog(UpdateHourlyLogRequest) returns (UpdateHourlyLogResponse);
+  rpc DeleteHourlyLog(DeleteHourlyLogRequest) returns (DeleteHourlyLogResponse);
   rpc ReviewHourlyLog(ReviewHourlyLogRequest) returns (ReviewHourlyLogResponse);
+  rpc GetHourlyInvoice(GetHourlyInvoiceRequest) returns (GetHourlyInvoiceResponse);
+  rpc ListHourlyInvoices(ListHourlyInvoicesRequest) returns (ListHourlyInvoicesResponse);
+  rpc InternalCloseHourlyWeek(InternalCloseHourlyWeekRequest) returns (InternalCloseHourlyWeekResponse);
+  rpc InternalSettleHourlyInvoice(InternalSettleHourlyInvoiceRequest) returns (InternalSettleHourlyInvoiceResponse);
+  rpc CreateContractBonus(CreateContractBonusRequest) returns (CreateContractBonusResponse);
+  rpc ListContractBonuses(ListContractBonusesRequest) returns (ListContractBonusesResponse);
+  rpc InternalMarkContractBonusPaid(InternalMarkContractBonusPaidRequest) returns (InternalMarkContractBonusPaidResponse);
 
   // Propose an amendment to the contract. Only allowed when contract is ACTIVE or PAUSED. Either party may propose.
   rpc ProposeAmendment(ProposeAmendmentRequest) returns (ProposeAmendmentResponse);
@@ -35,9 +47,9 @@ service ContractService {
   // List all amendments for a contract. Both parties may read.
   rpc ListAmendments(ListAmendmentsRequest) returns (ListAmendmentsResponse);
 
-  // Pause the contract. Client-only. Only allowed from ACTIVE state.
+  // Pause the contract. Client or freelancer may pause. Only allowed from ACTIVE state.
   rpc PauseContract(PauseContractRequest) returns (PauseContractResponse);
-  // Resume the contract. Client-only. Only allowed from PAUSED state.
+  // Resume the contract. Client or freelancer may resume. Only allowed from PAUSED state.
   rpc ResumeContract(ResumeContractRequest) returns (ResumeContractResponse);
   // End the contract. Client-only. Only allowed from ACTIVE or PAUSED state. Once ended, terminal.
   rpc EndContract(EndContractRequest) returns (EndContractResponse);
@@ -69,6 +81,7 @@ enum MilestoneStatus {
   MILESTONE_STATUS_APPROVED = 4;
   MILESTONE_STATUS_FUNDED = 5;
   MILESTONE_STATUS_APPROVED_PENDING_SETTLEMENT = 6;
+  MILESTONE_STATUS_RELEASED = 7;
 }
 
 enum HourlyLogStatus {
@@ -86,11 +99,30 @@ enum AmendmentStatus {
   AMENDMENT_STATUS_EXPIRED = 4;
 }
 
+enum HourlyInvoiceStatus {
+  HOURLY_INVOICE_STATUS_UNSPECIFIED = 0;
+  HOURLY_INVOICE_STATUS_DRAFT = 1;
+  HOURLY_INVOICE_STATUS_SUBMITTED = 2;
+  HOURLY_INVOICE_STATUS_IN_REVIEW = 3;
+  HOURLY_INVOICE_STATUS_APPROVED = 4;
+  HOURLY_INVOICE_STATUS_DISPUTED = 5;
+  HOURLY_INVOICE_STATUS_CHARGED = 6;
+  HOURLY_INVOICE_STATUS_PAID = 7;
+  HOURLY_INVOICE_STATUS_FAILED = 8;
+}
+
+enum ContractBonusStatus {
+  CONTRACT_BONUS_STATUS_UNSPECIFIED = 0;
+  CONTRACT_BONUS_STATUS_PENDING = 1;
+  CONTRACT_BONUS_STATUS_PAID = 2;
+  CONTRACT_BONUS_STATUS_FAILED = 3;
+}
+
 message Milestone {
   int64 id = 1;
   string title = 2;
   string description = 3;
-  double amount = 4;
+  int64 amount_minor = 4;
   int64 due_at_unix_seconds = 6;
   MilestoneStatus status = 7;
   string submission_note = 8;
@@ -114,6 +146,40 @@ message HourlyLog {
   string review_note = 10;
   int64 created_at_unix_seconds = 11;
   int64 reviewed_at_unix_seconds = 12;
+  int64 invoice_id = 13;
+  repeated string evidence_urls = 14;
+}
+
+message HourlyInvoice {
+  int64 id = 1;
+  int64 contract_id = 2;
+  string client_id = 3;
+  string freelancer_id = 4;
+  int64 week_start_unix_seconds = 5;
+  int64 week_end_unix_seconds = 6;
+  HourlyInvoiceStatus status = 7;
+  int32 billable_minutes = 8;
+  int64 hourly_rate_minor = 9;
+  int64 amount_minor = 10;
+  string dispute_id = 11;
+  int64 created_at_unix_seconds = 12;
+  int64 submitted_at_unix_seconds = 13;
+  int64 approved_at_unix_seconds = 14;
+  int64 paid_at_unix_seconds = 15;
+  int64 failed_at_unix_seconds = 16;
+}
+
+message ContractBonus {
+  int64 id = 1;
+  int64 contract_id = 2;
+  string client_id = 3;
+  string freelancer_id = 4;
+  int64 amount_minor = 5;
+  string note = 6;
+  ContractBonusStatus status = 7;
+  int64 created_at_unix_seconds = 8;
+  int64 paid_at_unix_seconds = 9;
+  int64 failed_at_unix_seconds = 10;
 }
 
 message Amendment {
@@ -130,9 +196,23 @@ message Amendment {
   string response_note = 11;
 }
 
+enum StatusHistoryEventType {
+  STATUS_HISTORY_EVENT_TYPE_UNSPECIFIED = 0;
+  STATUS_HISTORY_EVENT_TYPE_CONTRACT_STATUS_CHANGED = 1;
+  STATUS_HISTORY_EVENT_TYPE_MILESTONE_SUBMITTED = 2;
+  STATUS_HISTORY_EVENT_TYPE_MILESTONE_CHANGES_REQUESTED = 3;
+  STATUS_HISTORY_EVENT_TYPE_MILESTONE_APPROVED_PENDING_SETTLEMENT = 4;
+  STATUS_HISTORY_EVENT_TYPE_MILESTONE_FUNDED = 5;
+  STATUS_HISTORY_EVENT_TYPE_MILESTONE_RELEASED = 6;
+  STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_CREATED = 7;
+  STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_DISPUTED = 8;
+  STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_PAID = 9;
+  STATUS_HISTORY_EVENT_TYPE_CONTRACT_END_BLOCKED = 10;
+}
+
 message CompensationChange {
-  double new_hourly_rate = 1;
-  double new_fixed_total = 2;
+  int64 new_hourly_rate_minor = 1;
+  int64 new_fixed_total_minor = 2;
 }
 
 message MilestonesChange {
@@ -162,6 +242,8 @@ message StatusHistoryEntry {
   string reason = 4;
   string actor_id = 5;
   int64 created_at_unix_seconds = 6;
+  StatusHistoryEventType event_type = 7;
+  int64 milestone_id = 8;
 }
 
 message Contract {
@@ -175,8 +257,8 @@ message Contract {
 
   string title = 8;
   string description = 9;
-  double hourly_rate = 11;
-  double fixed_total = 12;
+  int64 hourly_rate_minor = 11;
+  int64 fixed_total_minor = 12;
   int32 weekly_hour_limit = 13;
 
   repeated Milestone milestones = 14;
@@ -197,8 +279,8 @@ message CreateContractRequest {
   ContractType contract_type = 4;
   string title = 5;
   string description = 6;
-  double hourly_rate = 8;
-  double fixed_total = 9;
+  int64 hourly_rate_minor = 8;
+  int64 fixed_total_minor = 9;
   int32 weekly_hour_limit = 10;
   repeated Milestone milestones = 11;
 }
@@ -294,16 +376,12 @@ message ApproveMilestoneSubmissionResponse {
   Contract contract = 1;
 }
 
-message UpdateMilestoneStatusRequest {
+message InternalMarkMilestoneFundedRequest {
   int64 contract_id = 1;
   int64 milestone_id = 2;
-  MilestoneStatus status = 3;
-  string submission_note = 5;
-  repeated string submission_urls = 6;
-  string review_note = 7;
 }
 
-message UpdateMilestoneStatusResponse {
+message InternalMarkMilestoneFundedResponse {
   Contract contract = 1;
 }
 
@@ -312,10 +390,22 @@ message LogHourlyWorkRequest {
   int64 start_at_unix_seconds = 2;
   int64 end_at_unix_seconds = 3;
   string note = 4;
+  repeated string evidence_urls = 5;
 }
 
 message LogHourlyWorkResponse {
   HourlyLog hourly_log = 1;
+}
+
+message GetHourlyLogEvidenceUploadUrlRequest {
+  int64 contract_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+}
+
+message GetHourlyLogEvidenceUploadUrlResponse {
+  string storage_key = 1;
+  string upload_url = 2;
 }
 
 message ListHourlyLogsRequest {
@@ -329,6 +419,25 @@ message ListHourlyLogsResponse {
   string next_page_token = 2;
 }
 
+message GetHourlyWorkSummaryRequest {
+  int64 contract_id = 1;
+  int64 week_start_unix_seconds = 2;
+}
+
+message GetHourlyWorkSummaryResponse {
+  int64 contract_id = 1;
+  int64 week_start_unix_seconds = 2;
+  int64 week_end_unix_seconds = 3;
+  int32 weekly_hour_limit = 4;
+  int32 billable_minutes = 5;
+  int32 pending_minutes = 6;
+  int32 approved_minutes = 7;
+  int32 rejected_minutes = 8;
+  int32 remaining_minutes = 9;
+  int64 hourly_rate_minor = 10;
+  int64 estimated_billable_amount_minor = 11;
+}
+
 message ReviewHourlyLogRequest {
   int64 hourly_log_id = 1;
   HourlyLogStatus status = 2;
@@ -337,6 +446,89 @@ message ReviewHourlyLogRequest {
 
 message ReviewHourlyLogResponse {
   HourlyLog hourly_log = 1;
+}
+
+message UpdateHourlyLogRequest {
+  int64 hourly_log_id = 1;
+  int64 start_at_unix_seconds = 2;
+  int64 end_at_unix_seconds = 3;
+  string note = 4;
+  repeated string evidence_urls = 5;
+}
+
+message UpdateHourlyLogResponse {
+  HourlyLog hourly_log = 1;
+}
+
+message DeleteHourlyLogRequest {
+  int64 hourly_log_id = 1;
+}
+
+message DeleteHourlyLogResponse {}
+
+message GetHourlyInvoiceRequest {
+  int64 invoice_id = 1;
+}
+
+message GetHourlyInvoiceResponse {
+  HourlyInvoice invoice = 1;
+}
+
+message ListHourlyInvoicesRequest {
+  int64 contract_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListHourlyInvoicesResponse {
+  repeated HourlyInvoice invoices = 1;
+  string next_page_token = 2;
+}
+
+message InternalCloseHourlyWeekRequest {
+  int64 contract_id = 1;
+  int64 week_start_unix_seconds = 2;
+}
+
+message InternalCloseHourlyWeekResponse {
+  HourlyInvoice invoice = 1;
+}
+
+message InternalSettleHourlyInvoiceRequest {
+  int64 invoice_id = 1;
+}
+
+message InternalSettleHourlyInvoiceResponse {
+  HourlyInvoice invoice = 1;
+}
+
+message CreateContractBonusRequest {
+  int64 contract_id = 1;
+  int64 amount_minor = 2;
+  string note = 3;
+}
+
+message CreateContractBonusResponse {
+  ContractBonus bonus = 1;
+}
+
+message ListContractBonusesRequest {
+  int64 contract_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListContractBonusesResponse {
+  repeated ContractBonus bonuses = 1;
+  string next_page_token = 2;
+}
+
+message InternalMarkContractBonusPaidRequest {
+  int64 bonus_id = 1;
+}
+
+message InternalMarkContractBonusPaidResponse {
+  ContractBonus bonus = 1;
 }
 
 message ProposeAmendmentRequest {

@@ -20,14 +20,15 @@ import (
 	"jobconnect/contract/internal/infrastructure/disputegrpc"
 	"jobconnect/contract/internal/infrastructure/jobgrpc"
 	"jobconnect/contract/internal/infrastructure/proposalgrpc"
+	"jobconnect/contract/internal/infrastructure/storage"
 	"jobconnect/contract/internal/infrastructure/tokens"
 	"jobconnect/contract/internal/infrastructure/usergrpc"
 	"jobconnect/contract/internal/infrastructure/walletgrpc"
 
 	disputev1 "jobconnect/contract/gen/dispute/v1"
+	walletv1 "jobconnect/contract/gen/wallet/v1"
 	jobv1 "jobconnect/job/gen/job/v1"
 	proposalv1 "jobconnect/proposal/gen/proposal/v1"
-	walletv1 "jobconnect/contract/gen/wallet/v1"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -86,6 +87,14 @@ func main() {
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
 	jwtIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
+	hourlyEvidenceStore, err := storage.NewHourlyEvidenceStore(ctx, cfg.HourlyEvidenceStore)
+	if err != nil {
+		log.Fatalf("hourly evidence store: %v", err)
+	}
+	hourlyEvidencePutTTL, err := time.ParseDuration(cfg.HourlyEvidenceStore.PresignPutTTL)
+	if err != nil {
+		log.Fatalf("hourly evidence upload ttl: %v", err)
+	}
 	proposalClient := proposalgrpc.NewProposalClient(proposalv1.NewProposalServiceClient(proposalConn), jwtIssuer)
 	jobClient := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn), jwtIssuer)
 	userPolicy := usergrpc.NewClient(userv1.NewUserServiceClient(userConn))
@@ -108,14 +117,29 @@ func main() {
 		Disputes:              disputeClient,
 	}
 	logHourlyWorkUC := &application.LogHourlyWork{Contracts: repo, Clock: clockImpl}
+	getHourlyLogEvidenceUploadURLUC := &application.GetHourlyLogEvidenceUploadURL{
+		Contracts: repo,
+		Store:     hourlyEvidenceStore,
+		PutTTL:    hourlyEvidencePutTTL,
+	}
 	listHourlyLogsUC := &application.ListHourlyLogs{Contracts: repo}
+	getHourlyWorkSummaryUC := &application.GetHourlyWorkSummary{Contracts: repo, Clock: clockImpl}
+	updateHourlyLogUC := &application.UpdateHourlyLog{Contracts: repo, Clock: clockImpl}
+	deleteHourlyLogUC := &application.DeleteHourlyLog{Contracts: repo, Clock: clockImpl}
 	reviewHourlyLogUC := &application.ReviewHourlyLog{Contracts: repo, Clock: clockImpl}
+	getHourlyInvoiceUC := &application.GetHourlyInvoice{Contracts: repo}
+	listHourlyInvoicesUC := &application.ListHourlyInvoices{Contracts: repo}
+	closeHourlyWeekUC := &application.InternalCloseHourlyWeek{Contracts: repo, Clock: clockImpl}
+	settleHourlyInvoiceUC := &application.InternalSettleHourlyInvoice{Contracts: repo, Disputes: disputeClient, Clock: clockImpl}
+	createContractBonusUC := &application.CreateContractBonus{Contracts: repo, Clock: clockImpl}
+	listContractBonusesUC := &application.ListContractBonuses{Contracts: repo}
+	markContractBonusPaidUC := &application.InternalMarkContractBonusPaid{Contracts: repo, Clock: clockImpl}
 	proposeAmendmentUC := &application.ProposeAmendment{Contracts: repo, Clock: clockImpl}
 	respondAmendmentUC := &application.RespondAmendment{Contracts: repo, Clock: clockImpl}
 	listAmendmentsUC := &application.ListAmendments{Contracts: repo, Clock: clockImpl}
 	pauseUC := &application.PauseContract{Contracts: repo, Clock: clockImpl}
 	resumeUC := &application.ResumeContract{Contracts: repo, Clock: clockImpl}
-	endUC := &application.EndContract{Contracts: repo, Clock: clockImpl}
+	endUC := &application.EndContract{Contracts: repo, Disputes: disputeClient, Clock: clockImpl}
 	getStatusHistoryUC := &application.GetStatusHistory{Contracts: repo}
 
 	contractServer := grpcadapter.NewContractServer(
@@ -131,8 +155,19 @@ func main() {
 		approveMilestoneSubmissionUC,
 		updateMilestoneStatusUC,
 		logHourlyWorkUC,
+		getHourlyLogEvidenceUploadURLUC,
 		listHourlyLogsUC,
+		getHourlyWorkSummaryUC,
+		updateHourlyLogUC,
+		deleteHourlyLogUC,
 		reviewHourlyLogUC,
+		getHourlyInvoiceUC,
+		listHourlyInvoicesUC,
+		closeHourlyWeekUC,
+		settleHourlyInvoiceUC,
+		createContractBonusUC,
+		listContractBonusesUC,
+		markContractBonusPaidUC,
 		proposeAmendmentUC,
 		respondAmendmentUC,
 		listAmendmentsUC,

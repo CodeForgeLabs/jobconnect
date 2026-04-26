@@ -44,7 +44,7 @@ func (c *ContractClient) GetJobOfferState(ctx context.Context, jobID int64, clie
 	if secret := strings.TrimSpace(os.Getenv("JOBCONNECT_INTERNAL_CALLER_SECRET")); secret != "" {
 		forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal-secret", secret)
 	}
-	res, err := c.client.GetJobOfferState(forwardCtx, &contractv1.GetJobOfferStateRequest{JobId: jobID})
+	res, err := c.client.InternalGetJobOfferState(forwardCtx, &contractv1.GetJobOfferStateRequest{JobId: jobID})
 	if err != nil {
 		return application.ContractState{}, fmt.Errorf("get job offer state: %w", err)
 	}

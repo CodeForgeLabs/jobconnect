@@ -57,7 +57,7 @@ func (uc *CreateContract) Execute(ctx context.Context, in CreateContractInput) (
 	if proposal.FreelancerID != in.FreelancerID.String() {
 		return CreateContractOutput{}, fmt.Errorf("proposal does not belong to freelancer")
 	}
-	if !strings.EqualFold(proposal.Status, "sent") && !strings.EqualFold(proposal.Status, "shortlisted") && !strings.EqualFold(proposal.Status, "offer_sent") && !strings.EqualFold(proposal.Status, "hired") {
+	if !strings.EqualFold(proposal.Status, "sent") && !strings.EqualFold(proposal.Status, "shortlisted") && !strings.EqualFold(proposal.Status, "offer_sent") {
 		return CreateContractOutput{}, fmt.Errorf("proposal is not eligible for offer")
 	}
 
@@ -96,6 +96,11 @@ func (uc *CreateContract) Execute(ctx context.Context, in CreateContractInput) (
 		CreatedAt:       now,
 		UpdatedAt:       now,
 	}
+	normalizedMilestones, err := domain.NormalizeMilestonesForContract(c.ContractType, c.FixedTotal, c.Milestones)
+	if err != nil {
+		return CreateContractOutput{}, err
+	}
+	c.Milestones = normalizedMilestones
 
 	if err := domain.ValidateForCreate(c); err != nil {
 		return CreateContractOutput{}, err
@@ -112,15 +117,15 @@ func (uc *CreateContract) Execute(ctx context.Context, in CreateContractInput) (
 				return CreateContractOutput{}, fmt.Errorf("job already has a pending offer")
 			}
 			c.ID = existing.ID
-			if !strings.EqualFold(proposal.Status, "offer_sent") && !strings.EqualFold(proposal.Status, "hired") {
+			if !strings.EqualFold(proposal.Status, "offer_sent") {
 				if err := uc.Proposals.MarkOfferSent(ctx, in.ProposalID, in.ClientID, "offer sent"); err != nil {
 					return CreateContractOutput{}, fmt.Errorf("sync proposal status: %w", err)
 				}
 			}
 			if err := uc.Contracts.UpdateOfferForClient(ctx, c); err != nil {
-				if !strings.EqualFold(proposal.Status, "offer_sent") && !strings.EqualFold(proposal.Status, "hired") {
+				if !strings.EqualFold(proposal.Status, "offer_sent") {
 					revertErr := uc.Proposals.ReleaseOffer(ctx, in.ProposalID, in.ClientID, "offer resend compensation")
-					return CreateContractOutput{}, wrapCompensationError(fmt.Errorf("update resent offer: %w", err), revertErr, "revert proposal hire after offer resend failure")
+					return CreateContractOutput{}, wrapCompensationError(fmt.Errorf("update resent offer: %w", err), revertErr, "revert proposal offer after offer resend failure")
 				}
 				return CreateContractOutput{}, err
 			}
@@ -150,7 +155,7 @@ func (uc *CreateContract) Execute(ctx context.Context, in CreateContractInput) (
 	if err != nil {
 		return CreateContractOutput{}, err
 	}
-	if !strings.EqualFold(proposal.Status, "offer_sent") && !strings.EqualFold(proposal.Status, "hired") {
+	if !strings.EqualFold(proposal.Status, "offer_sent") {
 		if err := uc.Proposals.MarkOfferSent(ctx, in.ProposalID, in.ClientID, "offer sent"); err != nil {
 			revertErr := uc.Contracts.SetStatusForClient(ctx, id, in.ClientID, domain.StatusRevoked, now)
 			_ = uc.Contracts.AppendStatusHistory(ctx, domain.StatusHistoryEntry{

@@ -5,6 +5,8 @@ WORKDIR /src/gateway
 COPY services/auth /src/services/auth
 COPY api /src/api
 COPY services/job /src/services/job
+COPY services/contract /src/services/contract
+COPY services/dispute /src/services/dispute
 COPY services/proposal /src/services/proposal
 COPY services/recommendation /src/services/recommendation
 COPY services/user /src/services/user

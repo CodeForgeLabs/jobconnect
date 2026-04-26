@@ -20,10 +20,27 @@ type ContractRepository interface {
 	SetStatusForFreelancer(ctx context.Context, contractID int64, freelancerID uuid.UUID, status string, at time.Time) error
 	SetStatusForClient(ctx context.Context, contractID int64, clientID uuid.UUID, status string, at time.Time) error
 	ReplaceMilestonesForActor(ctx context.Context, contractID int64, actorID uuid.UUID, milestones []domain.Milestone, at time.Time) error
+	ReplaceMilestones(ctx context.Context, contractID int64, milestones []domain.Milestone, at time.Time) error
 	CreateHourlyLogForFreelancer(ctx context.Context, log domain.HourlyLog) (int64, error)
 	ListHourlyLogsForActor(ctx context.Context, contractID int64, actorID uuid.UUID, limit, offset int) ([]domain.HourlyLog, error)
+	ListHourlyLogsForActorInRange(ctx context.Context, contractID int64, actorID uuid.UUID, startAt time.Time, endAt time.Time) ([]domain.HourlyLog, error)
+	UpdateHourlyLogForFreelancer(ctx context.Context, log domain.HourlyLog) error
+	DeleteHourlyLogForFreelancer(ctx context.Context, hourlyLogID int64, freelancerID uuid.UUID) error
 	ReviewHourlyLogForClient(ctx context.Context, hourlyLogID int64, clientID uuid.UUID, status string, note string, at time.Time) error
 	GetHourlyLogForActor(ctx context.Context, hourlyLogID int64, actorID uuid.UUID) (domain.HourlyLog, error)
+	CreateHourlyInvoice(ctx context.Context, invoice domain.HourlyInvoice) (int64, error)
+	GetHourlyInvoice(ctx context.Context, invoiceID int64) (domain.HourlyInvoice, error)
+	GetHourlyInvoiceForActor(ctx context.Context, invoiceID int64, actorID uuid.UUID) (domain.HourlyInvoice, error)
+	ListHourlyInvoicesForActor(ctx context.Context, contractID int64, actorID uuid.UUID, limit, offset int) ([]domain.HourlyInvoice, error)
+	GetHourlyInvoiceByContractWeek(ctx context.Context, contractID int64, weekStart time.Time) (domain.HourlyInvoice, error)
+	AttachHourlyLogsToInvoice(ctx context.Context, contractID int64, weekStart time.Time, weekEnd time.Time, invoiceID int64) error
+	MarkHourlyInvoiceStatus(ctx context.Context, invoiceID int64, status string, disputeID string, at time.Time) error
+	CreateContractBonus(ctx context.Context, bonus domain.ContractBonus) (int64, error)
+	GetContractBonusForActor(ctx context.Context, bonusID int64, actorID uuid.UUID) (domain.ContractBonus, error)
+	GetContractBonus(ctx context.Context, bonusID int64) (domain.ContractBonus, error)
+	ListContractBonusesForActor(ctx context.Context, contractID int64, actorID uuid.UUID, limit, offset int) ([]domain.ContractBonus, error)
+	MarkContractBonusStatus(ctx context.Context, bonusID int64, status string, paymentReferenceID string, at time.Time) error
+	HasBlockingFinancialActivity(ctx context.Context, contractID int64) (bool, string, error)
 	CreateAmendmentForActor(ctx context.Context, a domain.Amendment) (int64, error)
 	RespondAmendmentForActor(ctx context.Context, amendmentID int64, actorID uuid.UUID, status string, responseNote string, at time.Time) error
 	RespondAmendmentAndApplyForActor(ctx context.Context, amendmentID int64, actorID uuid.UUID, responseNote string, at time.Time) error
@@ -84,10 +101,19 @@ type MilestoneSettlementDispatcher interface {
 	DispatchMilestoneApproved(ctx context.Context, cmd MilestoneApprovedSettlementCommand) error
 }
 
+type MilestoneFundingNotifier interface {
+	MarkMilestoneFunded(ctx context.Context, contractID int64, milestoneID int64) error
+}
+
 type DisputeReader interface {
-	HasOpenDispute(ctx context.Context, referenceType, referenceID string) (bool, error)
+	GetOpenDisputeID(ctx context.Context, referenceType, referenceID string) (string, error)
 }
 
 type Clock interface {
 	Now() time.Time
+}
+
+type HourlyEvidenceObjectStore interface {
+	BuildObjectKey(contractID int64, fileName string) string
+	PresignPutObject(ctx context.Context, storageKey string, ttl time.Duration) (string, error)
 }

@@ -36,12 +36,24 @@ type contractCreateReader interface {
 	SubmitMilestoneWork(ctx context.Context, in *contractv1.SubmitMilestoneWorkRequest, opts ...grpc.CallOption) (*contractv1.SubmitMilestoneWorkResponse, error)
 	RequestMilestoneChanges(ctx context.Context, in *contractv1.RequestMilestoneChangesRequest, opts ...grpc.CallOption) (*contractv1.RequestMilestoneChangesResponse, error)
 	ApproveMilestoneSubmission(ctx context.Context, in *contractv1.ApproveMilestoneSubmissionRequest, opts ...grpc.CallOption) (*contractv1.ApproveMilestoneSubmissionResponse, error)
+	LogHourlyWork(ctx context.Context, in *contractv1.LogHourlyWorkRequest, opts ...grpc.CallOption) (*contractv1.LogHourlyWorkResponse, error)
+	GetHourlyLogEvidenceUploadUrl(ctx context.Context, in *contractv1.GetHourlyLogEvidenceUploadUrlRequest, opts ...grpc.CallOption) (*contractv1.GetHourlyLogEvidenceUploadUrlResponse, error)
+	ListHourlyLogs(ctx context.Context, in *contractv1.ListHourlyLogsRequest, opts ...grpc.CallOption) (*contractv1.ListHourlyLogsResponse, error)
+	GetHourlyWorkSummary(ctx context.Context, in *contractv1.GetHourlyWorkSummaryRequest, opts ...grpc.CallOption) (*contractv1.GetHourlyWorkSummaryResponse, error)
+	UpdateHourlyLog(ctx context.Context, in *contractv1.UpdateHourlyLogRequest, opts ...grpc.CallOption) (*contractv1.UpdateHourlyLogResponse, error)
+	DeleteHourlyLog(ctx context.Context, in *contractv1.DeleteHourlyLogRequest, opts ...grpc.CallOption) (*contractv1.DeleteHourlyLogResponse, error)
+	ReviewHourlyLog(ctx context.Context, in *contractv1.ReviewHourlyLogRequest, opts ...grpc.CallOption) (*contractv1.ReviewHourlyLogResponse, error)
+	GetHourlyInvoice(ctx context.Context, in *contractv1.GetHourlyInvoiceRequest, opts ...grpc.CallOption) (*contractv1.GetHourlyInvoiceResponse, error)
+	ListHourlyInvoices(ctx context.Context, in *contractv1.ListHourlyInvoicesRequest, opts ...grpc.CallOption) (*contractv1.ListHourlyInvoicesResponse, error)
+	CreateContractBonus(ctx context.Context, in *contractv1.CreateContractBonusRequest, opts ...grpc.CallOption) (*contractv1.CreateContractBonusResponse, error)
+	ListContractBonuses(ctx context.Context, in *contractv1.ListContractBonusesRequest, opts ...grpc.CallOption) (*contractv1.ListContractBonusesResponse, error)
 	ProposeAmendment(ctx context.Context, in *contractv1.ProposeAmendmentRequest, opts ...grpc.CallOption) (*contractv1.ProposeAmendmentResponse, error)
 	RespondAmendment(ctx context.Context, in *contractv1.RespondAmendmentRequest, opts ...grpc.CallOption) (*contractv1.RespondAmendmentResponse, error)
 	ListAmendments(ctx context.Context, in *contractv1.ListAmendmentsRequest, opts ...grpc.CallOption) (*contractv1.ListAmendmentsResponse, error)
 	PauseContract(ctx context.Context, in *contractv1.PauseContractRequest, opts ...grpc.CallOption) (*contractv1.PauseContractResponse, error)
 	ResumeContract(ctx context.Context, in *contractv1.ResumeContractRequest, opts ...grpc.CallOption) (*contractv1.ResumeContractResponse, error)
 	EndContract(ctx context.Context, in *contractv1.EndContractRequest, opts ...grpc.CallOption) (*contractv1.EndContractResponse, error)
+	GetStatusHistory(ctx context.Context, in *contractv1.GetStatusHistoryRequest, opts ...grpc.CallOption) (*contractv1.GetStatusHistoryResponse, error)
 }
 
 type ContractHandler struct {
@@ -404,6 +416,251 @@ func (h *ContractHandler) ApproveMilestoneSubmission(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+func (h *ContractHandler) LogHourlyWork(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	var body struct {
+		StartAtUnixSeconds int64    `json:"start_at_unix_seconds"`
+		EndAtUnixSeconds   int64    `json:"end_at_unix_seconds"`
+		Note               string   `json:"note"`
+		EvidenceURLs       []string `json:"evidence_urls"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.LogHourlyWork(withAuthContext(c), &contractv1.LogHourlyWorkRequest{
+		ContractId:         contractID,
+		StartAtUnixSeconds: body.StartAtUnixSeconds,
+		EndAtUnixSeconds:   body.EndAtUnixSeconds,
+		Note:               body.Note,
+		EvidenceUrls:       body.EvidenceURLs,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "hourly_log", resp.GetHourlyLog())
+}
+
+func (h *ContractHandler) GetHourlyLogEvidenceUploadUrl(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	var body struct {
+		FileName    string `json:"file_name"`
+		ContentType string `json:"content_type"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.GetHourlyLogEvidenceUploadUrl(withAuthContext(c), &contractv1.GetHourlyLogEvidenceUploadUrlRequest{
+		ContractId:  contractID,
+		FileName:    body.FileName,
+		ContentType: body.ContentType,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"storage_key": resp.GetStorageKey(), "upload_url": resp.GetUploadUrl()})
+}
+
+func (h *ContractHandler) ListHourlyLogs(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.ListHourlyLogs(withAuthContext(c), &contractv1.ListHourlyLogsRequest{
+		ContractId: contractID,
+		PageSize:   int32(parseIntQuery(c, "page_size", 20)),
+		PageToken:  strings.TrimSpace(c.Query("page_token")),
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	payload, convErr := protoSliceToAny(resp.GetHourlyLogs())
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"hourly_logs": payload, "next_page_token": resp.GetNextPageToken()})
+}
+
+func (h *ContractHandler) GetHourlyWorkSummary(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.GetHourlyWorkSummary(withAuthContext(c), &contractv1.GetHourlyWorkSummaryRequest{
+		ContractId:           contractID,
+		WeekStartUnixSeconds: int64(parseIntQuery(c, "week_start_unix_seconds", 0)),
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "summary", resp)
+}
+
+func (h *ContractHandler) UpdateHourlyLog(c *gin.Context) {
+	hourlyLogID, ok := parseInt64Param(c, "hourlyLogId")
+	if !ok {
+		return
+	}
+	var body struct {
+		StartAtUnixSeconds int64    `json:"start_at_unix_seconds"`
+		EndAtUnixSeconds   int64    `json:"end_at_unix_seconds"`
+		Note               string   `json:"note"`
+		EvidenceURLs       []string `json:"evidence_urls"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.UpdateHourlyLog(withAuthContext(c), &contractv1.UpdateHourlyLogRequest{
+		HourlyLogId:        hourlyLogID,
+		StartAtUnixSeconds: body.StartAtUnixSeconds,
+		EndAtUnixSeconds:   body.EndAtUnixSeconds,
+		Note:               body.Note,
+		EvidenceUrls:       body.EvidenceURLs,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "hourly_log", resp.GetHourlyLog())
+}
+
+func (h *ContractHandler) DeleteHourlyLog(c *gin.Context) {
+	hourlyLogID, ok := parseInt64Param(c, "hourlyLogId")
+	if !ok {
+		return
+	}
+	if _, err := h.contractClient.DeleteHourlyLog(withAuthContext(c), &contractv1.DeleteHourlyLogRequest{HourlyLogId: hourlyLogID}); err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"deleted": true})
+}
+
+func (h *ContractHandler) ReviewHourlyLog(c *gin.Context) {
+	hourlyLogID, ok := parseInt64Param(c, "hourlyLogId")
+	if !ok {
+		return
+	}
+	var body struct {
+		Status     string `json:"status"`
+		ReviewNote string `json:"review_note"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	statusEnum, ok := contractv1.HourlyLogStatus_value[strings.ToUpper(strings.TrimSpace(body.Status))]
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+		return
+	}
+	resp, err := h.contractClient.ReviewHourlyLog(withAuthContext(c), &contractv1.ReviewHourlyLogRequest{
+		HourlyLogId: hourlyLogID,
+		Status:      contractv1.HourlyLogStatus(statusEnum),
+		ReviewNote:  body.ReviewNote,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "hourly_log", resp.GetHourlyLog())
+}
+
+func (h *ContractHandler) GetHourlyInvoice(c *gin.Context) {
+	invoiceID, ok := parseInt64Param(c, "invoiceId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.GetHourlyInvoice(withAuthContext(c), &contractv1.GetHourlyInvoiceRequest{InvoiceId: invoiceID})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "invoice", resp.GetInvoice())
+}
+
+func (h *ContractHandler) ListHourlyInvoices(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.ListHourlyInvoices(withAuthContext(c), &contractv1.ListHourlyInvoicesRequest{
+		ContractId: contractID,
+		PageSize:   int32(parseIntQuery(c, "page_size", 20)),
+		PageToken:  strings.TrimSpace(c.Query("page_token")),
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	payload, convErr := protoSliceToAny(resp.GetInvoices())
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"invoices": payload, "next_page_token": resp.GetNextPageToken()})
+}
+
+func (h *ContractHandler) CreateContractBonus(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	var body struct {
+		AmountMinor int64  `json:"amount_minor"`
+		Note        string `json:"note"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.contractClient.CreateContractBonus(withAuthContext(c), &contractv1.CreateContractBonusRequest{
+		ContractId:  contractID,
+		AmountMinor: body.AmountMinor,
+		Note:        body.Note,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	writeProtoEnvelope(c, http.StatusOK, "bonus", resp.GetBonus())
+}
+
+func (h *ContractHandler) ListContractBonuses(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.ListContractBonuses(withAuthContext(c), &contractv1.ListContractBonusesRequest{
+		ContractId: contractID,
+		PageSize:   int32(parseIntQuery(c, "page_size", 20)),
+		PageToken:  strings.TrimSpace(c.Query("page_token")),
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	payload, convErr := protoSliceToAny(resp.GetBonuses())
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"bonuses": payload, "next_page_token": resp.GetNextPageToken()})
+}
+
 func (h *ContractHandler) ProposeAmendment(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -448,9 +705,14 @@ func (h *ContractHandler) RespondAmendment(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	statusEnum, ok := contractv1.AmendmentStatus_value[strings.ToUpper(strings.TrimSpace(body.Status))]
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+		return
+	}
 	resp, err := h.contractClient.RespondAmendment(withAuthContext(c), &contractv1.RespondAmendmentRequest{
 		AmendmentId:  amendmentID,
-		Status:       contractv1.AmendmentStatus(contractv1.AmendmentStatus_value[strings.ToUpper(body.Status)]),
+		Status:       contractv1.AmendmentStatus(statusEnum),
 		ResponseNote: body.ResponseNote,
 	})
 	if err != nil {
@@ -540,6 +802,28 @@ func (h *ContractHandler) EndContract(c *gin.Context) {
 		return
 	}
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
+}
+
+func (h *ContractHandler) GetStatusHistory(c *gin.Context) {
+	contractID, ok := parseInt64Param(c, "contractId")
+	if !ok {
+		return
+	}
+	resp, err := h.contractClient.GetStatusHistory(withAuthContext(c), &contractv1.GetStatusHistoryRequest{
+		ContractId: contractID,
+		PageSize:   int32(parseIntQuery(c, "page_size", 20)),
+		PageToken:  strings.TrimSpace(c.Query("page_token")),
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	payload, convErr := protoSliceToAny(resp.GetEntries())
+	if convErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to serialize response"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"entries": payload, "next_page_token": resp.GetNextPageToken()})
 }
 
 func parseBootstrapID(c *gin.Context, key string) (int64, bool) {

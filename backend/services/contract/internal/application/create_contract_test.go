@@ -81,12 +81,28 @@ func (r *createContractRepoStub) ReplaceMilestonesForActor(_ context.Context, _ 
 	return nil
 }
 
+func (r *createContractRepoStub) ReplaceMilestones(_ context.Context, _ int64, _ []domain.Milestone, _ time.Time) error {
+	return nil
+}
+
 func (r *createContractRepoStub) CreateHourlyLogForFreelancer(_ context.Context, _ domain.HourlyLog) (int64, error) {
 	return 0, nil
 }
 
 func (r *createContractRepoStub) ListHourlyLogsForActor(_ context.Context, _ int64, _ uuid.UUID, _, _ int) ([]domain.HourlyLog, error) {
 	return nil, nil
+}
+
+func (r *createContractRepoStub) ListHourlyLogsForActorInRange(_ context.Context, _ int64, _ uuid.UUID, _ time.Time, _ time.Time) ([]domain.HourlyLog, error) {
+	return nil, nil
+}
+
+func (r *createContractRepoStub) UpdateHourlyLogForFreelancer(_ context.Context, _ domain.HourlyLog) error {
+	return nil
+}
+
+func (r *createContractRepoStub) DeleteHourlyLogForFreelancer(_ context.Context, _ int64, _ uuid.UUID) error {
+	return nil
 }
 
 func (r *createContractRepoStub) ReviewHourlyLogForClient(_ context.Context, _ int64, _ uuid.UUID, _, _ string, _ time.Time) error {
@@ -97,11 +113,67 @@ func (r *createContractRepoStub) GetHourlyLogForActor(_ context.Context, _ int64
 	return domain.HourlyLog{}, nil
 }
 
+func (r *createContractRepoStub) CreateHourlyInvoice(_ context.Context, _ domain.HourlyInvoice) (int64, error) {
+	return 0, nil
+}
+
+func (r *createContractRepoStub) GetHourlyInvoice(_ context.Context, _ int64) (domain.HourlyInvoice, error) {
+	return domain.HourlyInvoice{}, nil
+}
+
+func (r *createContractRepoStub) GetHourlyInvoiceForActor(_ context.Context, _ int64, _ uuid.UUID) (domain.HourlyInvoice, error) {
+	return domain.HourlyInvoice{}, nil
+}
+
+func (r *createContractRepoStub) ListHourlyInvoicesForActor(_ context.Context, _ int64, _ uuid.UUID, _, _ int) ([]domain.HourlyInvoice, error) {
+	return nil, nil
+}
+
+func (r *createContractRepoStub) GetHourlyInvoiceByContractWeek(_ context.Context, _ int64, _ time.Time) (domain.HourlyInvoice, error) {
+	return domain.HourlyInvoice{}, nil
+}
+
+func (r *createContractRepoStub) AttachHourlyLogsToInvoice(_ context.Context, _ int64, _ time.Time, _ time.Time, _ int64) error {
+	return nil
+}
+
+func (r *createContractRepoStub) MarkHourlyInvoiceStatus(_ context.Context, _ int64, _ string, _ string, _ time.Time) error {
+	return nil
+}
+
+func (r *createContractRepoStub) CreateContractBonus(_ context.Context, _ domain.ContractBonus) (int64, error) {
+	return 0, nil
+}
+
+func (r *createContractRepoStub) GetContractBonusForActor(_ context.Context, _ int64, _ uuid.UUID) (domain.ContractBonus, error) {
+	return domain.ContractBonus{}, nil
+}
+
+func (r *createContractRepoStub) GetContractBonus(_ context.Context, _ int64) (domain.ContractBonus, error) {
+	return domain.ContractBonus{}, nil
+}
+
+func (r *createContractRepoStub) ListContractBonusesForActor(_ context.Context, _ int64, _ uuid.UUID, _, _ int) ([]domain.ContractBonus, error) {
+	return nil, nil
+}
+
+func (r *createContractRepoStub) MarkContractBonusStatus(_ context.Context, _ int64, _ string, _ string, _ time.Time) error {
+	return nil
+}
+
+func (r *createContractRepoStub) HasBlockingFinancialActivity(_ context.Context, _ int64) (bool, string, error) {
+	return false, "", nil
+}
+
 func (r *createContractRepoStub) CreateAmendmentForActor(_ context.Context, _ domain.Amendment) (int64, error) {
 	return 0, nil
 }
 
-func (r *createContractRepoStub) RespondAmendmentForActor(_ context.Context, _ int64, _ uuid.UUID, _ string, _ time.Time) error {
+func (r *createContractRepoStub) RespondAmendmentForActor(_ context.Context, _ int64, _ uuid.UUID, _ string, _ string, _ time.Time) error {
+	return nil
+}
+
+func (r *createContractRepoStub) RespondAmendmentAndApplyForActor(_ context.Context, _ int64, _ uuid.UUID, _ string, _ time.Time) error {
 	return nil
 }
 
@@ -111,6 +183,14 @@ func (r *createContractRepoStub) GetAmendmentForActor(_ context.Context, _ int64
 
 func (r *createContractRepoStub) ListAmendmentsForActor(_ context.Context, _ int64, _ uuid.UUID, _, _ int) ([]domain.Amendment, error) {
 	return nil, nil
+}
+
+func (r *createContractRepoStub) ExpirePendingAmendmentsForActor(_ context.Context, _ int64, _ uuid.UUID, _ time.Time) error {
+	return nil
+}
+
+func (r *createContractRepoStub) ExpireAmendmentForActor(_ context.Context, _ int64, _ uuid.UUID, _ time.Time) (bool, error) {
+	return false, nil
 }
 
 func (r *createContractRepoStub) AppendStatusHistory(_ context.Context, entry domain.StatusHistoryEntry) error {
@@ -176,6 +256,11 @@ type contractClockStub struct {
 
 func (c contractClockStub) Now() time.Time { return c.now }
 
+func testMilestones() []domain.Milestone {
+	due := time.Unix(1700600000, 0).UTC()
+	return []domain.Milestone{{Title: "Delivery", Amount: 500, DueAt: &due}}
+}
+
 func TestCreateContract_Execute_SendsOfferFromShortlistedProposal(t *testing.T) {
 	clientID := uuid.New()
 	freelancerID := uuid.New()
@@ -204,6 +289,7 @@ func TestCreateContract_Execute_SendsOfferFromShortlistedProposal(t *testing.T) 
 		ContractType: domain.TypeFixed,
 		Title:        "Build API",
 		FixedTotal:   500,
+		Milestones:   testMilestones(),
 	})
 	if err != nil {
 		t.Fatalf("Execute error: %v", err)
@@ -214,11 +300,124 @@ func TestCreateContract_Execute_SendsOfferFromShortlistedProposal(t *testing.T) 
 	if len(repo.created) != 1 {
 		t.Fatalf("expected one contract create, got %d", len(repo.created))
 	}
+	if len(repo.created[0].Milestones) != 1 || repo.created[0].Milestones[0].ID != 1 || repo.created[0].Milestones[0].Status != domain.MilestoneStatusPending {
+		t.Fatalf("expected normalized pending milestone, got %+v", repo.created[0].Milestones)
+	}
 	if len(proposals.markOfferCalls) != 1 || proposals.markOfferCalls[0] != 8 {
 		t.Fatalf("expected proposal to be marked offer_sent, got %+v", proposals.markOfferCalls)
 	}
 	if len(repo.historyReasons) != 1 || repo.historyReasons[0] != "offer sent" {
 		t.Fatalf("unexpected history reasons: %+v", repo.historyReasons)
+	}
+}
+
+func TestCreateContract_Execute_RejectsHiredProposal(t *testing.T) {
+	clientID := uuid.New()
+	freelancerID := uuid.New()
+	repo := &createContractRepoStub{existingErr: fmt.Errorf("not found")}
+	proposals := &proposalSyncStub{proposal: ProposalSummary{
+		ID:           8,
+		JobID:        21,
+		ClientID:     clientID.String(),
+		FreelancerID: freelancerID.String(),
+		Status:       "hired",
+	}}
+	jobs := &jobReaderStub{summary: JobSummary{JobID: 21, ClientID: clientID.String(), IsOpen: true, Found: true}}
+	uc := &CreateContract{
+		Contracts: repo,
+		Proposals: proposals,
+		Jobs:      jobs,
+		Actors:    &actorPolicyStub{},
+		Clock:     contractClockStub{now: time.Unix(1700000000, 0).UTC()},
+	}
+
+	_, err := uc.Execute(context.Background(), CreateContractInput{
+		ClientID:     clientID,
+		FreelancerID: freelancerID,
+		JobID:        21,
+		ProposalID:   8,
+		ContractType: domain.TypeFixed,
+		Title:        "Build API",
+		FixedTotal:   500,
+		Milestones:   testMilestones(),
+	})
+	if err == nil || err.Error() != "proposal is not eligible for offer" {
+		t.Fatalf("expected hired proposal to be rejected, got %v", err)
+	}
+}
+
+func TestCreateContract_Execute_RejectsFixedMilestoneTotalMismatch(t *testing.T) {
+	clientID := uuid.New()
+	freelancerID := uuid.New()
+	repo := &createContractRepoStub{existingErr: fmt.Errorf("not found")}
+	proposals := &proposalSyncStub{proposal: ProposalSummary{
+		ID:           8,
+		JobID:        21,
+		ClientID:     clientID.String(),
+		FreelancerID: freelancerID.String(),
+		Status:       "sent",
+	}}
+	jobs := &jobReaderStub{summary: JobSummary{JobID: 21, ClientID: clientID.String(), IsOpen: true, Found: true}}
+	uc := &CreateContract{
+		Contracts: repo,
+		Proposals: proposals,
+		Jobs:      jobs,
+		Actors:    &actorPolicyStub{},
+		Clock:     contractClockStub{now: time.Unix(1700000000, 0).UTC()},
+	}
+	due := time.Unix(1700600000, 0).UTC()
+
+	_, err := uc.Execute(context.Background(), CreateContractInput{
+		ClientID:     clientID,
+		FreelancerID: freelancerID,
+		JobID:        21,
+		ProposalID:   8,
+		ContractType: domain.TypeFixed,
+		Title:        "Build API",
+		FixedTotal:   500,
+		Milestones:   []domain.Milestone{{ID: 99, Title: "Delivery", Amount: 400, DueAt: &due}},
+	})
+	if err == nil || err.Error() != "milestone amounts must equal fixed_total" {
+		t.Fatalf("expected milestone total error, got %v", err)
+	}
+	if len(repo.created) != 0 {
+		t.Fatalf("expected no contract create, got %d", len(repo.created))
+	}
+}
+
+func TestCreateContract_Execute_RejectsAmountsWithMoreThanTwoDecimals(t *testing.T) {
+	clientID := uuid.New()
+	freelancerID := uuid.New()
+	repo := &createContractRepoStub{existingErr: fmt.Errorf("not found")}
+	proposals := &proposalSyncStub{proposal: ProposalSummary{
+		ID:           8,
+		JobID:        21,
+		ClientID:     clientID.String(),
+		FreelancerID: freelancerID.String(),
+		Status:       "sent",
+	}}
+	jobs := &jobReaderStub{summary: JobSummary{JobID: 21, ClientID: clientID.String(), IsOpen: true, Found: true}}
+	uc := &CreateContract{
+		Contracts: repo,
+		Proposals: proposals,
+		Jobs:      jobs,
+		Actors:    &actorPolicyStub{},
+		Clock:     contractClockStub{now: time.Unix(1700000000, 0).UTC()},
+	}
+	due := time.Unix(1700600000, 0).UTC()
+
+	_, err := uc.Execute(context.Background(), CreateContractInput{
+		ClientID:     clientID,
+		FreelancerID: freelancerID,
+		JobID:        21,
+		ProposalID:   8,
+		ContractType: domain.TypeFixed,
+		Title:        "Build API",
+		FixedTotal:   500.00,
+		Milestones:   []domain.Milestone{{ID: 1, Title: "Delivery", Amount: 500.001, DueAt: &due}},
+	})
+	if err == nil || err.Error() != "milestone amount at index 0 must have at most 2 decimal places" {
+		t.Fatalf("expected decimal precision error, got %v", err)
 	}
 }
 
@@ -253,6 +452,7 @@ func TestCreateContract_Execute_BlocksWhenPendingOfferExists(t *testing.T) {
 		ContractType: domain.TypeFixed,
 		Title:        "Build API",
 		FixedTotal:   500,
+		Milestones:   testMilestones(),
 	})
 	if err == nil || err.Error() != "job already has a pending offer" {
 		t.Fatalf("expected pending offer conflict, got %v", err)
@@ -296,6 +496,7 @@ func TestCreateContract_Execute_ReopensRevokedOfferAndMarksProposalHired(t *test
 		ContractType: domain.TypeFixed,
 		Title:        "Build API",
 		FixedTotal:   500,
+		Milestones:   testMilestones(),
 	})
 	if err != nil {
 		t.Fatalf("Execute error: %v", err)
@@ -355,6 +556,7 @@ func TestCreateContract_Execute_DoesNotPersistResendWhenProposalSyncFails(t *tes
 		ContractType: domain.TypeFixed,
 		Title:        "New title",
 		FixedTotal:   500,
+		Milestones:   testMilestones(),
 	})
 	if err == nil {
 		t.Fatal("expected resend to fail when proposal sync fails")
@@ -408,6 +610,7 @@ func TestCreateContract_Execute_ReleasesProposalIfResendUpdateFailsAfterSync(t *
 		ContractType: domain.TypeFixed,
 		Title:        "Build API",
 		FixedTotal:   500,
+		Milestones:   testMilestones(),
 	})
 	if err == nil {
 		t.Fatal("expected resend to fail when offer update fails")

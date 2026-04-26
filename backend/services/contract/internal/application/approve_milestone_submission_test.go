@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -55,17 +56,73 @@ func (r *milestoneRepoStub) ReplaceMilestonesForActor(_ context.Context, contrac
 	r.contract.UpdatedAt = at
 	return nil
 }
+func (r *milestoneRepoStub) ReplaceMilestones(_ context.Context, contractID int64, milestones []domain.Milestone, at time.Time) error {
+	if contractID != r.contract.ID {
+		return fmt.Errorf("not found")
+	}
+	r.contract.Milestones = milestones
+	r.contract.UpdatedAt = at
+	return nil
+}
 func (r *milestoneRepoStub) CreateHourlyLogForFreelancer(context.Context, domain.HourlyLog) (int64, error) {
 	return 0, nil
 }
 func (r *milestoneRepoStub) ListHourlyLogsForActor(context.Context, int64, uuid.UUID, int, int) ([]domain.HourlyLog, error) {
 	return nil, nil
 }
+func (r *milestoneRepoStub) ListHourlyLogsForActorInRange(context.Context, int64, uuid.UUID, time.Time, time.Time) ([]domain.HourlyLog, error) {
+	return nil, nil
+}
+func (r *milestoneRepoStub) UpdateHourlyLogForFreelancer(context.Context, domain.HourlyLog) error {
+	return nil
+}
+func (r *milestoneRepoStub) DeleteHourlyLogForFreelancer(context.Context, int64, uuid.UUID) error {
+	return nil
+}
 func (r *milestoneRepoStub) ReviewHourlyLogForClient(context.Context, int64, uuid.UUID, string, string, time.Time) error {
 	return nil
 }
 func (r *milestoneRepoStub) GetHourlyLogForActor(context.Context, int64, uuid.UUID) (domain.HourlyLog, error) {
 	return domain.HourlyLog{}, nil
+}
+func (r *milestoneRepoStub) CreateHourlyInvoice(context.Context, domain.HourlyInvoice) (int64, error) {
+	return 0, nil
+}
+func (r *milestoneRepoStub) GetHourlyInvoice(context.Context, int64) (domain.HourlyInvoice, error) {
+	return domain.HourlyInvoice{}, nil
+}
+func (r *milestoneRepoStub) GetHourlyInvoiceForActor(context.Context, int64, uuid.UUID) (domain.HourlyInvoice, error) {
+	return domain.HourlyInvoice{}, nil
+}
+func (r *milestoneRepoStub) ListHourlyInvoicesForActor(context.Context, int64, uuid.UUID, int, int) ([]domain.HourlyInvoice, error) {
+	return nil, nil
+}
+func (r *milestoneRepoStub) GetHourlyInvoiceByContractWeek(context.Context, int64, time.Time) (domain.HourlyInvoice, error) {
+	return domain.HourlyInvoice{}, nil
+}
+func (r *milestoneRepoStub) AttachHourlyLogsToInvoice(context.Context, int64, time.Time, time.Time, int64) error {
+	return nil
+}
+func (r *milestoneRepoStub) MarkHourlyInvoiceStatus(context.Context, int64, string, string, time.Time) error {
+	return nil
+}
+func (r *milestoneRepoStub) CreateContractBonus(context.Context, domain.ContractBonus) (int64, error) {
+	return 0, nil
+}
+func (r *milestoneRepoStub) GetContractBonusForActor(context.Context, int64, uuid.UUID) (domain.ContractBonus, error) {
+	return domain.ContractBonus{}, nil
+}
+func (r *milestoneRepoStub) GetContractBonus(context.Context, int64) (domain.ContractBonus, error) {
+	return domain.ContractBonus{}, nil
+}
+func (r *milestoneRepoStub) ListContractBonusesForActor(context.Context, int64, uuid.UUID, int, int) ([]domain.ContractBonus, error) {
+	return nil, nil
+}
+func (r *milestoneRepoStub) MarkContractBonusStatus(context.Context, int64, string, string, time.Time) error {
+	return nil
+}
+func (r *milestoneRepoStub) HasBlockingFinancialActivity(context.Context, int64) (bool, string, error) {
+	return false, "", nil
 }
 func (r *milestoneRepoStub) CreateAmendmentForActor(context.Context, domain.Amendment) (int64, error) {
 	return 0, nil
@@ -99,8 +156,11 @@ type disputeReaderStub struct {
 	hasOpen bool
 }
 
-func (s disputeReaderStub) HasOpenDispute(context.Context, string, string) (bool, error) {
-	return s.hasOpen, nil
+func (s disputeReaderStub) GetOpenDisputeID(context.Context, string, string) (string, error) {
+	if s.hasOpen {
+		return "42", nil
+	}
+	return "", nil
 }
 
 type settlementDispatcherStub struct {
@@ -143,7 +203,60 @@ func TestApproveMilestoneSubmission_BlocksWhenOpenDisputeExists(t *testing.T) {
 	}
 }
 
-func TestApproveMilestoneSubmission_MarksPendingSettlementWhenDispatchFails(t *testing.T) {
+func TestSubmitMilestoneWork_RequiresFundedMilestone(t *testing.T) {
+	freelancerID := uuid.New()
+	repo := &milestoneRepoStub{
+		contract: domain.Contract{
+			ID:           99,
+			FreelancerID: freelancerID,
+			Milestones: []domain.Milestone{
+				{ID: 7, Amount: 120, Status: domain.MilestoneStatusPending},
+			},
+		},
+	}
+	uc := &SubmitMilestoneWork{UpdateMilestoneStatus: &UpdateMilestoneStatus{Contracts: repo, Clock: contractClockStub{now: time.Unix(1700000000, 0).UTC()}}}
+
+	_, err := uc.Execute(context.Background(), SubmitMilestoneWorkInput{
+		ContractID:  99,
+		MilestoneID: 7,
+		ActorID:     freelancerID,
+		ActorRole:   "freelancer",
+		Note:        "done",
+	})
+	if err == nil || !strings.Contains(err.Error(), "funded") {
+		t.Fatalf("expected funded requirement error, got %v", err)
+	}
+}
+
+func TestSubmitMilestoneWork_AllowsFundedMilestone(t *testing.T) {
+	freelancerID := uuid.New()
+	repo := &milestoneRepoStub{
+		contract: domain.Contract{
+			ID:           99,
+			FreelancerID: freelancerID,
+			Milestones: []domain.Milestone{
+				{ID: 7, Amount: 120, Status: domain.MilestoneStatusFunded},
+			},
+		},
+	}
+	uc := &SubmitMilestoneWork{UpdateMilestoneStatus: &UpdateMilestoneStatus{Contracts: repo, Clock: contractClockStub{now: time.Unix(1700000000, 0).UTC()}}}
+
+	out, err := uc.Execute(context.Background(), SubmitMilestoneWorkInput{
+		ContractID:  99,
+		MilestoneID: 7,
+		ActorID:     freelancerID,
+		ActorRole:   "freelancer",
+		Note:        "done",
+	})
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+	if got := out.Contract.Milestones[0].Status; got != domain.MilestoneStatusSubmitted {
+		t.Fatalf("expected submitted, got %q", got)
+	}
+}
+
+func TestApproveMilestoneSubmission_ReturnsErrorWhenDispatchFails(t *testing.T) {
 	clientID := uuid.New()
 	freelancerID := uuid.New()
 	repo := &milestoneRepoStub{
@@ -162,6 +275,41 @@ func TestApproveMilestoneSubmission_MarksPendingSettlementWhenDispatchFails(t *t
 		UpdateMilestoneStatus: update,
 		Disputes:              disputeReaderStub{hasOpen: false},
 		Settlement:            settlementDispatcherStub{err: fmt.Errorf("downstream failure")},
+	}
+
+	_, err := uc.Execute(context.Background(), ApproveMilestoneSubmissionInput{
+		ContractID:  99,
+		MilestoneID: 7,
+		ActorID:     clientID,
+		ActorRole:   "client",
+	})
+	if err == nil || !strings.Contains(err.Error(), "dispatch milestone settlement") {
+		t.Fatalf("expected dispatch error, got %v", err)
+	}
+	if got := repo.contract.Milestones[0].Status; got != domain.MilestoneStatusApprovedPendingSettlement {
+		t.Fatalf("expected %q, got %q", domain.MilestoneStatusApprovedPendingSettlement, got)
+	}
+}
+
+func TestApproveMilestoneSubmission_KeepsPendingSettlementWhenDispatchSucceeds(t *testing.T) {
+	clientID := uuid.New()
+	freelancerID := uuid.New()
+	repo := &milestoneRepoStub{
+		contract: domain.Contract{
+			ID:           99,
+			ClientID:     clientID,
+			FreelancerID: freelancerID,
+			Milestones: []domain.Milestone{
+				{ID: 7, Amount: 120, Status: domain.MilestoneStatusSubmitted},
+			},
+		},
+	}
+	clock := contractClockStub{now: time.Unix(1700000000, 0).UTC()}
+	update := &UpdateMilestoneStatus{Contracts: repo, Clock: clock}
+	uc := &ApproveMilestoneSubmission{
+		UpdateMilestoneStatus: update,
+		Disputes:              disputeReaderStub{hasOpen: false},
+		Settlement:            settlementDispatcherStub{},
 	}
 
 	out, err := uc.Execute(context.Background(), ApproveMilestoneSubmissionInput{

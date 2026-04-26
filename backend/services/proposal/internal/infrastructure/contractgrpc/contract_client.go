@@ -3,6 +3,7 @@ package contractgrpc
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 
 	contractv1 "jobconnect/contract/gen/contract/v1"
@@ -40,6 +41,14 @@ func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.
 	}
 
 	forwardCtx := forwardAuthorization(ctx)
+	hourlyRateMinor, err := moneyToMinorUnits(hourlyRate)
+	if err != nil {
+		return 0, fmt.Errorf("invalid hourly rate: %w", err)
+	}
+	fixedTotalMinor, err := moneyToMinorUnits(fixedTotal)
+	if err != nil {
+		return 0, fmt.Errorf("invalid fixed total: %w", err)
+	}
 	res, err := c.client.CreateContract(forwardCtx, &contractv1.CreateContractRequest{
 		FreelancerId:    in.FreelancerID.String(),
 		JobId:           in.JobID,
@@ -47,8 +56,8 @@ func (c *ContractClient) CreateFromProposal(ctx context.Context, in application.
 		ContractType:    contractType,
 		Title:           fmt.Sprintf("Contract for job %d", in.JobID),
 		Description:     fmt.Sprintf("Auto-created from proposal %d", in.ProposalID),
-		HourlyRate:      hourlyRate,
-		FixedTotal:      fixedTotal,
+		HourlyRateMinor: hourlyRateMinor,
+		FixedTotalMinor: fixedTotalMinor,
 		WeeklyHourLimit: 0,
 	})
 	if err != nil {
@@ -70,4 +79,14 @@ func forwardAuthorization(ctx context.Context) context.Context {
 		return ctx
 	}
 	return metadata.NewOutgoingContext(ctx, metadata.Pairs("authorization", vals[0]))
+}
+
+func moneyToMinorUnits(value float64) (int64, error) {
+	if math.IsNaN(value) || math.IsInf(value, 0) {
+		return 0, fmt.Errorf("amount must be a finite number")
+	}
+	if value < 0 {
+		return 0, fmt.Errorf("amount must be non-negative")
+	}
+	return int64(math.Round(value * 100)), nil
 }

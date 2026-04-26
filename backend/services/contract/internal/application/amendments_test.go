@@ -138,6 +138,33 @@ func TestProposeAmendment_RejectsContractTypeMismatch(t *testing.T) {
 	}
 }
 
+func TestProposeAmendment_RejectsFixedTotalChangeWithoutMilestones(t *testing.T) {
+	actorID := uuid.New()
+	repo := &amendmentRepoStub{
+		contract: domain.Contract{
+			ID:           10,
+			ClientID:     actorID,
+			FreelancerID: uuid.New(),
+			ContractType: domain.TypeFixed,
+			Status:       domain.StatusActive,
+			FixedTotal:   500,
+		},
+	}
+	uc := &ProposeAmendment{Contracts: repo, Clock: contractClockStub{now: time.Unix(1700000000, 0).UTC()}}
+
+	_, err := uc.Execute(context.Background(), ProposeAmendmentInput{
+		ContractID: repo.contract.ID,
+		ActorID:    actorID,
+		Summary:    "raise budget only",
+		Payload: domain.AmendmentPayload{
+			CompensationChange: &domain.CompensationChange{NewFixedTotal: 600},
+		},
+	})
+	if err == nil || !strings.Contains(err.Error(), "fixed_total change requires milestones_change") {
+		t.Fatalf("expected fixed_total/milestones validation error, got %v", err)
+	}
+}
+
 func TestRespondAmendment_AcceptUsesApplyPath(t *testing.T) {
 	clientID := uuid.New()
 	freelancerID := uuid.New()
