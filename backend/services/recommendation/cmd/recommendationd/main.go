@@ -23,6 +23,7 @@ import (
 	"jobconnect/recommendation/internal/infrastructure/cache"
 	embedderpython "jobconnect/recommendation/internal/infrastructure/embedder/python"
 	embeddingstorememory "jobconnect/recommendation/internal/infrastructure/embeddingstore/memory"
+	embeddingstorepgvector "jobconnect/recommendation/internal/infrastructure/embeddingstore/pgvector"
 	"jobconnect/recommendation/internal/infrastructure/jobgrpc"
 	"jobconnect/recommendation/internal/infrastructure/metrics"
 	"jobconnect/recommendation/internal/infrastructure/reviewgrpc"
@@ -68,7 +69,8 @@ func main() {
 	embedder, closeEmbedder := buildEmbedder(ctx, cfg)
 	defer closeEmbedder()
 
-	embeddingStore := buildEmbeddingStore(cfg)
+	embeddingStore, closeEmbeddingStore := buildEmbeddingStore(ctx, cfg)
+	defer closeEmbeddingStore()
 
 	app := application.NewRecommendationService(
 		jobgrpc.NewClient(jobConn),
@@ -145,14 +147,23 @@ func buildRecommendationCache(cfg config.Config, recorder cache.MetricsRecorder)
 	}
 }
 
-func buildEmbeddingStore(cfg config.Config) application.EmbeddingStore {
+func buildEmbeddingStore(ctx context.Context, cfg config.Config) (application.EmbeddingStore, func()) {
 	switch cfg.EmbeddingStoreBackend {
 	case "memory":
 		log.Printf("recommendation embedding store backend: memory")
-		return embeddingstorememory.New()
+		return embeddingstorememory.New(), func() {}
+	case "pgvector":
+		poolCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		defer cancel()
+		pool, err := embeddingstorepgvector.NewPool(poolCtx, cfg.PostgresURL)
+		if err != nil {
+			log.Fatalf("recommendation embedding store: pgvector pool init: %v", err)
+		}
+		log.Printf("recommendation embedding store backend: pgvector")
+		return embeddingstorepgvector.New(pool), func() { pool.Close() }
 	default:
 		log.Printf("recommendation embedding store backend: noop (lazy embedding disabled)")
-		return nil
+		return nil, func() {}
 	}
 }
 

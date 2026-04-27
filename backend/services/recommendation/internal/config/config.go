@@ -33,6 +33,7 @@ type Config struct {
 	EmbedderOperationTimeout    time.Duration
 	EmbedderStartupTimeout      time.Duration
 	EmbeddingStoreBackend       string
+	PostgresURL                 string
 }
 
 func LoadFromEnv() (Config, error) {
@@ -61,6 +62,7 @@ func LoadFromEnv() (Config, error) {
 		EmbedderOperationTimeout:    getDurationEnv("RECOMMENDATION_EMBEDDER_TIMEOUT", 5*time.Second),
 		EmbedderStartupTimeout:      getDurationEnv("RECOMMENDATION_EMBEDDER_STARTUP_TIMEOUT", 30*time.Second),
 		EmbeddingStoreBackend:       strings.ToLower(getEnv("RECOMMENDATION_EMBEDDING_STORE_BACKEND", "memory")),
+		PostgresURL:                 getEnv("RECOMMENDATION_POSTGRES_URL", ""),
 	}
 
 	if cfg.DefaultRecommendationLimit <= 0 {
@@ -110,8 +112,11 @@ func LoadFromEnv() (Config, error) {
 	if cfg.EmbedderStartupTimeout <= 0 {
 		return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDER_STARTUP_TIMEOUT must be greater than zero")
 	}
-	if cfg.EmbeddingStoreBackend != "memory" && cfg.EmbeddingStoreBackend != "noop" {
-		return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDING_STORE_BACKEND must be memory or noop")
+	if cfg.EmbeddingStoreBackend != "memory" && cfg.EmbeddingStoreBackend != "noop" && cfg.EmbeddingStoreBackend != "pgvector" {
+		return Config{}, fmt.Errorf("RECOMMENDATION_EMBEDDING_STORE_BACKEND must be memory, noop, or pgvector")
+	}
+	if cfg.EmbeddingStoreBackend == "pgvector" && strings.TrimSpace(cfg.PostgresURL) == "" {
+		return Config{}, fmt.Errorf("RECOMMENDATION_POSTGRES_URL is required when RECOMMENDATION_EMBEDDING_STORE_BACKEND=pgvector")
 	}
 
 	return cfg, nil

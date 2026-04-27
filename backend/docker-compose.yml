@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -249,9 +249,13 @@ services:
       REVIEW_SERVICE_ADDR: review:50056
       RECOMMENDATION_CACHE_BACKEND: redis
       RECOMMENDATION_REDIS_ADDR: redis:6379
+      RECOMMENDATION_EMBEDDING_STORE_BACKEND: pgvector
+      RECOMMENDATION_POSTGRES_URL: "postgres://recommendation:recommendation@postgres:5432/jobconnect_recommendation?sslmode=disable"
     ports:
       - "50064:50064"
     depends_on:
+      postgres:
+        condition: service_healthy
       user:
         condition: service_started
       job:
