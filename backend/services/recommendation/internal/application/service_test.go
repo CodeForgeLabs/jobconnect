@@ -205,6 +205,9 @@ func TestGetRecommendedJobsRanksSkillAndSemanticMatchFirst(t *testing.T) {
 		},
 		nil,
 		nil,
+		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -263,6 +266,9 @@ func TestGetRecommendedJobsFiltersBudgetMismatch(t *testing.T) {
 		},
 		nil,
 		nil,
+		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -316,6 +322,9 @@ func TestGetRecommendedJobsUsesClientTrustInRanking(t *testing.T) {
 		},
 		reviews,
 		nil,
+		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -365,6 +374,9 @@ func TestGetRecommendedJobsTreatsNoReviewsAsNeutral(t *testing.T) {
 		},
 		&fakeReviewClient{summaries: map[string]domain.RatingSummary{}},
 		nil,
+		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -406,6 +418,9 @@ func TestGetRecommendedJobsDegradesWhenReviewLookupFails(t *testing.T) {
 		},
 		&fakeReviewClient{err: errors.New("review unavailable")},
 		nil,
+		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -432,6 +447,9 @@ func TestGetRecommendedJobsUsesCacheWhenWarm(t *testing.T) {
 		&fakeUserClient{},
 		nil,
 		cache,
+		nil,
+		nil,
+		nil,
 		ServiceConfig{DefaultLimit: 1, MaxLimit: 2, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
 	)
 
@@ -455,7 +473,7 @@ func newFreelancerTestConfig() ServiceConfig {
 }
 
 func TestGetRecommendedFreelancersRejectsInvalidJobID(t *testing.T) {
-	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, nil, nil, nil, nil, newFreelancerTestConfig())
 	if _, err := svc.GetRecommendedFreelancers(context.Background(), 0, 5, "caller-a"); err == nil {
 		t.Fatal("expected error for zero job id")
 	}
@@ -466,7 +484,7 @@ func TestGetRecommendedFreelancersRejectsInvalidJobID(t *testing.T) {
 
 func TestGetRecommendedFreelancersJobFetchError(t *testing.T) {
 	job := &fakeJobClient{getJobErr: errors.New("boom")}
-	svc := NewRecommendationService(job, &fakeUserClient{}, nil, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, &fakeUserClient{}, nil, nil, nil, nil, nil, newFreelancerTestConfig())
 	if _, err := svc.GetRecommendedFreelancers(context.Background(), 7, 5, "caller-a"); err == nil {
 		t.Fatal("expected propagated fetch error")
 	}
@@ -474,7 +492,7 @@ func TestGetRecommendedFreelancersJobFetchError(t *testing.T) {
 
 func TestGetRecommendedFreelancersJobNotFound(t *testing.T) {
 	job := &fakeJobClient{jobsByID: map[int64]domain.JobData{}}
-	svc := NewRecommendationService(job, &fakeUserClient{}, nil, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, &fakeUserClient{}, nil, nil, nil, nil, nil, newFreelancerTestConfig())
 	if _, err := svc.GetRecommendedFreelancers(context.Background(), 42, 5, "caller-a"); err == nil {
 		t.Fatal("expected not-found error for missing job")
 	}
@@ -536,7 +554,7 @@ func TestGetRecommendedFreelancersRanksAndFilters(t *testing.T) {
 		discoverable: []domain.FreelancerData{strongMatch, weakMatch, unavailable, rateMismatch},
 	}
 	cache := &fakeCache{}
-	svc := NewRecommendationService(job, user, nil, cache, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, nil, cache, nil, nil, nil, newFreelancerTestConfig())
 
 	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a")
 	if err != nil {
@@ -608,7 +626,7 @@ func TestGetRecommendedFreelancersUsesFreelancerTrustInRanking(t *testing.T) {
 		},
 	}
 	user := &fakeUserClient{discoverable: []domain.FreelancerData{lowTrust, highTrust}}
-	svc := NewRecommendationService(job, user, reviews, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, reviews, nil, nil, nil, nil, newFreelancerTestConfig())
 
 	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a")
 	if err != nil {
@@ -649,7 +667,7 @@ func TestGetRecommendedFreelancersDegradesWhenReviewLookupFails(t *testing.T) {
 		HourlyRate:   70,
 		Availability: availabilityFullTime,
 	}}}
-	svc := NewRecommendationService(job, user, reviews, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, reviews, nil, nil, nil, nil, newFreelancerTestConfig())
 
 	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a")
 	if err != nil {
@@ -689,7 +707,7 @@ func TestGetRecommendedFreelancersRespectsLimit(t *testing.T) {
 		})
 	}
 
-	svc := NewRecommendationService(job, user, nil, nil, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, nil, nil, nil, nil, nil, newFreelancerTestConfig())
 	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 3, "caller-a")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -724,7 +742,7 @@ func TestGetRecommendedFreelancersCacheIsCallerScoped(t *testing.T) {
 		}},
 	}
 	cache := &fakeCache{}
-	svc := NewRecommendationService(job, user, nil, cache, newFreelancerTestConfig())
+	svc := NewRecommendationService(job, user, nil, cache, nil, nil, nil, newFreelancerTestConfig())
 
 	if _, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a"); err != nil {
 		t.Fatalf("caller-a recommendations errored: %v", err)
@@ -751,7 +769,7 @@ func TestInvalidateRecommendationCacheTargetsUsersAndJobs(t *testing.T) {
 			"freelancers:88:caller-a": {{UserID: "f-3"}},
 		},
 	}
-	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, newFreelancerTestConfig())
+	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, nil, nil, nil, newFreelancerTestConfig())
 
 	deleted, err := svc.InvalidateRecommendationCache(context.Background(), []string{" freelancer-1 ", "freelancer-1", ""}, []int64{77, 77, 0}, false)
 	if err != nil {
@@ -779,7 +797,7 @@ func TestInvalidateRecommendationCacheClearAll(t *testing.T) {
 			"freelancers:77:caller-a": {{UserID: "f-1"}},
 		},
 	}
-	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, newFreelancerTestConfig())
+	svc := NewRecommendationService(&fakeJobClient{}, &fakeUserClient{}, nil, cache, nil, nil, nil, newFreelancerTestConfig())
 
 	deleted, err := svc.InvalidateRecommendationCache(context.Background(), []string{"freelancer-1"}, []int64{77}, true)
 	if err != nil {
@@ -790,5 +808,324 @@ func TestInvalidateRecommendationCacheClearAll(t *testing.T) {
 	}
 	if cache.clearCount != 1 {
 		t.Fatalf("expected clear to be called once, got %d", cache.clearCount)
+	}
+}
+
+type fakeMetricsRecorder struct {
+	noopMetricsRecorder
+	semanticPaths     map[string]int
+	candidateSources  map[string]int
+}
+
+func newFakeMetricsRecorder() *fakeMetricsRecorder {
+	return &fakeMetricsRecorder{
+		semanticPaths:    map[string]int{},
+		candidateSources: map[string]int{},
+	}
+}
+
+func (f *fakeMetricsRecorder) RecordSemanticPath(recommendationType, path string) {
+	f.semanticPaths[recommendationType+":"+path]++
+}
+
+func (f *fakeMetricsRecorder) RecordCandidateSource(recommendationType, source string, count int) {
+	if count <= 0 {
+		return
+	}
+	f.candidateSources[recommendationType+":"+source] += count
+}
+
+func phase4dJobsTestData(now time.Time) (*fakeJobClient, *fakeUserClient) {
+	job := domain.JobData{
+		ID:             101,
+		Title:          "Senior Go backend engineer",
+		Description:    "Build gRPC APIs and PostgreSQL services",
+		RequiredSkills: []string{"Go", "gRPC", "PostgreSQL"},
+		JobType:        "hourly",
+		HourlyRate:     55,
+		Visibility:     "public",
+		CreatedAt:      now.Add(-2 * time.Hour),
+	}
+	return &fakeJobClient{
+			recentJobs:       []domain.JobData{job},
+			skillJobsBySkill: map[string][]domain.JobData{"Go": {job}},
+		}, &fakeUserClient{
+			user: domain.UserData{
+				ID:           "freelancer-1",
+				Headline:     "Backend Go engineer",
+				Bio:          "I build PostgreSQL-backed gRPC APIs",
+				Skills:       []string{"Go", "gRPC", "PostgreSQL"},
+				HourlyRate:   50,
+				CanApplyJobs: true,
+			},
+		}
+}
+
+func TestGetRecommendedJobsTakesEmbeddingPathWhenEmbedderAvailable(t *testing.T) {
+	now := time.Now().UTC()
+	jobs, user := phase4dJobsTestData(now)
+	rec := newFakeMetricsRecorder()
+	emb := &fakeEmbedder{response: [][]float32{{1, 0, 0}, {1, 0, 0}}}
+	store := newFakeEmbeddingStore()
+
+	svc := NewRecommendationService(
+		jobs, user, nil, nil, rec, emb, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+
+	if _, err := svc.GetRecommendedJobs(context.Background(), "freelancer-1", 10); err != nil {
+		t.Fatalf("GetRecommendedJobs returned error: %v", err)
+	}
+	if rec.semanticPaths["jobs:embedding"] == 0 {
+		t.Fatalf("expected embedding path metric, got %v", rec.semanticPaths)
+	}
+	if rec.semanticPaths["jobs:token"] != 0 {
+		t.Fatalf("expected zero token-path emissions when embedder is healthy, got %d", rec.semanticPaths["jobs:token"])
+	}
+}
+
+func TestGetRecommendedJobsFallsBackToTokenPathWhenEmbedderUnavailable(t *testing.T) {
+	now := time.Now().UTC()
+	jobs, user := phase4dJobsTestData(now)
+	rec := newFakeMetricsRecorder()
+	emb := &fakeEmbedder{err: ErrEmbedderUnavailable}
+	store := newFakeEmbeddingStore()
+
+	svc := NewRecommendationService(
+		jobs, user, nil, nil, rec, emb, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+
+	recs, err := svc.GetRecommendedJobs(context.Background(), "freelancer-1", 10)
+	if err != nil {
+		t.Fatalf("GetRecommendedJobs returned error: %v", err)
+	}
+	if len(recs) == 0 {
+		t.Fatal("expected at least one recommendation on token-cosine fallback")
+	}
+	if rec.semanticPaths["jobs:token"] == 0 {
+		t.Fatalf("expected token path metric on embedder failure, got %v", rec.semanticPaths)
+	}
+	if rec.semanticPaths["jobs:embedding"] != 0 {
+		t.Fatalf("embedding path must not be recorded when embedder is down, got %d", rec.semanticPaths["jobs:embedding"])
+	}
+}
+
+func TestGetRecommendedJobsScoreDiffersBetweenEmbeddingAndTokenPaths(t *testing.T) {
+	now := time.Now().UTC()
+
+	jobsA, userA := phase4dJobsTestData(now)
+	rec := newFakeMetricsRecorder()
+	// Embedder vectors are intentionally different from what token cosine
+	// would produce so the resulting MatchScore must change.
+	emb := &fakeEmbedder{response: [][]float32{{1, 0, 0}, {0, 1, 0}}}
+	store := newFakeEmbeddingStore()
+	embedSvc := NewRecommendationService(
+		jobsA, userA, nil, nil, rec, emb, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+	embedRecs, err := embedSvc.GetRecommendedJobs(context.Background(), "freelancer-1", 10)
+	if err != nil {
+		t.Fatalf("embedding-path GetRecommendedJobs error: %v", err)
+	}
+	if len(embedRecs) == 0 {
+		t.Fatal("embedding-path produced no recommendations")
+	}
+
+	jobsB, userB := phase4dJobsTestData(now)
+	tokenSvc := NewRecommendationService(
+		jobsB, userB, nil, nil, nil, nil, nil,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+	tokenRecs, err := tokenSvc.GetRecommendedJobs(context.Background(), "freelancer-1", 10)
+	if err != nil {
+		t.Fatalf("token-path GetRecommendedJobs error: %v", err)
+	}
+	if len(tokenRecs) == 0 {
+		t.Fatal("token-path produced no recommendations")
+	}
+	if embedRecs[0].MatchScore == tokenRecs[0].MatchScore {
+		t.Fatalf("expected MatchScore to differ between embedding and token paths, got %v", embedRecs[0].MatchScore)
+	}
+}
+
+func phase4dFreelancerTestData() (int64, *fakeJobClient, *fakeUserClient) {
+	const jobID = int64(900)
+	job := domain.JobData{
+		ID:             jobID,
+		Title:          "Backend Go engineer needed",
+		Description:    "Build a Postgres-backed service",
+		RequiredSkills: []string{"Go", "PostgreSQL"},
+		JobType:        "hourly",
+		HourlyRate:     70,
+		Visibility:     "public",
+		ClientID:       "client-1",
+	}
+	users := &fakeUserClient{
+		discoverable: []domain.FreelancerData{{
+			ID:           "freelancer-x",
+			Headline:     "Senior Go developer",
+			Bio:          "PostgreSQL and gRPC",
+			Skills:       []string{"Go", "PostgreSQL"},
+			HourlyRate:   65,
+			Availability: availabilityFullTime,
+		}},
+	}
+	return jobID, &fakeJobClient{jobsByID: map[int64]domain.JobData{jobID: job}}, users
+}
+
+func TestGetRecommendedFreelancersTakesEmbeddingPathWhenEmbedderAvailable(t *testing.T) {
+	jobID, jobs, users := phase4dFreelancerTestData()
+	rec := newFakeMetricsRecorder()
+	emb := &fakeEmbedder{response: [][]float32{{1, 0}, {1, 0}}}
+	store := newFakeEmbeddingStore()
+	svc := NewRecommendationService(jobs, users, nil, nil, rec, emb, store, newFreelancerTestConfig())
+
+	if _, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a"); err != nil {
+		t.Fatalf("GetRecommendedFreelancers error: %v", err)
+	}
+	if rec.semanticPaths["freelancers:embedding"] == 0 {
+		t.Fatalf("expected embedding path metric, got %v", rec.semanticPaths)
+	}
+	if rec.semanticPaths["freelancers:token"] != 0 {
+		t.Fatalf("expected zero token-path emissions when embedder is healthy, got %d", rec.semanticPaths["freelancers:token"])
+	}
+}
+
+func TestGetRecommendedJobsAddsANNCandidatesNotPresentInSkillPull(t *testing.T) {
+	now := time.Now().UTC()
+	skillJob := domain.JobData{
+		ID:             101,
+		Title:          "Go backend",
+		Description:    "Need a Go engineer",
+		RequiredSkills: []string{"Go"},
+		JobType:        "hourly",
+		HourlyRate:     55,
+		Visibility:     "public",
+		CreatedAt:      now.Add(-1 * time.Hour),
+	}
+	annOnlyJob := domain.JobData{
+		ID:             999,
+		Title:          "Distributed systems engineer",
+		Description:    "Build resilient services with Rust",
+		RequiredSkills: []string{"Rust"}, // not in user's skills, would be missed by skill pull
+		JobType:        "hourly",
+		HourlyRate:     60,
+		Visibility:     "public",
+		CreatedAt:      now.Add(-2 * time.Hour),
+	}
+
+	jobs := &fakeJobClient{
+		recentJobs:       []domain.JobData{skillJob}, // ann-only job is NOT in the recent feed
+		skillJobsBySkill: map[string][]domain.JobData{"Go": {skillJob}},
+		jobsByID:         map[int64]domain.JobData{annOnlyJob.ID: annOnlyJob, skillJob.ID: skillJob},
+	}
+	users := &fakeUserClient{
+		user: domain.UserData{
+			ID:           "freelancer-1",
+			Headline:     "Backend Go engineer",
+			Bio:          "I build gRPC services",
+			Skills:       []string{"Go"},
+			HourlyRate:   50,
+			CanApplyJobs: true,
+		},
+	}
+	emb := &fakeEmbedder{response: [][]float32{{1, 0, 0}}} // single profile vector
+	store := newFakeEmbeddingStore()
+	store.searchHits = map[EmbeddingSourceType][]VectorHit{
+		EmbeddingSourceTypeJob: {{SourceID: "999", Distance: 0.1}, {SourceID: "101", Distance: 0.4}},
+	}
+	rec := newFakeMetricsRecorder()
+
+	svc := NewRecommendationService(
+		jobs, users, nil, nil, rec, emb, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+
+	recs, err := svc.GetRecommendedJobs(context.Background(), "freelancer-1", 10)
+	if err != nil {
+		t.Fatalf("GetRecommendedJobs returned error: %v", err)
+	}
+
+	gotIDs := map[int64]bool{}
+	for _, r := range recs {
+		gotIDs[r.JobID] = true
+	}
+	if !gotIDs[annOnlyJob.ID] {
+		t.Fatalf("expected ANN-found job %d in recommendations, got %+v", annOnlyJob.ID, recs)
+	}
+	if rec.candidateSources["jobs:ann"] < 1 {
+		t.Fatalf("expected at least one ann-source candidate metric, got %v", rec.candidateSources)
+	}
+	if jobs.getJobHits == 0 {
+		t.Fatal("expected GetJob hydration call for ANN hit")
+	}
+}
+
+func TestGetRecommendedJobsSkipsANNWhenEmbedderIsNoop(t *testing.T) {
+	now := time.Now().UTC()
+	job := domain.JobData{
+		ID:             101,
+		Title:          "Go backend",
+		Description:    "Need a Go engineer",
+		RequiredSkills: []string{"Go"},
+		JobType:        "hourly",
+		HourlyRate:     55,
+		Visibility:     "public",
+		CreatedAt:      now.Add(-1 * time.Hour),
+	}
+	jobs := &fakeJobClient{
+		recentJobs:       []domain.JobData{job},
+		skillJobsBySkill: map[string][]domain.JobData{"Go": {job}},
+	}
+	users := &fakeUserClient{
+		user: domain.UserData{
+			ID:           "freelancer-1",
+			Headline:     "Backend Go engineer",
+			Skills:       []string{"Go"},
+			HourlyRate:   50,
+			CanApplyJobs: true,
+		},
+	}
+	rec := newFakeMetricsRecorder()
+	store := newFakeEmbeddingStore()
+	store.searchHits = map[EmbeddingSourceType][]VectorHit{
+		EmbeddingSourceTypeJob: {{SourceID: "999"}}, // would be added if ANN ran
+	}
+
+	svc := NewRecommendationService(
+		jobs, users, nil, nil, rec, nil /* noop embedder */, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+	if _, err := svc.GetRecommendedJobs(context.Background(), "freelancer-1", 10); err != nil {
+		t.Fatalf("GetRecommendedJobs error: %v", err)
+	}
+	if rec.candidateSources["jobs:ann"] != 0 {
+		t.Fatalf("expected zero ann candidates with noop embedder, got %d", rec.candidateSources["jobs:ann"])
+	}
+	if jobs.getJobHits != 0 {
+		t.Fatalf("expected no GetJob hydration calls when ANN is skipped, got %d", jobs.getJobHits)
+	}
+}
+
+func TestGetRecommendedFreelancersFallsBackToTokenPathWhenEmbedderUnavailable(t *testing.T) {
+	jobID, jobs, users := phase4dFreelancerTestData()
+	rec := newFakeMetricsRecorder()
+	emb := &fakeEmbedder{err: ErrEmbedderUnavailable}
+	store := newFakeEmbeddingStore()
+	svc := NewRecommendationService(jobs, users, nil, nil, rec, emb, store, newFreelancerTestConfig())
+
+	recs, err := svc.GetRecommendedFreelancers(context.Background(), jobID, 5, "caller-a")
+	if err != nil {
+		t.Fatalf("GetRecommendedFreelancers error: %v", err)
+	}
+	if len(recs) == 0 {
+		t.Fatal("expected at least one recommendation on token-cosine fallback")
+	}
+	if rec.semanticPaths["freelancers:token"] == 0 {
+		t.Fatalf("expected token path metric on embedder failure, got %v", rec.semanticPaths)
+	}
+	if rec.semanticPaths["freelancers:embedding"] != 0 {
+		t.Fatalf("embedding path must not be recorded when embedder is down, got %d", rec.semanticPaths["freelancers:embedding"])
 	}
 }

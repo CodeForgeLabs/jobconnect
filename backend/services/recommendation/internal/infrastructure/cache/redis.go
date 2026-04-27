@@ -24,12 +24,23 @@ type RedisConfig struct {
 	DB               int
 	TTL              time.Duration
 	OperationTimeout time.Duration
+	Metrics          MetricsRecorder
 }
+
+// MetricsRecorder observes redis adapter error paths. A nil value is supported.
+type MetricsRecorder interface {
+	RecordRedisError(op string)
+}
+
+type noopMetricsRecorder struct{}
+
+func (noopMetricsRecorder) RecordRedisError(string) {}
 
 type RedisCache struct {
 	client           redisClient
 	ttl              time.Duration
 	operationTimeout time.Duration
+	metrics          MetricsRecorder
 }
 
 type redisClient interface {
@@ -46,6 +57,10 @@ func NewRedisCache(cfg RedisConfig) *RedisCache {
 	if timeout <= 0 {
 		timeout = defaultRedisOperationTimeout
 	}
+	metrics := cfg.Metrics
+	if metrics == nil {
+		metrics = noopMetricsRecorder{}
+	}
 
 	return &RedisCache{
 		client: redis.NewClient(&redis.Options{
@@ -55,6 +70,7 @@ func NewRedisCache(cfg RedisConfig) *RedisCache {
 		}),
 		ttl:              cfg.TTL,
 		operationTimeout: timeout,
+		metrics:          metrics,
 	}
 }
 
@@ -66,6 +82,7 @@ func newRedisCacheWithClient(client redisClient, ttl time.Duration, operationTim
 		client:           client,
 		ttl:              ttl,
 		operationTimeout: operationTimeout,
+		metrics:          noopMetricsRecorder{},
 	}
 }
 
@@ -133,10 +150,12 @@ func (c *RedisCache) getJSON(key string, dest any) bool {
 	}
 	if err != nil {
 		log.Printf("recommendation cache: redis get %q failed: %v", key, err)
+		c.metrics.RecordRedisError("get")
 		return false
 	}
 	if err := json.Unmarshal([]byte(raw), dest); err != nil {
 		log.Printf("recommendation cache: redis decode %q failed: %v", key, err)
+		c.metrics.RecordRedisError("decode")
 		return false
 	}
 	return true
@@ -150,6 +169,7 @@ func (c *RedisCache) setJSON(key string, value any) {
 	payload, err := json.Marshal(value)
 	if err != nil {
 		log.Printf("recommendation cache: redis encode %q failed: %v", key, err)
+		c.metrics.RecordRedisError("encode")
 		return
 	}
 
@@ -158,6 +178,7 @@ func (c *RedisCache) setJSON(key string, value any) {
 
 	if err := c.client.Set(ctx, key, payload, c.ttl).Err(); err != nil {
 		log.Printf("recommendation cache: redis set %q failed: %v", key, err)
+		c.metrics.RecordRedisError("set")
 	}
 }
 
@@ -172,6 +193,7 @@ func (c *RedisCache) deleteKeys(keys ...string) int {
 	deleted, err := c.client.Del(ctx, keys...).Result()
 	if err != nil {
 		log.Printf("recommendation cache: redis delete failed keys=%d: %v", len(keys), err)
+		c.metrics.RecordRedisError("delete")
 		return 0
 	}
 	return int(deleted)
@@ -191,12 +213,14 @@ func (c *RedisCache) deleteKeysByPattern(pattern string) int {
 		keys, nextCursor, err := c.client.Scan(ctx, cursor, pattern, 100).Result()
 		if err != nil {
 			log.Printf("recommendation cache: redis scan failed pattern=%q: %v", pattern, err)
+			c.metrics.RecordRedisError("scan")
 			return deleted
 		}
 		if len(keys) > 0 {
 			count, err := c.client.Del(ctx, keys...).Result()
 			if err != nil {
 				log.Printf("recommendation cache: redis delete failed pattern=%q keys=%d: %v", pattern, len(keys), err)
+				c.metrics.RecordRedisError("delete")
 				return deleted
 			}
 			deleted += int(count)
