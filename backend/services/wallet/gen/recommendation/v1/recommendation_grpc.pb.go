@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RecommendationService_GetRecommendedJobs_FullMethodName        = "/recommendation.v1.RecommendationService/GetRecommendedJobs"
-	RecommendationService_GetRecommendedFreelancers_FullMethodName = "/recommendation.v1.RecommendationService/GetRecommendedFreelancers"
+	RecommendationService_GetRecommendedJobs_FullMethodName            = "/recommendation.v1.RecommendationService/GetRecommendedJobs"
+	RecommendationService_GetRecommendedFreelancers_FullMethodName     = "/recommendation.v1.RecommendationService/GetRecommendedFreelancers"
+	RecommendationService_InvalidateRecommendationCache_FullMethodName = "/recommendation.v1.RecommendationService/InvalidateRecommendationCache"
 )
 
 // RecommendationServiceClient is the client API for RecommendationService service.
@@ -31,6 +32,8 @@ type RecommendationServiceClient interface {
 	GetRecommendedJobs(ctx context.Context, in *GetRecommendedJobsRequest, opts ...grpc.CallOption) (*GetRecommendedJobsResponse, error)
 	// GetRecommendedFreelancers returns a list of freelancers best suited for a specific job
 	GetRecommendedFreelancers(ctx context.Context, in *GetRecommendedFreelancersRequest, opts ...grpc.CallOption) (*GetRecommendedFreelancersResponse, error)
+	// InvalidateRecommendationCache clears cached recommendation entries after upstream changes.
+	InvalidateRecommendationCache(ctx context.Context, in *InvalidateRecommendationCacheRequest, opts ...grpc.CallOption) (*InvalidateRecommendationCacheResponse, error)
 }
 
 type recommendationServiceClient struct {
@@ -61,6 +64,16 @@ func (c *recommendationServiceClient) GetRecommendedFreelancers(ctx context.Cont
 	return out, nil
 }
 
+func (c *recommendationServiceClient) InvalidateRecommendationCache(ctx context.Context, in *InvalidateRecommendationCacheRequest, opts ...grpc.CallOption) (*InvalidateRecommendationCacheResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InvalidateRecommendationCacheResponse)
+	err := c.cc.Invoke(ctx, RecommendationService_InvalidateRecommendationCache_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RecommendationServiceServer is the server API for RecommendationService service.
 // All implementations must embed UnimplementedRecommendationServiceServer
 // for forward compatibility.
@@ -69,6 +82,8 @@ type RecommendationServiceServer interface {
 	GetRecommendedJobs(context.Context, *GetRecommendedJobsRequest) (*GetRecommendedJobsResponse, error)
 	// GetRecommendedFreelancers returns a list of freelancers best suited for a specific job
 	GetRecommendedFreelancers(context.Context, *GetRecommendedFreelancersRequest) (*GetRecommendedFreelancersResponse, error)
+	// InvalidateRecommendationCache clears cached recommendation entries after upstream changes.
+	InvalidateRecommendationCache(context.Context, *InvalidateRecommendationCacheRequest) (*InvalidateRecommendationCacheResponse, error)
 	mustEmbedUnimplementedRecommendationServiceServer()
 }
 
@@ -84,6 +99,9 @@ func (UnimplementedRecommendationServiceServer) GetRecommendedJobs(context.Conte
 }
 func (UnimplementedRecommendationServiceServer) GetRecommendedFreelancers(context.Context, *GetRecommendedFreelancersRequest) (*GetRecommendedFreelancersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRecommendedFreelancers not implemented")
+}
+func (UnimplementedRecommendationServiceServer) InvalidateRecommendationCache(context.Context, *InvalidateRecommendationCacheRequest) (*InvalidateRecommendationCacheResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InvalidateRecommendationCache not implemented")
 }
 func (UnimplementedRecommendationServiceServer) mustEmbedUnimplementedRecommendationServiceServer() {}
 func (UnimplementedRecommendationServiceServer) testEmbeddedByValue()                               {}
@@ -142,6 +160,24 @@ func _RecommendationService_GetRecommendedFreelancers_Handler(srv interface{}, c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RecommendationService_InvalidateRecommendationCache_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InvalidateRecommendationCacheRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecommendationServiceServer).InvalidateRecommendationCache(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecommendationService_InvalidateRecommendationCache_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecommendationServiceServer).InvalidateRecommendationCache(ctx, req.(*InvalidateRecommendationCacheRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RecommendationService_ServiceDesc is the grpc.ServiceDesc for RecommendationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -156,6 +192,10 @@ var RecommendationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRecommendedFreelancers",
 			Handler:    _RecommendationService_GetRecommendedFreelancers_Handler,
+		},
+		{
+			MethodName: "InvalidateRecommendationCache",
+			Handler:    _RecommendationService_InvalidateRecommendationCache_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

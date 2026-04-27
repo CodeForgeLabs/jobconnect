@@ -19,16 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WalletService_CreateWallet_FullMethodName         = "/wallet.v1.WalletService/CreateWallet"
-	WalletService_GetWallet_FullMethodName            = "/wallet.v1.WalletService/GetWallet"
-	WalletService_GetBalance_FullMethodName           = "/wallet.v1.WalletService/GetBalance"
-	WalletService_CreditWalletInternal_FullMethodName = "/wallet.v1.WalletService/CreditWalletInternal"
-	WalletService_DebitWalletInternal_FullMethodName  = "/wallet.v1.WalletService/DebitWalletInternal"
-	WalletService_PlaceHold_FullMethodName            = "/wallet.v1.WalletService/PlaceHold"
-	WalletService_GetHoldByReference_FullMethodName   = "/wallet.v1.WalletService/GetHoldByReference"
-	WalletService_ReleaseHold_FullMethodName          = "/wallet.v1.WalletService/ReleaseHold"
-	WalletService_CaptureHold_FullMethodName          = "/wallet.v1.WalletService/CaptureHold"
-	WalletService_ListTransactions_FullMethodName     = "/wallet.v1.WalletService/ListTransactions"
+	WalletService_CreateWallet_FullMethodName             = "/wallet.v1.WalletService/CreateWallet"
+	WalletService_GetWallet_FullMethodName                = "/wallet.v1.WalletService/GetWallet"
+	WalletService_CreateDepositTransaction_FullMethodName = "/wallet.v1.WalletService/CreateDepositTransaction"
+	WalletService_CompleteDeposit_FullMethodName          = "/wallet.v1.WalletService/CompleteDeposit"
+	WalletService_GetTransaction_FullMethodName           = "/wallet.v1.WalletService/GetTransaction"
+	WalletService_FetchWalletTransactions_FullMethodName  = "/wallet.v1.WalletService/FetchWalletTransactions"
 )
 
 // WalletServiceClient is the client API for WalletService service.
@@ -37,14 +33,10 @@ const (
 type WalletServiceClient interface {
 	CreateWallet(ctx context.Context, in *CreateWalletRequest, opts ...grpc.CallOption) (*CreateWalletResponse, error)
 	GetWallet(ctx context.Context, in *GetWalletRequest, opts ...grpc.CallOption) (*GetWalletResponse, error)
-	GetBalance(ctx context.Context, in *GetBalanceRequest, opts ...grpc.CallOption) (*GetBalanceResponse, error)
-	CreditWalletInternal(ctx context.Context, in *CreditWalletInternalRequest, opts ...grpc.CallOption) (*CreditWalletInternalResponse, error)
-	DebitWalletInternal(ctx context.Context, in *DebitWalletInternalRequest, opts ...grpc.CallOption) (*DebitWalletInternalResponse, error)
-	PlaceHold(ctx context.Context, in *PlaceHoldRequest, opts ...grpc.CallOption) (*PlaceHoldResponse, error)
-	GetHoldByReference(ctx context.Context, in *GetHoldByReferenceRequest, opts ...grpc.CallOption) (*GetHoldByReferenceResponse, error)
-	ReleaseHold(ctx context.Context, in *ReleaseHoldRequest, opts ...grpc.CallOption) (*ReleaseHoldResponse, error)
-	CaptureHold(ctx context.Context, in *CaptureHoldRequest, opts ...grpc.CallOption) (*CaptureHoldResponse, error)
-	ListTransactions(ctx context.Context, in *ListTransactionsRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error)
+	CreateDepositTransaction(ctx context.Context, in *CreateDepositTransactionRequest, opts ...grpc.CallOption) (*CreateDepositTransactionResponse, error)
+	CompleteDeposit(ctx context.Context, in *CompleteDepositRequest, opts ...grpc.CallOption) (*CompleteDepositResponse, error)
+	GetTransaction(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponse, error)
+	FetchWalletTransactions(ctx context.Context, in *FetchWalletTransactionsRequest, opts ...grpc.CallOption) (*FetchWalletTransactionsResponse, error)
 }
 
 type walletServiceClient struct {
@@ -75,80 +67,40 @@ func (c *walletServiceClient) GetWallet(ctx context.Context, in *GetWalletReques
 	return out, nil
 }
 
-func (c *walletServiceClient) GetBalance(ctx context.Context, in *GetBalanceRequest, opts ...grpc.CallOption) (*GetBalanceResponse, error) {
+func (c *walletServiceClient) CreateDepositTransaction(ctx context.Context, in *CreateDepositTransactionRequest, opts ...grpc.CallOption) (*CreateDepositTransactionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetBalanceResponse)
-	err := c.cc.Invoke(ctx, WalletService_GetBalance_FullMethodName, in, out, cOpts...)
+	out := new(CreateDepositTransactionResponse)
+	err := c.cc.Invoke(ctx, WalletService_CreateDepositTransaction_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *walletServiceClient) CreditWalletInternal(ctx context.Context, in *CreditWalletInternalRequest, opts ...grpc.CallOption) (*CreditWalletInternalResponse, error) {
+func (c *walletServiceClient) CompleteDeposit(ctx context.Context, in *CompleteDepositRequest, opts ...grpc.CallOption) (*CompleteDepositResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreditWalletInternalResponse)
-	err := c.cc.Invoke(ctx, WalletService_CreditWalletInternal_FullMethodName, in, out, cOpts...)
+	out := new(CompleteDepositResponse)
+	err := c.cc.Invoke(ctx, WalletService_CompleteDeposit_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *walletServiceClient) DebitWalletInternal(ctx context.Context, in *DebitWalletInternalRequest, opts ...grpc.CallOption) (*DebitWalletInternalResponse, error) {
+func (c *walletServiceClient) GetTransaction(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DebitWalletInternalResponse)
-	err := c.cc.Invoke(ctx, WalletService_DebitWalletInternal_FullMethodName, in, out, cOpts...)
+	out := new(GetTransactionResponse)
+	err := c.cc.Invoke(ctx, WalletService_GetTransaction_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *walletServiceClient) PlaceHold(ctx context.Context, in *PlaceHoldRequest, opts ...grpc.CallOption) (*PlaceHoldResponse, error) {
+func (c *walletServiceClient) FetchWalletTransactions(ctx context.Context, in *FetchWalletTransactionsRequest, opts ...grpc.CallOption) (*FetchWalletTransactionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PlaceHoldResponse)
-	err := c.cc.Invoke(ctx, WalletService_PlaceHold_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *walletServiceClient) GetHoldByReference(ctx context.Context, in *GetHoldByReferenceRequest, opts ...grpc.CallOption) (*GetHoldByReferenceResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetHoldByReferenceResponse)
-	err := c.cc.Invoke(ctx, WalletService_GetHoldByReference_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *walletServiceClient) ReleaseHold(ctx context.Context, in *ReleaseHoldRequest, opts ...grpc.CallOption) (*ReleaseHoldResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ReleaseHoldResponse)
-	err := c.cc.Invoke(ctx, WalletService_ReleaseHold_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *walletServiceClient) CaptureHold(ctx context.Context, in *CaptureHoldRequest, opts ...grpc.CallOption) (*CaptureHoldResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CaptureHoldResponse)
-	err := c.cc.Invoke(ctx, WalletService_CaptureHold_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *walletServiceClient) ListTransactions(ctx context.Context, in *ListTransactionsRequest, opts ...grpc.CallOption) (*ListTransactionsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListTransactionsResponse)
-	err := c.cc.Invoke(ctx, WalletService_ListTransactions_FullMethodName, in, out, cOpts...)
+	out := new(FetchWalletTransactionsResponse)
+	err := c.cc.Invoke(ctx, WalletService_FetchWalletTransactions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -161,14 +113,10 @@ func (c *walletServiceClient) ListTransactions(ctx context.Context, in *ListTran
 type WalletServiceServer interface {
 	CreateWallet(context.Context, *CreateWalletRequest) (*CreateWalletResponse, error)
 	GetWallet(context.Context, *GetWalletRequest) (*GetWalletResponse, error)
-	GetBalance(context.Context, *GetBalanceRequest) (*GetBalanceResponse, error)
-	CreditWalletInternal(context.Context, *CreditWalletInternalRequest) (*CreditWalletInternalResponse, error)
-	DebitWalletInternal(context.Context, *DebitWalletInternalRequest) (*DebitWalletInternalResponse, error)
-	PlaceHold(context.Context, *PlaceHoldRequest) (*PlaceHoldResponse, error)
-	GetHoldByReference(context.Context, *GetHoldByReferenceRequest) (*GetHoldByReferenceResponse, error)
-	ReleaseHold(context.Context, *ReleaseHoldRequest) (*ReleaseHoldResponse, error)
-	CaptureHold(context.Context, *CaptureHoldRequest) (*CaptureHoldResponse, error)
-	ListTransactions(context.Context, *ListTransactionsRequest) (*ListTransactionsResponse, error)
+	CreateDepositTransaction(context.Context, *CreateDepositTransactionRequest) (*CreateDepositTransactionResponse, error)
+	CompleteDeposit(context.Context, *CompleteDepositRequest) (*CompleteDepositResponse, error)
+	GetTransaction(context.Context, *GetTransactionRequest) (*GetTransactionResponse, error)
+	FetchWalletTransactions(context.Context, *FetchWalletTransactionsRequest) (*FetchWalletTransactionsResponse, error)
 	mustEmbedUnimplementedWalletServiceServer()
 }
 
@@ -185,29 +133,17 @@ func (UnimplementedWalletServiceServer) CreateWallet(context.Context, *CreateWal
 func (UnimplementedWalletServiceServer) GetWallet(context.Context, *GetWalletRequest) (*GetWalletResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetWallet not implemented")
 }
-func (UnimplementedWalletServiceServer) GetBalance(context.Context, *GetBalanceRequest) (*GetBalanceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetBalance not implemented")
+func (UnimplementedWalletServiceServer) CreateDepositTransaction(context.Context, *CreateDepositTransactionRequest) (*CreateDepositTransactionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateDepositTransaction not implemented")
 }
-func (UnimplementedWalletServiceServer) CreditWalletInternal(context.Context, *CreditWalletInternalRequest) (*CreditWalletInternalResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreditWalletInternal not implemented")
+func (UnimplementedWalletServiceServer) CompleteDeposit(context.Context, *CompleteDepositRequest) (*CompleteDepositResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteDeposit not implemented")
 }
-func (UnimplementedWalletServiceServer) DebitWalletInternal(context.Context, *DebitWalletInternalRequest) (*DebitWalletInternalResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method DebitWalletInternal not implemented")
+func (UnimplementedWalletServiceServer) GetTransaction(context.Context, *GetTransactionRequest) (*GetTransactionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTransaction not implemented")
 }
-func (UnimplementedWalletServiceServer) PlaceHold(context.Context, *PlaceHoldRequest) (*PlaceHoldResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method PlaceHold not implemented")
-}
-func (UnimplementedWalletServiceServer) GetHoldByReference(context.Context, *GetHoldByReferenceRequest) (*GetHoldByReferenceResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetHoldByReference not implemented")
-}
-func (UnimplementedWalletServiceServer) ReleaseHold(context.Context, *ReleaseHoldRequest) (*ReleaseHoldResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ReleaseHold not implemented")
-}
-func (UnimplementedWalletServiceServer) CaptureHold(context.Context, *CaptureHoldRequest) (*CaptureHoldResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CaptureHold not implemented")
-}
-func (UnimplementedWalletServiceServer) ListTransactions(context.Context, *ListTransactionsRequest) (*ListTransactionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListTransactions not implemented")
+func (UnimplementedWalletServiceServer) FetchWalletTransactions(context.Context, *FetchWalletTransactionsRequest) (*FetchWalletTransactionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FetchWalletTransactions not implemented")
 }
 func (UnimplementedWalletServiceServer) mustEmbedUnimplementedWalletServiceServer() {}
 func (UnimplementedWalletServiceServer) testEmbeddedByValue()                       {}
@@ -266,146 +202,74 @@ func _WalletService_GetWallet_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _WalletService_GetBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetBalanceRequest)
+func _WalletService_CreateDepositTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDepositTransactionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WalletServiceServer).GetBalance(ctx, in)
+		return srv.(WalletServiceServer).CreateDepositTransaction(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: WalletService_GetBalance_FullMethodName,
+		FullMethod: WalletService_CreateDepositTransaction_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WalletServiceServer).GetBalance(ctx, req.(*GetBalanceRequest))
+		return srv.(WalletServiceServer).CreateDepositTransaction(ctx, req.(*CreateDepositTransactionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _WalletService_CreditWalletInternal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreditWalletInternalRequest)
+func _WalletService_CompleteDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteDepositRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WalletServiceServer).CreditWalletInternal(ctx, in)
+		return srv.(WalletServiceServer).CompleteDeposit(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: WalletService_CreditWalletInternal_FullMethodName,
+		FullMethod: WalletService_CompleteDeposit_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WalletServiceServer).CreditWalletInternal(ctx, req.(*CreditWalletInternalRequest))
+		return srv.(WalletServiceServer).CompleteDeposit(ctx, req.(*CompleteDepositRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _WalletService_DebitWalletInternal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DebitWalletInternalRequest)
+func _WalletService_GetTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTransactionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WalletServiceServer).DebitWalletInternal(ctx, in)
+		return srv.(WalletServiceServer).GetTransaction(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: WalletService_DebitWalletInternal_FullMethodName,
+		FullMethod: WalletService_GetTransaction_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WalletServiceServer).DebitWalletInternal(ctx, req.(*DebitWalletInternalRequest))
+		return srv.(WalletServiceServer).GetTransaction(ctx, req.(*GetTransactionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _WalletService_PlaceHold_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PlaceHoldRequest)
+func _WalletService_FetchWalletTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FetchWalletTransactionsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WalletServiceServer).PlaceHold(ctx, in)
+		return srv.(WalletServiceServer).FetchWalletTransactions(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: WalletService_PlaceHold_FullMethodName,
+		FullMethod: WalletService_FetchWalletTransactions_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WalletServiceServer).PlaceHold(ctx, req.(*PlaceHoldRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WalletService_GetHoldByReference_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetHoldByReferenceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WalletServiceServer).GetHoldByReference(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: WalletService_GetHoldByReference_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WalletServiceServer).GetHoldByReference(ctx, req.(*GetHoldByReferenceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WalletService_ReleaseHold_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReleaseHoldRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WalletServiceServer).ReleaseHold(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: WalletService_ReleaseHold_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WalletServiceServer).ReleaseHold(ctx, req.(*ReleaseHoldRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WalletService_CaptureHold_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CaptureHoldRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WalletServiceServer).CaptureHold(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: WalletService_CaptureHold_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WalletServiceServer).CaptureHold(ctx, req.(*CaptureHoldRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _WalletService_ListTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListTransactionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WalletServiceServer).ListTransactions(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: WalletService_ListTransactions_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WalletServiceServer).ListTransactions(ctx, req.(*ListTransactionsRequest))
+		return srv.(WalletServiceServer).FetchWalletTransactions(ctx, req.(*FetchWalletTransactionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -426,36 +290,20 @@ var WalletService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _WalletService_GetWallet_Handler,
 		},
 		{
-			MethodName: "GetBalance",
-			Handler:    _WalletService_GetBalance_Handler,
+			MethodName: "CreateDepositTransaction",
+			Handler:    _WalletService_CreateDepositTransaction_Handler,
 		},
 		{
-			MethodName: "CreditWalletInternal",
-			Handler:    _WalletService_CreditWalletInternal_Handler,
+			MethodName: "CompleteDeposit",
+			Handler:    _WalletService_CompleteDeposit_Handler,
 		},
 		{
-			MethodName: "DebitWalletInternal",
-			Handler:    _WalletService_DebitWalletInternal_Handler,
+			MethodName: "GetTransaction",
+			Handler:    _WalletService_GetTransaction_Handler,
 		},
 		{
-			MethodName: "PlaceHold",
-			Handler:    _WalletService_PlaceHold_Handler,
-		},
-		{
-			MethodName: "GetHoldByReference",
-			Handler:    _WalletService_GetHoldByReference_Handler,
-		},
-		{
-			MethodName: "ReleaseHold",
-			Handler:    _WalletService_ReleaseHold_Handler,
-		},
-		{
-			MethodName: "CaptureHold",
-			Handler:    _WalletService_CaptureHold_Handler,
-		},
-		{
-			MethodName: "ListTransactions",
-			Handler:    _WalletService_ListTransactions_Handler,
+			MethodName: "FetchWalletTransactions",
+			Handler:    _WalletService_FetchWalletTransactions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

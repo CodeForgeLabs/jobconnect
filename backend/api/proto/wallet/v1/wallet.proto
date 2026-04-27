@@ -4,94 +4,71 @@ package wallet.v1;
 
 option go_package = "jobconnect/wallet/gen/wallet/v1;walletv1";
 
+// ==================== SERVICE ====================
+
 service WalletService {
   rpc CreateWallet(CreateWalletRequest) returns (CreateWalletResponse);
   rpc GetWallet(GetWalletRequest) returns (GetWalletResponse);
-  rpc GetBalance(GetBalanceRequest) returns (GetBalanceResponse);
 
-  rpc CreditWalletInternal(CreditWalletInternalRequest) returns (CreditWalletInternalResponse);
-  rpc DebitWalletInternal(DebitWalletInternalRequest) returns (DebitWalletInternalResponse);
+  rpc CreateDepositTransaction(CreateDepositTransactionRequest)
+      returns (CreateDepositTransactionResponse);
 
-  rpc PlaceHold(PlaceHoldRequest) returns (PlaceHoldResponse);
-  rpc GetHoldByReference(GetHoldByReferenceRequest) returns (GetHoldByReferenceResponse);
-  rpc ReleaseHold(ReleaseHoldRequest) returns (ReleaseHoldResponse);
-  rpc CaptureHold(CaptureHoldRequest) returns (CaptureHoldResponse);
+  rpc CompleteDeposit(CompleteDepositRequest)
+      returns (CompleteDepositResponse);
 
-  rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse);
+  rpc GetTransaction(GetTransactionRequest)
+      returns (GetTransactionResponse);
+
+  rpc FetchWalletTransactions(FetchWalletTransactionsRequest)
+    returns (FetchWalletTransactionsResponse);
+  
+}
+message FetchWalletTransactionsRequest {
+  int64 wallet_id = 1;
+}
+message FetchWalletTransactionsResponse {
+  repeated WalletTransaction transactions = 1;
+}
+// ==================== ENUMS ====================
+
+enum TransactionStatus {
+  TRANSACTION_STATUS_UNSPECIFIED = 0;
+  TRANSACTION_STATUS_PENDING = 1;
+  TRANSACTION_STATUS_SUCCESS = 2;
+  TRANSACTION_STATUS_FAILED = 3;
 }
 
-enum WalletStatus {
-  WALLET_STATUS_UNSPECIFIED = 0;
-  WALLET_STATUS_ACTIVE = 1;
-  WALLET_STATUS_FROZEN = 2;
+enum TransactionType {
+  TRANSACTION_TYPE_UNSPECIFIED = 0;
+  TRANSACTION_TYPE_DEPOSIT = 1;
+  TRANSACTION_TYPE_WITHDRAWAL = 2;
+  TRANSACTION_TYPE_PAYMENT = 3;
 }
 
-enum LedgerEntryType {
-  LEDGER_ENTRY_TYPE_UNSPECIFIED = 0;
-  LEDGER_ENTRY_TYPE_CREDIT_INTERNAL = 1;
-  LEDGER_ENTRY_TYPE_DEBIT_INTERNAL = 2;
-  LEDGER_ENTRY_TYPE_HOLD_PLACED = 3;
-  LEDGER_ENTRY_TYPE_HOLD_RELEASED = 4;
-  LEDGER_ENTRY_TYPE_HOLD_CAPTURED = 5;
-}
-
-enum HoldStatus {
-  HOLD_STATUS_UNSPECIFIED = 0;
-  HOLD_STATUS_ACTIVE = 1;
-  HOLD_STATUS_RELEASED = 2;
-  HOLD_STATUS_CAPTURED = 3;
-}
+// ==================== MODELS ====================
 
 message Wallet {
-  reserved 3;
-  reserved "currency";
   int64 id = 1;
   string owner_id = 2;
-  WalletStatus status = 4;
-  int64 available_minor = 5;
-  int64 held_minor = 6;
-  int64 created_at_unix_seconds = 7;
-  int64 updated_at_unix_seconds = 8;
+  int64 balance_minor = 3;
+  int64 created_at_unix_seconds = 4;
 }
 
-message Balance {
-  reserved 4;
-  reserved "currency";
-  int64 available_minor = 1;
-  int64 held_minor = 2;
-  int64 total_minor = 3;
-}
-
-message LedgerEntry {
+message WalletTransaction {
   int64 id = 1;
   int64 wallet_id = 2;
-  LedgerEntryType type = 3;
-  int64 amount_minor = 4;
-  string idempotency_key = 5;
-  string reference_type = 6;
-  string reference_id = 7;
-  string note = 8;
-  int64 available_after_minor = 9;
-  int64 held_after_minor = 10;
-  int64 created_at_unix_seconds = 11;
-}
-
-message Hold {
-  int64 id = 1;
-  int64 wallet_id = 2;
-  string reference_type = 3;
-  string reference_id = 4;
+  string tx_ref = 3;
+  string chapa_ref = 4;
   int64 amount_minor = 5;
-  int64 captured_minor = 6;
-  HoldStatus status = 7;
-  int64 expires_at_unix_seconds = 8;
+  TransactionType tx_type = 6;
+  string description = 7;
+  TransactionStatus status = 8;
   int64 created_at_unix_seconds = 9;
-  int64 updated_at_unix_seconds = 10;
 }
+
+// ==================== WALLET ====================
 
 message CreateWalletRequest {
-  reserved 2;
-  reserved "currency";
   string owner_id = 1;
 }
 
@@ -100,111 +77,43 @@ message CreateWalletResponse {
 }
 
 message GetWalletRequest {
-  oneof target {
-    int64 wallet_id = 1;
-    string owner_id = 3;
-  }
+  string owner_id = 1;
 }
 
 message GetWalletResponse {
   Wallet wallet = 1;
 }
 
-message GetBalanceRequest {
-  int64 wallet_id = 1;
-}
+// ==================== DEPOSIT ====================
 
-message GetBalanceResponse {
-  Balance balance = 1;
-}
-
-message CreditWalletInternalRequest {
+message CreateDepositTransactionRequest {
   int64 wallet_id = 1;
   int64 amount_minor = 2;
-  string idempotency_key = 3;
-  string reference_type = 4;
-  string reference_id = 5;
-  string note = 6;
+  string description = 3;
+  string phone_number = 4;
+  string email = 5;
 }
 
-message CreditWalletInternalResponse {
-  Wallet wallet = 1;
-  LedgerEntry transaction = 2;
+message CreateDepositTransactionResponse {
+  WalletTransaction transaction = 1;
+  string payment_url = 2; 
 }
 
-message DebitWalletInternalRequest {
-  int64 wallet_id = 1;
-  int64 amount_minor = 2;
-  string idempotency_key = 3;
-  string reference_type = 4;
-  string reference_id = 5;
-  string note = 6;
+message CompleteDepositRequest {
+  string tx_ref = 1;
+  string chapa_ref = 2;
 }
 
-message DebitWalletInternalResponse {
-  Wallet wallet = 1;
-  LedgerEntry transaction = 2;
+message CompleteDepositResponse {
+  bool success = 1;
 }
 
-message PlaceHoldRequest {
-  int64 wallet_id = 1;
-  int64 amount_minor = 2;
-  string idempotency_key = 3;
-  string reference_type = 4;
-  string reference_id = 5;
-  int64 expires_at_unix_seconds = 6;
-  string note = 7;
+// ==================== TRANSACTION LOOKUP ====================
+
+message GetTransactionRequest {
+  string tx_ref = 1;
 }
 
-message PlaceHoldResponse {
-  Wallet wallet = 1;
-  Hold hold = 2;
-  LedgerEntry transaction = 3;
-}
-
-message GetHoldByReferenceRequest {
-  string reference_type = 1;
-  string reference_id = 2;
-}
-
-message GetHoldByReferenceResponse {
-  Hold hold = 1;
-}
-
-message ReleaseHoldRequest {
-  int64 hold_id = 1;
-  string idempotency_key = 2;
-  string note = 3;
-}
-
-message ReleaseHoldResponse {
-  Wallet wallet = 1;
-  Hold hold = 2;
-  LedgerEntry transaction = 3;
-}
-
-message CaptureHoldRequest {
-  int64 hold_id = 1;
-  int64 capture_amount_minor = 2;
-  string idempotency_key = 3;
-  string reference_type = 4;
-  string reference_id = 5;
-  string note = 6;
-}
-
-message CaptureHoldResponse {
-  Wallet wallet = 1;
-  Hold hold = 2;
-  LedgerEntry transaction = 3;
-}
-
-message ListTransactionsRequest {
-  int64 wallet_id = 1;
-  int32 page_size = 2;
-  string page_token = 3;
-}
-
-message ListTransactionsResponse {
-  repeated LedgerEntry transactions = 1;
-  string next_page_token = 2;
+message GetTransactionResponse {
+  WalletTransaction transaction = 1;
 }

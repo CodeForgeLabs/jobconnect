@@ -5,6 +5,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -14,7 +15,7 @@ import (
 	grpcadapter "jobconnect/wallet/internal/adapters/grpc"
 	"jobconnect/wallet/internal/application"
 	"jobconnect/wallet/internal/config"
-	"jobconnect/wallet/internal/infrastructure/clock"
+	"jobconnect/wallet/internal/infrastructure/chapa"
 	"jobconnect/wallet/internal/infrastructure/db"
 	"jobconnect/wallet/internal/infrastructure/tokens"
 
@@ -33,6 +34,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
+	chapaClient := &chapa.Client{
+		SecretKey: cfg.ChapaSecretKey,
+		BaseURL:   cfg.ChapaBaseURL,
+	}
 
 	pool, err := db.NewPool(ctx, cfg.PostgresURL)
 	if err != nil {
@@ -41,31 +46,29 @@ func main() {
 	defer pool.Close()
 
 	repo := db.NewWalletRepo(pool)
-	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
+
+	// ================== USE CASES (NEW SIMPLIFIED MODEL) ==================
 
 	createWalletUC := &application.CreateWallet{Wallets: repo}
 	getWalletUC := &application.GetWallet{Wallets: repo}
-	getBalanceUC := &application.GetBalance{Wallets: repo}
-	creditWalletInternalUC := &application.CreditWalletInternal{Wallets: repo}
-	debitWalletInternalUC := &application.DebitWalletInternal{Wallets: repo}
-	placeHoldUC := &application.PlaceHold{Wallets: repo, Clock: clockImpl}
-	getHoldByReferenceUC := &application.GetHoldByReference{Wallets: repo}
-	releaseHoldUC := &application.ReleaseHold{Wallets: repo}
-	captureHoldUC := &application.CaptureHold{Wallets: repo}
-	listTransactionsUC := &application.ListTransactions{Wallets: repo}
+
+	completeDepositUC := &application.CompleteDeposit{Wallets: repo}
+	createDepositUC := &application.CreateDeposit{
+		Wallets: repo,
+		Chapa:   chapaClient, // The key and URL are now inside this client
+	}
+	listTransactionsUC := &application.GetTransaction{Wallets: repo}
+	fetchWalletTransactionUc := &application.FetchWalletTransactions{Wallets: repo}
+	// ================== GRPC SERVER ==================
 
 	walletServer := grpcadapter.NewWalletServer(
 		createWalletUC,
 		getWalletUC,
-		getBalanceUC,
-		creditWalletInternalUC,
-		debitWalletInternalUC,
-		placeHoldUC,
-		getHoldByReferenceUC,
-		releaseHoldUC,
-		captureHoldUC,
+		createDepositUC,
+		completeDepositUC,
 		listTransactionsUC,
+		fetchWalletTransactionUc,
 		jwtParser,
 	)
 
@@ -84,9 +87,15 @@ func main() {
 			cancel()
 		}
 	}()
+	go func() {
+		http.HandleFunc("/webhook/chapa", walletServer.ChapaWebhook)
 
+		log.Println("Webhook running on :8080")
+		http.ListenAndServe(":8080", nil)
+	}()
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+
 	select {
 	case <-sigCh:
 		log.Printf("shutdown requested")
@@ -106,6 +115,8 @@ func main() {
 	}
 }
 
+// ==================== ENV LOADER ====================
+
 func loadDotEnv(paths ...string) error {
 	for _, path := range paths {
 		if err := loadDotEnvFile(path); err != nil {
@@ -115,7 +126,6 @@ func loadDotEnv(paths ...string) error {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -132,16 +142,20 @@ func loadDotEnvFile(path string) error {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
+
 		key, val, ok := strings.Cut(line, "=")
 		if !ok {
 			continue
 		}
+
 		key = strings.TrimSpace(key)
 		val = strings.TrimSpace(val)
 		val = strings.Trim(val, "\"'")
+
 		if key == "" {
 			continue
 		}
+
 		if _, exists := os.LookupEnv(key); !exists {
 			_ = os.Setenv(key, val)
 		}
