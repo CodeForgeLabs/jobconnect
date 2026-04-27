@@ -81,3 +81,66 @@ func TestStoredVectorIsClonedOnRead(t *testing.T) {
 		t.Fatalf("caller mutation leaked into store: %v", again.Vector)
 	}
 }
+
+func TestSearchByVectorOrdersByDistance(t *testing.T) {
+	s := New()
+	ctx := context.Background()
+	_ = s.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "near", Vector: []float32{1, 0, 0}})
+	_ = s.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "far", Vector: []float32{0, 1, 0}})
+	_ = s.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "mid", Vector: []float32{0.7, 0.7, 0}})
+
+	hits, err := s.SearchByVector(ctx, application.EmbeddingSourceTypeJob, []float32{1, 0, 0}, 2)
+	if err != nil {
+		t.Fatalf("SearchByVector: %v", err)
+	}
+	if len(hits) != 2 {
+		t.Fatalf("expected k=2 hits, got %d", len(hits))
+	}
+	if hits[0].SourceID != "near" || hits[1].SourceID != "mid" {
+		t.Fatalf("unexpected ordering: %+v", hits)
+	}
+	if hits[0].Distance > hits[1].Distance {
+		t.Fatalf("hits not sorted by ascending distance: %+v", hits)
+	}
+}
+
+func TestSearchByVectorIsolatesSourceType(t *testing.T) {
+	s := New()
+	ctx := context.Background()
+	_ = s.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "j1", Vector: []float32{1, 0}})
+	_ = s.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeFreelancer, SourceID: "f1", Vector: []float32{1, 0}})
+
+	hits, _ := s.SearchByVector(ctx, application.EmbeddingSourceTypeJob, []float32{1, 0}, 10)
+	if len(hits) != 1 || hits[0].SourceID != "j1" {
+		t.Fatalf("expected only the job entry, got %+v", hits)
+	}
+}
+
+func TestSearchByVectorSkipsDimensionMismatch(t *testing.T) {
+	s := New()
+	ctx := context.Background()
+	_ = s.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "ok", Vector: []float32{1, 0}})
+	_ = s.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "wrong-dim", Vector: []float32{1, 0, 0}})
+
+	hits, _ := s.SearchByVector(ctx, application.EmbeddingSourceTypeJob, []float32{1, 0}, 5)
+	if len(hits) != 1 || hits[0].SourceID != "ok" {
+		t.Fatalf("expected dim-mismatch entry to be skipped, got %+v", hits)
+	}
+}
+
+func TestSearchByVectorEmptyStore(t *testing.T) {
+	s := New()
+	hits, err := s.SearchByVector(context.Background(), application.EmbeddingSourceTypeJob, []float32{1, 0}, 5)
+	if err != nil || hits != nil {
+		t.Fatalf("expected (nil, nil) for empty store, got hits=%v err=%v", hits, err)
+	}
+}
+
+func TestSearchByVectorRejectsZeroK(t *testing.T) {
+	s := New()
+	_ = s.Upsert(context.Background(), application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "j", Vector: []float32{1}})
+	hits, _ := s.SearchByVector(context.Background(), application.EmbeddingSourceTypeJob, []float32{1}, 0)
+	if hits != nil {
+		t.Fatalf("expected nil for k=0, got %+v", hits)
+	}
+}

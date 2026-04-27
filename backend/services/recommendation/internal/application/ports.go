@@ -46,13 +46,25 @@ type StoredEmbedding struct {
 	Vector     []float32
 }
 
+// VectorHit is a single result of an ANN lookup against an EmbeddingStore.
+// Distance is the cosine distance (0 = identical, 2 = opposite); lower means
+// more similar.
+type VectorHit struct {
+	SourceID string
+	Distance float32
+}
+
 // EmbeddingStore persists and retrieves embeddings keyed by (sourceType,
 // sourceID). Get returns (_, false, nil) on a clean miss; the error channel
-// is reserved for transport/encoding failures. Implementations must be safe
-// for concurrent use.
+// is reserved for transport/encoding failures. SearchByVector returns up to
+// k nearest neighbours within the given source type, ordered by ascending
+// distance; a backend that does not support ANN should return (nil, nil) so
+// callers can transparently fall back to non-vector retrieval.
+// Implementations must be safe for concurrent use.
 type EmbeddingStore interface {
 	Get(ctx context.Context, sourceType EmbeddingSourceType, sourceID string) (StoredEmbedding, bool, error)
 	Upsert(ctx context.Context, embedding StoredEmbedding) error
+	SearchByVector(ctx context.Context, sourceType EmbeddingSourceType, vector []float32, k int) ([]VectorHit, error)
 }
 
 type noopEmbeddingStore struct{}
@@ -62,6 +74,10 @@ func (noopEmbeddingStore) Get(context.Context, EmbeddingSourceType, string) (Sto
 }
 
 func (noopEmbeddingStore) Upsert(context.Context, StoredEmbedding) error { return nil }
+
+func (noopEmbeddingStore) SearchByVector(context.Context, EmbeddingSourceType, []float32, int) ([]VectorHit, error) {
+	return nil, nil
+}
 
 type JobServiceClient interface {
 	ListRecentPublicOpenJobs(ctx context.Context, pageSize int32) ([]domain.JobData, error)
@@ -99,6 +115,7 @@ type MetricsRecorder interface {
 	RecordReviewLookupError(role string)
 	RecordRedisError(op string)
 	RecordSemanticPath(recommendationType, path string)
+	RecordCandidateSource(recommendationType, source string, count int)
 }
 
 type noopMetricsRecorder struct{}
@@ -114,3 +131,4 @@ func (noopMetricsRecorder) RecordInvalidation(string, int, time.Duration) {
 func (noopMetricsRecorder) RecordReviewLookupError(string) {}
 func (noopMetricsRecorder) RecordRedisError(string)        {}
 func (noopMetricsRecorder) RecordSemanticPath(string, string) {}
+func (noopMetricsRecorder) RecordCandidateSource(string, string, int) {}

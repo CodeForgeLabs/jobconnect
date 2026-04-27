@@ -72,6 +72,51 @@ func (s *Store) Get(ctx context.Context, sourceType application.EmbeddingSourceT
 	}, true, nil
 }
 
+func (s *Store) SearchByVector(ctx context.Context, sourceType application.EmbeddingSourceType, vector []float32, k int) ([]application.VectorHit, error) {
+	if k <= 0 || len(vector) == 0 {
+		return nil, nil
+	}
+	table, idCol, _, err := resolveTarget(sourceType, sentinelID(sourceType))
+	if err != nil {
+		return nil, err
+	}
+
+	query := fmt.Sprintf(
+		"SELECT %s::text, embedding <=> $1::vector AS distance FROM %s ORDER BY embedding <=> $1::vector LIMIT $2",
+		idCol, table,
+	)
+	rows, err := s.pool.Query(ctx, query, encodeVector(vector), k)
+	if err != nil {
+		return nil, fmt.Errorf("pgvector search: %w", err)
+	}
+	defer rows.Close()
+
+	var hits []application.VectorHit
+	for rows.Next() {
+		var (
+			id   string
+			dist float64
+		)
+		if err := rows.Scan(&id, &dist); err != nil {
+			return nil, fmt.Errorf("pgvector search scan: %w", err)
+		}
+		hits = append(hits, application.VectorHit{SourceID: id, Distance: float32(dist)})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("pgvector search rows: %w", err)
+	}
+	return hits, nil
+}
+
+// sentinelID is a placeholder source id that satisfies resolveTarget's
+// validation when SearchByVector only needs the table/column mapping.
+func sentinelID(sourceType application.EmbeddingSourceType) string {
+	if sourceType == application.EmbeddingSourceTypeJob {
+		return "0"
+	}
+	return "search"
+}
+
 func (s *Store) Upsert(ctx context.Context, e application.StoredEmbedding) error {
 	table, idCol, idVal, err := resolveTarget(e.SourceType, e.SourceID)
 	if err != nil {

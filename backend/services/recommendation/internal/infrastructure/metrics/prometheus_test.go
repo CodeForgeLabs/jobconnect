@@ -21,6 +21,9 @@ func TestPrometheusRecorderScrapeExposesInstrumentedMetrics(t *testing.T) {
 	r.RecordRedisError("get")
 	r.RecordSemanticPath("jobs", "embedding")
 	r.RecordSemanticPath("freelancers", "token")
+	r.RecordCandidateSource("jobs", "ann", 4)
+	r.RecordCandidateSource("jobs", "ann", 0) // no-op
+	r.RecordCandidateSource("jobs", "skill", 7)
 
 	req := httptest.NewRequest("GET", "/metrics", nil)
 	rec := httptest.NewRecorder()
@@ -47,6 +50,8 @@ func TestPrometheusRecorderScrapeExposesInstrumentedMetrics(t *testing.T) {
 		`recommendation_cache_redis_errors_total{op="get"} 1`,
 		`recommendation_semantic_path_total{path="embedding",type="jobs"} 1`,
 		`recommendation_semantic_path_total{path="token",type="freelancers"} 1`,
+		`recommendation_candidate_source_total{source="ann",type="jobs"} 4`,
+		`recommendation_candidate_source_total{source="skill",type="jobs"} 7`,
 	}
 	for _, w := range wants {
 		if !strings.Contains(out, w) {

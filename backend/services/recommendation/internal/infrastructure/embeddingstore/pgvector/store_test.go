@@ -151,6 +151,55 @@ func TestPgvectorStoreGetReturnsFalseOnMiss(t *testing.T) {
 	}
 }
 
+func TestPgvectorStoreSearchByVectorOrdersByDistance(t *testing.T) {
+	store, cleanup := newTestStore(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	near := buildOrientedVector(384, 0)
+	far := buildOrientedVector(384, 1)
+	mid := buildBlendedVector(384, 0, 1)
+
+	if err := store.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "1", TextHash: "h-near", Vector: near}); err != nil {
+		t.Fatalf("Upsert near: %v", err)
+	}
+	if err := store.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "2", TextHash: "h-far", Vector: far}); err != nil {
+		t.Fatalf("Upsert far: %v", err)
+	}
+	if err := store.Upsert(ctx, application.StoredEmbedding{SourceType: application.EmbeddingSourceTypeJob, SourceID: "3", TextHash: "h-mid", Vector: mid}); err != nil {
+		t.Fatalf("Upsert mid: %v", err)
+	}
+
+	hits, err := store.SearchByVector(ctx, application.EmbeddingSourceTypeJob, near, 3)
+	if err != nil {
+		t.Fatalf("SearchByVector: %v", err)
+	}
+	if len(hits) != 3 {
+		t.Fatalf("expected 3 hits, got %d", len(hits))
+	}
+	if hits[0].SourceID != "1" {
+		t.Fatalf("expected nearest hit to be job 1, got %+v", hits)
+	}
+	for i := 1; i < len(hits); i++ {
+		if hits[i].Distance < hits[i-1].Distance {
+			t.Fatalf("hits not sorted ascending: %+v", hits)
+		}
+	}
+}
+
+func buildOrientedVector(dim, axis int) []float32 {
+	v := make([]float32, dim)
+	v[axis] = 1
+	return v
+}
+
+func buildBlendedVector(dim, a, b int) []float32 {
+	v := make([]float32, dim)
+	v[a] = 0.7071
+	v[b] = 0.7071
+	return v
+}
+
 func buildTestVector(dim int, base float32) []float32 {
 	v := make([]float32, dim)
 	for i := range v {

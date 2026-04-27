@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -577,16 +578,22 @@ func (s *RecommendationService) collectCandidates(ctx context.Context, user doma
 	if err != nil {
 		return nil, fmt.Errorf("list recent public jobs: %w", err)
 	}
-	addEligibleJobs(candidateMap, baseJobs, user, preferences)
+	addedRecent := addEligibleJobs(candidateMap, baseJobs, user, preferences)
+	s.metrics.RecordCandidateSource(recommendationTypeJobs, "recent", addedRecent)
 
+	addedSkill := 0
 	for _, skill := range topSkills(user.Skills, s.cfg.MaxSkillQueries) {
 		skillJobs, skillErr := s.jobClient.SearchPublicOpenJobsBySkill(ctx, skill, s.cfg.PerSkillPageSize)
 		if skillErr != nil {
 			log.Printf("recommendation: skill candidate query failed for %q: %v", skill, skillErr)
 			continue
 		}
-		addEligibleJobs(candidateMap, skillJobs, user, preferences)
+		addedSkill += addEligibleJobs(candidateMap, skillJobs, user, preferences)
 	}
+	s.metrics.RecordCandidateSource(recommendationTypeJobs, "skill", addedSkill)
+
+	addedANN := s.augmentJobsWithANN(ctx, user, preferences, candidateMap)
+	s.metrics.RecordCandidateSource(recommendationTypeJobs, "ann", addedANN)
 
 	candidates := make([]domain.JobData, 0, len(candidateMap))
 	for _, job := range candidateMap {
@@ -595,13 +602,77 @@ func (s *RecommendationService) collectCandidates(ctx context.Context, user doma
 	return candidates, nil
 }
 
-func addEligibleJobs(candidateMap map[int64]domain.JobData, jobs []domain.JobData, user domain.UserData, preferences domain.WorkPreferences) {
+// augmentJobsWithANN issues a vector-search lookup for jobs that look
+// semantically similar to the user's profile and hydrates the hits via
+// GetJob. Anything that fails (no embedder, no vector, store error,
+// hydration error) is logged and ignored — the existing skill+recent
+// candidate pool stays the safety net. Returns the number of jobs newly
+// added to candidateMap.
+func (s *RecommendationService) augmentJobsWithANN(ctx context.Context, user domain.UserData, preferences domain.WorkPreferences, candidateMap map[int64]domain.JobData) int {
+	if _, noop := s.embedder.(noopEmbedder); noop {
+		return 0
+	}
+
+	profileText := strings.Join([]string{user.Headline, user.Bio, strings.Join(user.Skills, " ")}, " ")
+	if strings.TrimSpace(profileText) == "" {
+		return 0
+	}
+
+	vectors, err := s.embedder.Embed(ctx, []string{profileText})
+	if err != nil || len(vectors) == 0 || len(vectors[0]) == 0 {
+		if err != nil && !errors.Is(err, ErrEmbedderUnavailable) {
+			log.Printf("recommendation: ann profile embed failed: %v", err)
+		}
+		return 0
+	}
+
+	hits, err := s.embeddingStore.SearchByVector(ctx, EmbeddingSourceTypeJob, vectors[0], int(s.cfg.CandidatePageSize))
+	if err != nil {
+		log.Printf("recommendation: ann job search failed: %v", err)
+		return 0
+	}
+
+	added := 0
+	for _, hit := range hits {
+		jobID, parseErr := strconv.ParseInt(hit.SourceID, 10, 64)
+		if parseErr != nil {
+			log.Printf("recommendation: ann hit had non-numeric job id %q: %v", hit.SourceID, parseErr)
+			continue
+		}
+		if _, exists := candidateMap[jobID]; exists {
+			continue
+		}
+		job, jobErr := s.jobClient.GetJob(ctx, jobID)
+		if jobErr != nil {
+			log.Printf("recommendation: ann hydrate GetJob(%d) failed: %v", jobID, jobErr)
+			continue
+		}
+		if !isEligibleJob(job, user, preferences) {
+			continue
+		}
+		candidateMap[jobID] = job
+		added++
+	}
+	return added
+}
+
+// addEligibleJobs adds every job that passes the eligibility filter to
+// candidateMap. Returns the number of newly added entries (duplicates and
+// ineligible jobs do not count). The return value is consumed by the
+// candidate-source metric.
+func addEligibleJobs(candidateMap map[int64]domain.JobData, jobs []domain.JobData, user domain.UserData, preferences domain.WorkPreferences) int {
+	added := 0
 	for _, job := range jobs {
 		if !isEligibleJob(job, user, preferences) {
 			continue
 		}
+		if _, exists := candidateMap[job.ID]; exists {
+			continue
+		}
 		candidateMap[job.ID] = job
+		added++
 	}
+	return added
 }
 
 func isEligibleJob(job domain.JobData, user domain.UserData, preferences domain.WorkPreferences) bool {

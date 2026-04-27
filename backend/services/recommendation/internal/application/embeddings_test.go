@@ -32,10 +32,11 @@ func (f *fakeEmbedder) Embed(_ context.Context, texts []string) ([][]float32, er
 }
 
 type fakeEmbeddingStore struct {
-	mu      sync.Mutex
-	entries map[string]StoredEmbedding
-	getHits int
-	upserts int
+	mu        sync.Mutex
+	entries   map[string]StoredEmbedding
+	getHits   int
+	upserts   int
+	searchHits map[EmbeddingSourceType][]VectorHit
 }
 
 func newFakeEmbeddingStore() *fakeEmbeddingStore {
@@ -56,6 +57,18 @@ func (f *fakeEmbeddingStore) Upsert(_ context.Context, e StoredEmbedding) error 
 	f.upserts++
 	f.entries[string(e.SourceType)+":"+e.SourceID] = e
 	return nil
+}
+
+func (f *fakeEmbeddingStore) SearchByVector(_ context.Context, st EmbeddingSourceType, _ []float32, k int) ([]VectorHit, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	hits := f.searchHits[st]
+	if k > 0 && k < len(hits) {
+		hits = hits[:k]
+	}
+	out := make([]VectorHit, len(hits))
+	copy(out, hits)
+	return out, nil
 }
 
 func newResolveTestService(embedder Embedder, store EmbeddingStore) *RecommendationService {

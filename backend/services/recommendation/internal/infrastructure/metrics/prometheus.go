@@ -37,6 +37,7 @@ type PrometheusRecorder struct {
 	reviewLookupErrors    *prometheus.CounterVec
 	redisErrors           *prometheus.CounterVec
 	semanticPath          *prometheus.CounterVec
+	candidateSource       *prometheus.CounterVec
 }
 
 func NewPrometheusRecorder() *PrometheusRecorder {
@@ -102,6 +103,10 @@ func NewPrometheusRecorder() *PrometheusRecorder {
 			Name: "recommendation_semantic_path_total",
 			Help: "Per-candidate semantic ranking path used (embedding vs token cosine).",
 		}, []string{"type", "path"}),
+		candidateSource: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "recommendation_candidate_source_total",
+			Help: "Candidates added to the ranking pool by source (recent feed, skill query, ANN vector search).",
+		}, []string{"type", "source"}),
 	}
 
 	registry.MustRegister(
@@ -120,6 +125,7 @@ func NewPrometheusRecorder() *PrometheusRecorder {
 		r.reviewLookupErrors,
 		r.redisErrors,
 		r.semanticPath,
+		r.candidateSource,
 	)
 
 	return r
@@ -175,4 +181,11 @@ func (r *PrometheusRecorder) RecordRedisError(op string) {
 
 func (r *PrometheusRecorder) RecordSemanticPath(recommendationType, path string) {
 	r.semanticPath.WithLabelValues(recommendationType, path).Inc()
+}
+
+func (r *PrometheusRecorder) RecordCandidateSource(recommendationType, source string, count int) {
+	if count <= 0 {
+		return
+	}
+	r.candidateSource.WithLabelValues(recommendationType, source).Add(float64(count))
 }

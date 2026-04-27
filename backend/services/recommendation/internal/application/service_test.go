@@ -813,15 +813,26 @@ func TestInvalidateRecommendationCacheClearAll(t *testing.T) {
 
 type fakeMetricsRecorder struct {
 	noopMetricsRecorder
-	semanticPaths map[string]int
+	semanticPaths     map[string]int
+	candidateSources  map[string]int
 }
 
 func newFakeMetricsRecorder() *fakeMetricsRecorder {
-	return &fakeMetricsRecorder{semanticPaths: map[string]int{}}
+	return &fakeMetricsRecorder{
+		semanticPaths:    map[string]int{},
+		candidateSources: map[string]int{},
+	}
 }
 
 func (f *fakeMetricsRecorder) RecordSemanticPath(recommendationType, path string) {
 	f.semanticPaths[recommendationType+":"+path]++
+}
+
+func (f *fakeMetricsRecorder) RecordCandidateSource(recommendationType, source string, count int) {
+	if count <= 0 {
+		return
+	}
+	f.candidateSources[recommendationType+":"+source] += count
 }
 
 func phase4dJobsTestData(now time.Time) (*fakeJobClient, *fakeUserClient) {
@@ -978,6 +989,122 @@ func TestGetRecommendedFreelancersTakesEmbeddingPathWhenEmbedderAvailable(t *tes
 	}
 	if rec.semanticPaths["freelancers:token"] != 0 {
 		t.Fatalf("expected zero token-path emissions when embedder is healthy, got %d", rec.semanticPaths["freelancers:token"])
+	}
+}
+
+func TestGetRecommendedJobsAddsANNCandidatesNotPresentInSkillPull(t *testing.T) {
+	now := time.Now().UTC()
+	skillJob := domain.JobData{
+		ID:             101,
+		Title:          "Go backend",
+		Description:    "Need a Go engineer",
+		RequiredSkills: []string{"Go"},
+		JobType:        "hourly",
+		HourlyRate:     55,
+		Visibility:     "public",
+		CreatedAt:      now.Add(-1 * time.Hour),
+	}
+	annOnlyJob := domain.JobData{
+		ID:             999,
+		Title:          "Distributed systems engineer",
+		Description:    "Build resilient services with Rust",
+		RequiredSkills: []string{"Rust"}, // not in user's skills, would be missed by skill pull
+		JobType:        "hourly",
+		HourlyRate:     60,
+		Visibility:     "public",
+		CreatedAt:      now.Add(-2 * time.Hour),
+	}
+
+	jobs := &fakeJobClient{
+		recentJobs:       []domain.JobData{skillJob}, // ann-only job is NOT in the recent feed
+		skillJobsBySkill: map[string][]domain.JobData{"Go": {skillJob}},
+		jobsByID:         map[int64]domain.JobData{annOnlyJob.ID: annOnlyJob, skillJob.ID: skillJob},
+	}
+	users := &fakeUserClient{
+		user: domain.UserData{
+			ID:           "freelancer-1",
+			Headline:     "Backend Go engineer",
+			Bio:          "I build gRPC services",
+			Skills:       []string{"Go"},
+			HourlyRate:   50,
+			CanApplyJobs: true,
+		},
+	}
+	emb := &fakeEmbedder{response: [][]float32{{1, 0, 0}}} // single profile vector
+	store := newFakeEmbeddingStore()
+	store.searchHits = map[EmbeddingSourceType][]VectorHit{
+		EmbeddingSourceTypeJob: {{SourceID: "999", Distance: 0.1}, {SourceID: "101", Distance: 0.4}},
+	}
+	rec := newFakeMetricsRecorder()
+
+	svc := NewRecommendationService(
+		jobs, users, nil, nil, rec, emb, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+
+	recs, err := svc.GetRecommendedJobs(context.Background(), "freelancer-1", 10)
+	if err != nil {
+		t.Fatalf("GetRecommendedJobs returned error: %v", err)
+	}
+
+	gotIDs := map[int64]bool{}
+	for _, r := range recs {
+		gotIDs[r.JobID] = true
+	}
+	if !gotIDs[annOnlyJob.ID] {
+		t.Fatalf("expected ANN-found job %d in recommendations, got %+v", annOnlyJob.ID, recs)
+	}
+	if rec.candidateSources["jobs:ann"] < 1 {
+		t.Fatalf("expected at least one ann-source candidate metric, got %v", rec.candidateSources)
+	}
+	if jobs.getJobHits == 0 {
+		t.Fatal("expected GetJob hydration call for ANN hit")
+	}
+}
+
+func TestGetRecommendedJobsSkipsANNWhenEmbedderIsNoop(t *testing.T) {
+	now := time.Now().UTC()
+	job := domain.JobData{
+		ID:             101,
+		Title:          "Go backend",
+		Description:    "Need a Go engineer",
+		RequiredSkills: []string{"Go"},
+		JobType:        "hourly",
+		HourlyRate:     55,
+		Visibility:     "public",
+		CreatedAt:      now.Add(-1 * time.Hour),
+	}
+	jobs := &fakeJobClient{
+		recentJobs:       []domain.JobData{job},
+		skillJobsBySkill: map[string][]domain.JobData{"Go": {job}},
+	}
+	users := &fakeUserClient{
+		user: domain.UserData{
+			ID:           "freelancer-1",
+			Headline:     "Backend Go engineer",
+			Skills:       []string{"Go"},
+			HourlyRate:   50,
+			CanApplyJobs: true,
+		},
+	}
+	rec := newFakeMetricsRecorder()
+	store := newFakeEmbeddingStore()
+	store.searchHits = map[EmbeddingSourceType][]VectorHit{
+		EmbeddingSourceTypeJob: {{SourceID: "999"}}, // would be added if ANN ran
+	}
+
+	svc := NewRecommendationService(
+		jobs, users, nil, nil, rec, nil /* noop embedder */, store,
+		ServiceConfig{DefaultLimit: 10, MaxLimit: 25, CandidatePageSize: 20, PerSkillPageSize: 10, MaxSkillQueries: 3},
+	)
+	if _, err := svc.GetRecommendedJobs(context.Background(), "freelancer-1", 10); err != nil {
+		t.Fatalf("GetRecommendedJobs error: %v", err)
+	}
+	if rec.candidateSources["jobs:ann"] != 0 {
+		t.Fatalf("expected zero ann candidates with noop embedder, got %d", rec.candidateSources["jobs:ann"])
+	}
+	if jobs.getJobHits != 0 {
+		t.Fatalf("expected no GetJob hydration calls when ANN is skipped, got %d", jobs.getJobHits)
 	}
 }
 
