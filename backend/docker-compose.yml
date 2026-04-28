@@ -16,22 +16,6 @@ services:
       timeout: 5s
       retries: 20
 
-  connects-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: connects
-      POSTGRES_PASSWORD: connects
-      POSTGRES_DB: jobconnect_connects
-    ports:
-      - "5441:5432"
-    volumes:
-      - connects-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U connects -d jobconnect_connects"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
   minio:
     image: minio/minio:RELEASE.2025-02-18T16-25-55Z
     command: server /data --console-address ":9001"
@@ -126,7 +110,7 @@ services:
     ports:
       - "50058:50058"
     depends_on:
-      connects-db:
+      postgres:
         condition: service_healthy
 
   proposal:
@@ -327,37 +311,6 @@ services:
         condition: service_started
       recommendation:
         condition: service_started
-  reviews-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: reviews
-      POSTGRES_PASSWORD: reviews
-      POSTGRES_DB: jobconnect_reviews
-    ports:
-      - "5442:5432"
-    volumes:
-      - reviews-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U reviews -d jobconnect_reviews"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-  reviews:
-    build:
-      context: .
-      dockerfile: services/Dockerfile
-      args:
-        SERVICE: reviews
-        CMD_PATH: ./cmd/reviewsd
-    env_file:
-      - .env
-    ports:
-      - "50065:50065"
-    depends_on:
-      reviews-db:
-        condition: service_healthy
-      contract:
-        condition: service_started
 volumes:
   auth-db-data:
   user-db-data:
@@ -368,8 +321,6 @@ volumes:
   chat-db-data:
   verification-db-data:
   payment-db-data:
-  connects-db-data:
-  reviews-db-data:
   postgres-data:
   minio-data:
   redis-data:
