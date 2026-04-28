@@ -24,6 +24,7 @@ type CreateJobInput struct {
 	JobType        string
 	BudgetFixed    float64
 	HourlyRate     float64
+	Visibility     string
 	Deadline       *int64
 	Attachments    []domain.Attachment
 }
@@ -49,6 +50,7 @@ func (uc *CreateJob) Execute(ctx context.Context, in CreateJobInput) (CreateJobO
 		JobType:        strings.ToLower(strings.TrimSpace(in.JobType)),
 		BudgetFixed:    in.BudgetFixed,
 		HourlyRate:     in.HourlyRate,
+		Visibility:     visibility,
 		Attachments:    in.Attachments,
 		Status:         domain.JobStatusOpen,
 		CreatedAt:      now,

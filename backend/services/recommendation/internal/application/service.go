@@ -2,10 +2,12 @@ package application
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -39,11 +41,14 @@ type ServiceConfig struct {
 }
 
 type RecommendationService struct {
-	jobClient    JobServiceClient
-	userClient   UserServiceClient
-	reviewClient ReviewServiceClient
-	cache        RecommendationCache
-	cfg          ServiceConfig
+	jobClient      JobServiceClient
+	userClient     UserServiceClient
+	reviewClient   ReviewServiceClient
+	cache          RecommendationCache
+	metrics        MetricsRecorder
+	embedder       Embedder
+	embeddingStore EmbeddingStore
+	cfg            ServiceConfig
 }
 
 type scoredJobRecommendation struct {
@@ -64,6 +69,9 @@ func NewRecommendationService(
 	userClient UserServiceClient,
 	reviewClient ReviewServiceClient,
 	cache RecommendationCache,
+	metrics MetricsRecorder,
+	embedder Embedder,
+	embeddingStore EmbeddingStore,
 	cfg ServiceConfig,
 ) *RecommendationService {
 	if cfg.DefaultLimit <= 0 {
@@ -81,13 +89,25 @@ func NewRecommendationService(
 	if cfg.MaxSkillQueries <= 0 {
 		cfg.MaxSkillQueries = 5
 	}
+	if metrics == nil {
+		metrics = noopMetricsRecorder{}
+	}
+	if embedder == nil {
+		embedder = noopEmbedder{}
+	}
+	if embeddingStore == nil {
+		embeddingStore = noopEmbeddingStore{}
+	}
 
 	return &RecommendationService{
-		jobClient:    jobClient,
-		userClient:   userClient,
-		reviewClient: reviewClient,
-		cache:        cache,
-		cfg:          cfg,
+		jobClient:      jobClient,
+		userClient:     userClient,
+		reviewClient:   reviewClient,
+		cache:          cache,
+		metrics:        metrics,
+		embedder:       embedder,
+		embeddingStore: embeddingStore,
+		cfg:            cfg,
 	}
 }
 
@@ -101,37 +121,37 @@ func (s *RecommendationService) GetRecommendedJobs(ctx context.Context, userID s
 	if s.cache != nil {
 		if cached, ok := s.cache.GetRecommendedJobs(userID); ok {
 			limited := limitRecommendations(cached, normalizedLimit)
-			logRecommendationCacheHit(recommendationTypeJobs, len(cached), len(limited), normalizedLimit, time.Since(startedAt))
+			s.emitCacheHit(recommendationTypeJobs, len(cached), len(limited), normalizedLimit, time.Since(startedAt))
 			return limited, nil
 		}
-		logRecommendationCacheMiss(recommendationTypeJobs, normalizedLimit)
+		s.emitCacheMiss(recommendationTypeJobs, normalizedLimit)
 	} else {
-		logRecommendationCacheDisabled(recommendationTypeJobs, normalizedLimit)
+		s.emitCacheDisabled(recommendationTypeJobs, normalizedLimit)
 	}
 
 	user, err := s.userClient.GetFreelancer(ctx, userID)
 	if err != nil {
-		logRecommendationComputeError(recommendationTypeJobs, time.Since(startedAt), err)
+		s.emitRecomputeError(recommendationTypeJobs, time.Since(startedAt), err)
 		return nil, fmt.Errorf("fetch freelancer profile: %w", err)
 	}
 	if !user.CanApplyJobs {
-		logRecommendationComputed(recommendationTypeJobs, 0, 0, 0, normalizedLimit, time.Since(startedAt))
+		s.emitRecomputeComplete(recommendationTypeJobs, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, nil
 	}
 
 	preferences, err := s.userClient.GetWorkPreferences(ctx, userID)
 	if err != nil {
-		logRecommendationComputeError(recommendationTypeJobs, time.Since(startedAt), err)
+		s.emitRecomputeError(recommendationTypeJobs, time.Since(startedAt), err)
 		return nil, fmt.Errorf("fetch freelancer work preferences: %w", err)
 	}
 
 	candidates, err := s.collectCandidates(ctx, user, preferences)
 	if err != nil {
-		logRecommendationComputeError(recommendationTypeJobs, time.Since(startedAt), err)
+		s.emitRecomputeError(recommendationTypeJobs, time.Since(startedAt), err)
 		return nil, err
 	}
 	if len(candidates) == 0 {
-		logRecommendationComputed(recommendationTypeJobs, 0, 0, 0, normalizedLimit, time.Since(startedAt))
+		s.emitRecomputeComplete(recommendationTypeJobs, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, nil
 	}
 
@@ -145,7 +165,7 @@ func (s *RecommendationService) GetRecommendedJobs(ctx context.Context, userID s
 		s.cache.SetRecommendedJobs(userID, recommendations)
 	}
 	limited := limitRecommendations(recommendations, normalizedLimit)
-	logRecommendationComputed(recommendationTypeJobs, len(candidates), len(recommendations), len(limited), normalizedLimit, time.Since(startedAt))
+	s.emitRecomputeComplete(recommendationTypeJobs, len(candidates), len(recommendations), len(limited), normalizedLimit, time.Since(startedAt))
 	return limited, nil
 }
 
@@ -158,11 +178,11 @@ func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, j
 	normalizedLimit := s.normalizeLimit(limit)
 	job, err := s.jobClient.GetJob(ctx, jobID)
 	if err != nil {
-		logRecommendationComputeError(recommendationTypeFreelancers, time.Since(startedAt), err)
+		s.emitRecomputeError(recommendationTypeFreelancers, time.Since(startedAt), err)
 		return nil, fmt.Errorf("fetch job: %w", err)
 	}
 	if job.ID == 0 {
-		logRecommendationComputed(recommendationTypeFreelancers, 0, 0, 0, normalizedLimit, time.Since(startedAt))
+		s.emitRecomputeComplete(recommendationTypeFreelancers, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, fmt.Errorf("job %d not found", jobID)
 	}
 
@@ -170,21 +190,21 @@ func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, j
 	if s.cache != nil {
 		if cached, ok := s.cache.GetRecommendedFreelancers(cacheKey); ok {
 			limited := limitFreelancerRecommendations(cached, normalizedLimit)
-			logRecommendationCacheHit(recommendationTypeFreelancers, len(cached), len(limited), normalizedLimit, time.Since(startedAt))
+			s.emitCacheHit(recommendationTypeFreelancers, len(cached), len(limited), normalizedLimit, time.Since(startedAt))
 			return limited, nil
 		}
-		logRecommendationCacheMiss(recommendationTypeFreelancers, normalizedLimit)
+		s.emitCacheMiss(recommendationTypeFreelancers, normalizedLimit)
 	} else {
-		logRecommendationCacheDisabled(recommendationTypeFreelancers, normalizedLimit)
+		s.emitCacheDisabled(recommendationTypeFreelancers, normalizedLimit)
 	}
 
 	candidates, err := s.collectFreelancerCandidates(ctx, job)
 	if err != nil {
-		logRecommendationComputeError(recommendationTypeFreelancers, time.Since(startedAt), err)
+		s.emitRecomputeError(recommendationTypeFreelancers, time.Since(startedAt), err)
 		return nil, err
 	}
 	if len(candidates) == 0 {
-		logRecommendationComputed(recommendationTypeFreelancers, 0, 0, 0, normalizedLimit, time.Since(startedAt))
+		s.emitRecomputeComplete(recommendationTypeFreelancers, 0, 0, 0, normalizedLimit, time.Since(startedAt))
 		return nil, nil
 	}
 
@@ -198,11 +218,11 @@ func (s *RecommendationService) GetRecommendedFreelancers(ctx context.Context, j
 		s.cache.SetRecommendedFreelancers(cacheKey, recommendations)
 	}
 	limited := limitFreelancerRecommendations(recommendations, normalizedLimit)
-	logRecommendationComputed(recommendationTypeFreelancers, len(candidates), len(recommendations), len(limited), normalizedLimit, time.Since(startedAt))
+	s.emitRecomputeComplete(recommendationTypeFreelancers, len(candidates), len(recommendations), len(limited), normalizedLimit, time.Since(startedAt))
 	return limited, nil
 }
 
-func logRecommendationCacheHit(recommendationType string, cachedCount, returnedCount int, limit int32, elapsed time.Duration) {
+func (s *RecommendationService) emitCacheHit(recommendationType string, cachedCount, returnedCount int, limit int32, elapsed time.Duration) {
 	log.Printf(
 		"recommendation: type=%s cache=hit cached_count=%d returned_count=%d limit=%d elapsed=%s",
 		recommendationType,
@@ -211,17 +231,20 @@ func logRecommendationCacheHit(recommendationType string, cachedCount, returnedC
 		limit,
 		elapsed,
 	)
+	s.metrics.RecordCacheHit(recommendationType, cachedCount, returnedCount, elapsed)
 }
 
-func logRecommendationCacheMiss(recommendationType string, limit int32) {
+func (s *RecommendationService) emitCacheMiss(recommendationType string, limit int32) {
 	log.Printf("recommendation: type=%s cache=miss limit=%d", recommendationType, limit)
+	s.metrics.RecordCacheMiss(recommendationType)
 }
 
-func logRecommendationCacheDisabled(recommendationType string, limit int32) {
+func (s *RecommendationService) emitCacheDisabled(recommendationType string, limit int32) {
 	log.Printf("recommendation: type=%s cache=disabled limit=%d", recommendationType, limit)
+	s.metrics.RecordCacheDisabled(recommendationType)
 }
 
-func logRecommendationComputed(recommendationType string, candidateCount, rankedCount, returnedCount int, limit int32, elapsed time.Duration) {
+func (s *RecommendationService) emitRecomputeComplete(recommendationType string, candidateCount, rankedCount, returnedCount int, limit int32, elapsed time.Duration) {
 	log.Printf(
 		"recommendation: type=%s recompute=complete candidate_count=%d ranked_count=%d returned_count=%d limit=%d elapsed=%s",
 		recommendationType,
@@ -231,10 +254,12 @@ func logRecommendationComputed(recommendationType string, candidateCount, ranked
 		limit,
 		elapsed,
 	)
+	s.metrics.RecordRecomputeComplete(recommendationType, candidateCount, rankedCount, returnedCount, elapsed)
 }
 
-func logRecommendationComputeError(recommendationType string, elapsed time.Duration, err error) {
+func (s *RecommendationService) emitRecomputeError(recommendationType string, elapsed time.Duration, err error) {
 	log.Printf("recommendation: type=%s recompute=error elapsed=%s error=%v", recommendationType, elapsed, err)
+	s.metrics.RecordRecomputeError(recommendationType, elapsed)
 }
 
 func (s *RecommendationService) InvalidateRecommendationCache(ctx context.Context, userIDs []string, jobIDs []int64, all bool) (int, error) {
@@ -247,7 +272,7 @@ func (s *RecommendationService) InvalidateRecommendationCache(ctx context.Contex
 	startedAt := time.Now()
 	if all {
 		deleted := s.cache.Clear()
-		logRecommendationInvalidated("all", deleted, len(userIDs), len(jobIDs), time.Since(startedAt))
+		s.emitInvalidated("all", deleted, len(userIDs), len(jobIDs), time.Since(startedAt))
 		return deleted, nil
 	}
 
@@ -259,11 +284,11 @@ func (s *RecommendationService) InvalidateRecommendationCache(ctx context.Contex
 		deleted += s.cache.DeleteRecommendedFreelancersForJob(jobID)
 	}
 
-	logRecommendationInvalidated("targeted", deleted, len(userIDs), len(jobIDs), time.Since(startedAt))
+	s.emitInvalidated("targeted", deleted, len(userIDs), len(jobIDs), time.Since(startedAt))
 	return deleted, nil
 }
 
-func logRecommendationInvalidated(scope string, deleted, userIDCount, jobIDCount int, elapsed time.Duration) {
+func (s *RecommendationService) emitInvalidated(scope string, deleted, userIDCount, jobIDCount int, elapsed time.Duration) {
 	log.Printf(
 		"recommendation: cache=invalidate scope=%s deleted_count=%d user_id_count=%d job_id_count=%d elapsed=%s",
 		scope,
@@ -272,6 +297,7 @@ func logRecommendationInvalidated(scope string, deleted, userIDCount, jobIDCount
 		jobIDCount,
 		elapsed,
 	)
+	s.metrics.RecordInvalidation(scope, deleted, elapsed)
 }
 
 func freelancerCacheKey(jobID int64, callerScope string) string {
@@ -339,16 +365,47 @@ func (s *RecommendationService) rankFreelancers(ctx context.Context, job domain.
 	}, " ")
 	jobVector := buildTokenVector(jobText)
 
-	scored := make([]scoredFreelancerRecommendation, 0, len(candidates))
-	for _, f := range candidates {
+	jobIDStr := strconv.FormatInt(job.ID, 10)
+	embedReqs := make([]EmbeddingRequest, 0, len(candidates)+1)
+	embedReqs = append(embedReqs, EmbeddingRequest{
+		SourceType: EmbeddingSourceTypeJob,
+		SourceID:   jobIDStr,
+		Text:       jobText,
+	})
+	candidateTexts := make([]string, len(candidates))
+	for i, f := range candidates {
 		profileText := strings.Join([]string{
 			f.Headline,
 			f.Bio,
 			strings.Join(f.Skills, " "),
 		}, " ")
+		candidateTexts[i] = profileText
+		embedReqs = append(embedReqs, EmbeddingRequest{
+			SourceType: EmbeddingSourceTypeFreelancer,
+			SourceID:   f.ID,
+			Text:       profileText,
+		})
+	}
+	vectors := s.resolveEmbeddings(ctx, embedReqs)
+	jobVec, jobVecOK := vectors.lookup(EmbeddingSourceTypeJob, jobIDStr)
+
+	scored := make([]scoredFreelancerRecommendation, 0, len(candidates))
+	for i, f := range candidates {
+		profileText := candidateTexts[i]
 
 		skillMatches, skillOverlap := calculateSkillOverlap(f.Skills, job.RequiredSkills)
-		semanticScore := cosineSimilarity(jobVector, buildTokenVector(profileText))
+		semanticScore := 0.0
+		semanticPath := "token"
+		if jobVecOK {
+			if candVec, ok := vectors.lookup(EmbeddingSourceTypeFreelancer, f.ID); ok {
+				semanticScore = denseCosineSimilarity(jobVec, candVec)
+				semanticPath = "embedding"
+			}
+		}
+		if semanticPath == "token" {
+			semanticScore = cosineSimilarity(jobVector, buildTokenVector(profileText))
+		}
+		s.metrics.RecordSemanticPath("freelancers", semanticPath)
 		rateScore := calculateFreelancerRateScore(f, job)
 		availabilityScore := calculateAvailabilityScore(f.Availability)
 		ratingScore := clamp01(f.Rating / 5)
@@ -436,6 +493,7 @@ func (s *RecommendationService) enrichFreelancerTrust(ctx context.Context, score
 			summary, err = s.reviewClient.GetUserRatingSummary(ctx, userID)
 			if err != nil {
 				log.Printf("recommendation: review summary lookup failed for freelancer %q: %v", userID, err)
+				s.metrics.RecordReviewLookupError("freelancer")
 				continue
 			}
 			summaries[userID] = summary
@@ -520,16 +578,22 @@ func (s *RecommendationService) collectCandidates(ctx context.Context, user doma
 	if err != nil {
 		return nil, fmt.Errorf("list recent public jobs: %w", err)
 	}
-	addEligibleJobs(candidateMap, baseJobs, user, preferences)
+	addedRecent := addEligibleJobs(candidateMap, baseJobs, user, preferences)
+	s.metrics.RecordCandidateSource(recommendationTypeJobs, "recent", addedRecent)
 
+	addedSkill := 0
 	for _, skill := range topSkills(user.Skills, s.cfg.MaxSkillQueries) {
 		skillJobs, skillErr := s.jobClient.SearchPublicOpenJobsBySkill(ctx, skill, s.cfg.PerSkillPageSize)
 		if skillErr != nil {
 			log.Printf("recommendation: skill candidate query failed for %q: %v", skill, skillErr)
 			continue
 		}
-		addEligibleJobs(candidateMap, skillJobs, user, preferences)
+		addedSkill += addEligibleJobs(candidateMap, skillJobs, user, preferences)
 	}
+	s.metrics.RecordCandidateSource(recommendationTypeJobs, "skill", addedSkill)
+
+	addedANN := s.augmentJobsWithANN(ctx, user, preferences, candidateMap)
+	s.metrics.RecordCandidateSource(recommendationTypeJobs, "ann", addedANN)
 
 	candidates := make([]domain.JobData, 0, len(candidateMap))
 	for _, job := range candidateMap {
@@ -538,13 +602,77 @@ func (s *RecommendationService) collectCandidates(ctx context.Context, user doma
 	return candidates, nil
 }
 
-func addEligibleJobs(candidateMap map[int64]domain.JobData, jobs []domain.JobData, user domain.UserData, preferences domain.WorkPreferences) {
+// augmentJobsWithANN issues a vector-search lookup for jobs that look
+// semantically similar to the user's profile and hydrates the hits via
+// GetJob. Anything that fails (no embedder, no vector, store error,
+// hydration error) is logged and ignored — the existing skill+recent
+// candidate pool stays the safety net. Returns the number of jobs newly
+// added to candidateMap.
+func (s *RecommendationService) augmentJobsWithANN(ctx context.Context, user domain.UserData, preferences domain.WorkPreferences, candidateMap map[int64]domain.JobData) int {
+	if _, noop := s.embedder.(noopEmbedder); noop {
+		return 0
+	}
+
+	profileText := strings.Join([]string{user.Headline, user.Bio, strings.Join(user.Skills, " ")}, " ")
+	if strings.TrimSpace(profileText) == "" {
+		return 0
+	}
+
+	vectors, err := s.embedder.Embed(ctx, []string{profileText})
+	if err != nil || len(vectors) == 0 || len(vectors[0]) == 0 {
+		if err != nil && !errors.Is(err, ErrEmbedderUnavailable) {
+			log.Printf("recommendation: ann profile embed failed: %v", err)
+		}
+		return 0
+	}
+
+	hits, err := s.embeddingStore.SearchByVector(ctx, EmbeddingSourceTypeJob, vectors[0], int(s.cfg.CandidatePageSize))
+	if err != nil {
+		log.Printf("recommendation: ann job search failed: %v", err)
+		return 0
+	}
+
+	added := 0
+	for _, hit := range hits {
+		jobID, parseErr := strconv.ParseInt(hit.SourceID, 10, 64)
+		if parseErr != nil {
+			log.Printf("recommendation: ann hit had non-numeric job id %q: %v", hit.SourceID, parseErr)
+			continue
+		}
+		if _, exists := candidateMap[jobID]; exists {
+			continue
+		}
+		job, jobErr := s.jobClient.GetJob(ctx, jobID)
+		if jobErr != nil {
+			log.Printf("recommendation: ann hydrate GetJob(%d) failed: %v", jobID, jobErr)
+			continue
+		}
+		if !isEligibleJob(job, user, preferences) {
+			continue
+		}
+		candidateMap[jobID] = job
+		added++
+	}
+	return added
+}
+
+// addEligibleJobs adds every job that passes the eligibility filter to
+// candidateMap. Returns the number of newly added entries (duplicates and
+// ineligible jobs do not count). The return value is consumed by the
+// candidate-source metric.
+func addEligibleJobs(candidateMap map[int64]domain.JobData, jobs []domain.JobData, user domain.UserData, preferences domain.WorkPreferences) int {
+	added := 0
 	for _, job := range jobs {
 		if !isEligibleJob(job, user, preferences) {
 			continue
 		}
+		if _, exists := candidateMap[job.ID]; exists {
+			continue
+		}
 		candidateMap[job.ID] = job
+		added++
 	}
+	return added
 }
 
 func isEligibleJob(job domain.JobData, user domain.UserData, preferences domain.WorkPreferences) bool {
@@ -591,16 +719,48 @@ func (s *RecommendationService) rankJobs(ctx context.Context, user domain.UserDa
 	}, " ")
 	profileVector := buildTokenVector(profileText)
 
-	scored := make([]scoredJobRecommendation, 0, len(jobs))
-	for _, job := range jobs {
+	embedReqs := make([]EmbeddingRequest, 0, len(jobs)+1)
+	embedReqs = append(embedReqs, EmbeddingRequest{
+		SourceType: EmbeddingSourceTypeFreelancer,
+		SourceID:   user.ID,
+		Text:       profileText,
+	})
+	jobTexts := make([]string, len(jobs))
+	jobIDStrs := make([]string, len(jobs))
+	for i, job := range jobs {
 		jobText := strings.Join([]string{
 			job.Title,
 			job.Description,
 			strings.Join(job.RequiredSkills, " "),
 		}, " ")
+		jobTexts[i] = jobText
+		jobIDStrs[i] = strconv.FormatInt(job.ID, 10)
+		embedReqs = append(embedReqs, EmbeddingRequest{
+			SourceType: EmbeddingSourceTypeJob,
+			SourceID:   jobIDStrs[i],
+			Text:       jobText,
+		})
+	}
+	vectors := s.resolveEmbeddings(ctx, embedReqs)
+	profileVec, profileVecOK := vectors.lookup(EmbeddingSourceTypeFreelancer, user.ID)
+
+	scored := make([]scoredJobRecommendation, 0, len(jobs))
+	for i, job := range jobs {
+		jobText := jobTexts[i]
 
 		skillMatches, skillOverlap := calculateSkillOverlap(user.Skills, job.RequiredSkills)
-		semanticScore := cosineSimilarity(profileVector, buildTokenVector(jobText))
+		semanticScore := 0.0
+		semanticPath := "token"
+		if profileVecOK {
+			if jobVec, ok := vectors.lookup(EmbeddingSourceTypeJob, jobIDStrs[i]); ok {
+				semanticScore = denseCosineSimilarity(profileVec, jobVec)
+				semanticPath = "embedding"
+			}
+		}
+		if semanticPath == "token" {
+			semanticScore = cosineSimilarity(profileVector, buildTokenVector(jobText))
+		}
+		s.metrics.RecordSemanticPath("jobs", semanticPath)
 		budgetScore := calculateBudgetScore(user, preferences, job)
 		freshnessScore := calculateFreshnessScore(job.CreatedAt, time.Now())
 
@@ -682,6 +842,7 @@ func (s *RecommendationService) enrichJobTrust(ctx context.Context, scored []sco
 			summary, err = s.reviewClient.GetUserRatingSummary(ctx, clientID)
 			if err != nil {
 				log.Printf("recommendation: review summary lookup failed for client %q: %v", clientID, err)
+				s.metrics.RecordReviewLookupError("client")
 				continue
 			}
 			summaries[clientID] = summary
@@ -887,6 +1048,24 @@ func cosineSimilarity(left, right map[string]float64) float64 {
 	}
 	for _, rightValue := range right {
 		rightNorm += rightValue * rightValue
+	}
+	if leftNorm == 0 || rightNorm == 0 {
+		return 0
+	}
+	return dot / (math.Sqrt(leftNorm) * math.Sqrt(rightNorm))
+}
+
+func denseCosineSimilarity(left, right []float32) float64 {
+	if len(left) == 0 || len(right) == 0 || len(left) != len(right) {
+		return 0
+	}
+	var dot, leftNorm, rightNorm float64
+	for i := range left {
+		l := float64(left[i])
+		r := float64(right[i])
+		dot += l * r
+		leftNorm += l * l
+		rightNorm += r * r
 	}
 	if leftNorm == 0 || rightNorm == 0 {
 		return 0
