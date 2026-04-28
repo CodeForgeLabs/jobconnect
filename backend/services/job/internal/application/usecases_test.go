@@ -425,7 +425,6 @@ func TestCreateJob_Execute_ExplicitPrivateVisibilityIsPreserved(t *testing.T) {
 		Description: "Integrate billing",
 		JobType:     domain.JobTypeFixed,
 		BudgetFixed: 500,
-		Currency:    "USD",
 		Visibility:  domain.VisibilityPrivate,
 		Deadline:    &deadline,
 	})
@@ -450,7 +449,6 @@ func TestCreateJob_Execute_InvalidVisibilityFails(t *testing.T) {
 		Description: "Integrate billing",
 		JobType:     domain.JobTypeFixed,
 		BudgetFixed: 500,
-		Currency:    "USD",
 		Visibility:  "weird",
 		Deadline:    &deadline,
 	})
