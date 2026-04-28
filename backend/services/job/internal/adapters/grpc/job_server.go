@@ -177,6 +177,7 @@ func (s *JobServer) CreateJob(ctx context.Context, req *jobv1.CreateJobRequest) 
 		JobType:        jobType,
 		BudgetFixed:    req.BudgetFixed,
 		HourlyRate:     req.HourlyRate,
+		Visibility:     visibility,
 		Deadline:       deadline,
 		Attachments:    attachments,
 	})

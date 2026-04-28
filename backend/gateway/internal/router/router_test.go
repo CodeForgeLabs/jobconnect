@@ -197,6 +197,8 @@ func TestRecommendationRoutesExposeClientFreelancerRecommendations(t *testing.T)
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)
@@ -223,6 +225,8 @@ func TestRecommendationFreelancerRouteRejectsFreelancerRole(t *testing.T) {
 		&handlers.UserHandler{},
 		&handlers.JobHandler{},
 		&handlers.ProposalHandler{},
+		nil,
+		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
 	)

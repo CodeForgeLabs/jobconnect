@@ -41,23 +41,15 @@ func (c *JobClient) GetJobSummary(ctx context.Context, jobID int64) (application
 		return application.JobSummary{}, fmt.Errorf("invalid client_id from job service")
 	}
 
-		for _, j := range resp.GetJobs() {
-			if j == nil || j.GetId() != jobID {
-				continue
-			}
-			clientID, err := uuid.Parse(j.GetClientId())
-			if err != nil {
-				return application.JobSummary{}, fmt.Errorf("invalid client_id from job service")
-			}
-			status := jobStatusEnumToString(j.GetStatusEnum())
-			return application.JobSummary{
-				JobID:    j.GetId(),
-				ClientID: clientID,
-				Status:   status,
-				IsOpen:   j.GetStatusEnum() == jobv1.JobStatus_JOB_STATUS_OPEN,
-				Found:    true,
-			}, nil
-		}
+	status := jobStatusEnumToString(resp.GetSummary().GetStatus())
+	return application.JobSummary{
+		JobID:    resp.GetSummary().GetJobId(),
+		ClientID: clientID,
+		Status:   status,
+		IsOpen:   resp.GetSummary().GetStatus() == jobv1.JobStatus_JOB_STATUS_OPEN,
+		Found:    true,
+	}, nil
+}
 
 func (c *JobClient) MarkJobFilled(ctx context.Context, jobID int64) error {
 	if c == nil || c.client == nil {
