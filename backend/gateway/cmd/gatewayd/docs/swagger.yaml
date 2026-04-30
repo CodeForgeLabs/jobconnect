@@ -1,4 +1,3 @@
-basePath: /api/v1
 definitions:
   handlers.AuthErrorResponse:
     properties:
@@ -62,6 +61,24 @@ definitions:
       unseen_count:
         type: integer
     type: object
+  handlers.CountClientProposalInboxResponse:
+    properties:
+      by_status:
+        items:
+          $ref: '#/definitions/handlers.ProposalStatusCountDTO'
+        type: array
+      total:
+        type: integer
+    type: object
+  handlers.CountProposalsByJobResponse:
+    properties:
+      by_status:
+        items:
+          $ref: '#/definitions/handlers.ProposalStatusCountDTO'
+        type: array
+      total:
+        type: integer
+    type: object
   handlers.EditMessageRequest:
     properties:
       new_content: {}
@@ -84,6 +101,15 @@ definitions:
         items:
           $ref: '#/definitions/handlers.ChatMessageDTO'
         type: array
+    type: object
+  handlers.HasAppliedToJobResponse:
+    properties:
+      active_status:
+        type: string
+      has_applied:
+        type: boolean
+      proposal_id:
+        type: integer
     type: object
   handlers.ListSessionsResponse:
     properties:
@@ -109,6 +135,109 @@ definitions:
         type: integer
       is_new_user:
         type: boolean
+    type: object
+  handlers.ProposalAttachmentDTO:
+    properties:
+      content_type:
+        type: string
+      file_name:
+        type: string
+      id:
+        type: integer
+      size_bytes:
+        type: integer
+      storage_key:
+        type: string
+      url:
+        type: string
+    type: object
+  handlers.ProposalAttachmentDownloadURLResponse:
+    properties:
+      download_url:
+        type: string
+    type: object
+  handlers.ProposalAttachmentUploadURLRequest:
+    properties:
+      content_type:
+        type: string
+      file_name:
+        type: string
+    type: object
+  handlers.ProposalAttachmentUploadURLResponse:
+    properties:
+      storage_key:
+        type: string
+      upload_url:
+        type: string
+    type: object
+  handlers.ProposalDTO:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/handlers.ProposalAttachmentDTO'
+        type: array
+      bid_amount:
+        type: number
+      bid_type:
+        type: string
+      client_id:
+        type: string
+      connects_spent:
+        type: integer
+      cover_letter:
+        type: string
+      created_at_unix_seconds:
+        type: integer
+      estimated_days:
+        type: integer
+      freelancer_id:
+        type: string
+      hired_at_unix_seconds:
+        type: integer
+      id:
+        type: integer
+      job_id:
+        type: integer
+      offer_sent_at_unix_seconds:
+        type: integer
+      rejected_at_unix_seconds:
+        type: integer
+      shortlisted_at_unix_seconds:
+        type: integer
+      status:
+        type: string
+      status_reason:
+        type: string
+      updated_at_unix_seconds:
+        type: integer
+      withdrawn_at_unix_seconds:
+        type: integer
+    type: object
+  handlers.ProposalEnvelopeResponse:
+    properties:
+      proposal:
+        $ref: '#/definitions/handlers.ProposalDTO'
+    type: object
+  handlers.ProposalErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.ProposalListResponse:
+    properties:
+      next_page_token:
+        type: string
+      proposals:
+        items:
+          $ref: '#/definitions/handlers.ProposalDTO'
+        type: array
+    type: object
+  handlers.ProposalStatusCountDTO:
+    properties:
+      count:
+        type: integer
+      status:
+        type: string
     type: object
   handlers.RefreshResponse:
     properties:
@@ -149,6 +278,13 @@ definitions:
     properties:
       message:
         $ref: '#/definitions/handlers.ChatMessageDTO'
+    type: object
+  handlers.SetProposalDecisionRequest:
+    properties:
+      decision:
+        type: string
+      reason:
+        type: string
     type: object
   handlers.VerifyEmailOTPResponse:
     properties:
@@ -914,6 +1050,438 @@ paths:
       summary: Mark a message as seen
       tags:
       - Chat
+  /api/v1/proposals/{proposalId}:
+    get:
+      description: Returns a single proposal by proposal ID.
+      parameters:
+      - description: Proposal ID
+        in: path
+        name: proposalId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalEnvelopeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a proposal by ID
+      tags:
+      - Proposals
+  /api/v1/proposals/{proposalId}/attachments/{attachmentId}/download-url:
+    get:
+      description: Returns a presigned download URL for a proposal attachment.
+      parameters:
+      - description: Proposal ID
+        in: path
+        name: proposalId
+        required: true
+        type: integer
+      - description: Attachment ID
+        in: path
+        name: attachmentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalAttachmentDownloadURLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get proposal attachment download URL
+      tags:
+      - Proposals
+  /api/v1/proposals/{proposalId}/attachments/upload-url:
+    post:
+      consumes:
+      - application/json
+      description: Returns a presigned upload URL for a proposal attachment.
+      parameters:
+      - description: Proposal ID
+        in: path
+        name: proposalId
+        required: true
+        type: integer
+      - description: Attachment upload request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ProposalAttachmentUploadURLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalAttachmentUploadURLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get proposal attachment upload URL
+      tags:
+      - Proposals
+  /api/v1/proposals/{proposalId}/decision:
+    post:
+      consumes:
+      - application/json
+      description: Shortlists or rejects a proposal for the authenticated client.
+      parameters:
+      - description: Proposal ID
+        in: path
+        name: proposalId
+        required: true
+        type: integer
+      - description: Decision payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SetProposalDecisionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalEnvelopeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set proposal decision
+      tags:
+      - Proposals
+  /api/v1/proposals/client:
+    get:
+      description: Returns paginated proposals for the authenticated client's inbox.
+      parameters:
+      - collectionFormat: csv
+        description: Filter by status (repeatable)
+        in: query
+        items:
+          enum:
+          - sent
+          - shortlist
+          - shortlisted
+          - reject
+          - rejected
+          - hired
+          - withdrawn
+          type: string
+        name: status
+        type: array
+      - description: Filter by job ID
+        in: query
+        name: job_id
+        type: integer
+      - description: Filter by freelancer ID
+        in: query
+        name: freelancer_id
+        type: string
+      - description: Sort order
+        enum:
+        - newest
+        - oldest
+        - bid_high
+        - bid_low
+        in: query
+        name: sort_by
+        type: string
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Page token
+        in: query
+        name: page_token
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List client proposals
+      tags:
+      - Proposals
+  /api/v1/proposals/client/counts:
+    get:
+      description: Returns total and per-status counts for the authenticated client's
+        proposal inbox.
+      parameters:
+      - collectionFormat: csv
+        description: Filter by status (repeatable)
+        in: query
+        items:
+          enum:
+          - sent
+          - shortlist
+          - shortlisted
+          - reject
+          - rejected
+          - hired
+          - withdrawn
+          type: string
+        name: status
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CountClientProposalInboxResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Count client proposal inbox
+      tags:
+      - Proposals
+  /api/v1/proposals/jobs/{jobId}/counts:
+    get:
+      description: Returns total and per-status proposal counts for a specific job.
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CountProposalsByJobResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Count proposals by job
+      tags:
+      - Proposals
+  /api/v1/proposals/me:
+    get:
+      description: Returns paginated proposals for the authenticated freelancer.
+      parameters:
+      - collectionFormat: csv
+        description: Filter by status (repeatable)
+        in: query
+        items:
+          enum:
+          - sent
+          - shortlist
+          - shortlisted
+          - reject
+          - rejected
+          - hired
+          - withdrawn
+          type: string
+        name: status
+        type: array
+      - description: Filter by job ID
+        in: query
+        name: job_id
+        type: integer
+      - description: Sort order
+        enum:
+        - newest
+        - oldest
+        - bid_high
+        - bid_low
+        in: query
+        name: sort_by
+        type: string
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Page token
+        in: query
+        name: page_token
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List my proposals
+      tags:
+      - Proposals
+  /api/v1/proposals/me/jobs/{jobId}:
+    get:
+      description: Returns the authenticated freelancer's proposal for a specific
+        job.
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalEnvelopeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get my proposal for a job
+      tags:
+      - Proposals
+  /api/v1/proposals/me/jobs/{jobId}/has-applied:
+    get:
+      description: Returns whether the authenticated freelancer has applied to the
+        given job.
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HasAppliedToJobResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Check if I applied to a job
+      tags:
+      - Proposals
 securityDefinitions:
   BearerAuth:
     in: header
