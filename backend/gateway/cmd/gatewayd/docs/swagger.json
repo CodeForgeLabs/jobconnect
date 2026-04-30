@@ -2465,6 +2465,661 @@
                     }
                 }
             }
+        },
+        "/api/v1/proposals/client": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns paginated proposals for the authenticated client's inbox.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "List client proposals",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "sent",
+                                "shortlist",
+                                "shortlisted",
+                                "reject",
+                                "rejected",
+                                "hired",
+                                "withdrawn"
+                            ],
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Filter by status (repeatable)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by job ID",
+                        "name": "job_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by freelancer ID",
+                        "name": "freelancer_id",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "newest",
+                            "oldest",
+                            "bid_high",
+                            "bid_low"
+                        ],
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Page token",
+                        "name": "page_token",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/proposals/client/counts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns total and per-status counts for the authenticated client's proposal inbox.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Count client proposal inbox",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "sent",
+                                "shortlist",
+                                "shortlisted",
+                                "reject",
+                                "rejected",
+                                "hired",
+                                "withdrawn"
+                            ],
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Filter by status (repeatable)",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CountClientProposalInboxResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/proposals/jobs/{jobId}/counts": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns total and per-status proposal counts for a specific job.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Count proposals by job",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Job ID",
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CountProposalsByJobResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/proposals/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns paginated proposals for the authenticated freelancer.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "List my proposals",
+                "parameters": [
+                    {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "sent",
+                                "shortlist",
+                                "shortlisted",
+                                "reject",
+                                "rejected",
+                                "hired",
+                                "withdrawn"
+                            ],
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Filter by status (repeatable)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Filter by job ID",
+                        "name": "job_id",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "newest",
+                            "oldest",
+                            "bid_high",
+                            "bid_low"
+                        ],
+                        "type": "string",
+                        "description": "Sort order",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Page size",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Page token",
+                        "name": "page_token",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/proposals/me/jobs/{jobId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the authenticated freelancer's proposal for a specific job.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Get my proposal for a job",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Job ID",
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalEnvelopeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/proposals/me/jobs/{jobId}/has-applied": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns whether the authenticated freelancer has applied to the given job.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Check if I applied to a job",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Job ID",
+                        "name": "jobId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.HasAppliedToJobResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/proposals/{proposalId}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a single proposal by proposal ID.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Get a proposal by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Proposal ID",
+                        "name": "proposalId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalEnvelopeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/proposals/{proposalId}/attachments/upload-url": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a presigned upload URL for a proposal attachment.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Get proposal attachment upload URL",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Proposal ID",
+                        "name": "proposalId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Attachment upload request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalAttachmentUploadURLRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalAttachmentUploadURLResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/proposals/{proposalId}/attachments/{attachmentId}/download-url": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a presigned download URL for a proposal attachment.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Get proposal attachment download URL",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Proposal ID",
+                        "name": "proposalId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Attachment ID",
+                        "name": "attachmentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalAttachmentDownloadURLResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/proposals/{proposalId}/decision": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Shortlists or rejects a proposal for the authenticated client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Proposals"
+                ],
+                "summary": "Set proposal decision",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Proposal ID",
+                        "name": "proposalId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Decision payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.SetProposalDecisionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalEnvelopeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProposalErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -3225,6 +3880,218 @@
                     "type": "string"
                 },
                 "otp": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CountClientProposalInboxResponse": {
+            "type": "object",
+            "properties": {
+                "by_status": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ProposalStatusCountDTO"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.CountProposalsByJobResponse": {
+            "type": "object",
+            "properties": {
+                "by_status": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ProposalStatusCountDTO"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.HasAppliedToJobResponse": {
+            "type": "object",
+            "properties": {
+                "active_status": {
+                    "type": "string"
+                },
+                "has_applied": {
+                    "type": "boolean"
+                },
+                "proposal_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.ProposalAttachmentDTO": {
+            "type": "object",
+            "properties": {
+                "content_type": {
+                    "type": "string"
+                },
+                "file_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "size_bytes": {
+                    "type": "integer"
+                },
+                "storage_key": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ProposalAttachmentDownloadURLResponse": {
+            "type": "object",
+            "properties": {
+                "download_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ProposalAttachmentUploadURLRequest": {
+            "type": "object",
+            "properties": {
+                "content_type": {
+                    "type": "string"
+                },
+                "file_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ProposalAttachmentUploadURLResponse": {
+            "type": "object",
+            "properties": {
+                "storage_key": {
+                    "type": "string"
+                },
+                "upload_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ProposalDTO": {
+            "type": "object",
+            "properties": {
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ProposalAttachmentDTO"
+                    }
+                },
+                "bid_amount": {
+                    "type": "number"
+                },
+                "bid_type": {
+                    "type": "string"
+                },
+                "client_id": {
+                    "type": "string"
+                },
+                "connects_spent": {
+                    "type": "integer"
+                },
+                "cover_letter": {
+                    "type": "string"
+                },
+                "created_at_unix_seconds": {
+                    "type": "integer"
+                },
+                "estimated_days": {
+                    "type": "integer"
+                },
+                "freelancer_id": {
+                    "type": "string"
+                },
+                "hired_at_unix_seconds": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "job_id": {
+                    "type": "integer"
+                },
+                "offer_sent_at_unix_seconds": {
+                    "type": "integer"
+                },
+                "rejected_at_unix_seconds": {
+                    "type": "integer"
+                },
+                "shortlisted_at_unix_seconds": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "status_reason": {
+                    "type": "string"
+                },
+                "updated_at_unix_seconds": {
+                    "type": "integer"
+                },
+                "withdrawn_at_unix_seconds": {
+                    "type": "integer"
+                }
+            }
+        },
+        "handlers.ProposalEnvelopeResponse": {
+            "type": "object",
+            "properties": {
+                "proposal": {
+                    "$ref": "#/definitions/handlers.ProposalDTO"
+                }
+            }
+        },
+        "handlers.ProposalErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.ProposalListResponse": {
+            "type": "object",
+            "properties": {
+                "next_page_token": {
+                    "type": "string"
+                },
+                "proposals": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.ProposalDTO"
+                    }
+                }
+            }
+        },
+        "handlers.ProposalStatusCountDTO": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.SetProposalDecisionRequest": {
+            "type": "object",
+            "properties": {
+                "decision": {
+                    "type": "string"
+                },
+                "reason": {
                     "type": "string"
                 }
             }

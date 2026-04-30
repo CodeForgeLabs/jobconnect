@@ -71,6 +71,24 @@ definitions:
       unseen_count:
         type: integer
     type: object
+  handlers.CountClientProposalInboxResponse:
+    properties:
+      by_status:
+        items:
+          $ref: '#/definitions/handlers.ProposalStatusCountDTO'
+        type: array
+      total:
+        type: integer
+    type: object
+  handlers.CountProposalsByJobResponse:
+    properties:
+      by_status:
+        items:
+          $ref: '#/definitions/handlers.ProposalStatusCountDTO'
+        type: array
+      total:
+        type: integer
+    type: object
   handlers.EditMessageRequest:
     properties:
       new_content: {}
@@ -97,6 +115,15 @@ definitions:
         items:
           $ref: '#/definitions/handlers.ChatMessageDTO'
         type: array
+    type: object
+  handlers.HasAppliedToJobResponse:
+    properties:
+      active_status:
+        type: string
+      has_applied:
+        type: boolean
+      proposal_id:
+        type: integer
     type: object
   handlers.HiringPreferencesResponse:
     properties:
@@ -148,6 +175,109 @@ definitions:
       media_type:
         type: string
       storage_key:
+        type: string
+    type: object
+  handlers.ProposalAttachmentDTO:
+    properties:
+      content_type:
+        type: string
+      file_name:
+        type: string
+      id:
+        type: integer
+      size_bytes:
+        type: integer
+      storage_key:
+        type: string
+      url:
+        type: string
+    type: object
+  handlers.ProposalAttachmentDownloadURLResponse:
+    properties:
+      download_url:
+        type: string
+    type: object
+  handlers.ProposalAttachmentUploadURLRequest:
+    properties:
+      content_type:
+        type: string
+      file_name:
+        type: string
+    type: object
+  handlers.ProposalAttachmentUploadURLResponse:
+    properties:
+      storage_key:
+        type: string
+      upload_url:
+        type: string
+    type: object
+  handlers.ProposalDTO:
+    properties:
+      attachments:
+        items:
+          $ref: '#/definitions/handlers.ProposalAttachmentDTO'
+        type: array
+      bid_amount:
+        type: number
+      bid_type:
+        type: string
+      client_id:
+        type: string
+      connects_spent:
+        type: integer
+      cover_letter:
+        type: string
+      created_at_unix_seconds:
+        type: integer
+      estimated_days:
+        type: integer
+      freelancer_id:
+        type: string
+      hired_at_unix_seconds:
+        type: integer
+      id:
+        type: integer
+      job_id:
+        type: integer
+      offer_sent_at_unix_seconds:
+        type: integer
+      rejected_at_unix_seconds:
+        type: integer
+      shortlisted_at_unix_seconds:
+        type: integer
+      status:
+        type: string
+      status_reason:
+        type: string
+      updated_at_unix_seconds:
+        type: integer
+      withdrawn_at_unix_seconds:
+        type: integer
+    type: object
+  handlers.ProposalEnvelopeResponse:
+    properties:
+      proposal:
+        $ref: '#/definitions/handlers.ProposalDTO'
+    type: object
+  handlers.ProposalErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.ProposalListResponse:
+    properties:
+      next_page_token:
+        type: string
+      proposals:
+        items:
+          $ref: '#/definitions/handlers.ProposalDTO'
+        type: array
+    type: object
+  handlers.ProposalStatusCountDTO:
+    properties:
+      count:
+        type: integer
+      status:
         type: string
     type: object
   handlers.RefreshResponse:
@@ -206,6 +336,13 @@ definitions:
     properties:
       message:
         $ref: '#/definitions/handlers.ChatMessageDTO'
+    type: object
+  handlers.SetProposalDecisionRequest:
+    properties:
+      decision:
+        type: string
+      reason:
+        type: string
     type: object
   handlers.UploadURLResponse:
     properties:
@@ -507,7 +644,7 @@ info:
     name: MIT
   termsOfService: http://example.com/terms/
   title: JobConnect Gateway API
-  version: "1.0"
+  version: '1.0'
 paths:
   /api/v1/auth/challenge:
     post:
@@ -525,23 +662,23 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.ChallengeResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "503":
+        '503':
           description: Service Unavailable
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -563,19 +700,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.ConfirmEmailChangeResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -599,19 +736,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.RequestEmailChangeResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -635,15 +772,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.ForgotPasswordResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -665,15 +802,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.LoginResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -686,15 +823,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.LogoutEverywhereResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -726,19 +863,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.OAuthCallbackResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -764,15 +901,15 @@ paths:
       produces:
       - application/json
       responses:
-        "302":
+        '302':
           description: Redirect to provider authorization URL
           schema:
             type: string
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -785,15 +922,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.RefreshResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -815,15 +952,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.RegisterResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -845,15 +982,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.ResetPasswordResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -866,15 +1003,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.ListSessionsResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -895,19 +1032,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.RevokeSessionResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
@@ -931,70 +1068,36 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.VerifyEmailOTPResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.AuthErrorResponse'
       summary: Verify email OTP
       tags:
       - Auth
-  /api/v1/chat/{userId}/messages:
-    get:
-      description: Returns all messages in the conversation between the authenticated
-        user and the specified user.
-      parameters:
-      - description: Other user ID
-        in: path
-        name: userId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.GetMessagesResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ChatErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/handlers.ChatErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.ChatErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get messages with a user
-      tags:
-      - Chat
   /api/v1/chat/conversations:
     get:
       description: Returns conversation summaries for the authenticated user.
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.GetConversationsResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
@@ -1016,19 +1119,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.ChatStatusResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
@@ -1052,19 +1155,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.SendMessageResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
@@ -1085,15 +1188,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.ChatStatusResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
@@ -1121,19 +1224,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.ChatStatusResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
@@ -1154,15 +1257,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.ChatStatusResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.ChatErrorResponse'
@@ -1171,21 +1274,487 @@ paths:
       summary: Mark a message as seen
       tags:
       - Chat
+  /api/v1/chat/{userId}/messages:
+    get:
+      description: Returns all messages in the conversation between the authenticated
+        user and the specified user.
+      parameters:
+      - description: Other user ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetMessagesResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get messages with a user
+      tags:
+      - Chat
+  /api/v1/proposals/client:
+    get:
+      description: Returns paginated proposals for the authenticated client's inbox.
+      parameters:
+      - collectionFormat: csv
+        description: Filter by status (repeatable)
+        in: query
+        items:
+          enum:
+          - sent
+          - shortlist
+          - shortlisted
+          - reject
+          - rejected
+          - hired
+          - withdrawn
+          type: string
+        name: status
+        type: array
+      - description: Filter by job ID
+        in: query
+        name: job_id
+        type: integer
+      - description: Filter by freelancer ID
+        in: query
+        name: freelancer_id
+        type: string
+      - description: Sort order
+        enum:
+        - newest
+        - oldest
+        - bid_high
+        - bid_low
+        in: query
+        name: sort_by
+        type: string
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Page token
+        in: query
+        name: page_token
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalListResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List client proposals
+      tags:
+      - Proposals
+  /api/v1/proposals/client/counts:
+    get:
+      description: Returns total and per-status counts for the authenticated client's
+        proposal inbox.
+      parameters:
+      - collectionFormat: csv
+        description: Filter by status (repeatable)
+        in: query
+        items:
+          enum:
+          - sent
+          - shortlist
+          - shortlisted
+          - reject
+          - rejected
+          - hired
+          - withdrawn
+          type: string
+        name: status
+        type: array
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CountClientProposalInboxResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Count client proposal inbox
+      tags:
+      - Proposals
+  /api/v1/proposals/jobs/{jobId}/counts:
+    get:
+      description: Returns total and per-status proposal counts for a specific job.
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CountProposalsByJobResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Count proposals by job
+      tags:
+      - Proposals
+  /api/v1/proposals/me:
+    get:
+      description: Returns paginated proposals for the authenticated freelancer.
+      parameters:
+      - collectionFormat: csv
+        description: Filter by status (repeatable)
+        in: query
+        items:
+          enum:
+          - sent
+          - shortlist
+          - shortlisted
+          - reject
+          - rejected
+          - hired
+          - withdrawn
+          type: string
+        name: status
+        type: array
+      - description: Filter by job ID
+        in: query
+        name: job_id
+        type: integer
+      - description: Sort order
+        enum:
+        - newest
+        - oldest
+        - bid_high
+        - bid_low
+        in: query
+        name: sort_by
+        type: string
+      - default: 20
+        description: Page size
+        in: query
+        name: page_size
+        type: integer
+      - description: Page token
+        in: query
+        name: page_token
+        type: string
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalListResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List my proposals
+      tags:
+      - Proposals
+  /api/v1/proposals/me/jobs/{jobId}:
+    get:
+      description: Returns the authenticated freelancer's proposal for a specific
+        job.
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalEnvelopeResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get my proposal for a job
+      tags:
+      - Proposals
+  /api/v1/proposals/me/jobs/{jobId}/has-applied:
+    get:
+      description: Returns whether the authenticated freelancer has applied to the
+        given job.
+      parameters:
+      - description: Job ID
+        in: path
+        name: jobId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HasAppliedToJobResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Check if I applied to a job
+      tags:
+      - Proposals
+  /api/v1/proposals/{proposalId}:
+    get:
+      description: Returns a single proposal by proposal ID.
+      parameters:
+      - description: Proposal ID
+        in: path
+        name: proposalId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalEnvelopeResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a proposal by ID
+      tags:
+      - Proposals
+  /api/v1/proposals/{proposalId}/attachments/upload-url:
+    post:
+      consumes:
+      - application/json
+      description: Returns a presigned upload URL for a proposal attachment.
+      parameters:
+      - description: Proposal ID
+        in: path
+        name: proposalId
+        required: true
+        type: integer
+      - description: Attachment upload request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.ProposalAttachmentUploadURLRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalAttachmentUploadURLResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get proposal attachment upload URL
+      tags:
+      - Proposals
+  /api/v1/proposals/{proposalId}/attachments/{attachmentId}/download-url:
+    get:
+      description: Returns a presigned download URL for a proposal attachment.
+      parameters:
+      - description: Proposal ID
+        in: path
+        name: proposalId
+        required: true
+        type: integer
+      - description: Attachment ID
+        in: path
+        name: attachmentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalAttachmentDownloadURLResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get proposal attachment download URL
+      tags:
+      - Proposals
+  /api/v1/proposals/{proposalId}/decision:
+    post:
+      consumes:
+      - application/json
+      description: Shortlists or rejects a proposal for the authenticated client.
+      parameters:
+      - description: Proposal ID
+        in: path
+        name: proposalId
+        required: true
+        type: integer
+      - description: Decision payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SetProposalDecisionRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProposalEnvelopeResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProposalErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set proposal decision
+      tags:
+      - Proposals
   /api/v1/users/me/avatar:
     delete:
       description: Removes the authenticated user's avatar.
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.RemovedResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1199,15 +1768,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.AvatarResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1230,19 +1799,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.AvatarResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1266,19 +1835,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.UploadURLResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1293,15 +1862,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.RemovedResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1315,15 +1884,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.CVResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1346,19 +1915,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.CVResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1382,19 +1951,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.UploadURLResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1415,19 +1984,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.FreelancerNoteResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1455,19 +2024,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.FreelancerNoteResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1482,15 +2051,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.HiringPreferencesResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1513,19 +2082,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.HiringPreferencesResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1541,15 +2110,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.UserOnboardingStatusResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1573,19 +2142,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.PortfolioItemsResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1608,25 +2177,62 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.PortfolioItemResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
       summary: Create portfolio item
+      tags:
+      - User
+  /api/v1/users/me/portfolio/media/upload-url:
+    post:
+      consumes:
+      - application/json
+      description: Returns a signed upload URL and storage key for portfolio media
+        upload.
+      parameters:
+      - description: Portfolio media upload URL payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserPortfolioMediaUploadURLRequest'
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UploadURLResponse'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reserve portfolio media upload URL
       tags:
       - User
   /api/v1/users/me/portfolio/{itemId}:
@@ -1641,19 +2247,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.UserDeletedResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1673,19 +2279,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.PortfolioItemResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1713,62 +2319,25 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.PortfolioItemResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
       summary: Update portfolio item
-      tags:
-      - User
-  /api/v1/users/me/portfolio/media/upload-url:
-    post:
-      consumes:
-      - application/json
-      description: Returns a signed upload URL and storage key for portfolio media
-        upload.
-      parameters:
-      - description: Portfolio media upload URL payload
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/handlers.UserPortfolioMediaUploadURLRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/handlers.UploadURLResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/handlers.UserErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Reserve portfolio media upload URL
       tags:
       - User
   /api/v1/users/me/profile:
@@ -1782,19 +2351,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.UserDeletedResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1808,15 +2377,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.UserProfileResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1839,19 +2408,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.UserProfileResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1875,19 +2444,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.SavedFreelancersResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1908,19 +2477,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.RemovedResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1940,19 +2509,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.SavedFreelancerResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1967,15 +2536,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.UserSettingsResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -1998,19 +2567,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.UserSettingsResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -2025,15 +2594,15 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.WorkPreferencesResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -2056,19 +2625,19 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
+        '200':
           description: OK
           schema:
             $ref: '#/definitions/handlers.WorkPreferencesResponse'
-        "400":
+        '400':
           description: Bad Request
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "401":
+        '401':
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
-        "500":
+        '500':
           description: Internal Server Error
           schema:
             $ref: '#/definitions/handlers.UserErrorResponse'
@@ -2082,4 +2651,4 @@ securityDefinitions:
     in: header
     name: Authorization
     type: apiKey
-swagger: "2.0"
+swagger: '2.0'
