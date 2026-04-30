@@ -75,6 +75,95 @@ type challengeRequest struct {
 	RecaptchaToken string `json:"recaptcha_token" binding:"required"`
 }
 
+type AuthErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type RegisterResponse struct {
+	UserID  string `json:"user_id"`
+	OtpSent bool   `json:"otp_sent"`
+}
+
+type VerifyEmailOTPResponse struct {
+	Verified bool `json:"verified"`
+}
+
+type LoginResponse struct {
+	AccessToken                 string `json:"access_token"`
+	AccessTokenExpiresInSeconds int64  `json:"access_token_expires_in_seconds"`
+}
+
+type RefreshResponse struct {
+	AccessToken                 string `json:"access_token"`
+	AccessTokenExpiresInSeconds int64  `json:"access_token_expires_in_seconds"`
+}
+
+type LogoutEverywhereResponse struct {
+	OK bool `json:"ok"`
+}
+
+type ForgotPasswordResponse struct {
+	Accepted bool `json:"accepted"`
+}
+
+type ResetPasswordResponse struct {
+	OK bool `json:"ok"`
+}
+
+type RequestEmailChangeResponse struct {
+	OtpSent bool `json:"otp_sent"`
+}
+
+type ConfirmEmailChangeResponse struct {
+	OK bool `json:"ok"`
+}
+
+type OAuthCallbackResponse struct {
+	AccessToken                 string `json:"access_token"`
+	AccessTokenExpiresInSeconds int64  `json:"access_token_expires_in_seconds"`
+	IsNewUser                   bool   `json:"is_new_user"`
+}
+
+type ListSessionsResponse struct {
+	Sessions any `json:"sessions"`
+}
+
+type RevokeSessionResponse struct {
+	OK bool `json:"ok"`
+}
+
+type ChallengeResponse struct {
+	ChallengePassed bool    `json:"challenge_passed"`
+	ChallengeProof  string  `json:"challenge_proof,omitempty"`
+	ChallengeID     string  `json:"challenge_id,omitempty"`
+	Score           float64 `json:"score"`
+	ExpiresAt       string  `json:"expires_at,omitempty"`
+}
+
+type CookieErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type GenericOKResponse struct {
+	OK bool `json:"ok"`
+}
+
+type GenericBooleanResponse struct {
+	Accepted bool `json:"accepted,omitempty"`
+	Verified bool `json:"verified,omitempty"`
+}
+
+// Register godoc
+// @Summary Register a new account
+// @Description Creates a new account and sends an email OTP for verification.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body registerRequest true "Register payload"
+// @Success 200 {object} RegisterResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req registerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -101,6 +190,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	})
 }
 
+// VerifyEmailOTP godoc
+// @Summary Verify email OTP
+// @Description Verifies the email OTP sent during registration.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body verifyEmailOTPRequest true "Email verification payload"
+// @Success 200 {object} VerifyEmailOTPResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/verify-email-otp [post]
 func (h *AuthHandler) VerifyEmailOTP(c *gin.Context) {
 	var req verifyEmailOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -120,6 +220,17 @@ func (h *AuthHandler) VerifyEmailOTP(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"verified": resp.GetVerified()})
 }
 
+// Login godoc
+// @Summary Login
+// @Description Authenticates a user and sets the refresh cookie.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body loginRequest true "Login payload"
+// @Success 200 {object} LoginResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -144,6 +255,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	})
 }
 
+// Refresh godoc
+// @Summary Refresh access token
+// @Description Exchanges the refresh cookie for a new access token.
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} RefreshResponse
+// @Failure 401 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/refresh [post]
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	refreshToken, err := c.Cookie(h.cfg.RefreshCookieName)
 	if err != nil || refreshToken == "" {
@@ -165,6 +285,15 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 	})
 }
 
+// LogoutEverywhere godoc
+// @Summary Logout from all sessions
+// @Description Revokes all refresh sessions for the current account.
+// @Tags Auth
+// @Produce json
+// @Success 200 {object} LogoutEverywhereResponse
+// @Failure 401 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/logout-everywhere [post]
 func (h *AuthHandler) LogoutEverywhere(c *gin.Context) {
 	refreshToken, err := c.Cookie(h.cfg.RefreshCookieName)
 	if err != nil || refreshToken == "" {
@@ -182,6 +311,17 @@ func (h *AuthHandler) LogoutEverywhere(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"ok": resp.GetOk()})
 }
 
+// ForgotPassword godoc
+// @Summary Start password reset
+// @Description Sends a password reset OTP to the account email.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body forgotPasswordRequest true "Forgot password payload"
+// @Success 200 {object} ForgotPasswordResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/forgot-password [post]
 func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	var req forgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -196,6 +336,17 @@ func (h *AuthHandler) ForgotPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"accepted": resp.GetAccepted()})
 }
 
+// ResetPassword godoc
+// @Summary Reset password
+// @Description Resets the password using the OTP sent to email.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body resetPasswordRequest true "Reset password payload"
+// @Success 200 {object} ResetPasswordResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/reset-password [post]
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	var req resetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -214,6 +365,19 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"ok": resp.GetOk()})
 }
 
+// RequestEmailChange godoc
+// @Summary Request email change
+// @Description Sends an OTP to the new email address for verification.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body requestEmailChangeRequest true "Email change request"
+// @Success 200 {object} RequestEmailChangeResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 401 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/email-change/request [post]
 func (h *AuthHandler) RequestEmailChange(c *gin.Context) {
 	userIDVal, hasUser := c.Get(middleware.ContextUserID)
 	if !hasUser {
@@ -239,6 +403,19 @@ func (h *AuthHandler) RequestEmailChange(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"otp_sent": resp.GetOtpSent()})
 }
 
+// ConfirmEmailChange godoc
+// @Summary Confirm email change
+// @Description Confirms the email change using the OTP sent to the new address.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body confirmEmailChangeRequest true "Email change confirmation"
+// @Success 200 {object} ConfirmEmailChangeResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 401 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/email-change/confirm [post]
 func (h *AuthHandler) ConfirmEmailChange(c *gin.Context) {
 	userIDVal, hasUser := c.Get(middleware.ContextUserID)
 	if !hasUser {
@@ -264,6 +441,17 @@ func (h *AuthHandler) ConfirmEmailChange(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"ok": resp.GetOk()})
 }
 
+// OAuthStart godoc
+// @Summary Start OAuth login
+// @Description Redirects the client to the OAuth provider authorization page.
+// @Tags Auth
+// @Produce json
+// @Param provider path string true "OAuth provider" Enums(google,github)
+// @Param role query string false "Desired role"
+// @Success 302 {string} string "Redirect to provider authorization URL"
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/oauth/{provider}/start [get]
 func (h *AuthHandler) OAuthStart(c *gin.Context) {
 	provider := strings.ToLower(strings.TrimSpace(c.Param("provider")))
 	if provider == "" {
@@ -291,6 +479,19 @@ func (h *AuthHandler) OAuthStart(c *gin.Context) {
 	c.Redirect(http.StatusFound, authURL)
 }
 
+// OAuthCallback godoc
+// @Summary Complete OAuth login
+// @Description Handles the OAuth callback and issues access/refresh tokens.
+// @Tags Auth
+// @Produce json
+// @Param provider path string true "OAuth provider" Enums(google,github)
+// @Param state query string true "OAuth state"
+// @Param code query string true "OAuth authorization code"
+// @Success 200 {object} OAuthCallbackResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 401 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/oauth/{provider}/callback [get]
 func (h *AuthHandler) OAuthCallback(c *gin.Context) {
 	provider := strings.ToLower(strings.TrimSpace(c.Param("provider")))
 	if provider == "" {
@@ -345,6 +546,16 @@ func (h *AuthHandler) OAuthCallback(c *gin.Context) {
 	})
 }
 
+// ListSessions godoc
+// @Summary List sessions
+// @Description Returns active login sessions for the authenticated user.
+// @Tags Auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} ListSessionsResponse
+// @Failure 401 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/sessions [get]
 func (h *AuthHandler) ListSessions(c *gin.Context) {
 	userIDVal, hasUser := c.Get(middleware.ContextUserID)
 	if !hasUser {
@@ -360,6 +571,18 @@ func (h *AuthHandler) ListSessions(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"sessions": resp.GetSessions()})
 }
 
+// RevokeSession godoc
+// @Summary Revoke session
+// @Description Revokes a specific session for the authenticated user.
+// @Tags Auth
+// @Produce json
+// @Security BearerAuth
+// @Param sessionId path string true "Session ID"
+// @Success 200 {object} RevokeSessionResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 401 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/sessions/{sessionId} [delete]
 func (h *AuthHandler) RevokeSession(c *gin.Context) {
 	userIDVal, hasUser := c.Get(middleware.ContextUserID)
 	if !hasUser {
@@ -385,6 +608,19 @@ func (h *AuthHandler) RevokeSession(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"ok": resp.GetOk()})
 }
 
+// Challenge godoc
+// @Summary Create challenge proof
+// @Description Verifies the CAPTCHA response and returns a short-lived challenge proof.
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param request body challengeRequest true "Challenge payload"
+// @Success 200 {object} ChallengeResponse
+// @Failure 400 {object} AuthErrorResponse
+// @Failure 401 {object} AuthErrorResponse
+// @Failure 503 {object} AuthErrorResponse
+// @Failure 500 {object} AuthErrorResponse
+// @Router /api/v1/auth/challenge [post]
 func (h *AuthHandler) Challenge(c *gin.Context) {
 	var req challengeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

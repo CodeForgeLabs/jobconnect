@@ -1,0 +1,922 @@
+basePath: /api/v1
+definitions:
+  handlers.AuthErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.ChallengeResponse:
+    properties:
+      challenge_id:
+        type: string
+      challenge_passed:
+        type: boolean
+      challenge_proof:
+        type: string
+      expires_at:
+        type: string
+      score:
+        type: number
+    type: object
+  handlers.ChatErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.ChatMessageDTO:
+    properties:
+      content: {}
+      created_at: {}
+      deleted_at: {}
+      edited_at: {}
+      id:
+        type: string
+      is_deleted:
+        type: boolean
+      is_edited:
+        type: boolean
+      is_seen:
+        type: boolean
+      receiver_id:
+        type: string
+      seen_at: {}
+      sender_id:
+        type: string
+    type: object
+  handlers.ChatStatusResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  handlers.ConfirmEmailChangeResponse:
+    properties:
+      ok:
+        type: boolean
+    type: object
+  handlers.ConversationDTO:
+    properties:
+      last_message:
+        $ref: '#/definitions/handlers.ChatMessageDTO'
+      other_user_id:
+        type: string
+      unseen_count:
+        type: integer
+    type: object
+  handlers.EditMessageRequest:
+    properties:
+      new_content: {}
+    type: object
+  handlers.ForgotPasswordResponse:
+    properties:
+      accepted:
+        type: boolean
+    type: object
+  handlers.GetConversationsResponse:
+    properties:
+      conversations:
+        items:
+          $ref: '#/definitions/handlers.ConversationDTO'
+        type: array
+    type: object
+  handlers.GetMessagesResponse:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/handlers.ChatMessageDTO'
+        type: array
+    type: object
+  handlers.ListSessionsResponse:
+    properties:
+      sessions: {}
+    type: object
+  handlers.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      access_token_expires_in_seconds:
+        type: integer
+    type: object
+  handlers.LogoutEverywhereResponse:
+    properties:
+      ok:
+        type: boolean
+    type: object
+  handlers.OAuthCallbackResponse:
+    properties:
+      access_token:
+        type: string
+      access_token_expires_in_seconds:
+        type: integer
+      is_new_user:
+        type: boolean
+    type: object
+  handlers.RefreshResponse:
+    properties:
+      access_token:
+        type: string
+      access_token_expires_in_seconds:
+        type: integer
+    type: object
+  handlers.RegisterResponse:
+    properties:
+      otp_sent:
+        type: boolean
+      user_id:
+        type: string
+    type: object
+  handlers.RequestEmailChangeResponse:
+    properties:
+      otp_sent:
+        type: boolean
+    type: object
+  handlers.ResetPasswordResponse:
+    properties:
+      ok:
+        type: boolean
+    type: object
+  handlers.RevokeSessionResponse:
+    properties:
+      ok:
+        type: boolean
+    type: object
+  handlers.SendMessageRequest:
+    properties:
+      content: {}
+      receiver_id:
+        type: string
+    type: object
+  handlers.SendMessageResponse:
+    properties:
+      message:
+        $ref: '#/definitions/handlers.ChatMessageDTO'
+    type: object
+  handlers.VerifyEmailOTPResponse:
+    properties:
+      verified:
+        type: boolean
+    type: object
+  handlers.challengeRequest:
+    properties:
+      challenge_id:
+        type: string
+      recaptcha_token:
+        type: string
+    required:
+    - challenge_id
+    - recaptcha_token
+    type: object
+  handlers.confirmEmailChangeRequest:
+    properties:
+      otp:
+        type: string
+    required:
+    - otp
+    type: object
+  handlers.forgotPasswordRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  handlers.loginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handlers.registerRequest:
+    properties:
+      accept_terms:
+        type: boolean
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    - role
+    type: object
+  handlers.requestEmailChangeRequest:
+    properties:
+      new_email:
+        type: string
+    required:
+    - new_email
+    type: object
+  handlers.resetPasswordRequest:
+    properties:
+      email:
+        type: string
+      new_password:
+        type: string
+      otp:
+        type: string
+    required:
+    - email
+    - new_password
+    - otp
+    type: object
+  handlers.verifyEmailOTPRequest:
+    properties:
+      email:
+        type: string
+      otp:
+        type: string
+    required:
+    - email
+    - otp
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@jobconnect.com
+    name: API Support
+  description: API Gateway for JobConnect platform.
+  license:
+    name: MIT
+  termsOfService: http://example.com/terms/
+  title: JobConnect Gateway API
+  version: "1.0"
+paths:
+  /api/v1/auth/challenge:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the CAPTCHA response and returns a short-lived challenge
+        proof.
+      parameters:
+      - description: Challenge payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.challengeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ChallengeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Create challenge proof
+      tags:
+      - Auth
+  /api/v1/auth/email-change/confirm:
+    post:
+      consumes:
+      - application/json
+      description: Confirms the email change using the OTP sent to the new address.
+      parameters:
+      - description: Email change confirmation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.confirmEmailChangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ConfirmEmailChangeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Confirm email change
+      tags:
+      - Auth
+  /api/v1/auth/email-change/request:
+    post:
+      consumes:
+      - application/json
+      description: Sends an OTP to the new email address for verification.
+      parameters:
+      - description: Email change request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.requestEmailChangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RequestEmailChangeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Request email change
+      tags:
+      - Auth
+  /api/v1/auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Sends a password reset OTP to the account email.
+      parameters:
+      - description: Forgot password payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.forgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ForgotPasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Start password reset
+      tags:
+      - Auth
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user and sets the refresh cookie.
+      parameters:
+      - description: Login payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Login
+      tags:
+      - Auth
+  /api/v1/auth/logout-everywhere:
+    post:
+      description: Revokes all refresh sessions for the current account.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.LogoutEverywhereResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Logout from all sessions
+      tags:
+      - Auth
+  /api/v1/auth/oauth/{provider}/callback:
+    get:
+      description: Handles the OAuth callback and issues access/refresh tokens.
+      parameters:
+      - description: OAuth provider
+        enum:
+        - google
+        - github
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: OAuth state
+        in: query
+        name: state
+        required: true
+        type: string
+      - description: OAuth authorization code
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.OAuthCallbackResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Complete OAuth login
+      tags:
+      - Auth
+  /api/v1/auth/oauth/{provider}/start:
+    get:
+      description: Redirects the client to the OAuth provider authorization page.
+      parameters:
+      - description: OAuth provider
+        enum:
+        - google
+        - github
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: Desired role
+        in: query
+        name: role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect to provider authorization URL
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Start OAuth login
+      tags:
+      - Auth
+  /api/v1/auth/refresh:
+    post:
+      description: Exchanges the refresh cookie for a new access token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RefreshResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Refresh access token
+      tags:
+      - Auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new account and sends an email OTP for verification.
+      parameters:
+      - description: Register payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.registerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RegisterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Register a new account
+      tags:
+      - Auth
+  /api/v1/auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Resets the password using the OTP sent to email.
+      parameters:
+      - description: Reset password payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.resetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ResetPasswordResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Reset password
+      tags:
+      - Auth
+  /api/v1/auth/sessions:
+    get:
+      description: Returns active login sessions for the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ListSessionsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List sessions
+      tags:
+      - Auth
+  /api/v1/auth/sessions/{sessionId}:
+    delete:
+      description: Revokes a specific session for the authenticated user.
+      parameters:
+      - description: Session ID
+        in: path
+        name: sessionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RevokeSessionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Revoke session
+      tags:
+      - Auth
+  /api/v1/auth/verify-email-otp:
+    post:
+      consumes:
+      - application/json
+      description: Verifies the email OTP sent during registration.
+      parameters:
+      - description: Email verification payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.verifyEmailOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.VerifyEmailOTPResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.AuthErrorResponse'
+      summary: Verify email OTP
+      tags:
+      - Auth
+  /api/v1/chat/{userId}/messages:
+    get:
+      description: Returns all messages in the conversation between the authenticated
+        user and the specified user.
+      parameters:
+      - description: Other user ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetMessagesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get messages with a user
+      tags:
+      - Chat
+  /api/v1/chat/conversations:
+    get:
+      description: Returns conversation summaries for the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.GetConversationsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List my conversations
+      tags:
+      - Chat
+  /api/v1/chat/conversations/{userId}:
+    delete:
+      description: Deletes all messages in the conversation between authenticated
+        user and specified user.
+      parameters:
+      - description: Other user ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ChatStatusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete conversation
+      tags:
+      - Chat
+  /api/v1/chat/messages:
+    post:
+      consumes:
+      - application/json
+      description: Sends a new message from the authenticated user to another user.
+      parameters:
+      - description: Message payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.SendMessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Send a chat message
+      tags:
+      - Chat
+  /api/v1/chat/messages/{messageId}:
+    delete:
+      description: Deletes a specific message.
+      parameters:
+      - description: Message ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ChatStatusResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a message
+      tags:
+      - Chat
+    put:
+      consumes:
+      - application/json
+      description: Updates content of an existing message.
+      parameters:
+      - description: Message ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      - description: Edit message payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.EditMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ChatStatusResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Edit a message
+      tags:
+      - Chat
+  /api/v1/chat/messages/{messageId}/seen:
+    post:
+      description: Marks a specific message as seen by the authenticated user.
+      parameters:
+      - description: Message ID
+        in: path
+        name: messageId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ChatStatusResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ChatErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Mark a message as seen
+      tags:
+      - Chat
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

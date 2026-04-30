@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	_ "jobconnect/gateway/cmd/gatewayd/docs"
 	"jobconnect/gateway/internal/clients"
 	"jobconnect/gateway/internal/config"
 	"jobconnect/gateway/internal/handlers"
@@ -20,6 +21,21 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+// @title JobConnect Gateway API
+// @version 1.0
+// @description API Gateway for JobConnect platform.
+// @termsOfService http://example.com/terms/
+
+// @contact.name API Support
+// @contact.email support@jobconnect.com
+
+// @license.name MIT
+// @host localhost:8080
+// @BasePath /api/v1
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -171,6 +187,7 @@ func loadDotEnvFile(path string) error {
 		if _, exists := os.LookupEnv(key); !exists {
 			_ = os.Setenv(key, val)
 		}
+
 	}
 	return scanner.Err()
 }

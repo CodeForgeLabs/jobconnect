@@ -10,6 +10,9 @@ import (
 	"jobconnect/gateway/internal/middleware"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"golang.org/x/time/rate"
 )
 
@@ -17,7 +20,7 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
-
+	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	engine.GET("/healthz", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
