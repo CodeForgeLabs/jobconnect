@@ -32,13 +32,14 @@ BEGIN
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'dispute') THEN
         CREATE ROLE dispute LOGIN PASSWORD 'dispute';
+    END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'review') THEN
         CREATE ROLE review LOGIN PASSWORD 'review';
     END IF;
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'recommendation') THEN
         CREATE ROLE recommendation LOGIN PASSWORD 'recommendation';
     END IF;
-END
+END;
 $$;
 
 SELECT 'CREATE DATABASE jobconnect_auth OWNER auth'
