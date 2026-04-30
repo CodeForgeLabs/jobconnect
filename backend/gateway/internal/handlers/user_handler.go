@@ -85,10 +85,190 @@ type updateAccountSettingsRequest struct {
 	PushNotificationsEnabled  *bool   `json:"push_notifications_enabled"`
 }
 
+type UserProfileUpdateRequest struct {
+	DisplayName      *string  `json:"display_name,omitempty"`
+	AvatarURL        *string  `json:"avatar_url,omitempty"`
+	Language         *string  `json:"language,omitempty"`
+	ContactEmail     *string  `json:"contact_email,omitempty"`
+	ContactPhone     *string  `json:"contact_phone,omitempty"`
+	Bio              *string  `json:"bio,omitempty"`
+	FirstName        *string  `json:"first_name,omitempty"`
+	LastName         *string  `json:"last_name,omitempty"`
+	CompanyName      *string  `json:"company_name,omitempty"`
+	TaxID            *string  `json:"tax_id,omitempty"`
+	Headline         *string  `json:"headline,omitempty"`
+	Skills           []string `json:"skills,omitempty"`
+	HourlyRate       *float64 `json:"hourly_rate,omitempty"`
+	Availability     *string  `json:"availability,omitempty"`
+	Location         *string  `json:"location,omitempty"`
+	LastActiveAtUnix *int64   `json:"last_active_at_unix,omitempty"`
+}
+
+type UserAccountSettingsUpdateRequest struct {
+	UILocale                  *string `json:"ui_locale,omitempty"`
+	EmailNotificationsEnabled *bool   `json:"email_notifications_enabled,omitempty"`
+	PushNotificationsEnabled  *bool   `json:"push_notifications_enabled,omitempty"`
+}
+
+type UserAvatarUploadURLRequest struct {
+	FileName    string `json:"file_name,omitempty"`
+	ContentType string `json:"content_type,omitempty"`
+}
+
+type UserAvatarFinalizeRequest struct {
+	StorageKey  string `json:"storage_key"`
+	FileName    string `json:"file_name,omitempty"`
+	ContentType string `json:"content_type"`
+	Width       *int32 `json:"width,omitempty"`
+	Height      *int32 `json:"height,omitempty"`
+}
+
+type UserCVUploadURLRequest struct {
+	FileName    string `json:"file_name,omitempty"`
+	ContentType string `json:"content_type,omitempty"`
+}
+
+type UserCVFinalizeRequest struct {
+	StorageKey  string `json:"storage_key"`
+	FileName    string `json:"file_name,omitempty"`
+	ContentType string `json:"content_type"`
+}
+
+type UserPortfolioMediaUploadURLRequest struct {
+	FileName    string `json:"file_name,omitempty"`
+	ContentType string `json:"content_type,omitempty"`
+}
+
+type PortfolioMediaInputDTO struct {
+	StorageKey  string `json:"storage_key,omitempty"`
+	ContentType string `json:"content_type,omitempty"`
+	FileName    string `json:"file_name,omitempty"`
+	MediaType   string `json:"media_type,omitempty"`
+}
+
+type UserPortfolioCreateRequest struct {
+	Title           string                   `json:"title,omitempty"`
+	Description     string                   `json:"description,omitempty"`
+	ProjectURL      string                   `json:"project_url,omitempty"`
+	RoleInProject   string                   `json:"role_in_project,omitempty"`
+	CompletedAtUnix *int64                   `json:"completed_at_unix,omitempty"`
+	Tags            []string                 `json:"tags,omitempty"`
+	Media           []PortfolioMediaInputDTO `json:"media,omitempty"`
+}
+
+type UserPortfolioUpdateRequest struct {
+	Title           *string                  `json:"title,omitempty"`
+	Description     *string                  `json:"description,omitempty"`
+	ProjectURL      *string                  `json:"project_url,omitempty"`
+	RoleInProject   *string                  `json:"role_in_project,omitempty"`
+	CompletedAtUnix *int64                   `json:"completed_at_unix,omitempty"`
+	Tags            []string                 `json:"tags,omitempty"`
+	Media           []PortfolioMediaInputDTO `json:"media,omitempty"`
+}
+
+type UserWorkPreferencesRequest struct {
+	PreferredProjectLength *string  `json:"preferred_project_length,omitempty"`
+	MinBudget              *float64 `json:"min_budget,omitempty"`
+	MaxBudget              *float64 `json:"max_budget,omitempty"`
+	ContractTypes          []string `json:"contract_types,omitempty"`
+	WeeklyCapacityHours    *int64   `json:"weekly_capacity_hours,omitempty"`
+}
+
+type UserHiringPreferencesRequest struct {
+	MinHourlyRate      *float64 `json:"min_hourly_rate,omitempty"`
+	MaxHourlyRate      *float64 `json:"max_hourly_rate,omitempty"`
+	PreferredLocations []string `json:"preferred_locations,omitempty"`
+}
+
+type UserFreelancerNoteRequest struct {
+	Note string `json:"note,omitempty"`
+}
+
+type UserErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type UserProfileResponse struct {
+	Profile      any `json:"profile"`
+	Completeness any `json:"completeness"`
+}
+
+type UserOnboardingStatusResponse struct {
+	Completeness any   `json:"completeness"`
+	Readiness    any   `json:"readiness"`
+	Steps        []any `json:"steps"`
+}
+
+type UserSettingsResponse struct {
+	Settings any `json:"settings"`
+}
+
+type UploadURLResponse struct {
+	StorageKey string `json:"storage_key"`
+	UploadURL  string `json:"upload_url"`
+}
+
+type AvatarResponse struct {
+	Avatar    any    `json:"avatar"`
+	AvatarURL string `json:"avatar_url,omitempty"`
+}
+
+type UserDeletedResponse struct {
+	Deleted bool `json:"deleted"`
+}
+
+type RemovedResponse struct {
+	Removed bool `json:"removed"`
+}
+
+type CVResponse struct {
+	Cv any `json:"cv"`
+}
+
+type PortfolioItemResponse struct {
+	Item any `json:"item"`
+}
+
+type PortfolioItemsResponse struct {
+	Items         []any  `json:"items"`
+	NextPageToken string `json:"next_page_token,omitempty"`
+}
+
+type WorkPreferencesResponse struct {
+	Settings any `json:"settings"`
+}
+
+type HiringPreferencesResponse struct {
+	Preferences any `json:"preferences"`
+}
+
+type SavedFreelancerResponse struct {
+	Saved any `json:"saved"`
+}
+
+type SavedFreelancersResponse struct {
+	Freelancers   []any  `json:"freelancers"`
+	NextPageToken string `json:"next_page_token,omitempty"`
+}
+
+type FreelancerNoteResponse struct {
+	Note any `json:"note"`
+}
+
 func NewUserHandler(client userv1.UserServiceClient, verificationClient verificationStatusClient) *UserHandler {
 	return &UserHandler{client: client, verificationClient: verificationClient}
 }
 
+// GetMe godoc
+// @Summary Get current user profile
+// @Description Returns the authenticated user's profile and completeness summary.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} UserProfileResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/profile [get]
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -116,6 +296,19 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"profile": profilePayload, "completeness": completenessPayload})
 }
 
+// UpdateMeProfile godoc
+// @Summary Update my profile
+// @Description Patch profile fields for the authenticated user.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserProfileUpdateRequest true "Profile patch payload"
+// @Success 200 {object} UserProfileResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/profile [patch]
 func (h *UserHandler) UpdateMeProfile(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -250,6 +443,18 @@ func (h *UserHandler) taxIDLocked(ctx context.Context, userID string) (bool, err
 	}
 }
 
+// DeleteMeProfile godoc
+// @Summary Delete my profile
+// @Description Deletes the authenticated user's profile.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Param hard_delete query boolean false "Hard delete flag"
+// @Success 200 {object} UserDeletedResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/profile [delete]
 func (h *UserHandler) DeleteMeProfile(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -275,6 +480,16 @@ func (h *UserHandler) DeleteMeProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"deleted": resp.GetDeleted()})
 }
 
+// GetMeOnboardingStatus godoc
+// @Summary Get my onboarding status
+// @Description Returns onboarding completeness, readiness and steps for the authenticated user.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} UserOnboardingStatusResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/onboarding-status [get]
 func (h *UserHandler) GetMeOnboardingStatus(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -306,6 +521,16 @@ func (h *UserHandler) GetMeOnboardingStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"completeness": completenessPayload, "readiness": readinessPayload, "steps": stepsPayload})
 }
 
+// GetMeAccountSettings godoc
+// @Summary Get my account settings
+// @Description Returns account settings for the authenticated user.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} UserSettingsResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/settings [get]
 func (h *UserHandler) GetMeAccountSettings(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -328,6 +553,19 @@ func (h *UserHandler) GetMeAccountSettings(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"settings": settingsPayload})
 }
 
+// UpdateMeAccountSettings godoc
+// @Summary Update my account settings
+// @Description Patch account and notification settings for the authenticated user.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserAccountSettingsUpdateRequest true "Settings payload"
+// @Success 200 {object} UserSettingsResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/settings [patch]
 func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -371,6 +609,19 @@ func (h *UserHandler) UpdateMeAccountSettings(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"settings": settingsPayload})
 }
 
+// GetMeAvatarUploadUrl godoc
+// @Summary Reserve avatar upload URL
+// @Description Returns a signed upload URL and storage key for avatar upload.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserAvatarUploadURLRequest true "Avatar upload URL payload"
+// @Success 200 {object} UploadURLResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/avatar/upload-url [post]
 func (h *UserHandler) GetMeAvatarUploadUrl(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -392,6 +643,19 @@ func (h *UserHandler) GetMeAvatarUploadUrl(c *gin.Context) {
 	return
 }
 
+// UploadMeAvatar godoc
+// @Summary Upload avatar metadata
+// @Description Registers an uploaded avatar for the authenticated user.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserAvatarFinalizeRequest true "Avatar finalize payload"
+// @Success 200 {object} AvatarResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/avatar [post]
 func (h *UserHandler) UploadMeAvatar(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -429,6 +693,16 @@ func (h *UserHandler) UploadMeAvatar(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"avatar_url": resp.GetAvatarUrl(), "avatar": avatarPayload})
 }
 
+// GetMeAvatar godoc
+// @Summary Get my avatar
+// @Description Returns the authenticated user's avatar resource.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} AvatarResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/avatar [get]
 func (h *UserHandler) GetMeAvatar(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -450,6 +724,16 @@ func (h *UserHandler) GetMeAvatar(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"avatar": avatarPayload})
 }
 
+// RemoveMeAvatar godoc
+// @Summary Remove my avatar
+// @Description Removes the authenticated user's avatar.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} RemovedResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/avatar [delete]
 func (h *UserHandler) RemoveMeAvatar(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -466,6 +750,19 @@ func (h *UserHandler) RemoveMeAvatar(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"removed": resp.GetRemoved()})
 }
 
+// GetMeCVUploadUrl godoc
+// @Summary Reserve CV upload URL
+// @Description Returns a signed upload URL and storage key for CV upload.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserCVUploadURLRequest true "CV upload URL payload"
+// @Success 200 {object} UploadURLResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/cv/upload-url [post]
 func (h *UserHandler) GetMeCVUploadUrl(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -487,6 +784,19 @@ func (h *UserHandler) GetMeCVUploadUrl(c *gin.Context) {
 	return
 }
 
+// UploadMeCV godoc
+// @Summary Upload CV metadata
+// @Description Registers an uploaded CV for the authenticated user.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserCVFinalizeRequest true "CV finalize payload"
+// @Success 200 {object} CVResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/cv [post]
 func (h *UserHandler) UploadMeCV(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -524,6 +834,16 @@ func (h *UserHandler) UploadMeCV(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"cv": cvPayload})
 }
 
+// GetMeCV godoc
+// @Summary Get my CV
+// @Description Returns the authenticated user's CV resource.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} CVResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/cv [get]
 func (h *UserHandler) GetMeCV(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -546,6 +866,16 @@ func (h *UserHandler) GetMeCV(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"cv": cvPayload})
 }
 
+// RemoveMeCV godoc
+// @Summary Remove my CV
+// @Description Removes the authenticated user's CV.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} RemovedResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/cv [delete]
 func (h *UserHandler) RemoveMeCV(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -562,6 +892,19 @@ func (h *UserHandler) RemoveMeCV(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"removed": resp.GetRemoved()})
 }
 
+// GetMePortfolioMediaUploadUrl godoc
+// @Summary Reserve portfolio media upload URL
+// @Description Returns a signed upload URL and storage key for portfolio media upload.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserPortfolioMediaUploadURLRequest true "Portfolio media upload URL payload"
+// @Success 200 {object} UploadURLResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/portfolio/media/upload-url [post]
 func (h *UserHandler) GetMePortfolioMediaUploadUrl(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -583,6 +926,19 @@ func (h *UserHandler) GetMePortfolioMediaUploadUrl(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"storage_key": resp.GetStorageKey(), "upload_url": resp.GetUploadUrl()})
 }
 
+// CreateMePortfolioItem godoc
+// @Summary Create portfolio item
+// @Description Creates a new portfolio item for the authenticated user.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserPortfolioCreateRequest true "Portfolio item payload"
+// @Success 200 {object} PortfolioItemResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/portfolio [post]
 func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -606,6 +962,19 @@ func (h *UserHandler) CreateMePortfolioItem(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "item", resp.GetItem())
 }
 
+// ListMePortfolioItems godoc
+// @Summary List my portfolio items
+// @Description Returns paginated portfolio items for the authenticated user.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Param page_size query int false "Page size"
+// @Param page_token query string false "Page token"
+// @Success 200 {object} PortfolioItemsResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/portfolio [get]
 func (h *UserHandler) ListMePortfolioItems(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -637,6 +1006,18 @@ func (h *UserHandler) ListMePortfolioItems(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"items": itemsPayload, "next_page_token": nextPageToken})
 }
 
+// GetMePortfolioItem godoc
+// @Summary Get portfolio item
+// @Description Returns a specific portfolio item for the authenticated user.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Param itemId path int true "Portfolio item ID"
+// @Success 200 {object} PortfolioItemResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/portfolio/{itemId} [get]
 func (h *UserHandler) GetMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -659,6 +1040,20 @@ func (h *UserHandler) GetMePortfolioItem(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "item", resp.GetItem())
 }
 
+// UpdateMePortfolioItem godoc
+// @Summary Update portfolio item
+// @Description Updates a portfolio item owned by the authenticated user.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param itemId path int true "Portfolio item ID"
+// @Param request body UserPortfolioUpdateRequest true "Portfolio update payload"
+// @Success 200 {object} PortfolioItemResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/portfolio/{itemId} [put]
 func (h *UserHandler) UpdateMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -689,6 +1084,18 @@ func (h *UserHandler) UpdateMePortfolioItem(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "item", resp.GetItem())
 }
 
+// DeleteMePortfolioItem godoc
+// @Summary Delete portfolio item
+// @Description Deletes a portfolio item owned by the authenticated user.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Param itemId path int true "Portfolio item ID"
+// @Success 200 {object} UserDeletedResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/portfolio/{itemId} [delete]
 func (h *UserHandler) DeleteMePortfolioItem(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -711,6 +1118,19 @@ func (h *UserHandler) DeleteMePortfolioItem(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"deleted": resp.GetDeleted()})
 }
 
+// SetMeWorkPreferences godoc
+// @Summary Set work preferences
+// @Description Updates the authenticated user's work preferences.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserWorkPreferencesRequest true "Work preferences payload"
+// @Success 200 {object} WorkPreferencesResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/work-preferences [patch]
 func (h *UserHandler) SetMeWorkPreferences(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -751,6 +1171,16 @@ func (h *UserHandler) SetMeWorkPreferences(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
 }
 
+// GetMeWorkPreferences godoc
+// @Summary Get work preferences
+// @Description Returns the authenticated user's work preferences.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} WorkPreferencesResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/work-preferences [get]
 func (h *UserHandler) GetMeWorkPreferences(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -767,6 +1197,16 @@ func (h *UserHandler) GetMeWorkPreferences(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "settings", resp.GetSettings())
 }
 
+// GetMeHiringPreferences godoc
+// @Summary Get hiring preferences
+// @Description Returns hiring preferences for the authenticated user.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} HiringPreferencesResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/hiring-preferences [get]
 func (h *UserHandler) GetMeHiringPreferences(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -783,6 +1223,19 @@ func (h *UserHandler) GetMeHiringPreferences(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "preferences", resp.GetPreferences())
 }
 
+// UpdateMeHiringPreferences godoc
+// @Summary Update hiring preferences
+// @Description Updates hiring preferences for the authenticated user.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UserHiringPreferencesRequest true "Hiring preferences payload"
+// @Success 200 {object} HiringPreferencesResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/hiring-preferences [patch]
 func (h *UserHandler) UpdateMeHiringPreferences(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -805,6 +1258,18 @@ func (h *UserHandler) UpdateMeHiringPreferences(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "preferences", resp.GetPreferences())
 }
 
+// SaveMeFreelancer godoc
+// @Summary Save a freelancer
+// @Description Shortlist a freelancer for the authenticated client.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Param freelancerId path string true "Freelancer user ID"
+// @Success 200 {object} SavedFreelancerResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/saved-freelancers/{freelancerId} [post]
 func (h *UserHandler) SaveMeFreelancer(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -827,6 +1292,19 @@ func (h *UserHandler) SaveMeFreelancer(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "saved", resp.GetSaved())
 }
 
+// ListMeSavedFreelancers godoc
+// @Summary List saved freelancers
+// @Description Returns paginated saved freelancers for the authenticated user.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Param page_size query int false "Page size"
+// @Param page_token query string false "Page token"
+// @Success 200 {object} SavedFreelancersResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/saved-freelancers [get]
 func (h *UserHandler) ListMeSavedFreelancers(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -858,6 +1336,18 @@ func (h *UserHandler) ListMeSavedFreelancers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"freelancers": itemsPayload, "next_page_token": nextPageToken})
 }
 
+// RemoveMeSavedFreelancer godoc
+// @Summary Remove saved freelancer
+// @Description Removes a freelancer from the authenticated user's saved list.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Param freelancerId path string true "Freelancer user ID"
+// @Success 200 {object} RemovedResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/saved-freelancers/{freelancerId} [delete]
 func (h *UserHandler) RemoveMeSavedFreelancer(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -880,6 +1370,20 @@ func (h *UserHandler) RemoveMeSavedFreelancer(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"removed": resp.GetRemoved()})
 }
 
+// UpsertMeFreelancerNote godoc
+// @Summary Upsert freelancer note
+// @Description Creates or updates a recruiter note about a freelancer.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param freelancerId path string true "Freelancer user ID"
+// @Param request body UserFreelancerNoteRequest true "Freelancer note payload"
+// @Success 200 {object} FreelancerNoteResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/freelancer-notes/{freelancerId} [put]
 func (h *UserHandler) UpsertMeFreelancerNote(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -909,6 +1413,18 @@ func (h *UserHandler) UpsertMeFreelancerNote(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "note", resp.GetNote())
 }
 
+// GetMeFreelancerNote godoc
+// @Summary Get freelancer note
+// @Description Returns the recruiter's note for a specific freelancer.
+// @Tags User
+// @Produce json
+// @Security BearerAuth
+// @Param freelancerId path string true "Freelancer user ID"
+// @Success 200 {object} FreelancerNoteResponse
+// @Failure 400 {object} UserErrorResponse
+// @Failure 401 {object} UserErrorResponse
+// @Failure 500 {object} UserErrorResponse
+// @Router /api/v1/users/me/freelancer-notes/{freelancerId} [get]
 func (h *UserHandler) GetMeFreelancerNote(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
