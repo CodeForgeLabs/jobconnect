@@ -4,6 +4,16 @@ definitions:
       error:
         type: string
     type: object
+  handlers.AvatarResponse:
+    properties:
+      avatar: {}
+      avatar_url:
+        type: string
+    type: object
+  handlers.CVResponse:
+    properties:
+      cv: {}
+    type: object
   handlers.ChallengeResponse:
     properties:
       challenge_id:
@@ -61,24 +71,6 @@ definitions:
       unseen_count:
         type: integer
     type: object
-  handlers.CountClientProposalInboxResponse:
-    properties:
-      by_status:
-        items:
-          $ref: '#/definitions/handlers.ProposalStatusCountDTO'
-        type: array
-      total:
-        type: integer
-    type: object
-  handlers.CountProposalsByJobResponse:
-    properties:
-      by_status:
-        items:
-          $ref: '#/definitions/handlers.ProposalStatusCountDTO'
-        type: array
-      total:
-        type: integer
-    type: object
   handlers.EditMessageRequest:
     properties:
       new_content: {}
@@ -87,6 +79,10 @@ definitions:
     properties:
       accepted:
         type: boolean
+    type: object
+  handlers.FreelancerNoteResponse:
+    properties:
+      note: {}
     type: object
   handlers.GetConversationsResponse:
     properties:
@@ -102,14 +98,9 @@ definitions:
           $ref: '#/definitions/handlers.ChatMessageDTO'
         type: array
     type: object
-  handlers.HasAppliedToJobResponse:
+  handlers.HiringPreferencesResponse:
     properties:
-      active_status:
-        type: string
-      has_applied:
-        type: boolean
-      proposal_id:
-        type: integer
+      preferences: {}
     type: object
   handlers.ListSessionsResponse:
     properties:
@@ -136,107 +127,27 @@ definitions:
       is_new_user:
         type: boolean
     type: object
-  handlers.ProposalAttachmentDTO:
+  handlers.PortfolioItemResponse:
     properties:
-      content_type:
-        type: string
-      file_name:
-        type: string
-      id:
-        type: integer
-      size_bytes:
-        type: integer
-      storage_key:
-        type: string
-      url:
-        type: string
+      item: {}
     type: object
-  handlers.ProposalAttachmentDownloadURLResponse:
+  handlers.PortfolioItemsResponse:
     properties:
-      download_url:
-        type: string
-    type: object
-  handlers.ProposalAttachmentUploadURLRequest:
-    properties:
-      content_type:
-        type: string
-      file_name:
-        type: string
-    type: object
-  handlers.ProposalAttachmentUploadURLResponse:
-    properties:
-      storage_key:
-        type: string
-      upload_url:
-        type: string
-    type: object
-  handlers.ProposalDTO:
-    properties:
-      attachments:
-        items:
-          $ref: '#/definitions/handlers.ProposalAttachmentDTO'
+      items:
+        items: {}
         type: array
-      bid_amount:
-        type: number
-      bid_type:
-        type: string
-      client_id:
-        type: string
-      connects_spent:
-        type: integer
-      cover_letter:
-        type: string
-      created_at_unix_seconds:
-        type: integer
-      estimated_days:
-        type: integer
-      freelancer_id:
-        type: string
-      hired_at_unix_seconds:
-        type: integer
-      id:
-        type: integer
-      job_id:
-        type: integer
-      offer_sent_at_unix_seconds:
-        type: integer
-      rejected_at_unix_seconds:
-        type: integer
-      shortlisted_at_unix_seconds:
-        type: integer
-      status:
-        type: string
-      status_reason:
-        type: string
-      updated_at_unix_seconds:
-        type: integer
-      withdrawn_at_unix_seconds:
-        type: integer
-    type: object
-  handlers.ProposalEnvelopeResponse:
-    properties:
-      proposal:
-        $ref: '#/definitions/handlers.ProposalDTO'
-    type: object
-  handlers.ProposalErrorResponse:
-    properties:
-      error:
-        type: string
-    type: object
-  handlers.ProposalListResponse:
-    properties:
       next_page_token:
         type: string
-      proposals:
-        items:
-          $ref: '#/definitions/handlers.ProposalDTO'
-        type: array
     type: object
-  handlers.ProposalStatusCountDTO:
+  handlers.PortfolioMediaInputDTO:
     properties:
-      count:
-        type: integer
-      status:
+      content_type:
+        type: string
+      file_name:
+        type: string
+      media_type:
+        type: string
+      storage_key:
         type: string
     type: object
   handlers.RefreshResponse:
@@ -253,6 +164,11 @@ definitions:
       user_id:
         type: string
     type: object
+  handlers.RemovedResponse:
+    properties:
+      removed:
+        type: boolean
+    type: object
   handlers.RequestEmailChangeResponse:
     properties:
       otp_sent:
@@ -268,6 +184,18 @@ definitions:
       ok:
         type: boolean
     type: object
+  handlers.SavedFreelancerResponse:
+    properties:
+      saved: {}
+    type: object
+  handlers.SavedFreelancersResponse:
+    properties:
+      freelancers:
+        items: {}
+        type: array
+      next_page_token:
+        type: string
+    type: object
   handlers.SendMessageRequest:
     properties:
       content: {}
@@ -279,17 +207,210 @@ definitions:
       message:
         $ref: '#/definitions/handlers.ChatMessageDTO'
     type: object
-  handlers.SetProposalDecisionRequest:
+  handlers.UploadURLResponse:
     properties:
-      decision:
+      storage_key:
         type: string
-      reason:
+      upload_url:
         type: string
+    type: object
+  handlers.UserAccountSettingsUpdateRequest:
+    properties:
+      email_notifications_enabled:
+        type: boolean
+      push_notifications_enabled:
+        type: boolean
+      ui_locale:
+        type: string
+    type: object
+  handlers.UserAvatarFinalizeRequest:
+    properties:
+      content_type:
+        type: string
+      file_name:
+        type: string
+      height:
+        type: integer
+      storage_key:
+        type: string
+      width:
+        type: integer
+    type: object
+  handlers.UserAvatarUploadURLRequest:
+    properties:
+      content_type:
+        type: string
+      file_name:
+        type: string
+    type: object
+  handlers.UserCVFinalizeRequest:
+    properties:
+      content_type:
+        type: string
+      file_name:
+        type: string
+      storage_key:
+        type: string
+    type: object
+  handlers.UserCVUploadURLRequest:
+    properties:
+      content_type:
+        type: string
+      file_name:
+        type: string
+    type: object
+  handlers.UserDeletedResponse:
+    properties:
+      deleted:
+        type: boolean
+    type: object
+  handlers.UserErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  handlers.UserFreelancerNoteRequest:
+    properties:
+      note:
+        type: string
+    type: object
+  handlers.UserHiringPreferencesRequest:
+    properties:
+      max_hourly_rate:
+        type: number
+      min_hourly_rate:
+        type: number
+      preferred_locations:
+        items:
+          type: string
+        type: array
+    type: object
+  handlers.UserOnboardingStatusResponse:
+    properties:
+      completeness: {}
+      readiness: {}
+      steps:
+        items: {}
+        type: array
+    type: object
+  handlers.UserPortfolioCreateRequest:
+    properties:
+      completed_at_unix:
+        type: integer
+      description:
+        type: string
+      media:
+        items:
+          $ref: '#/definitions/handlers.PortfolioMediaInputDTO'
+        type: array
+      project_url:
+        type: string
+      role_in_project:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    type: object
+  handlers.UserPortfolioMediaUploadURLRequest:
+    properties:
+      content_type:
+        type: string
+      file_name:
+        type: string
+    type: object
+  handlers.UserPortfolioUpdateRequest:
+    properties:
+      completed_at_unix:
+        type: integer
+      description:
+        type: string
+      media:
+        items:
+          $ref: '#/definitions/handlers.PortfolioMediaInputDTO'
+        type: array
+      project_url:
+        type: string
+      role_in_project:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+    type: object
+  handlers.UserProfileResponse:
+    properties:
+      completeness: {}
+      profile: {}
+    type: object
+  handlers.UserProfileUpdateRequest:
+    properties:
+      availability:
+        type: string
+      avatar_url:
+        type: string
+      bio:
+        type: string
+      company_name:
+        type: string
+      contact_email:
+        type: string
+      contact_phone:
+        type: string
+      display_name:
+        type: string
+      first_name:
+        type: string
+      headline:
+        type: string
+      hourly_rate:
+        type: number
+      language:
+        type: string
+      last_active_at_unix:
+        type: integer
+      last_name:
+        type: string
+      location:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+      tax_id:
+        type: string
+    type: object
+  handlers.UserSettingsResponse:
+    properties:
+      settings: {}
+    type: object
+  handlers.UserWorkPreferencesRequest:
+    properties:
+      contract_types:
+        items:
+          type: string
+        type: array
+      max_budget:
+        type: number
+      min_budget:
+        type: number
+      preferred_project_length:
+        type: string
+      weekly_capacity_hours:
+        type: integer
     type: object
   handlers.VerifyEmailOTPResponse:
     properties:
       verified:
         type: boolean
+    type: object
+  handlers.WorkPreferencesResponse:
+    properties:
+      settings: {}
     type: object
   handlers.challengeRequest:
     properties:
@@ -1050,197 +1171,398 @@ paths:
       summary: Mark a message as seen
       tags:
       - Chat
-  /api/v1/proposals/{proposalId}:
-    get:
-      description: Returns a single proposal by proposal ID.
-      parameters:
-      - description: Proposal ID
-        in: path
-        name: proposalId
-        required: true
-        type: integer
+  /api/v1/users/me/avatar:
+    delete:
+      description: Removes the authenticated user's avatar.
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.ProposalEnvelopeResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.RemovedResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get a proposal by ID
+      summary: Remove my avatar
       tags:
-      - Proposals
-  /api/v1/proposals/{proposalId}/attachments/{attachmentId}/download-url:
+      - User
     get:
-      description: Returns a presigned download URL for a proposal attachment.
-      parameters:
-      - description: Proposal ID
-        in: path
-        name: proposalId
-        required: true
-        type: integer
-      - description: Attachment ID
-        in: path
-        name: attachmentId
-        required: true
-        type: integer
+      description: Returns the authenticated user's avatar resource.
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.ProposalAttachmentDownloadURLResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.AvatarResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get proposal attachment download URL
+      summary: Get my avatar
       tags:
-      - Proposals
-  /api/v1/proposals/{proposalId}/attachments/upload-url:
+      - User
     post:
       consumes:
       - application/json
-      description: Returns a presigned upload URL for a proposal attachment.
+      description: Registers an uploaded avatar for the authenticated user.
       parameters:
-      - description: Proposal ID
-        in: path
-        name: proposalId
-        required: true
-        type: integer
-      - description: Attachment upload request
+      - description: Avatar finalize payload
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.ProposalAttachmentUploadURLRequest'
+          $ref: '#/definitions/handlers.UserAvatarFinalizeRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.ProposalAttachmentUploadURLResponse'
+            $ref: '#/definitions/handlers.AvatarResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get proposal attachment upload URL
+      summary: Upload avatar metadata
       tags:
-      - Proposals
-  /api/v1/proposals/{proposalId}/decision:
+      - User
+  /api/v1/users/me/avatar/upload-url:
     post:
       consumes:
       - application/json
-      description: Shortlists or rejects a proposal for the authenticated client.
+      description: Returns a signed upload URL and storage key for avatar upload.
       parameters:
-      - description: Proposal ID
-        in: path
-        name: proposalId
-        required: true
-        type: integer
-      - description: Decision payload
+      - description: Avatar upload URL payload
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.SetProposalDecisionRequest'
+          $ref: '#/definitions/handlers.UserAvatarUploadURLRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.ProposalEnvelopeResponse'
+            $ref: '#/definitions/handlers.UploadURLResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: Set proposal decision
+      summary: Reserve avatar upload URL
       tags:
-      - Proposals
-  /api/v1/proposals/client:
+      - User
+  /api/v1/users/me/cv:
+    delete:
+      description: Removes the authenticated user's CV.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.RemovedResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Remove my CV
+      tags:
+      - User
     get:
-      description: Returns paginated proposals for the authenticated client's inbox.
+      description: Returns the authenticated user's CV resource.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CVResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get my CV
+      tags:
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Registers an uploaded CV for the authenticated user.
       parameters:
-      - collectionFormat: csv
-        description: Filter by status (repeatable)
-        in: query
-        items:
-          enum:
-          - sent
-          - shortlist
-          - shortlisted
-          - reject
-          - rejected
-          - hired
-          - withdrawn
-          type: string
-        name: status
-        type: array
-      - description: Filter by job ID
-        in: query
-        name: job_id
-        type: integer
-      - description: Filter by freelancer ID
-        in: query
-        name: freelancer_id
+      - description: CV finalize payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserCVFinalizeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.CVResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload CV metadata
+      tags:
+      - User
+  /api/v1/users/me/cv/upload-url:
+    post:
+      consumes:
+      - application/json
+      description: Returns a signed upload URL and storage key for CV upload.
+      parameters:
+      - description: CV upload URL payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserCVUploadURLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UploadURLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reserve CV upload URL
+      tags:
+      - User
+  /api/v1/users/me/freelancer-notes/{freelancerId}:
+    get:
+      description: Returns the recruiter's note for a specific freelancer.
+      parameters:
+      - description: Freelancer user ID
+        in: path
+        name: freelancerId
+        required: true
         type: string
-      - description: Sort order
-        enum:
-        - newest
-        - oldest
-        - bid_high
-        - bid_low
-        in: query
-        name: sort_by
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.FreelancerNoteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get freelancer note
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Creates or updates a recruiter note about a freelancer.
+      parameters:
+      - description: Freelancer user ID
+        in: path
+        name: freelancerId
+        required: true
         type: string
-      - default: 20
-        description: Page size
+      - description: Freelancer note payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserFreelancerNoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.FreelancerNoteResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upsert freelancer note
+      tags:
+      - User
+  /api/v1/users/me/hiring-preferences:
+    get:
+      description: Returns hiring preferences for the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HiringPreferencesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get hiring preferences
+      tags:
+      - User
+    patch:
+      consumes:
+      - application/json
+      description: Updates hiring preferences for the authenticated user.
+      parameters:
+      - description: Hiring preferences payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserHiringPreferencesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.HiringPreferencesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update hiring preferences
+      tags:
+      - User
+  /api/v1/users/me/onboarding-status:
+    get:
+      description: Returns onboarding completeness, readiness and steps for the authenticated
+        user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserOnboardingStatusResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get my onboarding status
+      tags:
+      - User
+  /api/v1/users/me/portfolio:
+    get:
+      description: Returns paginated portfolio items for the authenticated user.
+      parameters:
+      - description: Page size
         in: query
         name: page_size
         type: integer
@@ -1254,75 +1576,66 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.ProposalListResponse'
+            $ref: '#/definitions/handlers.PortfolioItemsResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: List client proposals
+      summary: List my portfolio items
       tags:
-      - Proposals
-  /api/v1/proposals/client/counts:
-    get:
-      description: Returns total and per-status counts for the authenticated client's
-        proposal inbox.
+      - User
+    post:
+      consumes:
+      - application/json
+      description: Creates a new portfolio item for the authenticated user.
       parameters:
-      - collectionFormat: csv
-        description: Filter by status (repeatable)
-        in: query
-        items:
-          enum:
-          - sent
-          - shortlist
-          - shortlisted
-          - reject
-          - rejected
-          - hired
-          - withdrawn
-          type: string
-        name: status
-        type: array
+      - description: Portfolio item payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserPortfolioCreateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.CountClientProposalInboxResponse'
+            $ref: '#/definitions/handlers.PortfolioItemResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: Count client proposal inbox
+      summary: Create portfolio item
       tags:
-      - Proposals
-  /api/v1/proposals/jobs/{jobId}/counts:
-    get:
-      description: Returns total and per-status proposal counts for a specific job.
+      - User
+  /api/v1/users/me/portfolio/{itemId}:
+    delete:
+      description: Deletes a portfolio item owned by the authenticated user.
       parameters:
-      - description: Job ID
+      - description: Portfolio item ID
         in: path
-        name: jobId
+        name: itemId
         required: true
         type: integer
       produces:
@@ -1331,58 +1644,227 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.CountProposalsByJobResponse'
+            $ref: '#/definitions/handlers.UserDeletedResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: Count proposals by job
+      summary: Delete portfolio item
       tags:
-      - Proposals
-  /api/v1/proposals/me:
+      - User
     get:
-      description: Returns paginated proposals for the authenticated freelancer.
+      description: Returns a specific portfolio item for the authenticated user.
       parameters:
-      - collectionFormat: csv
-        description: Filter by status (repeatable)
-        in: query
-        items:
-          enum:
-          - sent
-          - shortlist
-          - shortlisted
-          - reject
-          - rejected
-          - hired
-          - withdrawn
-          type: string
-        name: status
-        type: array
-      - description: Filter by job ID
-        in: query
-        name: job_id
+      - description: Portfolio item ID
+        in: path
+        name: itemId
+        required: true
         type: integer
-      - description: Sort order
-        enum:
-        - newest
-        - oldest
-        - bid_high
-        - bid_low
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.PortfolioItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get portfolio item
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Updates a portfolio item owned by the authenticated user.
+      parameters:
+      - description: Portfolio item ID
+        in: path
+        name: itemId
+        required: true
+        type: integer
+      - description: Portfolio update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserPortfolioUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.PortfolioItemResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update portfolio item
+      tags:
+      - User
+  /api/v1/users/me/portfolio/media/upload-url:
+    post:
+      consumes:
+      - application/json
+      description: Returns a signed upload URL and storage key for portfolio media
+        upload.
+      parameters:
+      - description: Portfolio media upload URL payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserPortfolioMediaUploadURLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UploadURLResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Reserve portfolio media upload URL
+      tags:
+      - User
+  /api/v1/users/me/profile:
+    delete:
+      description: Deletes the authenticated user's profile.
+      parameters:
+      - description: Hard delete flag
         in: query
-        name: sort_by
-        type: string
-      - default: 20
-        description: Page size
+        name: hard_delete
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserDeletedResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete my profile
+      tags:
+      - User
+    get:
+      description: Returns the authenticated user's profile and completeness summary.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserProfileResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
+      tags:
+      - User
+    patch:
+      consumes:
+      - application/json
+      description: Patch profile fields for the authenticated user.
+      parameters:
+      - description: Profile patch payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserProfileUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserProfileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update my profile
+      tags:
+      - User
+  /api/v1/users/me/saved-freelancers:
+    get:
+      description: Returns paginated saved freelancers for the authenticated user.
+      parameters:
+      - description: Page size
         in: query
         name: page_size
         type: integer
@@ -1396,92 +1878,205 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.ProposalListResponse'
+            $ref: '#/definitions/handlers.SavedFreelancersResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: List my proposals
+      summary: List saved freelancers
       tags:
-      - Proposals
-  /api/v1/proposals/me/jobs/{jobId}:
-    get:
-      description: Returns the authenticated freelancer's proposal for a specific
-        job.
+      - User
+  /api/v1/users/me/saved-freelancers/{freelancerId}:
+    delete:
+      description: Removes a freelancer from the authenticated user's saved list.
       parameters:
-      - description: Job ID
+      - description: Freelancer user ID
         in: path
-        name: jobId
+        name: freelancerId
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.ProposalEnvelopeResponse'
+            $ref: '#/definitions/handlers.RemovedResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: Get my proposal for a job
+      summary: Remove saved freelancer
       tags:
-      - Proposals
-  /api/v1/proposals/me/jobs/{jobId}/has-applied:
-    get:
-      description: Returns whether the authenticated freelancer has applied to the
-        given job.
+      - User
+    post:
+      description: Shortlist a freelancer for the authenticated client.
       parameters:
-      - description: Job ID
+      - description: Freelancer user ID
         in: path
-        name: jobId
+        name: freelancerId
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handlers.HasAppliedToJobResponse'
+            $ref: '#/definitions/handlers.SavedFreelancerResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/handlers.ProposalErrorResponse'
+            $ref: '#/definitions/handlers.UserErrorResponse'
       security:
       - BearerAuth: []
-      summary: Check if I applied to a job
+      summary: Save a freelancer
       tags:
-      - Proposals
+      - User
+  /api/v1/users/me/settings:
+    get:
+      description: Returns account settings for the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserSettingsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get my account settings
+      tags:
+      - User
+    patch:
+      consumes:
+      - application/json
+      description: Patch account and notification settings for the authenticated user.
+      parameters:
+      - description: Settings payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserAccountSettingsUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.UserSettingsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update my account settings
+      tags:
+      - User
+  /api/v1/users/me/work-preferences:
+    get:
+      description: Returns the authenticated user's work preferences.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.WorkPreferencesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get work preferences
+      tags:
+      - User
+    patch:
+      consumes:
+      - application/json
+      description: Updates the authenticated user's work preferences.
+      parameters:
+      - description: Work preferences payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UserWorkPreferencesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.WorkPreferencesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.UserErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Set work preferences
+      tags:
+      - User
 securityDefinitions:
   BearerAuth:
     in: header
