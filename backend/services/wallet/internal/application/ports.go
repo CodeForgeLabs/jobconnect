@@ -2,81 +2,62 @@ package application
 
 import (
 	"context"
-	"time"
 
 	"jobconnect/wallet/internal/domain"
 
 	"github.com/google/uuid"
 )
 
+// ==================== REPOSITORY ====================
+
 type WalletRepository interface {
 	CreateWallet(ctx context.Context, ownerID uuid.UUID) (domain.WalletAccount, error)
-	GetWalletByID(ctx context.Context, walletID int64) (domain.WalletAccount, error)
 	GetWalletByOwner(ctx context.Context, ownerID uuid.UUID) (domain.WalletAccount, error)
-	GetBalance(ctx context.Context, walletID int64) (domain.BalanceSnapshot, error)
-	CreditInternal(ctx context.Context, in CreditInput) (MutationResult, error)
-	DebitInternal(ctx context.Context, in DebitInput) (MutationResult, error)
-	PlaceHold(ctx context.Context, in PlaceHoldInput) (HoldMutationResult, error)
-	GetHoldByReference(ctx context.Context, referenceType, referenceID string) (domain.Hold, error)
-	ReleaseHold(ctx context.Context, in ReleaseHoldInput) (HoldMutationResult, error)
-	CaptureHold(ctx context.Context, in CaptureHoldInput) (HoldMutationResult, error)
-	ListLedgerEntries(ctx context.Context, walletID int64, limit, offset int) ([]domain.LedgerEntry, error)
+	FetchWalletTransactions(ctx context.Context, walletID int64) ([]domain.WalletTransaction, error)
+	CreateDepositTransaction(
+		ctx context.Context,
+		walletID int64,
+		txRef string,
+		amountMinor int64,
+		description string,
+	) (domain.WalletTransaction, error)
+
+	CompleteDeposit(
+		ctx context.Context,
+		txRef string,
+		chapaRef string,
+	) error
+
+	GetTransactionByTxRef(
+		ctx context.Context,
+		txRef string,
+	) (domain.WalletTransaction, error)
 }
 
-type Clock interface {
-	Now() time.Time
+// ==================== INPUT STRUCTS ====================
+
+type CreateWalletInput struct {
+	OwnerID uuid.UUID
 }
 
-type CreditInput struct {
-	WalletID       int64
-	AmountMinor    int64
-	IdempotencyKey string
-	ReferenceType  string
-	ReferenceID    string
-	Note           string
+type DepositInput struct {
+	WalletID    int64
+	AmountMinor int64
+	TxRef       string
+	Description string
 }
 
-type DebitInput struct {
-	WalletID       int64
-	AmountMinor    int64
-	IdempotencyKey string
-	ReferenceType  string
-	ReferenceID    string
-	Note           string
+type CompleteDepositInput struct {
+	TxRef    string
+	ChapaRef string
 }
 
-type PlaceHoldInput struct {
-	WalletID       int64
-	AmountMinor    int64
-	IdempotencyKey string
-	ReferenceType  string
-	ReferenceID    string
-	ExpiresAt      *time.Time
-	Note           string
+// ==================== RESULT STRUCTS ====================
+
+type DepositResult struct {
+	Transaction domain.WalletTransaction
 }
 
-type ReleaseHoldInput struct {
-	HoldID         int64
-	IdempotencyKey string
-	Note           string
-}
-
-type CaptureHoldInput struct {
-	HoldID             int64
-	CaptureAmountMinor int64
-	IdempotencyKey     string
-	ReferenceType      string
-	ReferenceID        string
-	Note               string
-}
-
-type MutationResult struct {
+type WalletResult struct {
 	Wallet domain.WalletAccount
-	Entry  domain.LedgerEntry
-}
-
-type HoldMutationResult struct {
-	Wallet domain.WalletAccount
-	Hold   domain.Hold
-	Entry  domain.LedgerEntry
 }
