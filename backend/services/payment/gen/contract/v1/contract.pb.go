@@ -641,6 +641,7 @@ type HourlyLog struct {
 	CreatedAtUnixSeconds  int64                  `protobuf:"varint,11,opt,name=created_at_unix_seconds,json=createdAtUnixSeconds,proto3" json:"created_at_unix_seconds,omitempty"`
 	ReviewedAtUnixSeconds int64                  `protobuf:"varint,12,opt,name=reviewed_at_unix_seconds,json=reviewedAtUnixSeconds,proto3" json:"reviewed_at_unix_seconds,omitempty"`
 	InvoiceId             int64                  `protobuf:"varint,13,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	EvidenceUrls          []string               `protobuf:"bytes,14,rep,name=evidence_urls,json=evidenceUrls,proto3" json:"evidence_urls,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -764,6 +765,13 @@ func (x *HourlyLog) GetInvoiceId() int64 {
 		return x.InvoiceId
 	}
 	return 0
+}
+
+func (x *HourlyLog) GetEvidenceUrls() []string {
+	if x != nil {
+		return x.EvidenceUrls
+	}
+	return nil
 }
 
 type HourlyInvoice struct {
@@ -2900,6 +2908,7 @@ type LogHourlyWorkRequest struct {
 	StartAtUnixSeconds int64                  `protobuf:"varint,2,opt,name=start_at_unix_seconds,json=startAtUnixSeconds,proto3" json:"start_at_unix_seconds,omitempty"`
 	EndAtUnixSeconds   int64                  `protobuf:"varint,3,opt,name=end_at_unix_seconds,json=endAtUnixSeconds,proto3" json:"end_at_unix_seconds,omitempty"`
 	Note               string                 `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	EvidenceUrls       []string               `protobuf:"bytes,5,rep,name=evidence_urls,json=evidenceUrls,proto3" json:"evidence_urls,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -2962,6 +2971,13 @@ func (x *LogHourlyWorkRequest) GetNote() string {
 	return ""
 }
 
+func (x *LogHourlyWorkRequest) GetEvidenceUrls() []string {
+	if x != nil {
+		return x.EvidenceUrls
+	}
+	return nil
+}
+
 type LogHourlyWorkResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	HourlyLog     *HourlyLog             `protobuf:"bytes,1,opt,name=hourly_log,json=hourlyLog,proto3" json:"hourly_log,omitempty"`
@@ -3006,6 +3022,118 @@ func (x *LogHourlyWorkResponse) GetHourlyLog() *HourlyLog {
 	return nil
 }
 
+type GetHourlyLogEvidenceUploadUrlRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	FileName      string                 `protobuf:"bytes,2,opt,name=file_name,json=fileName,proto3" json:"file_name,omitempty"`
+	ContentType   string                 `protobuf:"bytes,3,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) Reset() {
+	*x = GetHourlyLogEvidenceUploadUrlRequest{}
+	mi := &file_contract_v1_contract_proto_msgTypes[36]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHourlyLogEvidenceUploadUrlRequest) ProtoMessage() {}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[36]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHourlyLogEvidenceUploadUrlRequest.ProtoReflect.Descriptor instead.
+func (*GetHourlyLogEvidenceUploadUrlRequest) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{36}
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) GetFileName() string {
+	if x != nil {
+		return x.FileName
+	}
+	return ""
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlRequest) GetContentType() string {
+	if x != nil {
+		return x.ContentType
+	}
+	return ""
+}
+
+type GetHourlyLogEvidenceUploadUrlResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StorageKey    string                 `protobuf:"bytes,1,opt,name=storage_key,json=storageKey,proto3" json:"storage_key,omitempty"`
+	UploadUrl     string                 `protobuf:"bytes,2,opt,name=upload_url,json=uploadUrl,proto3" json:"upload_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) Reset() {
+	*x = GetHourlyLogEvidenceUploadUrlResponse{}
+	mi := &file_contract_v1_contract_proto_msgTypes[37]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetHourlyLogEvidenceUploadUrlResponse) ProtoMessage() {}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_contract_v1_contract_proto_msgTypes[37]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetHourlyLogEvidenceUploadUrlResponse.ProtoReflect.Descriptor instead.
+func (*GetHourlyLogEvidenceUploadUrlResponse) Descriptor() ([]byte, []int) {
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{37}
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) GetStorageKey() string {
+	if x != nil {
+		return x.StorageKey
+	}
+	return ""
+}
+
+func (x *GetHourlyLogEvidenceUploadUrlResponse) GetUploadUrl() string {
+	if x != nil {
+		return x.UploadUrl
+	}
+	return ""
+}
+
 type ListHourlyLogsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
@@ -3017,7 +3145,7 @@ type ListHourlyLogsRequest struct {
 
 func (x *ListHourlyLogsRequest) Reset() {
 	*x = ListHourlyLogsRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[36]
+	mi := &file_contract_v1_contract_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3029,7 +3157,7 @@ func (x *ListHourlyLogsRequest) String() string {
 func (*ListHourlyLogsRequest) ProtoMessage() {}
 
 func (x *ListHourlyLogsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[36]
+	mi := &file_contract_v1_contract_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3042,7 +3170,7 @@ func (x *ListHourlyLogsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListHourlyLogsRequest.ProtoReflect.Descriptor instead.
 func (*ListHourlyLogsRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{36}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListHourlyLogsRequest) GetContractId() int64 {
@@ -3076,7 +3204,7 @@ type ListHourlyLogsResponse struct {
 
 func (x *ListHourlyLogsResponse) Reset() {
 	*x = ListHourlyLogsResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[37]
+	mi := &file_contract_v1_contract_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3088,7 +3216,7 @@ func (x *ListHourlyLogsResponse) String() string {
 func (*ListHourlyLogsResponse) ProtoMessage() {}
 
 func (x *ListHourlyLogsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[37]
+	mi := &file_contract_v1_contract_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3101,7 +3229,7 @@ func (x *ListHourlyLogsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListHourlyLogsResponse.ProtoReflect.Descriptor instead.
 func (*ListHourlyLogsResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{37}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ListHourlyLogsResponse) GetHourlyLogs() []*HourlyLog {
@@ -3128,7 +3256,7 @@ type GetHourlyWorkSummaryRequest struct {
 
 func (x *GetHourlyWorkSummaryRequest) Reset() {
 	*x = GetHourlyWorkSummaryRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[38]
+	mi := &file_contract_v1_contract_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3140,7 +3268,7 @@ func (x *GetHourlyWorkSummaryRequest) String() string {
 func (*GetHourlyWorkSummaryRequest) ProtoMessage() {}
 
 func (x *GetHourlyWorkSummaryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[38]
+	mi := &file_contract_v1_contract_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3153,7 +3281,7 @@ func (x *GetHourlyWorkSummaryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHourlyWorkSummaryRequest.ProtoReflect.Descriptor instead.
 func (*GetHourlyWorkSummaryRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{38}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GetHourlyWorkSummaryRequest) GetContractId() int64 {
@@ -3189,7 +3317,7 @@ type GetHourlyWorkSummaryResponse struct {
 
 func (x *GetHourlyWorkSummaryResponse) Reset() {
 	*x = GetHourlyWorkSummaryResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[39]
+	mi := &file_contract_v1_contract_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3201,7 +3329,7 @@ func (x *GetHourlyWorkSummaryResponse) String() string {
 func (*GetHourlyWorkSummaryResponse) ProtoMessage() {}
 
 func (x *GetHourlyWorkSummaryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[39]
+	mi := &file_contract_v1_contract_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3214,7 +3342,7 @@ func (x *GetHourlyWorkSummaryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHourlyWorkSummaryResponse.ProtoReflect.Descriptor instead.
 func (*GetHourlyWorkSummaryResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{39}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetHourlyWorkSummaryResponse) GetContractId() int64 {
@@ -3305,7 +3433,7 @@ type ReviewHourlyLogRequest struct {
 
 func (x *ReviewHourlyLogRequest) Reset() {
 	*x = ReviewHourlyLogRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[40]
+	mi := &file_contract_v1_contract_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3317,7 +3445,7 @@ func (x *ReviewHourlyLogRequest) String() string {
 func (*ReviewHourlyLogRequest) ProtoMessage() {}
 
 func (x *ReviewHourlyLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[40]
+	mi := &file_contract_v1_contract_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3330,7 +3458,7 @@ func (x *ReviewHourlyLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReviewHourlyLogRequest.ProtoReflect.Descriptor instead.
 func (*ReviewHourlyLogRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{40}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ReviewHourlyLogRequest) GetHourlyLogId() int64 {
@@ -3363,7 +3491,7 @@ type ReviewHourlyLogResponse struct {
 
 func (x *ReviewHourlyLogResponse) Reset() {
 	*x = ReviewHourlyLogResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[41]
+	mi := &file_contract_v1_contract_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3375,7 +3503,7 @@ func (x *ReviewHourlyLogResponse) String() string {
 func (*ReviewHourlyLogResponse) ProtoMessage() {}
 
 func (x *ReviewHourlyLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[41]
+	mi := &file_contract_v1_contract_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3388,7 +3516,7 @@ func (x *ReviewHourlyLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReviewHourlyLogResponse.ProtoReflect.Descriptor instead.
 func (*ReviewHourlyLogResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{41}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ReviewHourlyLogResponse) GetHourlyLog() *HourlyLog {
@@ -3404,13 +3532,14 @@ type UpdateHourlyLogRequest struct {
 	StartAtUnixSeconds int64                  `protobuf:"varint,2,opt,name=start_at_unix_seconds,json=startAtUnixSeconds,proto3" json:"start_at_unix_seconds,omitempty"`
 	EndAtUnixSeconds   int64                  `protobuf:"varint,3,opt,name=end_at_unix_seconds,json=endAtUnixSeconds,proto3" json:"end_at_unix_seconds,omitempty"`
 	Note               string                 `protobuf:"bytes,4,opt,name=note,proto3" json:"note,omitempty"`
+	EvidenceUrls       []string               `protobuf:"bytes,5,rep,name=evidence_urls,json=evidenceUrls,proto3" json:"evidence_urls,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
 func (x *UpdateHourlyLogRequest) Reset() {
 	*x = UpdateHourlyLogRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[42]
+	mi := &file_contract_v1_contract_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3422,7 +3551,7 @@ func (x *UpdateHourlyLogRequest) String() string {
 func (*UpdateHourlyLogRequest) ProtoMessage() {}
 
 func (x *UpdateHourlyLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[42]
+	mi := &file_contract_v1_contract_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3435,7 +3564,7 @@ func (x *UpdateHourlyLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateHourlyLogRequest.ProtoReflect.Descriptor instead.
 func (*UpdateHourlyLogRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{42}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *UpdateHourlyLogRequest) GetHourlyLogId() int64 {
@@ -3466,6 +3595,13 @@ func (x *UpdateHourlyLogRequest) GetNote() string {
 	return ""
 }
 
+func (x *UpdateHourlyLogRequest) GetEvidenceUrls() []string {
+	if x != nil {
+		return x.EvidenceUrls
+	}
+	return nil
+}
+
 type UpdateHourlyLogResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	HourlyLog     *HourlyLog             `protobuf:"bytes,1,opt,name=hourly_log,json=hourlyLog,proto3" json:"hourly_log,omitempty"`
@@ -3475,7 +3611,7 @@ type UpdateHourlyLogResponse struct {
 
 func (x *UpdateHourlyLogResponse) Reset() {
 	*x = UpdateHourlyLogResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[43]
+	mi := &file_contract_v1_contract_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3487,7 +3623,7 @@ func (x *UpdateHourlyLogResponse) String() string {
 func (*UpdateHourlyLogResponse) ProtoMessage() {}
 
 func (x *UpdateHourlyLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[43]
+	mi := &file_contract_v1_contract_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3500,7 +3636,7 @@ func (x *UpdateHourlyLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateHourlyLogResponse.ProtoReflect.Descriptor instead.
 func (*UpdateHourlyLogResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{43}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *UpdateHourlyLogResponse) GetHourlyLog() *HourlyLog {
@@ -3519,7 +3655,7 @@ type DeleteHourlyLogRequest struct {
 
 func (x *DeleteHourlyLogRequest) Reset() {
 	*x = DeleteHourlyLogRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[44]
+	mi := &file_contract_v1_contract_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3531,7 +3667,7 @@ func (x *DeleteHourlyLogRequest) String() string {
 func (*DeleteHourlyLogRequest) ProtoMessage() {}
 
 func (x *DeleteHourlyLogRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[44]
+	mi := &file_contract_v1_contract_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3544,7 +3680,7 @@ func (x *DeleteHourlyLogRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteHourlyLogRequest.ProtoReflect.Descriptor instead.
 func (*DeleteHourlyLogRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{44}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *DeleteHourlyLogRequest) GetHourlyLogId() int64 {
@@ -3562,7 +3698,7 @@ type DeleteHourlyLogResponse struct {
 
 func (x *DeleteHourlyLogResponse) Reset() {
 	*x = DeleteHourlyLogResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[45]
+	mi := &file_contract_v1_contract_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3574,7 +3710,7 @@ func (x *DeleteHourlyLogResponse) String() string {
 func (*DeleteHourlyLogResponse) ProtoMessage() {}
 
 func (x *DeleteHourlyLogResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[45]
+	mi := &file_contract_v1_contract_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3587,7 +3723,7 @@ func (x *DeleteHourlyLogResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteHourlyLogResponse.ProtoReflect.Descriptor instead.
 func (*DeleteHourlyLogResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{45}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{47}
 }
 
 type GetHourlyInvoiceRequest struct {
@@ -3599,7 +3735,7 @@ type GetHourlyInvoiceRequest struct {
 
 func (x *GetHourlyInvoiceRequest) Reset() {
 	*x = GetHourlyInvoiceRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[46]
+	mi := &file_contract_v1_contract_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3611,7 +3747,7 @@ func (x *GetHourlyInvoiceRequest) String() string {
 func (*GetHourlyInvoiceRequest) ProtoMessage() {}
 
 func (x *GetHourlyInvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[46]
+	mi := &file_contract_v1_contract_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3624,7 +3760,7 @@ func (x *GetHourlyInvoiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHourlyInvoiceRequest.ProtoReflect.Descriptor instead.
 func (*GetHourlyInvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{46}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *GetHourlyInvoiceRequest) GetInvoiceId() int64 {
@@ -3643,7 +3779,7 @@ type GetHourlyInvoiceResponse struct {
 
 func (x *GetHourlyInvoiceResponse) Reset() {
 	*x = GetHourlyInvoiceResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[47]
+	mi := &file_contract_v1_contract_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3655,7 +3791,7 @@ func (x *GetHourlyInvoiceResponse) String() string {
 func (*GetHourlyInvoiceResponse) ProtoMessage() {}
 
 func (x *GetHourlyInvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[47]
+	mi := &file_contract_v1_contract_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3668,7 +3804,7 @@ func (x *GetHourlyInvoiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetHourlyInvoiceResponse.ProtoReflect.Descriptor instead.
 func (*GetHourlyInvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{47}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *GetHourlyInvoiceResponse) GetInvoice() *HourlyInvoice {
@@ -3689,7 +3825,7 @@ type ListHourlyInvoicesRequest struct {
 
 func (x *ListHourlyInvoicesRequest) Reset() {
 	*x = ListHourlyInvoicesRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[48]
+	mi := &file_contract_v1_contract_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3701,7 +3837,7 @@ func (x *ListHourlyInvoicesRequest) String() string {
 func (*ListHourlyInvoicesRequest) ProtoMessage() {}
 
 func (x *ListHourlyInvoicesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[48]
+	mi := &file_contract_v1_contract_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3714,7 +3850,7 @@ func (x *ListHourlyInvoicesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListHourlyInvoicesRequest.ProtoReflect.Descriptor instead.
 func (*ListHourlyInvoicesRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{48}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *ListHourlyInvoicesRequest) GetContractId() int64 {
@@ -3748,7 +3884,7 @@ type ListHourlyInvoicesResponse struct {
 
 func (x *ListHourlyInvoicesResponse) Reset() {
 	*x = ListHourlyInvoicesResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[49]
+	mi := &file_contract_v1_contract_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3760,7 +3896,7 @@ func (x *ListHourlyInvoicesResponse) String() string {
 func (*ListHourlyInvoicesResponse) ProtoMessage() {}
 
 func (x *ListHourlyInvoicesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[49]
+	mi := &file_contract_v1_contract_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3773,7 +3909,7 @@ func (x *ListHourlyInvoicesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListHourlyInvoicesResponse.ProtoReflect.Descriptor instead.
 func (*ListHourlyInvoicesResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{49}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *ListHourlyInvoicesResponse) GetInvoices() []*HourlyInvoice {
@@ -3800,7 +3936,7 @@ type InternalCloseHourlyWeekRequest struct {
 
 func (x *InternalCloseHourlyWeekRequest) Reset() {
 	*x = InternalCloseHourlyWeekRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[50]
+	mi := &file_contract_v1_contract_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3812,7 +3948,7 @@ func (x *InternalCloseHourlyWeekRequest) String() string {
 func (*InternalCloseHourlyWeekRequest) ProtoMessage() {}
 
 func (x *InternalCloseHourlyWeekRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[50]
+	mi := &file_contract_v1_contract_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3825,7 +3961,7 @@ func (x *InternalCloseHourlyWeekRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InternalCloseHourlyWeekRequest.ProtoReflect.Descriptor instead.
 func (*InternalCloseHourlyWeekRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{50}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *InternalCloseHourlyWeekRequest) GetContractId() int64 {
@@ -3851,7 +3987,7 @@ type InternalCloseHourlyWeekResponse struct {
 
 func (x *InternalCloseHourlyWeekResponse) Reset() {
 	*x = InternalCloseHourlyWeekResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[51]
+	mi := &file_contract_v1_contract_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3863,7 +3999,7 @@ func (x *InternalCloseHourlyWeekResponse) String() string {
 func (*InternalCloseHourlyWeekResponse) ProtoMessage() {}
 
 func (x *InternalCloseHourlyWeekResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[51]
+	mi := &file_contract_v1_contract_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3876,7 +4012,7 @@ func (x *InternalCloseHourlyWeekResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InternalCloseHourlyWeekResponse.ProtoReflect.Descriptor instead.
 func (*InternalCloseHourlyWeekResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{51}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *InternalCloseHourlyWeekResponse) GetInvoice() *HourlyInvoice {
@@ -3895,7 +4031,7 @@ type InternalSettleHourlyInvoiceRequest struct {
 
 func (x *InternalSettleHourlyInvoiceRequest) Reset() {
 	*x = InternalSettleHourlyInvoiceRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[52]
+	mi := &file_contract_v1_contract_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3907,7 +4043,7 @@ func (x *InternalSettleHourlyInvoiceRequest) String() string {
 func (*InternalSettleHourlyInvoiceRequest) ProtoMessage() {}
 
 func (x *InternalSettleHourlyInvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[52]
+	mi := &file_contract_v1_contract_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3920,7 +4056,7 @@ func (x *InternalSettleHourlyInvoiceRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use InternalSettleHourlyInvoiceRequest.ProtoReflect.Descriptor instead.
 func (*InternalSettleHourlyInvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{52}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *InternalSettleHourlyInvoiceRequest) GetInvoiceId() int64 {
@@ -3939,7 +4075,7 @@ type InternalSettleHourlyInvoiceResponse struct {
 
 func (x *InternalSettleHourlyInvoiceResponse) Reset() {
 	*x = InternalSettleHourlyInvoiceResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[53]
+	mi := &file_contract_v1_contract_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3951,7 +4087,7 @@ func (x *InternalSettleHourlyInvoiceResponse) String() string {
 func (*InternalSettleHourlyInvoiceResponse) ProtoMessage() {}
 
 func (x *InternalSettleHourlyInvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[53]
+	mi := &file_contract_v1_contract_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3964,7 +4100,7 @@ func (x *InternalSettleHourlyInvoiceResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use InternalSettleHourlyInvoiceResponse.ProtoReflect.Descriptor instead.
 func (*InternalSettleHourlyInvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{53}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *InternalSettleHourlyInvoiceResponse) GetInvoice() *HourlyInvoice {
@@ -3985,7 +4121,7 @@ type CreateContractBonusRequest struct {
 
 func (x *CreateContractBonusRequest) Reset() {
 	*x = CreateContractBonusRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[54]
+	mi := &file_contract_v1_contract_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3997,7 +4133,7 @@ func (x *CreateContractBonusRequest) String() string {
 func (*CreateContractBonusRequest) ProtoMessage() {}
 
 func (x *CreateContractBonusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[54]
+	mi := &file_contract_v1_contract_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4010,7 +4146,7 @@ func (x *CreateContractBonusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateContractBonusRequest.ProtoReflect.Descriptor instead.
 func (*CreateContractBonusRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{54}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *CreateContractBonusRequest) GetContractId() int64 {
@@ -4043,7 +4179,7 @@ type CreateContractBonusResponse struct {
 
 func (x *CreateContractBonusResponse) Reset() {
 	*x = CreateContractBonusResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[55]
+	mi := &file_contract_v1_contract_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4055,7 +4191,7 @@ func (x *CreateContractBonusResponse) String() string {
 func (*CreateContractBonusResponse) ProtoMessage() {}
 
 func (x *CreateContractBonusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[55]
+	mi := &file_contract_v1_contract_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4068,7 +4204,7 @@ func (x *CreateContractBonusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateContractBonusResponse.ProtoReflect.Descriptor instead.
 func (*CreateContractBonusResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{55}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *CreateContractBonusResponse) GetBonus() *ContractBonus {
@@ -4089,7 +4225,7 @@ type ListContractBonusesRequest struct {
 
 func (x *ListContractBonusesRequest) Reset() {
 	*x = ListContractBonusesRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[56]
+	mi := &file_contract_v1_contract_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4101,7 +4237,7 @@ func (x *ListContractBonusesRequest) String() string {
 func (*ListContractBonusesRequest) ProtoMessage() {}
 
 func (x *ListContractBonusesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[56]
+	mi := &file_contract_v1_contract_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4114,7 +4250,7 @@ func (x *ListContractBonusesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContractBonusesRequest.ProtoReflect.Descriptor instead.
 func (*ListContractBonusesRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{56}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ListContractBonusesRequest) GetContractId() int64 {
@@ -4148,7 +4284,7 @@ type ListContractBonusesResponse struct {
 
 func (x *ListContractBonusesResponse) Reset() {
 	*x = ListContractBonusesResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[57]
+	mi := &file_contract_v1_contract_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4160,7 +4296,7 @@ func (x *ListContractBonusesResponse) String() string {
 func (*ListContractBonusesResponse) ProtoMessage() {}
 
 func (x *ListContractBonusesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[57]
+	mi := &file_contract_v1_contract_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4173,7 +4309,7 @@ func (x *ListContractBonusesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListContractBonusesResponse.ProtoReflect.Descriptor instead.
 func (*ListContractBonusesResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{57}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *ListContractBonusesResponse) GetBonuses() []*ContractBonus {
@@ -4199,7 +4335,7 @@ type InternalMarkContractBonusPaidRequest struct {
 
 func (x *InternalMarkContractBonusPaidRequest) Reset() {
 	*x = InternalMarkContractBonusPaidRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[58]
+	mi := &file_contract_v1_contract_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4211,7 +4347,7 @@ func (x *InternalMarkContractBonusPaidRequest) String() string {
 func (*InternalMarkContractBonusPaidRequest) ProtoMessage() {}
 
 func (x *InternalMarkContractBonusPaidRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[58]
+	mi := &file_contract_v1_contract_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4224,7 +4360,7 @@ func (x *InternalMarkContractBonusPaidRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use InternalMarkContractBonusPaidRequest.ProtoReflect.Descriptor instead.
 func (*InternalMarkContractBonusPaidRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{58}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *InternalMarkContractBonusPaidRequest) GetBonusId() int64 {
@@ -4243,7 +4379,7 @@ type InternalMarkContractBonusPaidResponse struct {
 
 func (x *InternalMarkContractBonusPaidResponse) Reset() {
 	*x = InternalMarkContractBonusPaidResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[59]
+	mi := &file_contract_v1_contract_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4255,7 +4391,7 @@ func (x *InternalMarkContractBonusPaidResponse) String() string {
 func (*InternalMarkContractBonusPaidResponse) ProtoMessage() {}
 
 func (x *InternalMarkContractBonusPaidResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[59]
+	mi := &file_contract_v1_contract_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4268,7 +4404,7 @@ func (x *InternalMarkContractBonusPaidResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use InternalMarkContractBonusPaidResponse.ProtoReflect.Descriptor instead.
 func (*InternalMarkContractBonusPaidResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{59}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *InternalMarkContractBonusPaidResponse) GetBonus() *ContractBonus {
@@ -4290,7 +4426,7 @@ type ProposeAmendmentRequest struct {
 
 func (x *ProposeAmendmentRequest) Reset() {
 	*x = ProposeAmendmentRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[60]
+	mi := &file_contract_v1_contract_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4302,7 +4438,7 @@ func (x *ProposeAmendmentRequest) String() string {
 func (*ProposeAmendmentRequest) ProtoMessage() {}
 
 func (x *ProposeAmendmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[60]
+	mi := &file_contract_v1_contract_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4315,7 +4451,7 @@ func (x *ProposeAmendmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProposeAmendmentRequest.ProtoReflect.Descriptor instead.
 func (*ProposeAmendmentRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{60}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *ProposeAmendmentRequest) GetContractId() int64 {
@@ -4355,7 +4491,7 @@ type ProposeAmendmentResponse struct {
 
 func (x *ProposeAmendmentResponse) Reset() {
 	*x = ProposeAmendmentResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[61]
+	mi := &file_contract_v1_contract_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4367,7 +4503,7 @@ func (x *ProposeAmendmentResponse) String() string {
 func (*ProposeAmendmentResponse) ProtoMessage() {}
 
 func (x *ProposeAmendmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[61]
+	mi := &file_contract_v1_contract_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4380,7 +4516,7 @@ func (x *ProposeAmendmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProposeAmendmentResponse.ProtoReflect.Descriptor instead.
 func (*ProposeAmendmentResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{61}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *ProposeAmendmentResponse) GetAmendment() *Amendment {
@@ -4401,7 +4537,7 @@ type RespondAmendmentRequest struct {
 
 func (x *RespondAmendmentRequest) Reset() {
 	*x = RespondAmendmentRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[62]
+	mi := &file_contract_v1_contract_proto_msgTypes[64]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4413,7 +4549,7 @@ func (x *RespondAmendmentRequest) String() string {
 func (*RespondAmendmentRequest) ProtoMessage() {}
 
 func (x *RespondAmendmentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[62]
+	mi := &file_contract_v1_contract_proto_msgTypes[64]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4426,7 +4562,7 @@ func (x *RespondAmendmentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RespondAmendmentRequest.ProtoReflect.Descriptor instead.
 func (*RespondAmendmentRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{62}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{64}
 }
 
 func (x *RespondAmendmentRequest) GetAmendmentId() int64 {
@@ -4459,7 +4595,7 @@ type RespondAmendmentResponse struct {
 
 func (x *RespondAmendmentResponse) Reset() {
 	*x = RespondAmendmentResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[63]
+	mi := &file_contract_v1_contract_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4471,7 +4607,7 @@ func (x *RespondAmendmentResponse) String() string {
 func (*RespondAmendmentResponse) ProtoMessage() {}
 
 func (x *RespondAmendmentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[63]
+	mi := &file_contract_v1_contract_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4484,7 +4620,7 @@ func (x *RespondAmendmentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RespondAmendmentResponse.ProtoReflect.Descriptor instead.
 func (*RespondAmendmentResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{63}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *RespondAmendmentResponse) GetAmendment() *Amendment {
@@ -4505,7 +4641,7 @@ type ListAmendmentsRequest struct {
 
 func (x *ListAmendmentsRequest) Reset() {
 	*x = ListAmendmentsRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[64]
+	mi := &file_contract_v1_contract_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4517,7 +4653,7 @@ func (x *ListAmendmentsRequest) String() string {
 func (*ListAmendmentsRequest) ProtoMessage() {}
 
 func (x *ListAmendmentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[64]
+	mi := &file_contract_v1_contract_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4530,7 +4666,7 @@ func (x *ListAmendmentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAmendmentsRequest.ProtoReflect.Descriptor instead.
 func (*ListAmendmentsRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{64}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *ListAmendmentsRequest) GetContractId() int64 {
@@ -4564,7 +4700,7 @@ type ListAmendmentsResponse struct {
 
 func (x *ListAmendmentsResponse) Reset() {
 	*x = ListAmendmentsResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[65]
+	mi := &file_contract_v1_contract_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4576,7 +4712,7 @@ func (x *ListAmendmentsResponse) String() string {
 func (*ListAmendmentsResponse) ProtoMessage() {}
 
 func (x *ListAmendmentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[65]
+	mi := &file_contract_v1_contract_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4589,7 +4725,7 @@ func (x *ListAmendmentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAmendmentsResponse.ProtoReflect.Descriptor instead.
 func (*ListAmendmentsResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{65}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *ListAmendmentsResponse) GetAmendments() []*Amendment {
@@ -4616,7 +4752,7 @@ type PauseContractRequest struct {
 
 func (x *PauseContractRequest) Reset() {
 	*x = PauseContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[66]
+	mi := &file_contract_v1_contract_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4628,7 +4764,7 @@ func (x *PauseContractRequest) String() string {
 func (*PauseContractRequest) ProtoMessage() {}
 
 func (x *PauseContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[66]
+	mi := &file_contract_v1_contract_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4641,7 +4777,7 @@ func (x *PauseContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseContractRequest.ProtoReflect.Descriptor instead.
 func (*PauseContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{66}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *PauseContractRequest) GetContractId() int64 {
@@ -4667,7 +4803,7 @@ type PauseContractResponse struct {
 
 func (x *PauseContractResponse) Reset() {
 	*x = PauseContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[67]
+	mi := &file_contract_v1_contract_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4679,7 +4815,7 @@ func (x *PauseContractResponse) String() string {
 func (*PauseContractResponse) ProtoMessage() {}
 
 func (x *PauseContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[67]
+	mi := &file_contract_v1_contract_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4692,7 +4828,7 @@ func (x *PauseContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PauseContractResponse.ProtoReflect.Descriptor instead.
 func (*PauseContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{67}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *PauseContractResponse) GetContract() *Contract {
@@ -4712,7 +4848,7 @@ type ResumeContractRequest struct {
 
 func (x *ResumeContractRequest) Reset() {
 	*x = ResumeContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[68]
+	mi := &file_contract_v1_contract_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4724,7 +4860,7 @@ func (x *ResumeContractRequest) String() string {
 func (*ResumeContractRequest) ProtoMessage() {}
 
 func (x *ResumeContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[68]
+	mi := &file_contract_v1_contract_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4737,7 +4873,7 @@ func (x *ResumeContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResumeContractRequest.ProtoReflect.Descriptor instead.
 func (*ResumeContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{68}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *ResumeContractRequest) GetContractId() int64 {
@@ -4763,7 +4899,7 @@ type ResumeContractResponse struct {
 
 func (x *ResumeContractResponse) Reset() {
 	*x = ResumeContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[69]
+	mi := &file_contract_v1_contract_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4775,7 +4911,7 @@ func (x *ResumeContractResponse) String() string {
 func (*ResumeContractResponse) ProtoMessage() {}
 
 func (x *ResumeContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[69]
+	mi := &file_contract_v1_contract_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4788,7 +4924,7 @@ func (x *ResumeContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResumeContractResponse.ProtoReflect.Descriptor instead.
 func (*ResumeContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{69}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *ResumeContractResponse) GetContract() *Contract {
@@ -4808,7 +4944,7 @@ type EndContractRequest struct {
 
 func (x *EndContractRequest) Reset() {
 	*x = EndContractRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[70]
+	mi := &file_contract_v1_contract_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4820,7 +4956,7 @@ func (x *EndContractRequest) String() string {
 func (*EndContractRequest) ProtoMessage() {}
 
 func (x *EndContractRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[70]
+	mi := &file_contract_v1_contract_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4833,7 +4969,7 @@ func (x *EndContractRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndContractRequest.ProtoReflect.Descriptor instead.
 func (*EndContractRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{70}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *EndContractRequest) GetContractId() int64 {
@@ -4859,7 +4995,7 @@ type EndContractResponse struct {
 
 func (x *EndContractResponse) Reset() {
 	*x = EndContractResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[71]
+	mi := &file_contract_v1_contract_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4871,7 +5007,7 @@ func (x *EndContractResponse) String() string {
 func (*EndContractResponse) ProtoMessage() {}
 
 func (x *EndContractResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[71]
+	mi := &file_contract_v1_contract_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4884,7 +5020,7 @@ func (x *EndContractResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EndContractResponse.ProtoReflect.Descriptor instead.
 func (*EndContractResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{71}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *EndContractResponse) GetContract() *Contract {
@@ -4905,7 +5041,7 @@ type GetStatusHistoryRequest struct {
 
 func (x *GetStatusHistoryRequest) Reset() {
 	*x = GetStatusHistoryRequest{}
-	mi := &file_contract_v1_contract_proto_msgTypes[72]
+	mi := &file_contract_v1_contract_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4917,7 +5053,7 @@ func (x *GetStatusHistoryRequest) String() string {
 func (*GetStatusHistoryRequest) ProtoMessage() {}
 
 func (x *GetStatusHistoryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[72]
+	mi := &file_contract_v1_contract_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4930,7 +5066,7 @@ func (x *GetStatusHistoryRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusHistoryRequest.ProtoReflect.Descriptor instead.
 func (*GetStatusHistoryRequest) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{72}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *GetStatusHistoryRequest) GetContractId() int64 {
@@ -4964,7 +5100,7 @@ type GetStatusHistoryResponse struct {
 
 func (x *GetStatusHistoryResponse) Reset() {
 	*x = GetStatusHistoryResponse{}
-	mi := &file_contract_v1_contract_proto_msgTypes[73]
+	mi := &file_contract_v1_contract_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4976,7 +5112,7 @@ func (x *GetStatusHistoryResponse) String() string {
 func (*GetStatusHistoryResponse) ProtoMessage() {}
 
 func (x *GetStatusHistoryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_contract_v1_contract_proto_msgTypes[73]
+	mi := &file_contract_v1_contract_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4989,7 +5125,7 @@ func (x *GetStatusHistoryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetStatusHistoryResponse.ProtoReflect.Descriptor instead.
 func (*GetStatusHistoryResponse) Descriptor() ([]byte, []int) {
-	return file_contract_v1_contract_proto_rawDescGZIP(), []int{73}
+	return file_contract_v1_contract_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *GetStatusHistoryResponse) GetEntries() []*StatusHistoryEntry {
@@ -5025,7 +5161,7 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\vreview_note\x18\v \x01(\tR\n" +
 	"reviewNote\x127\n" +
 	"\x18reviewed_at_unix_seconds\x18\f \x01(\x03R\x15reviewedAtUnixSeconds\x12%\n" +
-	"\x0erevision_count\x18\r \x01(\x05R\rrevisionCount\"\x9d\x04\n" +
+	"\x0erevision_count\x18\r \x01(\x05R\rrevisionCount\"\xc2\x04\n" +
 	"\tHourlyLog\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
 	"\vcontract_id\x18\x02 \x01(\x03R\n" +
@@ -5043,7 +5179,8 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\x17created_at_unix_seconds\x18\v \x01(\x03R\x14createdAtUnixSeconds\x127\n" +
 	"\x18reviewed_at_unix_seconds\x18\f \x01(\x03R\x15reviewedAtUnixSeconds\x12\x1d\n" +
 	"\n" +
-	"invoice_id\x18\r \x01(\x03R\tinvoiceId\"\xd0\x05\n" +
+	"invoice_id\x18\r \x01(\x03R\tinvoiceId\x12#\n" +
+	"\revidence_urls\x18\x0e \x03(\tR\fevidenceUrls\"\xd0\x05\n" +
 	"\rHourlyInvoice\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1f\n" +
 	"\vcontract_id\x18\x02 \x01(\x03R\n" +
@@ -5225,16 +5362,27 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"contractId\x12!\n" +
 	"\fmilestone_id\x18\x02 \x01(\x03R\vmilestoneId\"X\n" +
 	"#InternalMarkMilestoneFundedResponse\x121\n" +
-	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"\xad\x01\n" +
+	"\bcontract\x18\x01 \x01(\v2\x15.contract.v1.ContractR\bcontract\"\xd2\x01\n" +
 	"\x14LogHourlyWorkRequest\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\x03R\n" +
 	"contractId\x121\n" +
 	"\x15start_at_unix_seconds\x18\x02 \x01(\x03R\x12startAtUnixSeconds\x12-\n" +
 	"\x13end_at_unix_seconds\x18\x03 \x01(\x03R\x10endAtUnixSeconds\x12\x12\n" +
-	"\x04note\x18\x04 \x01(\tR\x04note\"N\n" +
+	"\x04note\x18\x04 \x01(\tR\x04note\x12#\n" +
+	"\revidence_urls\x18\x05 \x03(\tR\fevidenceUrls\"N\n" +
 	"\x15LogHourlyWorkResponse\x125\n" +
 	"\n" +
-	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"t\n" +
+	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"\x87\x01\n" +
+	"$GetHourlyLogEvidenceUploadUrlRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\x12\x1b\n" +
+	"\tfile_name\x18\x02 \x01(\tR\bfileName\x12!\n" +
+	"\fcontent_type\x18\x03 \x01(\tR\vcontentType\"g\n" +
+	"%GetHourlyLogEvidenceUploadUrlResponse\x12\x1f\n" +
+	"\vstorage_key\x18\x01 \x01(\tR\n" +
+	"storageKey\x12\x1d\n" +
+	"\n" +
+	"upload_url\x18\x02 \x01(\tR\tuploadUrl\"t\n" +
 	"\x15ListHourlyLogsRequest\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\x03R\n" +
 	"contractId\x12\x1b\n" +
@@ -5270,12 +5418,13 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"reviewNote\"P\n" +
 	"\x17ReviewHourlyLogResponse\x125\n" +
 	"\n" +
-	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"\xb2\x01\n" +
+	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"\xd7\x01\n" +
 	"\x16UpdateHourlyLogRequest\x12\"\n" +
 	"\rhourly_log_id\x18\x01 \x01(\x03R\vhourlyLogId\x121\n" +
 	"\x15start_at_unix_seconds\x18\x02 \x01(\x03R\x12startAtUnixSeconds\x12-\n" +
 	"\x13end_at_unix_seconds\x18\x03 \x01(\x03R\x10endAtUnixSeconds\x12\x12\n" +
-	"\x04note\x18\x04 \x01(\tR\x04note\"P\n" +
+	"\x04note\x18\x04 \x01(\tR\x04note\x12#\n" +
+	"\revidence_urls\x18\x05 \x03(\tR\fevidenceUrls\"P\n" +
 	"\x17UpdateHourlyLogResponse\x125\n" +
 	"\n" +
 	"hourly_log\x18\x01 \x01(\v2\x16.contract.v1.HourlyLogR\thourlyLog\"<\n" +
@@ -5438,7 +5587,7 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"1STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_DISPUTED\x10\b\x121\n" +
 	"-STATUS_HISTORY_EVENT_TYPE_HOURLY_INVOICE_PAID\x10\t\x122\n" +
 	".STATUS_HISTORY_EVENT_TYPE_CONTRACT_END_BLOCKED\x10\n" +
-	"2\xe5\x18\n" +
+	"2\xee\x19\n" +
 	"\x0fContractService\x12Y\n" +
 	"\x0eCreateContract\x12\".contract.v1.CreateContractRequest\x1a#.contract.v1.CreateContractResponse\x12P\n" +
 	"\vGetContract\x12\x1f.contract.v1.GetContractRequest\x1a .contract.v1.GetContractResponse\x12\\\n" +
@@ -5451,7 +5600,8 @@ const file_contract_v1_contract_proto_rawDesc = "" +
 	"\x17RequestMilestoneChanges\x12+.contract.v1.RequestMilestoneChangesRequest\x1a,.contract.v1.RequestMilestoneChangesResponse\x12}\n" +
 	"\x1aApproveMilestoneSubmission\x12..contract.v1.ApproveMilestoneSubmissionRequest\x1a/.contract.v1.ApproveMilestoneSubmissionResponse\x12\x80\x01\n" +
 	"\x1bInternalMarkMilestoneFunded\x12/.contract.v1.InternalMarkMilestoneFundedRequest\x1a0.contract.v1.InternalMarkMilestoneFundedResponse\x12V\n" +
-	"\rLogHourlyWork\x12!.contract.v1.LogHourlyWorkRequest\x1a\".contract.v1.LogHourlyWorkResponse\x12Y\n" +
+	"\rLogHourlyWork\x12!.contract.v1.LogHourlyWorkRequest\x1a\".contract.v1.LogHourlyWorkResponse\x12\x86\x01\n" +
+	"\x1dGetHourlyLogEvidenceUploadUrl\x121.contract.v1.GetHourlyLogEvidenceUploadUrlRequest\x1a2.contract.v1.GetHourlyLogEvidenceUploadUrlResponse\x12Y\n" +
 	"\x0eListHourlyLogs\x12\".contract.v1.ListHourlyLogsRequest\x1a#.contract.v1.ListHourlyLogsResponse\x12k\n" +
 	"\x14GetHourlyWorkSummary\x12(.contract.v1.GetHourlyWorkSummaryRequest\x1a).contract.v1.GetHourlyWorkSummaryResponse\x12\\\n" +
 	"\x0fUpdateHourlyLog\x12#.contract.v1.UpdateHourlyLogRequest\x1a$.contract.v1.UpdateHourlyLogResponse\x12\\\n" +
@@ -5485,7 +5635,7 @@ func file_contract_v1_contract_proto_rawDescGZIP() []byte {
 }
 
 var file_contract_v1_contract_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
-var file_contract_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 74)
+var file_contract_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 76)
 var file_contract_v1_contract_proto_goTypes = []any{
 	(ContractType)(0),                             // 0: contract.v1.ContractType
 	(ContractStatus)(0),                           // 1: contract.v1.ContractStatus
@@ -5531,44 +5681,46 @@ var file_contract_v1_contract_proto_goTypes = []any{
 	(*InternalMarkMilestoneFundedResponse)(nil),   // 41: contract.v1.InternalMarkMilestoneFundedResponse
 	(*LogHourlyWorkRequest)(nil),                  // 42: contract.v1.LogHourlyWorkRequest
 	(*LogHourlyWorkResponse)(nil),                 // 43: contract.v1.LogHourlyWorkResponse
-	(*ListHourlyLogsRequest)(nil),                 // 44: contract.v1.ListHourlyLogsRequest
-	(*ListHourlyLogsResponse)(nil),                // 45: contract.v1.ListHourlyLogsResponse
-	(*GetHourlyWorkSummaryRequest)(nil),           // 46: contract.v1.GetHourlyWorkSummaryRequest
-	(*GetHourlyWorkSummaryResponse)(nil),          // 47: contract.v1.GetHourlyWorkSummaryResponse
-	(*ReviewHourlyLogRequest)(nil),                // 48: contract.v1.ReviewHourlyLogRequest
-	(*ReviewHourlyLogResponse)(nil),               // 49: contract.v1.ReviewHourlyLogResponse
-	(*UpdateHourlyLogRequest)(nil),                // 50: contract.v1.UpdateHourlyLogRequest
-	(*UpdateHourlyLogResponse)(nil),               // 51: contract.v1.UpdateHourlyLogResponse
-	(*DeleteHourlyLogRequest)(nil),                // 52: contract.v1.DeleteHourlyLogRequest
-	(*DeleteHourlyLogResponse)(nil),               // 53: contract.v1.DeleteHourlyLogResponse
-	(*GetHourlyInvoiceRequest)(nil),               // 54: contract.v1.GetHourlyInvoiceRequest
-	(*GetHourlyInvoiceResponse)(nil),              // 55: contract.v1.GetHourlyInvoiceResponse
-	(*ListHourlyInvoicesRequest)(nil),             // 56: contract.v1.ListHourlyInvoicesRequest
-	(*ListHourlyInvoicesResponse)(nil),            // 57: contract.v1.ListHourlyInvoicesResponse
-	(*InternalCloseHourlyWeekRequest)(nil),        // 58: contract.v1.InternalCloseHourlyWeekRequest
-	(*InternalCloseHourlyWeekResponse)(nil),       // 59: contract.v1.InternalCloseHourlyWeekResponse
-	(*InternalSettleHourlyInvoiceRequest)(nil),    // 60: contract.v1.InternalSettleHourlyInvoiceRequest
-	(*InternalSettleHourlyInvoiceResponse)(nil),   // 61: contract.v1.InternalSettleHourlyInvoiceResponse
-	(*CreateContractBonusRequest)(nil),            // 62: contract.v1.CreateContractBonusRequest
-	(*CreateContractBonusResponse)(nil),           // 63: contract.v1.CreateContractBonusResponse
-	(*ListContractBonusesRequest)(nil),            // 64: contract.v1.ListContractBonusesRequest
-	(*ListContractBonusesResponse)(nil),           // 65: contract.v1.ListContractBonusesResponse
-	(*InternalMarkContractBonusPaidRequest)(nil),  // 66: contract.v1.InternalMarkContractBonusPaidRequest
-	(*InternalMarkContractBonusPaidResponse)(nil), // 67: contract.v1.InternalMarkContractBonusPaidResponse
-	(*ProposeAmendmentRequest)(nil),               // 68: contract.v1.ProposeAmendmentRequest
-	(*ProposeAmendmentResponse)(nil),              // 69: contract.v1.ProposeAmendmentResponse
-	(*RespondAmendmentRequest)(nil),               // 70: contract.v1.RespondAmendmentRequest
-	(*RespondAmendmentResponse)(nil),              // 71: contract.v1.RespondAmendmentResponse
-	(*ListAmendmentsRequest)(nil),                 // 72: contract.v1.ListAmendmentsRequest
-	(*ListAmendmentsResponse)(nil),                // 73: contract.v1.ListAmendmentsResponse
-	(*PauseContractRequest)(nil),                  // 74: contract.v1.PauseContractRequest
-	(*PauseContractResponse)(nil),                 // 75: contract.v1.PauseContractResponse
-	(*ResumeContractRequest)(nil),                 // 76: contract.v1.ResumeContractRequest
-	(*ResumeContractResponse)(nil),                // 77: contract.v1.ResumeContractResponse
-	(*EndContractRequest)(nil),                    // 78: contract.v1.EndContractRequest
-	(*EndContractResponse)(nil),                   // 79: contract.v1.EndContractResponse
-	(*GetStatusHistoryRequest)(nil),               // 80: contract.v1.GetStatusHistoryRequest
-	(*GetStatusHistoryResponse)(nil),              // 81: contract.v1.GetStatusHistoryResponse
+	(*GetHourlyLogEvidenceUploadUrlRequest)(nil),  // 44: contract.v1.GetHourlyLogEvidenceUploadUrlRequest
+	(*GetHourlyLogEvidenceUploadUrlResponse)(nil), // 45: contract.v1.GetHourlyLogEvidenceUploadUrlResponse
+	(*ListHourlyLogsRequest)(nil),                 // 46: contract.v1.ListHourlyLogsRequest
+	(*ListHourlyLogsResponse)(nil),                // 47: contract.v1.ListHourlyLogsResponse
+	(*GetHourlyWorkSummaryRequest)(nil),           // 48: contract.v1.GetHourlyWorkSummaryRequest
+	(*GetHourlyWorkSummaryResponse)(nil),          // 49: contract.v1.GetHourlyWorkSummaryResponse
+	(*ReviewHourlyLogRequest)(nil),                // 50: contract.v1.ReviewHourlyLogRequest
+	(*ReviewHourlyLogResponse)(nil),               // 51: contract.v1.ReviewHourlyLogResponse
+	(*UpdateHourlyLogRequest)(nil),                // 52: contract.v1.UpdateHourlyLogRequest
+	(*UpdateHourlyLogResponse)(nil),               // 53: contract.v1.UpdateHourlyLogResponse
+	(*DeleteHourlyLogRequest)(nil),                // 54: contract.v1.DeleteHourlyLogRequest
+	(*DeleteHourlyLogResponse)(nil),               // 55: contract.v1.DeleteHourlyLogResponse
+	(*GetHourlyInvoiceRequest)(nil),               // 56: contract.v1.GetHourlyInvoiceRequest
+	(*GetHourlyInvoiceResponse)(nil),              // 57: contract.v1.GetHourlyInvoiceResponse
+	(*ListHourlyInvoicesRequest)(nil),             // 58: contract.v1.ListHourlyInvoicesRequest
+	(*ListHourlyInvoicesResponse)(nil),            // 59: contract.v1.ListHourlyInvoicesResponse
+	(*InternalCloseHourlyWeekRequest)(nil),        // 60: contract.v1.InternalCloseHourlyWeekRequest
+	(*InternalCloseHourlyWeekResponse)(nil),       // 61: contract.v1.InternalCloseHourlyWeekResponse
+	(*InternalSettleHourlyInvoiceRequest)(nil),    // 62: contract.v1.InternalSettleHourlyInvoiceRequest
+	(*InternalSettleHourlyInvoiceResponse)(nil),   // 63: contract.v1.InternalSettleHourlyInvoiceResponse
+	(*CreateContractBonusRequest)(nil),            // 64: contract.v1.CreateContractBonusRequest
+	(*CreateContractBonusResponse)(nil),           // 65: contract.v1.CreateContractBonusResponse
+	(*ListContractBonusesRequest)(nil),            // 66: contract.v1.ListContractBonusesRequest
+	(*ListContractBonusesResponse)(nil),           // 67: contract.v1.ListContractBonusesResponse
+	(*InternalMarkContractBonusPaidRequest)(nil),  // 68: contract.v1.InternalMarkContractBonusPaidRequest
+	(*InternalMarkContractBonusPaidResponse)(nil), // 69: contract.v1.InternalMarkContractBonusPaidResponse
+	(*ProposeAmendmentRequest)(nil),               // 70: contract.v1.ProposeAmendmentRequest
+	(*ProposeAmendmentResponse)(nil),              // 71: contract.v1.ProposeAmendmentResponse
+	(*RespondAmendmentRequest)(nil),               // 72: contract.v1.RespondAmendmentRequest
+	(*RespondAmendmentResponse)(nil),              // 73: contract.v1.RespondAmendmentResponse
+	(*ListAmendmentsRequest)(nil),                 // 74: contract.v1.ListAmendmentsRequest
+	(*ListAmendmentsResponse)(nil),                // 75: contract.v1.ListAmendmentsResponse
+	(*PauseContractRequest)(nil),                  // 76: contract.v1.PauseContractRequest
+	(*PauseContractResponse)(nil),                 // 77: contract.v1.PauseContractResponse
+	(*ResumeContractRequest)(nil),                 // 78: contract.v1.ResumeContractRequest
+	(*ResumeContractResponse)(nil),                // 79: contract.v1.ResumeContractResponse
+	(*EndContractRequest)(nil),                    // 80: contract.v1.EndContractRequest
+	(*EndContractResponse)(nil),                   // 81: contract.v1.EndContractResponse
+	(*GetStatusHistoryRequest)(nil),               // 82: contract.v1.GetStatusHistoryRequest
+	(*GetStatusHistoryResponse)(nil),              // 83: contract.v1.GetStatusHistoryResponse
 }
 var file_contract_v1_contract_proto_depIdxs = []int32{
 	2,  // 0: contract.v1.Milestone.status:type_name -> contract.v1.MilestoneStatus
@@ -5633,58 +5785,60 @@ var file_contract_v1_contract_proto_depIdxs = []int32{
 	38, // 59: contract.v1.ContractService.ApproveMilestoneSubmission:input_type -> contract.v1.ApproveMilestoneSubmissionRequest
 	40, // 60: contract.v1.ContractService.InternalMarkMilestoneFunded:input_type -> contract.v1.InternalMarkMilestoneFundedRequest
 	42, // 61: contract.v1.ContractService.LogHourlyWork:input_type -> contract.v1.LogHourlyWorkRequest
-	44, // 62: contract.v1.ContractService.ListHourlyLogs:input_type -> contract.v1.ListHourlyLogsRequest
-	46, // 63: contract.v1.ContractService.GetHourlyWorkSummary:input_type -> contract.v1.GetHourlyWorkSummaryRequest
-	50, // 64: contract.v1.ContractService.UpdateHourlyLog:input_type -> contract.v1.UpdateHourlyLogRequest
-	52, // 65: contract.v1.ContractService.DeleteHourlyLog:input_type -> contract.v1.DeleteHourlyLogRequest
-	48, // 66: contract.v1.ContractService.ReviewHourlyLog:input_type -> contract.v1.ReviewHourlyLogRequest
-	54, // 67: contract.v1.ContractService.GetHourlyInvoice:input_type -> contract.v1.GetHourlyInvoiceRequest
-	56, // 68: contract.v1.ContractService.ListHourlyInvoices:input_type -> contract.v1.ListHourlyInvoicesRequest
-	58, // 69: contract.v1.ContractService.InternalCloseHourlyWeek:input_type -> contract.v1.InternalCloseHourlyWeekRequest
-	60, // 70: contract.v1.ContractService.InternalSettleHourlyInvoice:input_type -> contract.v1.InternalSettleHourlyInvoiceRequest
-	62, // 71: contract.v1.ContractService.CreateContractBonus:input_type -> contract.v1.CreateContractBonusRequest
-	64, // 72: contract.v1.ContractService.ListContractBonuses:input_type -> contract.v1.ListContractBonusesRequest
-	66, // 73: contract.v1.ContractService.InternalMarkContractBonusPaid:input_type -> contract.v1.InternalMarkContractBonusPaidRequest
-	68, // 74: contract.v1.ContractService.ProposeAmendment:input_type -> contract.v1.ProposeAmendmentRequest
-	70, // 75: contract.v1.ContractService.RespondAmendment:input_type -> contract.v1.RespondAmendmentRequest
-	72, // 76: contract.v1.ContractService.ListAmendments:input_type -> contract.v1.ListAmendmentsRequest
-	74, // 77: contract.v1.ContractService.PauseContract:input_type -> contract.v1.PauseContractRequest
-	76, // 78: contract.v1.ContractService.ResumeContract:input_type -> contract.v1.ResumeContractRequest
-	78, // 79: contract.v1.ContractService.EndContract:input_type -> contract.v1.EndContractRequest
-	80, // 80: contract.v1.ContractService.GetStatusHistory:input_type -> contract.v1.GetStatusHistoryRequest
-	21, // 81: contract.v1.ContractService.CreateContract:output_type -> contract.v1.CreateContractResponse
-	23, // 82: contract.v1.ContractService.GetContract:output_type -> contract.v1.GetContractResponse
-	25, // 83: contract.v1.ContractService.ListMyContracts:output_type -> contract.v1.ListMyContractsResponse
-	27, // 84: contract.v1.ContractService.InternalGetJobOfferState:output_type -> contract.v1.GetJobOfferStateResponse
-	29, // 85: contract.v1.ContractService.AcceptContract:output_type -> contract.v1.AcceptContractResponse
-	31, // 86: contract.v1.ContractService.DeclineContract:output_type -> contract.v1.DeclineContractResponse
-	33, // 87: contract.v1.ContractService.RevokeContractOffer:output_type -> contract.v1.RevokeContractOfferResponse
-	35, // 88: contract.v1.ContractService.SubmitMilestoneWork:output_type -> contract.v1.SubmitMilestoneWorkResponse
-	37, // 89: contract.v1.ContractService.RequestMilestoneChanges:output_type -> contract.v1.RequestMilestoneChangesResponse
-	39, // 90: contract.v1.ContractService.ApproveMilestoneSubmission:output_type -> contract.v1.ApproveMilestoneSubmissionResponse
-	41, // 91: contract.v1.ContractService.InternalMarkMilestoneFunded:output_type -> contract.v1.InternalMarkMilestoneFundedResponse
-	43, // 92: contract.v1.ContractService.LogHourlyWork:output_type -> contract.v1.LogHourlyWorkResponse
-	45, // 93: contract.v1.ContractService.ListHourlyLogs:output_type -> contract.v1.ListHourlyLogsResponse
-	47, // 94: contract.v1.ContractService.GetHourlyWorkSummary:output_type -> contract.v1.GetHourlyWorkSummaryResponse
-	51, // 95: contract.v1.ContractService.UpdateHourlyLog:output_type -> contract.v1.UpdateHourlyLogResponse
-	53, // 96: contract.v1.ContractService.DeleteHourlyLog:output_type -> contract.v1.DeleteHourlyLogResponse
-	49, // 97: contract.v1.ContractService.ReviewHourlyLog:output_type -> contract.v1.ReviewHourlyLogResponse
-	55, // 98: contract.v1.ContractService.GetHourlyInvoice:output_type -> contract.v1.GetHourlyInvoiceResponse
-	57, // 99: contract.v1.ContractService.ListHourlyInvoices:output_type -> contract.v1.ListHourlyInvoicesResponse
-	59, // 100: contract.v1.ContractService.InternalCloseHourlyWeek:output_type -> contract.v1.InternalCloseHourlyWeekResponse
-	61, // 101: contract.v1.ContractService.InternalSettleHourlyInvoice:output_type -> contract.v1.InternalSettleHourlyInvoiceResponse
-	63, // 102: contract.v1.ContractService.CreateContractBonus:output_type -> contract.v1.CreateContractBonusResponse
-	65, // 103: contract.v1.ContractService.ListContractBonuses:output_type -> contract.v1.ListContractBonusesResponse
-	67, // 104: contract.v1.ContractService.InternalMarkContractBonusPaid:output_type -> contract.v1.InternalMarkContractBonusPaidResponse
-	69, // 105: contract.v1.ContractService.ProposeAmendment:output_type -> contract.v1.ProposeAmendmentResponse
-	71, // 106: contract.v1.ContractService.RespondAmendment:output_type -> contract.v1.RespondAmendmentResponse
-	73, // 107: contract.v1.ContractService.ListAmendments:output_type -> contract.v1.ListAmendmentsResponse
-	75, // 108: contract.v1.ContractService.PauseContract:output_type -> contract.v1.PauseContractResponse
-	77, // 109: contract.v1.ContractService.ResumeContract:output_type -> contract.v1.ResumeContractResponse
-	79, // 110: contract.v1.ContractService.EndContract:output_type -> contract.v1.EndContractResponse
-	81, // 111: contract.v1.ContractService.GetStatusHistory:output_type -> contract.v1.GetStatusHistoryResponse
-	81, // [81:112] is the sub-list for method output_type
-	50, // [50:81] is the sub-list for method input_type
+	44, // 62: contract.v1.ContractService.GetHourlyLogEvidenceUploadUrl:input_type -> contract.v1.GetHourlyLogEvidenceUploadUrlRequest
+	46, // 63: contract.v1.ContractService.ListHourlyLogs:input_type -> contract.v1.ListHourlyLogsRequest
+	48, // 64: contract.v1.ContractService.GetHourlyWorkSummary:input_type -> contract.v1.GetHourlyWorkSummaryRequest
+	52, // 65: contract.v1.ContractService.UpdateHourlyLog:input_type -> contract.v1.UpdateHourlyLogRequest
+	54, // 66: contract.v1.ContractService.DeleteHourlyLog:input_type -> contract.v1.DeleteHourlyLogRequest
+	50, // 67: contract.v1.ContractService.ReviewHourlyLog:input_type -> contract.v1.ReviewHourlyLogRequest
+	56, // 68: contract.v1.ContractService.GetHourlyInvoice:input_type -> contract.v1.GetHourlyInvoiceRequest
+	58, // 69: contract.v1.ContractService.ListHourlyInvoices:input_type -> contract.v1.ListHourlyInvoicesRequest
+	60, // 70: contract.v1.ContractService.InternalCloseHourlyWeek:input_type -> contract.v1.InternalCloseHourlyWeekRequest
+	62, // 71: contract.v1.ContractService.InternalSettleHourlyInvoice:input_type -> contract.v1.InternalSettleHourlyInvoiceRequest
+	64, // 72: contract.v1.ContractService.CreateContractBonus:input_type -> contract.v1.CreateContractBonusRequest
+	66, // 73: contract.v1.ContractService.ListContractBonuses:input_type -> contract.v1.ListContractBonusesRequest
+	68, // 74: contract.v1.ContractService.InternalMarkContractBonusPaid:input_type -> contract.v1.InternalMarkContractBonusPaidRequest
+	70, // 75: contract.v1.ContractService.ProposeAmendment:input_type -> contract.v1.ProposeAmendmentRequest
+	72, // 76: contract.v1.ContractService.RespondAmendment:input_type -> contract.v1.RespondAmendmentRequest
+	74, // 77: contract.v1.ContractService.ListAmendments:input_type -> contract.v1.ListAmendmentsRequest
+	76, // 78: contract.v1.ContractService.PauseContract:input_type -> contract.v1.PauseContractRequest
+	78, // 79: contract.v1.ContractService.ResumeContract:input_type -> contract.v1.ResumeContractRequest
+	80, // 80: contract.v1.ContractService.EndContract:input_type -> contract.v1.EndContractRequest
+	82, // 81: contract.v1.ContractService.GetStatusHistory:input_type -> contract.v1.GetStatusHistoryRequest
+	21, // 82: contract.v1.ContractService.CreateContract:output_type -> contract.v1.CreateContractResponse
+	23, // 83: contract.v1.ContractService.GetContract:output_type -> contract.v1.GetContractResponse
+	25, // 84: contract.v1.ContractService.ListMyContracts:output_type -> contract.v1.ListMyContractsResponse
+	27, // 85: contract.v1.ContractService.InternalGetJobOfferState:output_type -> contract.v1.GetJobOfferStateResponse
+	29, // 86: contract.v1.ContractService.AcceptContract:output_type -> contract.v1.AcceptContractResponse
+	31, // 87: contract.v1.ContractService.DeclineContract:output_type -> contract.v1.DeclineContractResponse
+	33, // 88: contract.v1.ContractService.RevokeContractOffer:output_type -> contract.v1.RevokeContractOfferResponse
+	35, // 89: contract.v1.ContractService.SubmitMilestoneWork:output_type -> contract.v1.SubmitMilestoneWorkResponse
+	37, // 90: contract.v1.ContractService.RequestMilestoneChanges:output_type -> contract.v1.RequestMilestoneChangesResponse
+	39, // 91: contract.v1.ContractService.ApproveMilestoneSubmission:output_type -> contract.v1.ApproveMilestoneSubmissionResponse
+	41, // 92: contract.v1.ContractService.InternalMarkMilestoneFunded:output_type -> contract.v1.InternalMarkMilestoneFundedResponse
+	43, // 93: contract.v1.ContractService.LogHourlyWork:output_type -> contract.v1.LogHourlyWorkResponse
+	45, // 94: contract.v1.ContractService.GetHourlyLogEvidenceUploadUrl:output_type -> contract.v1.GetHourlyLogEvidenceUploadUrlResponse
+	47, // 95: contract.v1.ContractService.ListHourlyLogs:output_type -> contract.v1.ListHourlyLogsResponse
+	49, // 96: contract.v1.ContractService.GetHourlyWorkSummary:output_type -> contract.v1.GetHourlyWorkSummaryResponse
+	53, // 97: contract.v1.ContractService.UpdateHourlyLog:output_type -> contract.v1.UpdateHourlyLogResponse
+	55, // 98: contract.v1.ContractService.DeleteHourlyLog:output_type -> contract.v1.DeleteHourlyLogResponse
+	51, // 99: contract.v1.ContractService.ReviewHourlyLog:output_type -> contract.v1.ReviewHourlyLogResponse
+	57, // 100: contract.v1.ContractService.GetHourlyInvoice:output_type -> contract.v1.GetHourlyInvoiceResponse
+	59, // 101: contract.v1.ContractService.ListHourlyInvoices:output_type -> contract.v1.ListHourlyInvoicesResponse
+	61, // 102: contract.v1.ContractService.InternalCloseHourlyWeek:output_type -> contract.v1.InternalCloseHourlyWeekResponse
+	63, // 103: contract.v1.ContractService.InternalSettleHourlyInvoice:output_type -> contract.v1.InternalSettleHourlyInvoiceResponse
+	65, // 104: contract.v1.ContractService.CreateContractBonus:output_type -> contract.v1.CreateContractBonusResponse
+	67, // 105: contract.v1.ContractService.ListContractBonuses:output_type -> contract.v1.ListContractBonusesResponse
+	69, // 106: contract.v1.ContractService.InternalMarkContractBonusPaid:output_type -> contract.v1.InternalMarkContractBonusPaidResponse
+	71, // 107: contract.v1.ContractService.ProposeAmendment:output_type -> contract.v1.ProposeAmendmentResponse
+	73, // 108: contract.v1.ContractService.RespondAmendment:output_type -> contract.v1.RespondAmendmentResponse
+	75, // 109: contract.v1.ContractService.ListAmendments:output_type -> contract.v1.ListAmendmentsResponse
+	77, // 110: contract.v1.ContractService.PauseContract:output_type -> contract.v1.PauseContractResponse
+	79, // 111: contract.v1.ContractService.ResumeContract:output_type -> contract.v1.ResumeContractResponse
+	81, // 112: contract.v1.ContractService.EndContract:output_type -> contract.v1.EndContractResponse
+	83, // 113: contract.v1.ContractService.GetStatusHistory:output_type -> contract.v1.GetStatusHistoryResponse
+	82, // [82:114] is the sub-list for method output_type
+	50, // [50:82] is the sub-list for method input_type
 	50, // [50:50] is the sub-list for extension type_name
 	50, // [50:50] is the sub-list for extension extendee
 	0,  // [0:50] is the sub-list for field type_name
@@ -5701,7 +5855,7 @@ func file_contract_v1_contract_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_contract_v1_contract_proto_rawDesc), len(file_contract_v1_contract_proto_rawDesc)),
 			NumEnums:      8,
-			NumMessages:   74,
+			NumMessages:   76,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

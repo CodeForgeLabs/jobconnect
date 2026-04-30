@@ -31,6 +31,7 @@ const (
 	ContractService_ApproveMilestoneSubmission_FullMethodName    = "/contract.v1.ContractService/ApproveMilestoneSubmission"
 	ContractService_InternalMarkMilestoneFunded_FullMethodName   = "/contract.v1.ContractService/InternalMarkMilestoneFunded"
 	ContractService_LogHourlyWork_FullMethodName                 = "/contract.v1.ContractService/LogHourlyWork"
+	ContractService_GetHourlyLogEvidenceUploadUrl_FullMethodName = "/contract.v1.ContractService/GetHourlyLogEvidenceUploadUrl"
 	ContractService_ListHourlyLogs_FullMethodName                = "/contract.v1.ContractService/ListHourlyLogs"
 	ContractService_GetHourlyWorkSummary_FullMethodName          = "/contract.v1.ContractService/GetHourlyWorkSummary"
 	ContractService_UpdateHourlyLog_FullMethodName               = "/contract.v1.ContractService/UpdateHourlyLog"
@@ -74,6 +75,7 @@ type ContractServiceClient interface {
 	// Internal RPC for payment-service escrow funding callbacks.
 	InternalMarkMilestoneFunded(ctx context.Context, in *InternalMarkMilestoneFundedRequest, opts ...grpc.CallOption) (*InternalMarkMilestoneFundedResponse, error)
 	LogHourlyWork(ctx context.Context, in *LogHourlyWorkRequest, opts ...grpc.CallOption) (*LogHourlyWorkResponse, error)
+	GetHourlyLogEvidenceUploadUrl(ctx context.Context, in *GetHourlyLogEvidenceUploadUrlRequest, opts ...grpc.CallOption) (*GetHourlyLogEvidenceUploadUrlResponse, error)
 	ListHourlyLogs(ctx context.Context, in *ListHourlyLogsRequest, opts ...grpc.CallOption) (*ListHourlyLogsResponse, error)
 	GetHourlyWorkSummary(ctx context.Context, in *GetHourlyWorkSummaryRequest, opts ...grpc.CallOption) (*GetHourlyWorkSummaryResponse, error)
 	UpdateHourlyLog(ctx context.Context, in *UpdateHourlyLogRequest, opts ...grpc.CallOption) (*UpdateHourlyLogResponse, error)
@@ -223,6 +225,16 @@ func (c *contractServiceClient) LogHourlyWork(ctx context.Context, in *LogHourly
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LogHourlyWorkResponse)
 	err := c.cc.Invoke(ctx, ContractService_LogHourlyWork_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *contractServiceClient) GetHourlyLogEvidenceUploadUrl(ctx context.Context, in *GetHourlyLogEvidenceUploadUrlRequest, opts ...grpc.CallOption) (*GetHourlyLogEvidenceUploadUrlResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetHourlyLogEvidenceUploadUrlResponse)
+	err := c.cc.Invoke(ctx, ContractService_GetHourlyLogEvidenceUploadUrl_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -441,6 +453,7 @@ type ContractServiceServer interface {
 	// Internal RPC for payment-service escrow funding callbacks.
 	InternalMarkMilestoneFunded(context.Context, *InternalMarkMilestoneFundedRequest) (*InternalMarkMilestoneFundedResponse, error)
 	LogHourlyWork(context.Context, *LogHourlyWorkRequest) (*LogHourlyWorkResponse, error)
+	GetHourlyLogEvidenceUploadUrl(context.Context, *GetHourlyLogEvidenceUploadUrlRequest) (*GetHourlyLogEvidenceUploadUrlResponse, error)
 	ListHourlyLogs(context.Context, *ListHourlyLogsRequest) (*ListHourlyLogsResponse, error)
 	GetHourlyWorkSummary(context.Context, *GetHourlyWorkSummaryRequest) (*GetHourlyWorkSummaryResponse, error)
 	UpdateHourlyLog(context.Context, *UpdateHourlyLogRequest) (*UpdateHourlyLogResponse, error)
@@ -511,6 +524,9 @@ func (UnimplementedContractServiceServer) InternalMarkMilestoneFunded(context.Co
 }
 func (UnimplementedContractServiceServer) LogHourlyWork(context.Context, *LogHourlyWorkRequest) (*LogHourlyWorkResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method LogHourlyWork not implemented")
+}
+func (UnimplementedContractServiceServer) GetHourlyLogEvidenceUploadUrl(context.Context, *GetHourlyLogEvidenceUploadUrlRequest) (*GetHourlyLogEvidenceUploadUrlResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetHourlyLogEvidenceUploadUrl not implemented")
 }
 func (UnimplementedContractServiceServer) ListHourlyLogs(context.Context, *ListHourlyLogsRequest) (*ListHourlyLogsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListHourlyLogs not implemented")
@@ -802,6 +818,24 @@ func _ContractService_LogHourlyWork_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ContractServiceServer).LogHourlyWork(ctx, req.(*LogHourlyWorkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ContractService_GetHourlyLogEvidenceUploadUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHourlyLogEvidenceUploadUrlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContractServiceServer).GetHourlyLogEvidenceUploadUrl(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContractService_GetHourlyLogEvidenceUploadUrl_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContractServiceServer).GetHourlyLogEvidenceUploadUrl(ctx, req.(*GetHourlyLogEvidenceUploadUrlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1202,6 +1236,10 @@ var ContractService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LogHourlyWork",
 			Handler:    _ContractService_LogHourlyWork_Handler,
+		},
+		{
+			MethodName: "GetHourlyLogEvidenceUploadUrl",
+			Handler:    _ContractService_GetHourlyLogEvidenceUploadUrl_Handler,
 		},
 		{
 			MethodName: "ListHourlyLogs",
