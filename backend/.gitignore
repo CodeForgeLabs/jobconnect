@@ -44,3 +44,5 @@ Thumbs.db
 !.env.example
 *.local
 
+
+gateway/cmd/gatewayd/docs
