@@ -153,18 +153,18 @@ services:
       dispute:
         condition: service_started
 
-  review:
+  reviews:
     build:
       context: .
       dockerfile: services/Dockerfile
       args:
-        SERVICE: review
-        CMD_PATH: ./cmd/reviewd
+        SERVICE: reviews
+        CMD_PATH: ./cmd/reviewsd
     env_file:
       - .env
     environment:
-      REVIEW_GRPC_LISTEN_ADDR: ":50056"
-      REVIEW_POSTGRES_URL: "postgres://review:review@postgres:5432/jobconnect_review?sslmode=disable"
+      REVIEWS_GRPC_LISTEN_ADDR: "0.0.0.0:50056"
+      REVIEWS_POSTGRES_URL: "postgres://review:review@postgres:5432/jobconnect_review?sslmode=disable"
     ports:
       - "50056:50056"
     depends_on:
@@ -272,7 +272,7 @@ services:
     environment:
       JOB_SERVICE_ADDR: job:50053
       USER_SERVICE_ADDR: user:50052
-      REVIEW_SERVICE_ADDR: review:50056
+      REVIEW_SERVICE_ADDR: reviews:50056
       RECOMMENDATION_CACHE_BACKEND: redis
       RECOMMENDATION_REDIS_ADDR: redis:6379
       RECOMMENDATION_EMBEDDING_STORE_BACKEND: pgvector
@@ -286,7 +286,7 @@ services:
         condition: service_started
       job:
         condition: service_started
-      review:
+      reviews:
         condition: service_started
       redis:
         condition: service_healthy

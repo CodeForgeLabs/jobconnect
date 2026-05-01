@@ -196,7 +196,17 @@ func callerUserID(c *gin.Context) (string, bool) {
 	}
 	return id, true
 }
-
+func callerUserRole(c *gin.Context) (string, bool) {
+	v, ok := c.Get(middleware.ContextRole)
+	if !ok {
+		return "", false
+	}
+	role, ok := v.(string)
+	if !ok || strings.TrimSpace(role) == "" {
+		return "", false
+	}
+	return role, true
+}
 func parseIntQuery(c *gin.Context, key string, def int) int {
 	v := strings.TrimSpace(c.Query(key))
 	if v == "" {
@@ -211,4 +221,8 @@ func parseIntQuery(c *gin.Context, key string, def int) int {
 
 func attachUserID(ctx context.Context, userID string) context.Context {
 	return metadata.AppendToOutgoingContext(ctx, "user_id", userID)
+}
+
+func attachUserIdAndRole(ctx context.Context, userID, role string) context.Context {
+	return metadata.AppendToOutgoingContext(ctx, "user_id", userID, "role", role)
 }

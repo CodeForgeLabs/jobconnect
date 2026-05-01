@@ -8,7 +8,7 @@ type GetContractUsers struct {
 }
 
 type GetContractUsersInput struct {
-	ContractID string
+	ContractID int64
 }
 
 type GetContractUsersOutput struct {

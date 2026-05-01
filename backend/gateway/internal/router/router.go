@@ -41,6 +41,7 @@ func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandl
 	registerDisputeRoutes(api, disputeHandler, jwtParser)
 	registerRecommendationRoutes(api, recommendationHandler, jwtParser)
 	registerChatRoutes(api, chatHandler, jwtParser)
+	registerReviewRoutes(api, reviewHandler, jwtParser)
 
 	return engine
 }
@@ -284,8 +285,8 @@ func registerReviewRoutes(api *gin.RouterGroup, reviewHandler *handlers.ReviewHa
 	review.Use(middleware.RequireAuth(jwtParser))
 
 	review.POST("", reviewHandler.CreateReview)
-	review.GET("/:reviewId", reviewHandler.GetReview)
-	review.PATCH("/:reviewId", reviewHandler.UpdateReview)
-	review.GET("/contracts/:contractId", reviewHandler.ListReviews)
-	review.DELETE("/:reviewId", reviewHandler.DeleteReview)
+	review.GET("/:id", reviewHandler.GetReview)
+	review.PUT("/:id", reviewHandler.UpdateReview)
+	review.GET("/", reviewHandler.ListReviews)
+	review.DELETE("/:id", reviewHandler.DeleteReview)
 }

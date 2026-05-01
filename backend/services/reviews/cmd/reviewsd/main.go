@@ -79,6 +79,9 @@ func main() {
 		Reviews: reviewRepo,
 		Clock:   clockImpl,
 	}
+	getUserRatingSummaryUC := &applications.GetUserRatingSummary{
+		Reviews: reviewRepo,
+	}
 
 	// gRPC server
 	server := grpcadapter.NewReviewServer(
@@ -88,6 +91,7 @@ func main() {
 		listUC,
 		updateUC,
 		getContractsUsersUC,
+		getUserRatingSummaryUC,
 	)
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)

@@ -6,6 +6,7 @@ import (
 
 	reviewsv1 "jobconnect/reviews/gen/reviews/v1"
 
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -48,6 +49,29 @@ func mapRole(r reviewsv1.ReviewerRole) domain.ReviewerRole {
 }
 
 func getUserID(ctx context.Context) string {
-	// TODO: extract from JWT middleware
-	return ctx.Value("user_id").(string)
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+
+	values := md.Get("user_id")
+	if len(values) == 0 {
+		return ""
+	}
+
+	return values[0]
+}
+
+func getUserRole(ctx context.Context) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+
+	values := md.Get("role")
+	if len(values) == 0 {
+		return ""
+	}
+
+	return values[0]
 }

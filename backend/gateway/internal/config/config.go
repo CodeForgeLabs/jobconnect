@@ -63,7 +63,7 @@ func LoadFromEnv() (Config, error) {
 		ContractServiceGRPCAddr:       getEnv("CONTRACT_SERVICE_GRPC_ADDR", "contract:50055"),
 		DisputeServiceGRPCAddr:        getEnv("DISPUTE_SERVICE_GRPC_ADDR", "dispute:50066"),
 		RecommendationServiceGRPCAddr: getEnv("RECOMMENDATION_SERVICE_GRPC_ADDR", "recommendation:50064"),
-		ReviewServiceGRPCAddr:         getEnv("REVIEW_SERVICE_GRPC_ADDR", "review:50065"),
+		ReviewServiceGRPCAddr:         getEnv("REVIEW_SERVICE_GRPC_ADDR", "reviews:50056"),
 		JWTSecret:                     []byte(secret),
 		OAuthStateSecret:              []byte(getEnv("GATEWAY_OAUTH_STATE_SECRET", secret)),
 		ChallengeProofSecret:          []byte(getEnv("GATEWAY_CHALLENGE_PROOF_SECRET", secret)),

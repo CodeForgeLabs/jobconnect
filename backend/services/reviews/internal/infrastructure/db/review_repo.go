@@ -156,7 +156,7 @@ func (r *ReviewRepo) ListByUser(
 }
 func (r *ReviewRepo) GetContractUsers(
 	ctx context.Context,
-	contractID string,
+	contractID int64,
 ) (applications.GetContractUsersOutput, error) {
 
 	var out applications.GetContractUsersOutput
@@ -177,4 +177,28 @@ func (r *ReviewRepo) GetContractUsers(
 	}
 
 	return out, nil
+}
+
+func (r *ReviewRepo) GetUserRatingSummary(
+	ctx context.Context,
+	userID string,
+) (float64, int64, error) {
+
+	query := `
+		SELECT
+			COALESCE(AVG(rating), 0),
+			COUNT(*)
+		FROM reviews
+		WHERE freelancer_id = $1 OR client_id = $1
+	`
+
+	var avg float64
+	var total int64
+
+	err := r.pool.QueryRow(ctx, query, userID).Scan(&avg, &total)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return avg, total, nil
 }

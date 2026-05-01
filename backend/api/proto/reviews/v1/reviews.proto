@@ -102,7 +102,19 @@ message ListReviewsResponse {
 message GetContractUsersRequest {
   int64 contract_id = 1;
 }
+message GetUserRatingSummaryRequest {
 
+  string user_id = 1;
+
+}
+
+message GetUserRatingSummaryResponse {
+
+  double average_rating = 1;
+
+  int64 total_reviews = 2;
+
+}
 message GetContractUsersResponse {
   string client_id = 1;
   string freelancer_id = 2;
@@ -120,5 +132,8 @@ service ReviewService {
 
   rpc ListReviewsByUser(ListReviewsByUserRequest) returns (ListReviewsResponse);
   rpc GetContractUsers(GetContractUsersRequest) returns (GetContractUsersResponse);
+  rpc GetUserRatingSummary(GetUserRatingSummaryRequest) returns (GetUserRatingSummaryResponse);
+
 
 }
+

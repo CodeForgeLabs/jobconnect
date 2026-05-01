@@ -9,12 +9,13 @@ import (
 
 type ReviewServer struct {
 	reviewsv1.UnimplementedReviewServiceServer
-	createReview      *applications.CreateReview
-	deleteReview      *applications.DeleteReview
-	getReview         *applications.GetReview
-	listReviews       *applications.ListReviews
-	updateReview      *applications.UpdateReview
-	getContractsUsers *applications.GetContractUsers
+	createReview         *applications.CreateReview
+	deleteReview         *applications.DeleteReview
+	getReview            *applications.GetReview
+	listReviews          *applications.ListReviews
+	updateReview         *applications.UpdateReview
+	getContractsUsers    *applications.GetContractUsers
+	getUserRatingSummary *applications.GetUserRatingSummary
 }
 
 func NewReviewServer(
@@ -24,14 +25,16 @@ func NewReviewServer(
 	listReviews *applications.ListReviews,
 	updateReview *applications.UpdateReview,
 	getContractsUsers *applications.GetContractUsers,
+	getUserRatingSummary *applications.GetUserRatingSummary,
 ) *ReviewServer {
 	return &ReviewServer{
-		createReview:      createReview,
-		deleteReview:      deleteReview,
-		getReview:         getReview,
-		listReviews:       listReviews,
-		updateReview:      updateReview,
-		getContractsUsers: getContractsUsers,
+		createReview:         createReview,
+		deleteReview:         deleteReview,
+		getReview:            getReview,
+		listReviews:          listReviews,
+		updateReview:         updateReview,
+		getContractsUsers:    getContractsUsers,
+		getUserRatingSummary: getUserRatingSummary,
 	}
 }
 
@@ -47,7 +50,7 @@ func (s *ReviewServer) CreateReview(
 
 	// ⚠️ TODO: CALL CONTRACT SERVICE HERE
 	contract, err := s.getContractsUsers.Execute(ctx, applications.GetContractUsersInput{
-		ContractID: fmt.Sprintf("%d", contractId),
+		ContractID: contractId,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get contract users: %w", err)
@@ -104,8 +107,7 @@ func (s *ReviewServer) UpdateReview(
 	}
 
 	// TODO: get user from context (JWT middleware)
-	// userID := getUserID(ctx)
-	userID := "550e8400-e29b-41d4-a716-446655440000" // TODO: remove hardcoded user ID
+	userID := getUserID(ctx)
 
 	output, err := s.updateReview.Execute(ctx, applications.UpdateReviewInput{
 		ID:      req.GetId(),
@@ -172,5 +174,27 @@ func (s *ReviewServer) ListReviewsByUser(
 
 	return &reviewsv1.ListReviewsResponse{
 		Reviews: reviews,
+	}, nil
+}
+
+func (s *ReviewServer) GetUserRatingSummary(
+	ctx context.Context,
+	req *reviewsv1.GetUserRatingSummaryRequest,
+) (*reviewsv1.GetUserRatingSummaryResponse, error) {
+
+	if req.GetUserId() == "" {
+		return nil, fmt.Errorf("user ID is required")
+	}
+
+	avg, err := s.getUserRatingSummary.Execute(ctx, applications.GetUserRatingSummaryInput{
+		UserID: req.GetUserId(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &reviewsv1.GetUserRatingSummaryResponse{
+		AverageRating: avg.AverageRating,
+		TotalReviews:  avg.TotalReviews,
 	}, nil
 }
