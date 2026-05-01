@@ -45,4 +45,5 @@ Thumbs.db
 *.local
 
 
-gateway/cmd/gatewayd/docs
+# Swagger generated docs
+gateway/cmd/gatewayd/docs/
