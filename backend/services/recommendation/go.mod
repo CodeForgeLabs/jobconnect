@@ -10,7 +10,7 @@ require (
 	google.golang.org/protobuf v1.36.11
 	jobconnect/job v0.0.0-00010101000000-000000000000
 	jobconnect/review v0.0.0-00010101000000-000000000000
-	jobconnect/user v0.0.0-00010101000000-000000000000
+	jobconnect/user v0.0.0
 )
 
 require (
