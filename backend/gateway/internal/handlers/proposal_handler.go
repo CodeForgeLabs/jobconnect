@@ -19,6 +19,55 @@ func NewProposalHandler(client proposalv1.ProposalServiceClient) *ProposalHandle
 	return &ProposalHandler{client: client}
 }
 
+type ProposalErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type ProposalResponse struct {
+	Proposal any `json:"proposal"`
+}
+
+type ProposalListResponse struct {
+	Proposals     []any  `json:"proposals"`
+	NextPageToken string `json:"next_page_token,omitempty"`
+}
+
+type ProposalDecisionRequest struct {
+	Decision string `json:"decision"`
+	Reason   string `json:"reason"`
+}
+
+type ProposalAttachmentUploadURLRequest struct {
+	FileName    string `json:"file_name"`
+	ContentType string `json:"content_type"`
+}
+
+type ProposalAttachmentURLResponse struct {
+	StorageKey  string `json:"storage_key,omitempty"`
+	UploadURL   string `json:"upload_url,omitempty"`
+	DownloadURL string `json:"download_url,omitempty"`
+}
+
+type ProposalCountResponse struct {
+	Count int64 `json:"count"`
+}
+
+type ProposalHasAppliedResponse struct {
+	HasApplied bool `json:"has_applied"`
+}
+
+// GetProposal godoc
+// @Summary Get proposal by ID
+// @Description Returns a proposal by proposal ID.
+// @Tags Proposal
+// @Produce json
+// @Security BearerAuth
+// @Param proposalId path int true "Proposal ID"
+// @Success 200 {object} ProposalResponse
+// @Failure 400 {object} ProposalErrorResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/{proposalId} [get]
 func (h *ProposalHandler) GetProposal(c *gin.Context) {
 	proposalID, ok := parseInt64Param(c, "proposalId")
 	if !ok {
@@ -32,6 +81,18 @@ func (h *ProposalHandler) GetProposal(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "proposal", resp.GetProposal())
 }
 
+// GetMyProposalForJob godoc
+// @Summary Get my proposal for a job
+// @Description Returns the authenticated freelancer's proposal for the given job.
+// @Tags Proposal
+// @Produce json
+// @Security BearerAuth
+// @Param jobId path int true "Job ID"
+// @Success 200 {object} ProposalResponse
+// @Failure 400 {object} ProposalErrorResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/me/jobs/{jobId} [get]
 func (h *ProposalHandler) GetMyProposalForJob(c *gin.Context) {
 	jobID, ok := parseInt64Param(c, "jobId")
 	if !ok {
@@ -45,6 +106,18 @@ func (h *ProposalHandler) GetMyProposalForJob(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "proposal", resp.GetProposal())
 }
 
+// HasAppliedToJob godoc
+// @Summary Check if I applied to a job
+// @Description Returns whether the authenticated freelancer has applied to the given job.
+// @Tags Proposal
+// @Produce json
+// @Security BearerAuth
+// @Param jobId path int true "Job ID"
+// @Success 200 {object} ProposalHasAppliedResponse
+// @Failure 400 {object} ProposalErrorResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/me/jobs/{jobId}/has-applied [get]
 func (h *ProposalHandler) HasAppliedToJob(c *gin.Context) {
 	jobID, ok := parseInt64Param(c, "jobId")
 	if !ok {
@@ -63,6 +136,21 @@ func (h *ProposalHandler) HasAppliedToJob(c *gin.Context) {
 	c.JSON(http.StatusOK, payload)
 }
 
+// ListMyProposals godoc
+// @Summary List my proposals
+// @Description Lists proposals for the authenticated freelancer.
+// @Tags Proposal
+// @Produce json
+// @Security BearerAuth
+// @Param status query []string false "Proposal status filters"
+// @Param job_id query int false "Job ID filter"
+// @Param sort_by query string false "Sort by (newest|oldest|bid_high|bid_low)"
+// @Param page_size query int false "Page size" default(20)
+// @Param page_token query string false "Page token"
+// @Success 200 {object} ProposalListResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/me [get]
 func (h *ProposalHandler) ListMyProposals(c *gin.Context) {
 	statuses := parseProposalStatusFilters(c.QueryArray("status"))
 	var jobFilter *int64
@@ -90,6 +178,22 @@ func (h *ProposalHandler) ListMyProposals(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"proposals": payload, "next_page_token": resp.GetNextPageToken()})
 }
 
+// ListClientProposals godoc
+// @Summary List client proposals
+// @Description Lists proposals for the authenticated client.
+// @Tags Proposal
+// @Produce json
+// @Security BearerAuth
+// @Param status query []string false "Proposal status filters"
+// @Param job_id query int false "Job ID filter"
+// @Param freelancer_id query string false "Freelancer ID filter"
+// @Param sort_by query string false "Sort by (newest|oldest|bid_high|bid_low)"
+// @Param page_size query int false "Page size" default(20)
+// @Param page_token query string false "Page token"
+// @Success 200 {object} ProposalListResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/client [get]
 func (h *ProposalHandler) ListClientProposals(c *gin.Context) {
 	statuses := parseProposalStatusFilters(c.QueryArray("status"))
 	var jobFilter *int64
@@ -122,6 +226,18 @@ func (h *ProposalHandler) ListClientProposals(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"proposals": payload, "next_page_token": resp.GetNextPageToken()})
 }
 
+// CountProposalsByJob godoc
+// @Summary Count proposals by job
+// @Description Returns proposal counts for a specific job.
+// @Tags Proposal
+// @Produce json
+// @Security BearerAuth
+// @Param jobId path int true "Job ID"
+// @Success 200 {object} ProposalCountResponse
+// @Failure 400 {object} ProposalErrorResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/jobs/{jobId}/counts [get]
 func (h *ProposalHandler) CountProposalsByJob(c *gin.Context) {
 	jobID, ok := parseInt64Param(c, "jobId")
 	if !ok {
@@ -140,6 +256,17 @@ func (h *ProposalHandler) CountProposalsByJob(c *gin.Context) {
 	c.JSON(http.StatusOK, payload)
 }
 
+// CountClientProposalInbox godoc
+// @Summary Count client proposal inbox
+// @Description Returns inbox counts for the authenticated client.
+// @Tags Proposal
+// @Produce json
+// @Security BearerAuth
+// @Param status query []string false "Proposal status filters"
+// @Success 200 {object} ProposalCountResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/client/counts [get]
 func (h *ProposalHandler) CountClientProposalInbox(c *gin.Context) {
 	statuses := parseProposalStatusFilters(c.QueryArray("status"))
 	resp, err := h.client.CountClientProposalInbox(withAuthContext(c), &proposalv1.CountClientProposalInboxRequest{StatusFilter: statuses})
@@ -155,6 +282,20 @@ func (h *ProposalHandler) CountClientProposalInbox(c *gin.Context) {
 	c.JSON(http.StatusOK, payload)
 }
 
+// SetProposalDecision godoc
+// @Summary Set proposal decision
+// @Description Sets client decision for a proposal.
+// @Tags Proposal
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param proposalId path int true "Proposal ID"
+// @Param request body ProposalDecisionRequest true "Decision payload"
+// @Success 200 {object} ProposalResponse
+// @Failure 400 {object} ProposalErrorResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/{proposalId}/decision [post]
 func (h *ProposalHandler) SetProposalDecision(c *gin.Context) {
 	proposalID, ok := parseInt64Param(c, "proposalId")
 	if !ok {
@@ -180,6 +321,20 @@ func (h *ProposalHandler) SetProposalDecision(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "proposal", resp.GetProposal())
 }
 
+// GetProposalAttachmentUploadURL godoc
+// @Summary Reserve proposal attachment upload URL
+// @Description Returns a pre-signed upload URL for a proposal attachment.
+// @Tags Proposal
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param proposalId path int true "Proposal ID"
+// @Param request body ProposalAttachmentUploadURLRequest true "Attachment upload payload"
+// @Success 200 {object} ProposalAttachmentURLResponse
+// @Failure 400 {object} ProposalErrorResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/{proposalId}/attachments/upload-url [post]
 func (h *ProposalHandler) GetProposalAttachmentUploadURL(c *gin.Context) {
 	proposalID, ok := parseInt64Param(c, "proposalId")
 	if !ok {
@@ -210,6 +365,19 @@ func (h *ProposalHandler) GetProposalAttachmentUploadURL(c *gin.Context) {
 	c.JSON(http.StatusOK, payload)
 }
 
+// GetProposalAttachmentDownloadURL godoc
+// @Summary Get proposal attachment download URL
+// @Description Returns a pre-signed download URL for a proposal attachment.
+// @Tags Proposal
+// @Produce json
+// @Security BearerAuth
+// @Param proposalId path int true "Proposal ID"
+// @Param attachmentId path int true "Attachment ID"
+// @Success 200 {object} ProposalAttachmentURLResponse
+// @Failure 400 {object} ProposalErrorResponse
+// @Failure 401 {object} ProposalErrorResponse
+// @Failure 500 {object} ProposalErrorResponse
+// @Router /api/v1/proposals/{proposalId}/attachments/{attachmentId}/download-url [get]
 func (h *ProposalHandler) GetProposalAttachmentDownloadURL(c *gin.Context) {
 	proposalID, ok := parseInt64Param(c, "proposalId")
 	if !ok {

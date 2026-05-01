@@ -43,6 +43,31 @@ type requestReverificationRequest struct {
 	ReverifyDueAtUnix int64  `json:"reverify_due_at_unix" binding:"required"`
 }
 
+type VerificationErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type VerificationRequestResponse struct {
+	Request any `json:"request"`
+}
+
+type VerificationRequestsResponse struct {
+	Requests []any `json:"requests"`
+}
+
+// Submit godoc
+// @Summary Submit verification request
+// @Description Submits a verification request for the authenticated user.
+// @Tags Verification
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body submitVerificationRequest true "Verification submission payload"
+// @Success 200 {object} VerificationRequestResponse
+// @Failure 400 {object} VerificationErrorResponse
+// @Failure 401 {object} VerificationErrorResponse
+// @Failure 500 {object} VerificationErrorResponse
+// @Router /api/v1/verifications/submit [post]
 func (h *VerificationHandler) Submit(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -73,6 +98,16 @@ func (h *VerificationHandler) Submit(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"request": resp.GetRequest()})
 }
 
+// GetMyStatus godoc
+// @Summary Get my verification status
+// @Description Returns the verification request/status for the authenticated user.
+// @Tags Verification
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} VerificationRequestResponse
+// @Failure 401 {object} VerificationErrorResponse
+// @Failure 500 {object} VerificationErrorResponse
+// @Router /api/v1/verifications/me [get]
 func (h *VerificationHandler) GetMyStatus(c *gin.Context) {
 	userID, ok := callerUserID(c)
 	if !ok {
@@ -89,6 +124,18 @@ func (h *VerificationHandler) GetMyStatus(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"request": resp.GetRequest()})
 }
 
+// ListPending godoc
+// @Summary List pending verification requests
+// @Description Lists pending verification requests for admins.
+// @Tags Verification
+// @Produce json
+// @Security BearerAuth
+// @Param page_size query int false "Page size" default(20)
+// @Param page query int false "Page number" default(1)
+// @Success 200 {object} VerificationRequestsResponse
+// @Failure 401 {object} VerificationErrorResponse
+// @Failure 500 {object} VerificationErrorResponse
+// @Router /api/v1/admin/verifications/pending [get]
 func (h *VerificationHandler) ListPending(c *gin.Context) {
 	pageSize := int32(parseIntQuery(c, "page_size", 20))
 	page := int32(parseIntQuery(c, "page", 1))
@@ -105,6 +152,18 @@ func (h *VerificationHandler) ListPending(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"requests": resp.GetRequests()})
 }
 
+// GetByID godoc
+// @Summary Get verification request by ID
+// @Description Returns a verification request by request ID for admins.
+// @Tags Verification
+// @Produce json
+// @Security BearerAuth
+// @Param requestId path int true "Verification request ID"
+// @Success 200 {object} VerificationRequestResponse
+// @Failure 400 {object} VerificationErrorResponse
+// @Failure 401 {object} VerificationErrorResponse
+// @Failure 500 {object} VerificationErrorResponse
+// @Router /api/v1/admin/verifications/{requestId} [get]
 func (h *VerificationHandler) GetByID(c *gin.Context) {
 	requestID, err := strconv.ParseInt(c.Param("requestId"), 10, 64)
 	if err != nil || requestID <= 0 {
@@ -121,6 +180,20 @@ func (h *VerificationHandler) GetByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"request": resp.GetRequest()})
 }
 
+// Review godoc
+// @Summary Review verification request
+// @Description Approves or rejects a verification request as an admin reviewer.
+// @Tags Verification
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param requestId path int true "Verification request ID"
+// @Param request body reviewVerificationRequest true "Review payload"
+// @Success 200 {object} VerificationRequestResponse
+// @Failure 400 {object} VerificationErrorResponse
+// @Failure 401 {object} VerificationErrorResponse
+// @Failure 500 {object} VerificationErrorResponse
+// @Router /api/v1/admin/verifications/{requestId}/review [post]
 func (h *VerificationHandler) Review(c *gin.Context) {
 	reviewerID, ok := callerUserID(c)
 	if !ok {
@@ -154,6 +227,19 @@ func (h *VerificationHandler) Review(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"request": resp.GetRequest()})
 }
 
+// RequestReverification godoc
+// @Summary Request reverification
+// @Description Requests reverification for a user as an admin reviewer.
+// @Tags Verification
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body requestReverificationRequest true "Reverification payload"
+// @Success 200 {object} VerificationRequestResponse
+// @Failure 400 {object} VerificationErrorResponse
+// @Failure 401 {object} VerificationErrorResponse
+// @Failure 500 {object} VerificationErrorResponse
+// @Router /api/v1/admin/verifications/reverification [post]
 func (h *VerificationHandler) RequestReverification(c *gin.Context) {
 	reviewerID, ok := callerUserID(c)
 	if !ok {
