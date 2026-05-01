@@ -44,3 +44,6 @@ Thumbs.db
 !.env.example
 *.local
 
+
+# Swagger generated docs
+gateway/cmd/gatewayd/docs/
