@@ -62,10 +62,143 @@ type ContractHandler struct {
 	proposalClient contractProposalReader
 }
 
+type ContractErrorResponse struct {
+	Error string `json:"error"`
+}
+
+type ContractResponse struct {
+	Contract any `json:"contract"`
+}
+
+type ContractListResponse struct {
+	Contracts     []any  `json:"contracts"`
+	NextPageToken string `json:"next_page_token,omitempty"`
+}
+
+type ContractBooleanResponse struct {
+	Deleted bool `json:"deleted,omitempty"`
+}
+
+type ContractBootstrapResponse struct {
+	Proposal   any `json:"proposal"`
+	JobSummary any `json:"job_summary"`
+	OfferState any `json:"offer_state"`
+	Contract   any `json:"contract,omitempty"`
+}
+
+type ContractReasonRequest struct {
+	Reason string `json:"reason"`
+}
+
+type ContractMilestoneSubmitRequest struct {
+	Note        string   `json:"note"`
+	Attachments []string `json:"attachments"`
+}
+
+type ContractMilestoneRequestChangesRequest struct {
+	Note string `json:"note"`
+}
+
+type ContractHourlyLogRequest struct {
+	StartAtUnixSeconds int64    `json:"start_at_unix_seconds"`
+	EndAtUnixSeconds   int64    `json:"end_at_unix_seconds"`
+	Note               string   `json:"note"`
+	EvidenceURLs       []string `json:"evidence_urls"`
+}
+
+type ContractHourlyLogReviewRequest struct {
+	Status     string `json:"status"`
+	ReviewNote string `json:"review_note"`
+}
+
+type ContractHourlyLogResponse struct {
+	HourlyLog any `json:"hourly_log"`
+}
+
+type ContractHourlyLogListResponse struct {
+	HourlyLogs    []any  `json:"hourly_logs"`
+	NextPageToken string `json:"next_page_token,omitempty"`
+}
+
+type ContractUploadURLRequest struct {
+	FileName    string `json:"file_name"`
+	ContentType string `json:"content_type"`
+}
+
+type ContractUploadURLResponse struct {
+	StorageKey string `json:"storage_key"`
+	UploadURL  string `json:"upload_url"`
+}
+
+type ContractSummaryResponse struct {
+	Summary any `json:"summary"`
+}
+
+type ContractInvoiceResponse struct {
+	Invoice any `json:"invoice"`
+}
+
+type ContractInvoiceListResponse struct {
+	Invoices      []any  `json:"invoices"`
+	NextPageToken string `json:"next_page_token,omitempty"`
+}
+
+type ContractBonusCreateRequest struct {
+	AmountMinor int64  `json:"amount_minor"`
+	Note        string `json:"note"`
+}
+
+type ContractBonusResponse struct {
+	Bonus any `json:"bonus"`
+}
+
+type ContractBonusListResponse struct {
+	Bonuses       []any  `json:"bonuses"`
+	NextPageToken string `json:"next_page_token,omitempty"`
+}
+
+type ContractAmendmentCreateRequest struct {
+	Summary   string                       `json:"summary"`
+	Payload   *contractv1.AmendmentPayload `json:"payload"`
+	ExpiresAt int64                        `json:"expires_at_unix_seconds"`
+}
+
+type ContractAmendmentRespondRequest struct {
+	Status       string `json:"status"`
+	ResponseNote string `json:"response_note"`
+}
+
+type ContractAmendmentResponse struct {
+	Amendment any `json:"amendment"`
+}
+
+type ContractAmendmentListResponse struct {
+	Amendments    []any  `json:"amendments"`
+	NextPageToken string `json:"next_page_token,omitempty"`
+}
+
+type ContractStatusHistoryResponse struct {
+	Entries       []any  `json:"entries"`
+	NextPageToken string `json:"next_page_token,omitempty"`
+}
+
 func NewContractHandler(contractClient contractCreateReader, jobClient contractJobReader, proposalClient contractProposalReader) *ContractHandler {
 	return &ContractHandler{contractClient: contractClient, jobClient: jobClient, proposalClient: proposalClient}
 }
 
+// Bootstrap godoc
+// @Summary Bootstrap contract offer flow
+// @Description Returns proposal, job summary, and offer-state metadata needed before creating a contract offer.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param job_id query int true "Job ID"
+// @Param proposal_id query int true "Proposal ID"
+// @Success 200 {object} ContractBootstrapResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/bootstrap [get]
 func (h *ContractHandler) Bootstrap(c *gin.Context) {
 	if h.contractClient == nil || h.jobClient == nil || h.proposalClient == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "contract dependencies are not configured"})
@@ -240,6 +373,19 @@ func bootstrapProposalBlockingReason(status proposalv1.ProposalStatus) (string, 
 	}
 }
 
+// CreateContract godoc
+// @Summary Create contract offer
+// @Description Creates a new contract offer for a proposal.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body contractv1.CreateContractRequest true "Contract create payload"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts [post]
 func (h *ContractHandler) CreateContract(c *gin.Context) {
 	var req contractv1.CreateContractRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -254,6 +400,18 @@ func (h *ContractHandler) CreateContract(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// GetContract godoc
+// @Summary Get contract by ID
+// @Description Returns contract details by contract ID.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId} [get]
 func (h *ContractHandler) GetContract(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -267,6 +425,19 @@ func (h *ContractHandler) GetContract(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// ListMyContracts godoc
+// @Summary List my contracts
+// @Description Lists contracts visible to the authenticated caller.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param status query string false "Status filter"
+// @Param page_size query int false "Page size" default(20)
+// @Param page_token query string false "Page token"
+// @Success 200 {object} ContractListResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts [get]
 func (h *ContractHandler) ListMyContracts(c *gin.Context) {
 	resp, err := h.contractClient.ListMyContracts(withAuthContext(c), &contractv1.ListMyContractsRequest{
 		Status:    mapContractStatus(strings.TrimSpace(c.Query("status"))),
@@ -285,6 +456,18 @@ func (h *ContractHandler) ListMyContracts(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"contracts": payload, "next_page_token": resp.GetNextPageToken()})
 }
 
+// AcceptContract godoc
+// @Summary Accept contract
+// @Description Accepts a pending contract offer.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/accept [post]
 func (h *ContractHandler) AcceptContract(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -298,6 +481,20 @@ func (h *ContractHandler) AcceptContract(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// DeclineContract godoc
+// @Summary Decline contract
+// @Description Declines a pending contract offer.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param request body ContractReasonRequest true "Decline reason payload"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/decline [post]
 func (h *ContractHandler) DeclineContract(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -318,6 +515,20 @@ func (h *ContractHandler) DeclineContract(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// RevokeContractOffer godoc
+// @Summary Revoke contract offer
+// @Description Revokes a pending contract offer.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param request body ContractReasonRequest true "Revoke reason payload"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/revoke [post]
 func (h *ContractHandler) RevokeContractOffer(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -338,6 +549,21 @@ func (h *ContractHandler) RevokeContractOffer(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// SubmitMilestoneWork godoc
+// @Summary Submit milestone work
+// @Description Submits milestone deliverables for freelancer review by client.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param milestoneId path int true "Milestone ID"
+// @Param request body ContractMilestoneSubmitRequest true "Milestone submission payload"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/milestones/{milestoneId}/submit [post]
 func (h *ContractHandler) SubmitMilestoneWork(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -368,6 +594,21 @@ func (h *ContractHandler) SubmitMilestoneWork(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// RequestMilestoneChanges godoc
+// @Summary Request milestone changes
+// @Description Requests changes on a milestone submission.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param milestoneId path int true "Milestone ID"
+// @Param request body ContractMilestoneRequestChangesRequest true "Change request payload"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/milestones/{milestoneId}/request-changes [post]
 func (h *ContractHandler) RequestMilestoneChanges(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -396,6 +637,19 @@ func (h *ContractHandler) RequestMilestoneChanges(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// ApproveMilestoneSubmission godoc
+// @Summary Approve milestone submission
+// @Description Approves a submitted milestone.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param milestoneId path int true "Milestone ID"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/milestones/{milestoneId}/approve [post]
 func (h *ContractHandler) ApproveMilestoneSubmission(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -416,6 +670,20 @@ func (h *ContractHandler) ApproveMilestoneSubmission(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// LogHourlyWork godoc
+// @Summary Log hourly work
+// @Description Creates an hourly work log entry.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param request body ContractHourlyLogRequest true "Hourly log payload"
+// @Success 200 {object} ContractHourlyLogResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/hourly-logs [post]
 func (h *ContractHandler) LogHourlyWork(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -445,6 +713,20 @@ func (h *ContractHandler) LogHourlyWork(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "hourly_log", resp.GetHourlyLog())
 }
 
+// GetHourlyLogEvidenceUploadUrl godoc
+// @Summary Reserve hourly log evidence upload URL
+// @Description Returns a pre-signed upload URL for hourly log evidence.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param request body ContractUploadURLRequest true "Upload URL payload"
+// @Success 200 {object} ContractUploadURLResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/hourly-logs/evidence/upload-url [post]
 func (h *ContractHandler) GetHourlyLogEvidenceUploadUrl(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -470,6 +752,20 @@ func (h *ContractHandler) GetHourlyLogEvidenceUploadUrl(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"storage_key": resp.GetStorageKey(), "upload_url": resp.GetUploadUrl()})
 }
 
+// ListHourlyLogs godoc
+// @Summary List hourly logs
+// @Description Lists hourly logs for a contract.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param page_size query int false "Page size" default(20)
+// @Param page_token query string false "Page token"
+// @Success 200 {object} ContractHourlyLogListResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/hourly-logs [get]
 func (h *ContractHandler) ListHourlyLogs(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -492,6 +788,19 @@ func (h *ContractHandler) ListHourlyLogs(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"hourly_logs": payload, "next_page_token": resp.GetNextPageToken()})
 }
 
+// GetHourlyWorkSummary godoc
+// @Summary Get hourly work summary
+// @Description Returns weekly hourly work summary for a contract.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param week_start_unix_seconds query int false "Week start unix seconds"
+// @Success 200 {object} ContractSummaryResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/hourly-summary [get]
 func (h *ContractHandler) GetHourlyWorkSummary(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -508,6 +817,20 @@ func (h *ContractHandler) GetHourlyWorkSummary(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "summary", resp)
 }
 
+// UpdateHourlyLog godoc
+// @Summary Update hourly log
+// @Description Updates an existing hourly log entry.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param hourlyLogId path int true "Hourly log ID"
+// @Param request body ContractHourlyLogRequest true "Hourly log update payload"
+// @Success 200 {object} ContractHourlyLogResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/hourly-logs/{hourlyLogId} [patch]
 func (h *ContractHandler) UpdateHourlyLog(c *gin.Context) {
 	hourlyLogID, ok := parseInt64Param(c, "hourlyLogId")
 	if !ok {
@@ -537,6 +860,18 @@ func (h *ContractHandler) UpdateHourlyLog(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "hourly_log", resp.GetHourlyLog())
 }
 
+// DeleteHourlyLog godoc
+// @Summary Delete hourly log
+// @Description Deletes an hourly log entry.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param hourlyLogId path int true "Hourly log ID"
+// @Success 200 {object} ContractBooleanResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/hourly-logs/{hourlyLogId} [delete]
 func (h *ContractHandler) DeleteHourlyLog(c *gin.Context) {
 	hourlyLogID, ok := parseInt64Param(c, "hourlyLogId")
 	if !ok {
@@ -549,6 +884,20 @@ func (h *ContractHandler) DeleteHourlyLog(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"deleted": true})
 }
 
+// ReviewHourlyLog godoc
+// @Summary Review hourly log
+// @Description Approves or rejects an hourly log.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param hourlyLogId path int true "Hourly log ID"
+// @Param request body ContractHourlyLogReviewRequest true "Hourly log review payload"
+// @Success 200 {object} ContractHourlyLogResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/hourly-logs/{hourlyLogId}/review [post]
 func (h *ContractHandler) ReviewHourlyLog(c *gin.Context) {
 	hourlyLogID, ok := parseInt64Param(c, "hourlyLogId")
 	if !ok {
@@ -579,6 +928,18 @@ func (h *ContractHandler) ReviewHourlyLog(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "hourly_log", resp.GetHourlyLog())
 }
 
+// GetHourlyInvoice godoc
+// @Summary Get hourly invoice
+// @Description Returns an hourly invoice by invoice ID.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param invoiceId path int true "Invoice ID"
+// @Success 200 {object} ContractInvoiceResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/hourly-invoices/{invoiceId} [get]
 func (h *ContractHandler) GetHourlyInvoice(c *gin.Context) {
 	invoiceID, ok := parseInt64Param(c, "invoiceId")
 	if !ok {
@@ -592,6 +953,20 @@ func (h *ContractHandler) GetHourlyInvoice(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "invoice", resp.GetInvoice())
 }
 
+// ListHourlyInvoices godoc
+// @Summary List hourly invoices
+// @Description Lists hourly invoices for a contract.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param page_size query int false "Page size" default(20)
+// @Param page_token query string false "Page token"
+// @Success 200 {object} ContractInvoiceListResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/hourly-invoices [get]
 func (h *ContractHandler) ListHourlyInvoices(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -614,6 +989,20 @@ func (h *ContractHandler) ListHourlyInvoices(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"invoices": payload, "next_page_token": resp.GetNextPageToken()})
 }
 
+// CreateContractBonus godoc
+// @Summary Create contract bonus
+// @Description Creates a bonus payment entry for a contract.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param request body ContractBonusCreateRequest true "Bonus payload"
+// @Success 200 {object} ContractBonusResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/bonuses [post]
 func (h *ContractHandler) CreateContractBonus(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -639,6 +1028,20 @@ func (h *ContractHandler) CreateContractBonus(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "bonus", resp.GetBonus())
 }
 
+// ListContractBonuses godoc
+// @Summary List contract bonuses
+// @Description Lists bonuses for a contract.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param page_size query int false "Page size" default(20)
+// @Param page_token query string false "Page token"
+// @Success 200 {object} ContractBonusListResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/bonuses [get]
 func (h *ContractHandler) ListContractBonuses(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -661,6 +1064,20 @@ func (h *ContractHandler) ListContractBonuses(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"bonuses": payload, "next_page_token": resp.GetNextPageToken()})
 }
 
+// ProposeAmendment godoc
+// @Summary Propose contract amendment
+// @Description Creates a new contract amendment proposal.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param request body ContractAmendmentCreateRequest true "Amendment payload"
+// @Success 200 {object} ContractAmendmentResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/amendments [post]
 func (h *ContractHandler) ProposeAmendment(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -688,6 +1105,21 @@ func (h *ContractHandler) ProposeAmendment(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "amendment", resp.GetAmendment())
 }
 
+// RespondAmendment godoc
+// @Summary Respond to amendment
+// @Description Accepts or rejects a contract amendment.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param amendmentId path int true "Amendment ID"
+// @Param request body ContractAmendmentRespondRequest true "Amendment response payload"
+// @Success 200 {object} ContractAmendmentResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/amendments/{amendmentId}/respond [post]
 func (h *ContractHandler) RespondAmendment(c *gin.Context) {
 	_, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -722,6 +1154,20 @@ func (h *ContractHandler) RespondAmendment(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "amendment", resp.GetAmendment())
 }
 
+// ListAmendments godoc
+// @Summary List amendments
+// @Description Lists contract amendments.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param page_size query int false "Page size" default(20)
+// @Param page_token query string false "Page token"
+// @Success 200 {object} ContractAmendmentListResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/amendments [get]
 func (h *ContractHandler) ListAmendments(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -744,6 +1190,20 @@ func (h *ContractHandler) ListAmendments(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"amendments": payload, "next_page_token": resp.GetNextPageToken()})
 }
 
+// PauseContract godoc
+// @Summary Pause contract
+// @Description Pauses an active contract.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param request body ContractReasonRequest true "Pause reason payload"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/pause [post]
 func (h *ContractHandler) PauseContract(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -764,6 +1224,20 @@ func (h *ContractHandler) PauseContract(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// ResumeContract godoc
+// @Summary Resume contract
+// @Description Resumes a paused contract.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param request body ContractReasonRequest true "Resume reason payload"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/resume [post]
 func (h *ContractHandler) ResumeContract(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -784,6 +1258,20 @@ func (h *ContractHandler) ResumeContract(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// EndContract godoc
+// @Summary End contract
+// @Description Ends a contract.
+// @Tags Contract
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param request body ContractReasonRequest true "End reason payload"
+// @Success 200 {object} ContractResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/end [post]
 func (h *ContractHandler) EndContract(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
@@ -804,6 +1292,20 @@ func (h *ContractHandler) EndContract(c *gin.Context) {
 	writeProtoEnvelope(c, http.StatusOK, "contract", resp.GetContract())
 }
 
+// GetStatusHistory godoc
+// @Summary Get contract status history
+// @Description Returns status history entries for a contract.
+// @Tags Contract
+// @Produce json
+// @Security BearerAuth
+// @Param contractId path int true "Contract ID"
+// @Param page_size query int false "Page size" default(20)
+// @Param page_token query string false "Page token"
+// @Success 200 {object} ContractStatusHistoryResponse
+// @Failure 400 {object} ContractErrorResponse
+// @Failure 401 {object} ContractErrorResponse
+// @Failure 500 {object} ContractErrorResponse
+// @Router /api/v1/contracts/{contractId}/status-history [get]
 func (h *ContractHandler) GetStatusHistory(c *gin.Context) {
 	contractID, ok := parseInt64Param(c, "contractId")
 	if !ok {
