@@ -6,3 +6,8 @@
 /logs
 /coverage
 /tsconfig.tsbuildinfo   
+
+service-account.json
+oauth-token.json
+.env
+node_modules/
