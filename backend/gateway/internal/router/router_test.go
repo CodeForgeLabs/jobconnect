@@ -31,6 +31,7 @@ func TestUserPortfolioUpdateRouteUsesPut(t *testing.T) {
 		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
+		&handlers.ReviewHandler{},
 	)
 
 	var foundPut bool
@@ -72,6 +73,7 @@ func TestUserRoutesDoNotExposePublicAdminInternalUserRoutes(t *testing.T) {
 		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
+		&handlers.ReviewHandler{},
 	)
 
 	for _, route := range engine.Routes() {
@@ -106,6 +108,7 @@ func TestUserRoutes_DoNotExposeCreateProfileButExposeGetSinglePortfolioEndpoint(
 		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
+		&handlers.ReviewHandler{},
 	)
 
 	var foundGetPortfolioItem bool
@@ -141,6 +144,7 @@ func TestUserRoutesExposePortfolioMediaUploadURLRoute(t *testing.T) {
 		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
+		&handlers.ReviewHandler{},
 	)
 
 	for _, route := range engine.Routes() {
@@ -169,6 +173,7 @@ func TestUserPortfolioRoutesRejectNonFreelancerRole(t *testing.T) {
 		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
+		&handlers.ReviewHandler{},
 	)
 
 	clientToken := signTestAccessToken(t, secret, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "client")
@@ -201,6 +206,7 @@ func TestRecommendationRoutesExposeClientFreelancerRecommendations(t *testing.T)
 		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
+		&handlers.ReviewHandler{},
 	)
 
 	for _, route := range engine.Routes() {
@@ -229,6 +235,7 @@ func TestRecommendationFreelancerRouteRejectsFreelancerRole(t *testing.T) {
 		nil,
 		&handlers.RecommendationHandler{},
 		&handlers.ChatHandler{},
+		&handlers.ReviewHandler{},
 	)
 
 	freelancerToken := signTestAccessToken(t, secret, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "freelancer")

@@ -100,6 +100,12 @@ func main() {
 	}
 	defer chatConn.Close()
 
+	reviewConn, err := grpc.NewClient(cfg.ReviewServiceGRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("review service dial: %v", err)
+	}
+	defer reviewConn.Close()
+
 	authClient := clients.NewAuthClient(authConn)
 	userClient := clients.NewUserClient(userConn)
 	verificationClient := clients.NewVerificationClient(verificationConn)
@@ -118,7 +124,8 @@ func main() {
 	disputeHandler := handlers.NewDisputeHandler(disputeClient)
 	recommendationHandler := handlers.NewRecommendationHandler(recommendationClient)
 	chatHandler := handlers.NewChatHandler(chatClient)
-	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler, proposalHandler, contractHandler, disputeHandler, recommendationHandler, chatHandler)
+	reviewHandler := handlers.NewReviewHandler(clients.NewReviewClient(reviewConn))
+	engine := router.New(cfg, authHandler, verificationHandler, userHandler, jobHandler, proposalHandler, contractHandler, disputeHandler, recommendationHandler, chatHandler, reviewHandler)
 
 	httpServer := &http.Server{
 		Addr:              cfg.HTTPListenAddr,

@@ -24,6 +24,7 @@ const (
 	ReviewService_UpdateReview_FullMethodName      = "/reviews.v1.ReviewService/UpdateReview"
 	ReviewService_DeleteReview_FullMethodName      = "/reviews.v1.ReviewService/DeleteReview"
 	ReviewService_ListReviewsByUser_FullMethodName = "/reviews.v1.ReviewService/ListReviewsByUser"
+	ReviewService_GetContractUsers_FullMethodName  = "/reviews.v1.ReviewService/GetContractUsers"
 )
 
 // ReviewServiceClient is the client API for ReviewService service.
@@ -35,6 +36,7 @@ type ReviewServiceClient interface {
 	UpdateReview(ctx context.Context, in *UpdateReviewRequest, opts ...grpc.CallOption) (*UpdateReviewResponse, error)
 	DeleteReview(ctx context.Context, in *DeleteReviewRequest, opts ...grpc.CallOption) (*DeleteReviewResponse, error)
 	ListReviewsByUser(ctx context.Context, in *ListReviewsByUserRequest, opts ...grpc.CallOption) (*ListReviewsResponse, error)
+	GetContractUsers(ctx context.Context, in *GetContractUsersRequest, opts ...grpc.CallOption) (*GetContractUsersResponse, error)
 }
 
 type reviewServiceClient struct {
@@ -95,6 +97,16 @@ func (c *reviewServiceClient) ListReviewsByUser(ctx context.Context, in *ListRev
 	return out, nil
 }
 
+func (c *reviewServiceClient) GetContractUsers(ctx context.Context, in *GetContractUsersRequest, opts ...grpc.CallOption) (*GetContractUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetContractUsersResponse)
+	err := c.cc.Invoke(ctx, ReviewService_GetContractUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReviewServiceServer is the server API for ReviewService service.
 // All implementations must embed UnimplementedReviewServiceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type ReviewServiceServer interface {
 	UpdateReview(context.Context, *UpdateReviewRequest) (*UpdateReviewResponse, error)
 	DeleteReview(context.Context, *DeleteReviewRequest) (*DeleteReviewResponse, error)
 	ListReviewsByUser(context.Context, *ListReviewsByUserRequest) (*ListReviewsResponse, error)
+	GetContractUsers(context.Context, *GetContractUsersRequest) (*GetContractUsersResponse, error)
 	mustEmbedUnimplementedReviewServiceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedReviewServiceServer) DeleteReview(context.Context, *DeleteRev
 }
 func (UnimplementedReviewServiceServer) ListReviewsByUser(context.Context, *ListReviewsByUserRequest) (*ListReviewsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListReviewsByUser not implemented")
+}
+func (UnimplementedReviewServiceServer) GetContractUsers(context.Context, *GetContractUsersRequest) (*GetContractUsersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetContractUsers not implemented")
 }
 func (UnimplementedReviewServiceServer) mustEmbedUnimplementedReviewServiceServer() {}
 func (UnimplementedReviewServiceServer) testEmbeddedByValue()                       {}
@@ -240,6 +256,24 @@ func _ReviewService_ListReviewsByUser_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReviewService_GetContractUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetContractUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServiceServer).GetContractUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReviewService_GetContractUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServiceServer).GetContractUsers(ctx, req.(*GetContractUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReviewService_ServiceDesc is the grpc.ServiceDesc for ReviewService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var ReviewService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListReviewsByUser",
 			Handler:    _ReviewService_ListReviewsByUser_Handler,
+		},
+		{
+			MethodName: "GetContractUsers",
+			Handler:    _ReviewService_GetContractUsers_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

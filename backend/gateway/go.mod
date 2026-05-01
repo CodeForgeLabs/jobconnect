@@ -10,7 +10,7 @@ require (
 	github.com/swaggo/gin-swagger v1.6.1
 	github.com/swaggo/swag v1.16.6
 	golang.org/x/time v0.15.0
-	google.golang.org/grpc v1.79.3
+	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
 	jobconnect/auth v0.0.0
 	jobconnect/chat v0.0.0
@@ -19,6 +19,7 @@ require (
 	jobconnect/job v0.0.0
 	jobconnect/proposal v0.0.0
 	jobconnect/recommendation v0.0.0
+	jobconnect/reviews v0.0.0
 	jobconnect/user v0.0.0
 	jobconnect/verification v0.0.0-00010101000000-000000000000
 )
@@ -67,7 +68,7 @@ require (
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260120221211-b8f7ae30c516 // indirect
 )
 
 replace jobconnect/auth => ../services/auth
@@ -89,3 +90,5 @@ replace jobconnect/user => ../services/user
 replace jobconnect/chat => ../services/chat
 
 replace jobconnect/verification => ../services/verification
+
+replace jobconnect/reviews => ../services/reviews

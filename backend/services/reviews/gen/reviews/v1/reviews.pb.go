@@ -707,6 +707,102 @@ func (x *ListReviewsResponse) GetReviews() []*Review {
 	return nil
 }
 
+type GetContractUsersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    int64                  `protobuf:"varint,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetContractUsersRequest) Reset() {
+	*x = GetContractUsersRequest{}
+	mi := &file_reviews_v1_reviews_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetContractUsersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetContractUsersRequest) ProtoMessage() {}
+
+func (x *GetContractUsersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_reviews_v1_reviews_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetContractUsersRequest.ProtoReflect.Descriptor instead.
+func (*GetContractUsersRequest) Descriptor() ([]byte, []int) {
+	return file_reviews_v1_reviews_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetContractUsersRequest) GetContractId() int64 {
+	if x != nil {
+		return x.ContractId
+	}
+	return 0
+}
+
+type GetContractUsersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClientId      string                 `protobuf:"bytes,1,opt,name=client_id,json=clientId,proto3" json:"client_id,omitempty"`
+	FreelancerId  string                 `protobuf:"bytes,2,opt,name=freelancer_id,json=freelancerId,proto3" json:"freelancer_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetContractUsersResponse) Reset() {
+	*x = GetContractUsersResponse{}
+	mi := &file_reviews_v1_reviews_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetContractUsersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetContractUsersResponse) ProtoMessage() {}
+
+func (x *GetContractUsersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_reviews_v1_reviews_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetContractUsersResponse.ProtoReflect.Descriptor instead.
+func (*GetContractUsersResponse) Descriptor() ([]byte, []int) {
+	return file_reviews_v1_reviews_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetContractUsersResponse) GetClientId() string {
+	if x != nil {
+		return x.ClientId
+	}
+	return ""
+}
+
+func (x *GetContractUsersResponse) GetFreelancerId() string {
+	if x != nil {
+		return x.FreelancerId
+	}
+	return ""
+}
+
 var File_reviews_v1_reviews_proto protoreflect.FileDescriptor
 
 const file_reviews_v1_reviews_proto_rawDesc = "" +
@@ -758,19 +854,26 @@ const file_reviews_v1_reviews_proto_rawDesc = "" +
 	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x04 \x01(\x05R\x06offset\"C\n" +
 	"\x13ListReviewsResponse\x12,\n" +
-	"\areviews\x18\x01 \x03(\v2\x12.reviews.v1.ReviewR\areviews*I\n" +
+	"\areviews\x18\x01 \x03(\v2\x12.reviews.v1.ReviewR\areviews\":\n" +
+	"\x17GetContractUsersRequest\x12\x1f\n" +
+	"\vcontract_id\x18\x01 \x01(\x03R\n" +
+	"contractId\"\\\n" +
+	"\x18GetContractUsersResponse\x12\x1b\n" +
+	"\tclient_id\x18\x01 \x01(\tR\bclientId\x12#\n" +
+	"\rfreelancer_id\x18\x02 \x01(\tR\ffreelancerId*I\n" +
 	"\fReviewerRole\x12\x1d\n" +
 	"\x19REVIEWER_ROLE_UNSPECIFIED\x10\x00\x12\n" +
 	"\n" +
 	"\x06CLIENT\x10\x01\x12\x0e\n" +
 	"\n" +
-	"FREELANCER\x10\x022\xae\x03\n" +
+	"FREELANCER\x10\x022\x8d\x04\n" +
 	"\rReviewService\x12Q\n" +
 	"\fCreateReview\x12\x1f.reviews.v1.CreateReviewRequest\x1a .reviews.v1.CreateReviewResponse\x12H\n" +
 	"\tGetReview\x12\x1c.reviews.v1.GetReviewRequest\x1a\x1d.reviews.v1.GetReviewResponse\x12Q\n" +
 	"\fUpdateReview\x12\x1f.reviews.v1.UpdateReviewRequest\x1a .reviews.v1.UpdateReviewResponse\x12Q\n" +
 	"\fDeleteReview\x12\x1f.reviews.v1.DeleteReviewRequest\x1a .reviews.v1.DeleteReviewResponse\x12Z\n" +
-	"\x11ListReviewsByUser\x12$.reviews.v1.ListReviewsByUserRequest\x1a\x1f.reviews.v1.ListReviewsResponseB-Z+jobconnect/reviews/gen/reviews/v1;reviewsv1b\x06proto3"
+	"\x11ListReviewsByUser\x12$.reviews.v1.ListReviewsByUserRequest\x1a\x1f.reviews.v1.ListReviewsResponse\x12]\n" +
+	"\x10GetContractUsers\x12#.reviews.v1.GetContractUsersRequest\x1a$.reviews.v1.GetContractUsersResponseB-Z+jobconnect/reviews/gen/reviews/v1;reviewsv1b\x06proto3"
 
 var (
 	file_reviews_v1_reviews_proto_rawDescOnce sync.Once
@@ -785,7 +888,7 @@ func file_reviews_v1_reviews_proto_rawDescGZIP() []byte {
 }
 
 var file_reviews_v1_reviews_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_reviews_v1_reviews_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_reviews_v1_reviews_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_reviews_v1_reviews_proto_goTypes = []any{
 	(ReviewerRole)(0),                // 0: reviews.v1.ReviewerRole
 	(*Review)(nil),                   // 1: reviews.v1.Review
@@ -799,12 +902,14 @@ var file_reviews_v1_reviews_proto_goTypes = []any{
 	(*DeleteReviewResponse)(nil),     // 9: reviews.v1.DeleteReviewResponse
 	(*ListReviewsByUserRequest)(nil), // 10: reviews.v1.ListReviewsByUserRequest
 	(*ListReviewsResponse)(nil),      // 11: reviews.v1.ListReviewsResponse
-	(*timestamppb.Timestamp)(nil),    // 12: google.protobuf.Timestamp
+	(*GetContractUsersRequest)(nil),  // 12: reviews.v1.GetContractUsersRequest
+	(*GetContractUsersResponse)(nil), // 13: reviews.v1.GetContractUsersResponse
+	(*timestamppb.Timestamp)(nil),    // 14: google.protobuf.Timestamp
 }
 var file_reviews_v1_reviews_proto_depIdxs = []int32{
 	0,  // 0: reviews.v1.Review.reviewer_role:type_name -> reviews.v1.ReviewerRole
-	12, // 1: reviews.v1.Review.created_at:type_name -> google.protobuf.Timestamp
-	12, // 2: reviews.v1.Review.updated_at:type_name -> google.protobuf.Timestamp
+	14, // 1: reviews.v1.Review.created_at:type_name -> google.protobuf.Timestamp
+	14, // 2: reviews.v1.Review.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 3: reviews.v1.CreateReviewRequest.reviewer_role:type_name -> reviews.v1.ReviewerRole
 	1,  // 4: reviews.v1.CreateReviewResponse.review:type_name -> reviews.v1.Review
 	1,  // 5: reviews.v1.GetReviewResponse.review:type_name -> reviews.v1.Review
@@ -816,13 +921,15 @@ var file_reviews_v1_reviews_proto_depIdxs = []int32{
 	6,  // 11: reviews.v1.ReviewService.UpdateReview:input_type -> reviews.v1.UpdateReviewRequest
 	8,  // 12: reviews.v1.ReviewService.DeleteReview:input_type -> reviews.v1.DeleteReviewRequest
 	10, // 13: reviews.v1.ReviewService.ListReviewsByUser:input_type -> reviews.v1.ListReviewsByUserRequest
-	3,  // 14: reviews.v1.ReviewService.CreateReview:output_type -> reviews.v1.CreateReviewResponse
-	5,  // 15: reviews.v1.ReviewService.GetReview:output_type -> reviews.v1.GetReviewResponse
-	7,  // 16: reviews.v1.ReviewService.UpdateReview:output_type -> reviews.v1.UpdateReviewResponse
-	9,  // 17: reviews.v1.ReviewService.DeleteReview:output_type -> reviews.v1.DeleteReviewResponse
-	11, // 18: reviews.v1.ReviewService.ListReviewsByUser:output_type -> reviews.v1.ListReviewsResponse
-	14, // [14:19] is the sub-list for method output_type
-	9,  // [9:14] is the sub-list for method input_type
+	12, // 14: reviews.v1.ReviewService.GetContractUsers:input_type -> reviews.v1.GetContractUsersRequest
+	3,  // 15: reviews.v1.ReviewService.CreateReview:output_type -> reviews.v1.CreateReviewResponse
+	5,  // 16: reviews.v1.ReviewService.GetReview:output_type -> reviews.v1.GetReviewResponse
+	7,  // 17: reviews.v1.ReviewService.UpdateReview:output_type -> reviews.v1.UpdateReviewResponse
+	9,  // 18: reviews.v1.ReviewService.DeleteReview:output_type -> reviews.v1.DeleteReviewResponse
+	11, // 19: reviews.v1.ReviewService.ListReviewsByUser:output_type -> reviews.v1.ListReviewsResponse
+	13, // 20: reviews.v1.ReviewService.GetContractUsers:output_type -> reviews.v1.GetContractUsersResponse
+	15, // [15:21] is the sub-list for method output_type
+	9,  // [9:15] is the sub-list for method input_type
 	9,  // [9:9] is the sub-list for extension type_name
 	9,  // [9:9] is the sub-list for extension extendee
 	0,  // [0:9] is the sub-list for field type_name
@@ -839,7 +946,7 @@ func file_reviews_v1_reviews_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_reviews_v1_reviews_proto_rawDesc), len(file_reviews_v1_reviews_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
