@@ -1,4 +1,31 @@
 
 .git
+.gitignore
 .vscode
 **/*.local
+
+# local env and secrets
+.env
+.env.*
+!.env.example
+
+# build/test outputs
+tmp/
+**/tmp/
+**/bin/
+**/dist/
+**/build/
+**/coverage/
+**/.cache/
+**/.tmp/
+
+# language/tool caches
+**/node_modules/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.turbo/
+
+# editor/OS junk
+**/.DS_Store
+**/Thumbs.db
