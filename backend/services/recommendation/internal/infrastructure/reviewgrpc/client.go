@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 
 	"jobconnect/recommendation/internal/domain"
-	reviewv1 "jobconnect/review/gen/review/v1"
+	reviewv1 "jobconnect/reviews/gen/reviews/v1"
 )
 
 type Client struct {

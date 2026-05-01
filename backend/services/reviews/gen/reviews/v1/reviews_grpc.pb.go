@@ -19,12 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReviewService_CreateReview_FullMethodName      = "/reviews.v1.ReviewService/CreateReview"
-	ReviewService_GetReview_FullMethodName         = "/reviews.v1.ReviewService/GetReview"
-	ReviewService_UpdateReview_FullMethodName      = "/reviews.v1.ReviewService/UpdateReview"
-	ReviewService_DeleteReview_FullMethodName      = "/reviews.v1.ReviewService/DeleteReview"
-	ReviewService_ListReviewsByUser_FullMethodName = "/reviews.v1.ReviewService/ListReviewsByUser"
-	ReviewService_GetContractUsers_FullMethodName  = "/reviews.v1.ReviewService/GetContractUsers"
+	ReviewService_CreateReview_FullMethodName         = "/reviews.v1.ReviewService/CreateReview"
+	ReviewService_GetReview_FullMethodName            = "/reviews.v1.ReviewService/GetReview"
+	ReviewService_UpdateReview_FullMethodName         = "/reviews.v1.ReviewService/UpdateReview"
+	ReviewService_DeleteReview_FullMethodName         = "/reviews.v1.ReviewService/DeleteReview"
+	ReviewService_ListReviewsByUser_FullMethodName    = "/reviews.v1.ReviewService/ListReviewsByUser"
+	ReviewService_GetContractUsers_FullMethodName     = "/reviews.v1.ReviewService/GetContractUsers"
+	ReviewService_GetUserRatingSummary_FullMethodName = "/reviews.v1.ReviewService/GetUserRatingSummary"
 )
 
 // ReviewServiceClient is the client API for ReviewService service.
@@ -37,6 +38,7 @@ type ReviewServiceClient interface {
 	DeleteReview(ctx context.Context, in *DeleteReviewRequest, opts ...grpc.CallOption) (*DeleteReviewResponse, error)
 	ListReviewsByUser(ctx context.Context, in *ListReviewsByUserRequest, opts ...grpc.CallOption) (*ListReviewsResponse, error)
 	GetContractUsers(ctx context.Context, in *GetContractUsersRequest, opts ...grpc.CallOption) (*GetContractUsersResponse, error)
+	GetUserRatingSummary(ctx context.Context, in *GetUserRatingSummaryRequest, opts ...grpc.CallOption) (*GetUserRatingSummaryResponse, error)
 }
 
 type reviewServiceClient struct {
@@ -107,6 +109,16 @@ func (c *reviewServiceClient) GetContractUsers(ctx context.Context, in *GetContr
 	return out, nil
 }
 
+func (c *reviewServiceClient) GetUserRatingSummary(ctx context.Context, in *GetUserRatingSummaryRequest, opts ...grpc.CallOption) (*GetUserRatingSummaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetUserRatingSummaryResponse)
+	err := c.cc.Invoke(ctx, ReviewService_GetUserRatingSummary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReviewServiceServer is the server API for ReviewService service.
 // All implementations must embed UnimplementedReviewServiceServer
 // for forward compatibility.
@@ -117,6 +129,7 @@ type ReviewServiceServer interface {
 	DeleteReview(context.Context, *DeleteReviewRequest) (*DeleteReviewResponse, error)
 	ListReviewsByUser(context.Context, *ListReviewsByUserRequest) (*ListReviewsResponse, error)
 	GetContractUsers(context.Context, *GetContractUsersRequest) (*GetContractUsersResponse, error)
+	GetUserRatingSummary(context.Context, *GetUserRatingSummaryRequest) (*GetUserRatingSummaryResponse, error)
 	mustEmbedUnimplementedReviewServiceServer()
 }
 
@@ -144,6 +157,9 @@ func (UnimplementedReviewServiceServer) ListReviewsByUser(context.Context, *List
 }
 func (UnimplementedReviewServiceServer) GetContractUsers(context.Context, *GetContractUsersRequest) (*GetContractUsersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetContractUsers not implemented")
+}
+func (UnimplementedReviewServiceServer) GetUserRatingSummary(context.Context, *GetUserRatingSummaryRequest) (*GetUserRatingSummaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetUserRatingSummary not implemented")
 }
 func (UnimplementedReviewServiceServer) mustEmbedUnimplementedReviewServiceServer() {}
 func (UnimplementedReviewServiceServer) testEmbeddedByValue()                       {}
@@ -274,6 +290,24 @@ func _ReviewService_GetContractUsers_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReviewService_GetUserRatingSummary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRatingSummaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReviewServiceServer).GetUserRatingSummary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReviewService_GetUserRatingSummary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReviewServiceServer).GetUserRatingSummary(ctx, req.(*GetUserRatingSummaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReviewService_ServiceDesc is the grpc.ServiceDesc for ReviewService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +338,10 @@ var ReviewService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetContractUsers",
 			Handler:    _ReviewService_GetContractUsers_Handler,
+		},
+		{
+			MethodName: "GetUserRatingSummary",
+			Handler:    _ReviewService_GetUserRatingSummary_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
