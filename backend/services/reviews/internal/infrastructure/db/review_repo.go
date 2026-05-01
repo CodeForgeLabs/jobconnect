@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"jobconnect/reviews/internal/applications"
 	"jobconnect/reviews/internal/domain"
 	"time"
 
@@ -9,11 +10,12 @@ import (
 )
 
 type ReviewRepo struct {
-	pool *pgxpool.Pool
+	pool         *pgxpool.Pool
+	contractPool *pgxpool.Pool
 }
 
-func NewReviewRepo(pool *pgxpool.Pool) *ReviewRepo {
-	return &ReviewRepo{pool: pool}
+func NewReviewRepo(pool *pgxpool.Pool, contractPool *pgxpool.Pool) *ReviewRepo {
+	return &ReviewRepo{pool: pool, contractPool: contractPool}
 }
 
 func (r *ReviewRepo) Create(ctx context.Context, review domain.Review) (domain.Review, error) {
@@ -151,4 +153,28 @@ func (r *ReviewRepo) ListByUser(
 	}
 
 	return reviews, nil
+}
+func (r *ReviewRepo) GetContractUsers(
+	ctx context.Context,
+	contractID string,
+) (applications.GetContractUsersOutput, error) {
+
+	var out applications.GetContractUsersOutput
+
+	query := `
+        SELECT client_id, freelancer_id
+        FROM contracts
+        WHERE id = $1
+    `
+
+	err := r.contractPool.QueryRow(ctx, query, contractID).Scan(
+		&out.ClientID,
+		&out.FreelancerID,
+	)
+
+	if err != nil {
+		return applications.GetContractUsersOutput{}, err
+	}
+
+	return out, nil
 }

@@ -9,11 +9,12 @@ import (
 
 type ReviewServer struct {
 	reviewsv1.UnimplementedReviewServiceServer
-	createReview *applications.CreateReview
-	deleteReview *applications.DeleteReview
-	getReview    *applications.GetReview
-	listReviews  *applications.ListReviews
-	updateReview *applications.UpdateReview
+	createReview      *applications.CreateReview
+	deleteReview      *applications.DeleteReview
+	getReview         *applications.GetReview
+	listReviews       *applications.ListReviews
+	updateReview      *applications.UpdateReview
+	getContractsUsers *applications.GetContractUsers
 }
 
 func NewReviewServer(
@@ -22,13 +23,15 @@ func NewReviewServer(
 	getReview *applications.GetReview,
 	listReviews *applications.ListReviews,
 	updateReview *applications.UpdateReview,
+	getContractsUsers *applications.GetContractUsers,
 ) *ReviewServer {
 	return &ReviewServer{
-		createReview: createReview,
-		deleteReview: deleteReview,
-		getReview:    getReview,
-		listReviews:  listReviews,
-		updateReview: updateReview,
+		createReview:      createReview,
+		deleteReview:      deleteReview,
+		getReview:         getReview,
+		listReviews:       listReviews,
+		updateReview:      updateReview,
+		getContractsUsers: getContractsUsers,
 	}
 }
 
@@ -43,14 +46,19 @@ func (s *ReviewServer) CreateReview(
 	}
 
 	// ⚠️ TODO: CALL CONTRACT SERVICE HERE
-	// contract := s.contractClient.GetContract(...)
+	contract, err := s.getContractsUsers.Execute(ctx, applications.GetContractUsersInput{
+		ContractID: fmt.Sprintf("%d", contractId),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get contract users: %w", err)
+	}
 	// clientID := contract.ClientId
 	// freelancerID := contract.FreelancerId
 
 	input := applications.CreateReviewInput{
 		ContractID:   contractId,
-		ClientID:     "550e8400-e29b-41d4-a716-446655440000", // TODO from contract service
-		FreelancerID: "550e8400-e29b-41d4-a716-445755440000", // TODO from contract service
+		ClientID:     contract.ClientID,
+		FreelancerID: contract.FreelancerID,
 		ReviewerRole: mapRole(req.GetReviewerRole()),
 		Rating:       int(req.GetRating()),
 		Title:        req.GetTitle(),

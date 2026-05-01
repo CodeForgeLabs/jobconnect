@@ -99,7 +99,14 @@ message ListReviewsByUserRequest {
 message ListReviewsResponse {
   repeated Review reviews = 1;
 }
+message GetContractUsersRequest {
+  int64 contract_id = 1;
+}
 
+message GetContractUsersResponse {
+  string client_id = 1;
+  string freelancer_id = 2;
+}
 // -------------------- SERVICE --------------------
 
 service ReviewService {
@@ -112,4 +119,6 @@ service ReviewService {
   rpc DeleteReview(DeleteReviewRequest) returns (DeleteReviewResponse);
 
   rpc ListReviewsByUser(ListReviewsByUserRequest) returns (ListReviewsResponse);
+  rpc GetContractUsers(GetContractUsersRequest) returns (GetContractUsersResponse);
+
 }

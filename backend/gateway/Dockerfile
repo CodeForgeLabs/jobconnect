@@ -12,6 +12,7 @@ COPY services/recommendation /src/services/recommendation
 COPY services/user /src/services/user
 COPY services/verification /src/services/verification
 COPY services/chat /src/services/chat
+COPY services/reviews /src/services/reviews
 COPY gateway/go.mod gateway/go.sum ./
 RUN go mod download
 

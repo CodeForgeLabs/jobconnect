@@ -26,7 +26,15 @@ func LoadFromEnv() (Config, error) {
 	cfg.JWTSecret = []byte(secret)
 	return cfg, nil
 }
-
+func LoadFromEnvForContract() (Config, error) {
+	cfg := Config{
+		PostgresURL: os.Getenv("CONTRACT_POSTGRES_URL"),
+	}
+	if cfg.PostgresURL == "" {
+		return Config{}, fmt.Errorf("CONTRACT_POSTGRES_URL is required")
+	}
+	return cfg, nil
+}
 func getEnv(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v

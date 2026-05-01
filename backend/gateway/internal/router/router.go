@@ -16,7 +16,7 @@ import (
 	"golang.org/x/time/rate"
 )
 
-func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, contractHandler *handlers.ContractHandler, disputeHandler *handlers.DisputeHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler) *gin.Engine {
+func New(cfg config.Config, authHandler *handlers.AuthHandler, verificationHandler *handlers.VerificationHandler, userHandler *handlers.UserHandler, jobHandler *handlers.JobHandler, proposalHandler *handlers.ProposalHandler, contractHandler *handlers.ContractHandler, disputeHandler *handlers.DisputeHandler, recommendationHandler *handlers.RecommendationHandler, chatHandler *handlers.ChatHandler, reviewHandler *handlers.ReviewHandler) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 	engine.Use(gin.Logger())
@@ -276,4 +276,16 @@ func registerChatRoutes(api *gin.RouterGroup, chatHandler *handlers.ChatHandler,
 	chat.POST("/messages/:messageId/seen", chatHandler.MarkAsSeen)
 	chat.PUT("/messages/:messageId", chatHandler.EditMessage)
 	chat.DELETE("/messages/:messageId", chatHandler.DeleteMessage)
+}
+
+// REVIEW
+func registerReviewRoutes(api *gin.RouterGroup, reviewHandler *handlers.ReviewHandler, jwtParser *auth.JWTParser) {
+	review := api.Group("/reviews")
+	review.Use(middleware.RequireAuth(jwtParser))
+
+	review.POST("", reviewHandler.CreateReview)
+	review.GET("/:reviewId", reviewHandler.GetReview)
+	review.PATCH("/:reviewId", reviewHandler.UpdateReview)
+	review.GET("/contracts/:contractId", reviewHandler.ListReviews)
+	review.DELETE("/:reviewId", reviewHandler.DeleteReview)
 }

@@ -37,7 +37,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
-
+	contCfg, err := config.LoadFromEnvForContract()
+	if err != nil {
+		log.Fatalf("contract config: %v", err)
+	}
 	// DB
 	pool, err := db.NewPool(ctx, cfg.PostgresURL)
 	if err != nil {
@@ -45,7 +48,13 @@ func main() {
 	}
 	defer pool.Close()
 
-	reviewRepo := db.NewReviewRepo(pool)
+	contractPool, err := db.NewPool(ctx, contCfg.PostgresURL)
+	if err != nil {
+		log.Fatalf("contract db connection failed: %v", err)
+	}
+	defer contractPool.Close()
+
+	reviewRepo := db.NewReviewRepo(pool, contractPool)
 	clockImpl := clock.NewRealClock()
 
 	// Use cases
@@ -66,6 +75,10 @@ func main() {
 	listUC := &applications.ListReviews{
 		Reviews: reviewRepo,
 	}
+	getContractsUsersUC := &applications.GetContractUsers{
+		Reviews: reviewRepo,
+		Clock:   clockImpl,
+	}
 
 	// gRPC server
 	server := grpcadapter.NewReviewServer(
@@ -74,6 +87,7 @@ func main() {
 		getUC,
 		listUC,
 		updateUC,
+		getContractsUsersUC,
 	)
 
 	lis, err := net.Listen("tcp", cfg.GRPCListenAddr)

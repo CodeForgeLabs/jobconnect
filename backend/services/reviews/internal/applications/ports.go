@@ -16,6 +16,7 @@ type ReviewRepository interface {
 	Delete(ctx context.Context, id int64) error
 
 	ListByUser(ctx context.Context, userID string, role domain.ReviewerRole, limit, offset int) ([]domain.Review, error)
+	GetContractUsers(ctx context.Context, contractID string) (GetContractUsersOutput, error)
 }
 
 type Clock interface {
