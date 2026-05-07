@@ -41,6 +41,7 @@ type RegisterUser struct {
 	Hasher         domain.PasswordHasher
 	Clock          Clock
 	EmailSend      EmailSender
+	Events         UserRegistrationPublisher
 	OTPTTL         time.Duration
 	TOSVersion     string
 	PrivacyVersion string
@@ -112,8 +113,8 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 		_ = uc.TOS.Create(ctx, u.ID, uc.TOSVersion, uc.PrivacyVersion)
 	}
 
-	if uc.UserProfiles != nil {
-		if err := uc.UserProfiles.CreateProfile(ctx, CreateProfileInput{
+	if uc.Events != nil {
+		if err := uc.Events.PublishUserRegistered(ctx, CreateProfileInput{
 			UserID:      u.ID,
 			Role:        u.Role,
 			FirstName:   u.FirstName,
@@ -124,13 +125,24 @@ func (uc *RegisterUser) Execute(ctx context.Context, in RegisterUserInput) (Regi
 		}); err != nil {
 			return RegisterUserOutput{}, err
 		}
-	}
-
-	// Grant initial connects to freelancers
-	if uc.Connects != nil && strings.ToLower(in.Role) == "freelancer" {
-		if err := uc.Connects.GrantInitialConnects(ctx, u.ID); err != nil {
-			// Do not block registration if promotion fails, but log it
-			fmt.Printf("failed to grant initial connects for user %s: %v\n", u.ID, err)
+	} else {
+		if uc.UserProfiles != nil {
+			if err := uc.UserProfiles.CreateProfile(ctx, CreateProfileInput{
+				UserID:      u.ID,
+				Role:        u.Role,
+				FirstName:   u.FirstName,
+				LastName:    u.LastName,
+				DisplayName: u.DisplayName,
+				AvatarURL:   "",
+				Email:       u.Email,
+			}); err != nil {
+				return RegisterUserOutput{}, err
+			}
+		}
+		if uc.Connects != nil && strings.ToLower(in.Role) == "freelancer" {
+			if err := uc.Connects.GrantInitialConnects(ctx, u.ID); err != nil {
+				fmt.Printf("failed to grant initial connects for user %s: %v\n", u.ID, err)
+			}
 		}
 	}
 

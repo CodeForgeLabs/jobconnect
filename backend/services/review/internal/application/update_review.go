@@ -12,6 +12,7 @@ import (
 type UpdateReview struct {
 	Reviews ReviewRepository
 	Clock   Clock
+	Events  ReviewEventsPublisher
 }
 
 type UpdateReviewInput struct {
@@ -60,6 +61,9 @@ func (uc *UpdateReview) Execute(ctx context.Context, in UpdateReviewInput) (Upda
 	updated, err := uc.Reviews.Update(ctx, r)
 	if err != nil {
 		return UpdateReviewOutput{}, err
+	}
+	if uc.Events != nil {
+		_ = uc.Events.PublishReviewUpdated(ctx, updated)
 	}
 
 	return UpdateReviewOutput{Review: updated}, nil

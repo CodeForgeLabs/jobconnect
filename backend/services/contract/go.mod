@@ -6,11 +6,12 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.8.0
+	github.com/minio/minio-go/v7 v7.0.99
 	google.golang.org/grpc v1.79.2
 	google.golang.org/protobuf v1.36.11
+	jobconnect/events v0.0.0
 	jobconnect/job v0.0.0
 	jobconnect/proposal v0.0.0
-	jobconnect/wallet v0.0.0
 )
 
 replace jobconnect/job => ../job
@@ -34,9 +35,10 @@ require (
 	github.com/klauspost/crc32 v1.3.0 // indirect
 	github.com/minio/crc64nvme v1.1.1 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
-	github.com/minio/minio-go/v7 v7.0.99 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
+	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/rs/xid v1.6.0 // indirect
+	github.com/segmentio/kafka-go v0.4.49 // indirect
 	github.com/tinylib/msgp v1.6.1 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/crypto v0.46.0 // indirect
@@ -46,3 +48,5 @@ require (
 	golang.org/x/text v0.32.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
 )
+
+replace jobconnect/events => ../events

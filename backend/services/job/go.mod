@@ -9,7 +9,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.76
 	google.golang.org/grpc v1.79.1
 	google.golang.org/protobuf v1.36.11
-	jobconnect/user v0.0.0
+	jobconnect/events v0.0.0
 )
 
 require (
@@ -19,7 +19,9 @@ require (
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
+	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/rs/xid v1.6.0 // indirect
+	github.com/segmentio/kafka-go v0.4.49 // indirect
 	golang.org/x/crypto v0.46.0 // indirect
 )
 
@@ -36,4 +38,7 @@ require (
 )
 
 replace jobconnect/api => ../../api
+
 replace jobconnect/user => ../user
+
+replace jobconnect/events => ../events

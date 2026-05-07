@@ -18,12 +18,14 @@ import (
 	"jobconnect/contract/internal/infrastructure/clock"
 	"jobconnect/contract/internal/infrastructure/db"
 	"jobconnect/contract/internal/infrastructure/disputegrpc"
+	eventsinfra "jobconnect/contract/internal/infrastructure/events"
 	"jobconnect/contract/internal/infrastructure/jobgrpc"
 	"jobconnect/contract/internal/infrastructure/proposalgrpc"
 	"jobconnect/contract/internal/infrastructure/storage"
 	"jobconnect/contract/internal/infrastructure/tokens"
 	"jobconnect/contract/internal/infrastructure/usergrpc"
 	"jobconnect/contract/internal/infrastructure/walletgrpc"
+	sharedevents "jobconnect/events"
 
 	disputev1 "jobconnect/contract/gen/dispute/v1"
 	walletv1 "jobconnect/contract/gen/wallet/v1"
@@ -87,6 +89,8 @@ func main() {
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
 	jwtIssuer := tokens.NewJWTIssuer(cfg.JWTSecret)
+	kafkaPublisher := sharedevents.NewPublisher(sharedevents.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_CONTRACT", "contract.events"))
+	defer kafkaPublisher.Close()
 	hourlyEvidenceStore, err := storage.NewHourlyEvidenceStore(ctx, cfg.HourlyEvidenceStore)
 	if err != nil {
 		log.Fatalf("hourly evidence store: %v", err)
@@ -95,8 +99,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("hourly evidence upload ttl: %v", err)
 	}
-	proposalClient := proposalgrpc.NewProposalClient(proposalv1.NewProposalServiceClient(proposalConn), jwtIssuer)
-	jobClient := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn), jwtIssuer)
+	proposalClient := proposalgrpc.NewProposalClient(proposalv1.NewProposalServiceClient(proposalConn), jwtIssuer, kafkaPublisher)
+	jobClient := jobgrpc.NewJobClient(jobv1.NewJobServiceClient(jobConn), jwtIssuer, kafkaPublisher)
 	userPolicy := usergrpc.NewClient(userv1.NewUserServiceClient(userConn))
 	settlementDispatcher := walletgrpc.NewSettlementDispatcher(walletv1.NewWalletServiceClient(walletConn), jwtIssuer)
 	disputeClient := disputegrpc.NewClient(disputev1.NewDisputeServiceClient(disputeConn), jwtIssuer)
@@ -134,6 +138,8 @@ func main() {
 	createContractBonusUC := &application.CreateContractBonus{Contracts: repo, Clock: clockImpl}
 	listContractBonusesUC := &application.ListContractBonuses{Contracts: repo}
 	markContractBonusPaidUC := &application.InternalMarkContractBonusPaid{Contracts: repo, Clock: clockImpl}
+	paymentConsumer := eventsinfra.StartPaymentConsumer(ctx, sharedevents.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_PAYMENT", "payment.events"), updateMilestoneStatusUC, markContractBonusPaidUC, closeHourlyWeekUC, settleHourlyInvoiceUC)
+	defer paymentConsumer.Close()
 	proposeAmendmentUC := &application.ProposeAmendment{Contracts: repo, Clock: clockImpl}
 	respondAmendmentUC := &application.RespondAmendment{Contracts: repo, Clock: clockImpl}
 	listAmendmentsUC := &application.ListAmendments{Contracts: repo, Clock: clockImpl}
@@ -229,6 +235,13 @@ func loadDotEnv(paths ...string) error {
 	}
 
 	return nil
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }
 
 func loadDotEnvFile(path string) error {

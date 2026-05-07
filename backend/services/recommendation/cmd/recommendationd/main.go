@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	sharedevents "jobconnect/events"
 	pb "jobconnect/recommendation/gen/recommendation/v1"
 	adaptergrpc "jobconnect/recommendation/internal/adapters/grpc"
 	"jobconnect/recommendation/internal/application"
@@ -24,6 +25,7 @@ import (
 	embedderpython "jobconnect/recommendation/internal/infrastructure/embedder/python"
 	embeddingstorememory "jobconnect/recommendation/internal/infrastructure/embeddingstore/memory"
 	embeddingstorepgvector "jobconnect/recommendation/internal/infrastructure/embeddingstore/pgvector"
+	eventsinfra "jobconnect/recommendation/internal/infrastructure/events"
 	"jobconnect/recommendation/internal/infrastructure/jobgrpc"
 	"jobconnect/recommendation/internal/infrastructure/metrics"
 	"jobconnect/recommendation/internal/infrastructure/reviewgrpc"
@@ -88,6 +90,8 @@ func main() {
 			MaxSkillQueries:   cfg.MaxSkillQueries,
 		},
 	)
+	reviewConsumer := eventsinfra.StartReviewConsumer(ctx, sharedevents.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_REVIEW", "review.events"), app)
+	defer reviewConsumer.Close()
 
 	metricsServer := startMetricsServer(cfg.MetricsListenAddr, recorder)
 	defer shutdownMetricsServer(metricsServer)
@@ -242,6 +246,14 @@ func loadDotEnv(paths ...string) error {
 		}
 	}
 	return nil
+}
+
+func getEnv(key, def string) string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		return def
+	}
+	return value
 }
 
 func loadDotEnvFile(path string) error {

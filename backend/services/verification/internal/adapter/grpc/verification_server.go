@@ -16,6 +16,7 @@ import (
 
 type VerificationServer struct {
 	verificationv1.UnimplementedVerificationServiceServer
+	GetEvidenceUploadURLUC    *application.GetVerificationEvidenceUploadURL
 	SubmitVerificationUC     *application.SubmitVerification
 	GetMyStatusUC            *application.GetMyVerificationStatus
 	ListPendingUC            *application.ListPendingVerifications
@@ -25,6 +26,7 @@ type VerificationServer struct {
 }
 
 func NewVerificationServer(
+	getEvidenceUploadURL *application.GetVerificationEvidenceUploadURL,
 	submit *application.SubmitVerification,
 	getMyStatus *application.GetMyVerificationStatus,
 	listPending *application.ListPendingVerifications,
@@ -33,6 +35,7 @@ func NewVerificationServer(
 	requestReverification *application.RequestReverification,
 ) *VerificationServer {
 	return &VerificationServer{
+		GetEvidenceUploadURLUC:    getEvidenceUploadURL,
 		SubmitVerificationUC:     submit,
 		GetMyStatusUC:            getMyStatus,
 		ListPendingUC:            listPending,
@@ -40,6 +43,31 @@ func NewVerificationServer(
 		ReviewVerificationUC:     review,
 		RequestReverificationUC:  requestReverification,
 	}
+}
+
+func (s *VerificationServer) GetVerificationEvidenceUploadUrl(ctx context.Context, req *verificationv1.GetVerificationEvidenceUploadUrlRequest) (*verificationv1.GetVerificationEvidenceUploadUrlResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request required")
+	}
+	if s.GetEvidenceUploadURLUC == nil {
+		return nil, status.Error(codes.Internal, "verification evidence upload url use-case not configured")
+	}
+	userID, err := uuid.Parse(req.GetUserId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+	out, err := s.GetEvidenceUploadURLUC.Execute(ctx, application.GetVerificationEvidenceUploadURLInput{
+		UserID:      userID,
+		FileName:    req.GetFileName(),
+		ContentType: req.GetContentType(),
+	})
+	if err != nil {
+		return nil, toStatus(err)
+	}
+	return &verificationv1.GetVerificationEvidenceUploadUrlResponse{
+		StorageKey: out.StorageKey,
+		UploadUrl:  out.UploadURL,
+	}, nil
 }
 
 func (s *VerificationServer) SubmitVerification(ctx context.Context, req *verificationv1.SubmitVerificationRequest) (*verificationv1.SubmitVerificationResponse, error) {
@@ -56,7 +84,7 @@ func (s *VerificationServer) SubmitVerification(ctx context.Context, req *verifi
 		CountryCode:          req.GetCountryCode(),
 		DocumentType:         req.GetDocumentType(),
 		DocumentNumberMasked: req.GetDocumentNumberMasked(),
-		EvidenceURLs:         req.GetEvidenceUrls(),
+		EvidenceURL:          req.GetEvidenceUrl(),
 		SubmissionNote:       req.GetSubmissionNote(),
 	})
 	if err != nil {
@@ -162,7 +190,7 @@ func toProto(in domain.VerificationRequest) *verificationv1.VerificationRequest 
 		CountryCode:          in.CountryCode,
 		DocumentType:         in.DocumentType,
 		DocumentNumberMasked: in.DocumentNumberMasked,
-		EvidenceUrls:         in.EvidenceURLs,
+		EvidenceUrl:          in.EvidenceURL,
 		SubmissionNote:       in.SubmissionNote,
 		RejectionReason:      in.RejectionReason,
 		InternalNote:         in.InternalNote,

@@ -124,7 +124,7 @@ func (uc *UpdateProfile) Execute(ctx context.Context, in UpdateProfileInput) (Up
 		return UpdateProfileOutput{}, err
 	}
 
-	completeness, missing := computeCompleteness(profile, client, freelancer)
+	completeness, missing := computeCompleteness(profile, client, freelancer, readinessSignals{})
 	return UpdateProfileOutput{
 		Profile:      profile,
 		Client:       client,

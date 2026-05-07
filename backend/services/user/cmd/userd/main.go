@@ -16,8 +16,10 @@ import (
 	"jobconnect/user/internal/config"
 	"jobconnect/user/internal/infrastructure/clock"
 	"jobconnect/user/internal/infrastructure/db"
+	eventsinfra "jobconnect/user/internal/infrastructure/events"
 	"jobconnect/user/internal/infrastructure/media"
 	"jobconnect/user/internal/infrastructure/storage"
+	sharedevents "jobconnect/events"
 
 	"google.golang.org/grpc"
 )
@@ -60,6 +62,11 @@ func main() {
 		Profiles: profileRepo,
 		Clock:    clockImpl,
 	}
+	authConsumer, err := eventsinfra.StartAuthConsumer(ctx, sharedevents.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_AUTH", "auth.events"), createProfileUC)
+	if err != nil {
+		log.Fatalf("start auth consumer: %v", err)
+	}
+	defer authConsumer.Close()
 	getProfileUC := &application.GetProfile{Profiles: profileRepo}
 	updateProfileUC := &application.UpdateProfile{Profiles: profileRepo, Clock: clockImpl}
 	deleteProfileUC := &application.DeleteProfile{Profiles: profileRepo, Clock: clockImpl}
@@ -162,6 +169,13 @@ func loadDotEnv(paths ...string) error {
 	}
 
 	return nil
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }
 
 func loadDotEnvFile(path string) error {

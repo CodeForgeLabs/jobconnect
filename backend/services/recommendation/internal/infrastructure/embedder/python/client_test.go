@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -301,7 +302,11 @@ func TestStartHandshakeAgainstRealSubprocess(t *testing.T) {
 	if err := writeFakeWorkerSource(src); err != nil {
 		t.Fatalf("write fake worker: %v", err)
 	}
-	bin := filepath.Join(dir, "fakeworker")
+	binName := "fakeworker"
+	if runtime.GOOS == "windows" {
+		binName += ".exe"
+	}
+	bin := filepath.Join(dir, binName)
 	buildCmd := exec.Command("go", "build", "-o", bin, src)
 	if out, err := buildCmd.CombinedOutput(); err != nil {
 		t.Skipf("go build: %v: %s", err, out)

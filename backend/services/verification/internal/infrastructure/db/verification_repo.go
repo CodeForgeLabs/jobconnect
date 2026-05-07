@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -22,27 +21,23 @@ func NewVerificationRepo(pool *pgxpool.Pool) *VerificationRepo {
 }
 
 func (r *VerificationRepo) CreateSubmission(ctx context.Context, req domain.VerificationRequest) (domain.VerificationRequest, error) {
-	evidenceJSON, err := json.Marshal(req.EvidenceURLs)
-	if err != nil {
-		return domain.VerificationRequest{}, err
-	}
 	row := r.pool.QueryRow(ctx, `
 		insert into verification_requests (
 			user_id, request_version, status, legal_name, country_code, document_type,
-			document_number_masked, evidence_urls, submission_note, submitted_at, updated_at
+			document_number_masked, evidence_url, submission_note, submitted_at, updated_at
 		)
 		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$10)
 		returning id, user_id, request_version, status, legal_name, country_code, document_type,
-			document_number_masked, evidence_urls, submission_note, submitted_at, reviewed_at,
+			document_number_masked, evidence_url, submission_note, submitted_at, reviewed_at,
 			reviewer_user_id, rejection_reason, internal_note, reverify_due_at, updated_at
-	`, req.UserID, req.RequestVersion, req.Status, req.LegalName, req.CountryCode, req.DocumentType, req.DocumentNumberMasked, evidenceJSON, req.SubmissionNote, req.SubmittedAt)
+	`, req.UserID, req.RequestVersion, req.Status, req.LegalName, req.CountryCode, req.DocumentType, req.DocumentNumberMasked, req.EvidenceURL, req.SubmissionNote, req.SubmittedAt)
 	return scanRequest(row)
 }
 
 func (r *VerificationRepo) GetLatestByUserID(ctx context.Context, userID uuid.UUID) (domain.VerificationRequest, error) {
 	row := r.pool.QueryRow(ctx, `
 		select id, user_id, request_version, status, legal_name, country_code, document_type,
-			document_number_masked, evidence_urls, submission_note, submitted_at, reviewed_at,
+			document_number_masked, evidence_url, submission_note, submitted_at, reviewed_at,
 			reviewer_user_id, rejection_reason, internal_note, reverify_due_at, updated_at
 		from verification_requests
 		where user_id = $1
@@ -55,7 +50,7 @@ func (r *VerificationRepo) GetLatestByUserID(ctx context.Context, userID uuid.UU
 func (r *VerificationRepo) GetByID(ctx context.Context, id int64) (domain.VerificationRequest, error) {
 	row := r.pool.QueryRow(ctx, `
 		select id, user_id, request_version, status, legal_name, country_code, document_type,
-			document_number_masked, evidence_urls, submission_note, submitted_at, reviewed_at,
+			document_number_masked, evidence_url, submission_note, submitted_at, reviewed_at,
 			reviewer_user_id, rejection_reason, internal_note, reverify_due_at, updated_at
 		from verification_requests
 		where id = $1
@@ -66,7 +61,7 @@ func (r *VerificationRepo) GetByID(ctx context.Context, id int64) (domain.Verifi
 func (r *VerificationRepo) ListPending(ctx context.Context, limit, offset int32) ([]domain.VerificationRequest, error) {
 	rows, err := r.pool.Query(ctx, `
 		select id, user_id, request_version, status, legal_name, country_code, document_type,
-			document_number_masked, evidence_urls, submission_note, submitted_at, reviewed_at,
+			document_number_masked, evidence_url, submission_note, submitted_at, reviewed_at,
 			reviewer_user_id, rejection_reason, internal_note, reverify_due_at, updated_at
 		from verification_requests
 		where status in ('submitted', 'pending_review')
@@ -106,7 +101,7 @@ func (r *VerificationRepo) Review(ctx context.Context, requestID int64, reviewer
 			updated_at = $4
 		where id = $1 and status in ('submitted', 'pending_review')
 		returning id, user_id, request_version, status, legal_name, country_code, document_type,
-			document_number_masked, evidence_urls, submission_note, submitted_at, reviewed_at,
+			document_number_masked, evidence_url, submission_note, submitted_at, reviewed_at,
 			reviewer_user_id, rejection_reason, internal_note, reverify_due_at, updated_at
 	`, requestID, status, reviewerID, reviewedAt, rejectionReason, internalNote)
 
@@ -138,7 +133,7 @@ func (r *VerificationRepo) MarkReverificationRequired(ctx context.Context, userI
 		from latest
 		where vr.id = latest.id and vr.status = 'verified'
 		returning vr.id, vr.user_id, vr.request_version, vr.status, vr.legal_name, vr.country_code, vr.document_type,
-			vr.document_number_masked, vr.evidence_urls, vr.submission_note, vr.submitted_at, vr.reviewed_at,
+			vr.document_number_masked, vr.evidence_url, vr.submission_note, vr.submitted_at, vr.reviewed_at,
 			vr.reviewer_user_id, vr.rejection_reason, vr.internal_note, vr.reverify_due_at, vr.updated_at
 	`, userID, reviewerID, reason, dueAt, at)
 	out, err := scanRequest(row)
@@ -165,7 +160,7 @@ type rowScanner interface {
 
 func scanRequest(row rowScanner) (domain.VerificationRequest, error) {
 	var out domain.VerificationRequest
-	var evidenceRaw []byte
+	var evidenceURL string
 	var reviewerID *uuid.UUID
 	var reviewedAt *time.Time
 	var reverifyDueAt *time.Time
@@ -178,7 +173,7 @@ func scanRequest(row rowScanner) (domain.VerificationRequest, error) {
 		&out.CountryCode,
 		&out.DocumentType,
 		&out.DocumentNumberMasked,
-		&evidenceRaw,
+		&evidenceURL,
 		&out.SubmissionNote,
 		&out.SubmittedAt,
 		&reviewedAt,
@@ -193,9 +188,7 @@ func scanRequest(row rowScanner) (domain.VerificationRequest, error) {
 		}
 		return domain.VerificationRequest{}, err
 	}
-	if len(evidenceRaw) > 0 {
-		_ = json.Unmarshal(evidenceRaw, &out.EvidenceURLs)
-	}
+	out.EvidenceURL = evidenceURL
 	out.ReviewerUserID = reviewerID
 	out.ReviewedAt = reviewedAt
 	out.ReverifyDueAt = reverifyDueAt

@@ -17,8 +17,10 @@ import (
 	"jobconnect/job/internal/config"
 	"jobconnect/job/internal/infrastructure/clock"
 	"jobconnect/job/internal/infrastructure/db"
+	eventsinfra "jobconnect/job/internal/infrastructure/events"
 	"jobconnect/job/internal/infrastructure/storage"
 	"jobconnect/job/internal/infrastructure/tokens"
+	sharedevents "jobconnect/events"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -97,6 +99,8 @@ func main() {
 	pauseJobUC := &application.PauseJob{Jobs: jobRepo, Clock: clockImpl}
 	reopenJobUC := &application.ReopenJob{Jobs: jobRepo, Clock: clockImpl}
 	markFilledUC := &application.MarkJobFilled{Jobs: jobRepo, Clock: clockImpl}
+	contractConsumer := eventsinfra.StartContractConsumer(ctx, sharedevents.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_CONTRACT", "contract.events"), markFilledUC)
+	defer contractConsumer.Close()
 	searchJobsUC := &application.SearchJobs{Jobs: jobRepo}
 	listFacetsUC := &application.ListJobFacets{Jobs: jobRepo}
 	listAttachmentsUC := &application.ListJobAttachments{Jobs: jobRepo}
@@ -219,6 +223,13 @@ func loadDotEnv(paths ...string) error {
 	}
 
 	return nil
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }
 
 func loadDotEnvFile(path string) error {

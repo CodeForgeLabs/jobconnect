@@ -23,3 +23,9 @@ type ReviewRepository interface {
 type Clock interface {
 	Now() time.Time
 }
+
+type ReviewEventsPublisher interface {
+	PublishReviewCreated(ctx context.Context, review domain.Review) error
+	PublishReviewUpdated(ctx context.Context, review domain.Review) error
+	PublishReviewDeleted(ctx context.Context, reviewID int64, revieweeID string) error
+}

@@ -10,6 +10,7 @@ import (
 type DeleteReview struct {
 	Reviews ReviewRepository
 	Clock   Clock
+	Events  ReviewEventsPublisher
 }
 
 type DeleteReviewInput struct {
@@ -31,5 +32,11 @@ func (uc *DeleteReview) Execute(ctx context.Context, in DeleteReviewInput) error
 		return fmt.Errorf("the 24-hour grace period for deleting this review has expired")
 	}
 
-	return uc.Reviews.Delete(ctx, in.ReviewID)
+	if err := uc.Reviews.Delete(ctx, in.ReviewID); err != nil {
+		return err
+	}
+	if uc.Events != nil {
+		_ = uc.Events.PublishReviewDeleted(ctx, in.ReviewID, r.RevieweeID.String())
+	}
+	return nil
 }

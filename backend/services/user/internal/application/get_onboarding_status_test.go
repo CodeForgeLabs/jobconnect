@@ -56,6 +56,8 @@ type onboardingDetailsStub struct {
 	workPrefsErr    error
 	hiringPrefs     HiringPreferences
 	hiringPrefsErr  error
+	cvResult        CV
+	cvErr           error
 }
 
 func (s onboardingDetailsStub) ListMyPortfolioItems(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[PortfolioItem], error) {
@@ -70,10 +72,15 @@ func (s onboardingDetailsStub) GetHiringPreferences(ctx context.Context, userID 
 	return s.hiringPrefs, s.hiringPrefsErr
 }
 
+func (s onboardingDetailsStub) GetCV(ctx context.Context, userID uuid.UUID) (CV, error) {
+	return s.cvResult, s.cvErr
+}
+
 func TestComputeReadinessSignals_FreelancerReadsPortfolioAndPreferences(t *testing.T) {
 	uc := GetOnboardingStatus{Details: onboardingDetailsStub{
 		portfolioResult: ListResult[PortfolioItem]{Items: []PortfolioItem{{ID: 1}}},
 		workPrefsResult: WorkPreferences{PreferredProjectLength: "short", ContractTypes: []string{"fixed"}},
+		cvResult:        CV{UserID: uuid.New()},
 	}}
 
 	signals := uc.computeReadinessSignals(context.Background(), uuid.New(), domain.RoleFreelancer)
@@ -85,6 +92,9 @@ func TestComputeReadinessSignals_FreelancerReadsPortfolioAndPreferences(t *testi
 	}
 	if signals.HasHiringPreferences {
 		t.Fatalf("did not expect HasHiringPreferences for freelancer role")
+	}
+	if !signals.HasCV {
+		t.Fatalf("expected HasCV to be true")
 	}
 }
 
@@ -100,6 +110,9 @@ func TestComputeReadinessSignals_ClientReadsHiringPreferences(t *testing.T) {
 	if signals.HasPortfolio || signals.HasWorkPreferences {
 		t.Fatalf("did not expect freelancer-specific readiness signals for client role")
 	}
+	if signals.HasCV {
+		t.Fatalf("did not expect HasCV for client role")
+	}
 }
 
 func TestComputeReadinessSignals_ErrorsDoNotSetSignals(t *testing.T) {
@@ -107,10 +120,11 @@ func TestComputeReadinessSignals_ErrorsDoNotSetSignals(t *testing.T) {
 		portfolioErr:   errors.New("portfolio unavailable"),
 		workPrefsErr:   errors.New("work preferences unavailable"),
 		hiringPrefsErr: errors.New("hiring preferences unavailable"),
+		cvErr:          errors.New("cv unavailable"),
 	}}
 
 	freelancerSignals := uc.computeReadinessSignals(context.Background(), uuid.New(), domain.RoleFreelancer)
-	if freelancerSignals.HasPortfolio || freelancerSignals.HasWorkPreferences || freelancerSignals.HasHiringPreferences {
+	if freelancerSignals.HasPortfolio || freelancerSignals.HasWorkPreferences || freelancerSignals.HasHiringPreferences || freelancerSignals.HasCV {
 		t.Fatalf("expected no readiness signals when detail lookups fail, got %+v", freelancerSignals)
 	}
 
@@ -132,6 +146,7 @@ func TestGetOnboardingStatusExecute_FreelancerReadinessUsesDetails(t *testing.T)
 		Details: onboardingDetailsStub{
 			portfolioResult: ListResult[PortfolioItem]{Items: []PortfolioItem{{ID: 1}}},
 			workPrefsResult: WorkPreferences{PreferredProjectLength: "short", ContractTypes: []string{"fixed"}},
+			cvResult:        CV{UserID: uuid.New()},
 		},
 	}
 

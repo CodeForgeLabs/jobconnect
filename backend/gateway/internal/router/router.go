@@ -192,6 +192,7 @@ func registerVerificationRoutes(api *gin.RouterGroup, verificationHandler *handl
 	// Verification endpoints for authenticated users.
 	verificationRoutes := api.Group("/verifications")
 	verificationRoutes.Use(middleware.RequireAuth(jwtParser))
+	verificationRoutes.POST("/evidence/upload-url", verificationHandler.GetVerificationEvidenceUploadURL)
 	verificationRoutes.POST("/submit", sensitiveLimiter.Middleware(), verificationHandler.Submit)
 	verificationRoutes.GET("/me", verificationHandler.GetMyStatus)
 }

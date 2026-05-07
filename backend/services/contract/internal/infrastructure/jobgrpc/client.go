@@ -3,9 +3,11 @@ package jobgrpc
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
+	shared "jobconnect/events"
 	jobv1 "jobconnect/job/gen/job/v1"
 	"jobconnect/contract/internal/application"
 
@@ -22,10 +24,11 @@ type tokenIssuer interface {
 type JobClient struct {
 	client jobv1.JobServiceClient
 	issuer tokenIssuer
+	events *shared.Publisher
 }
 
-func NewJobClient(client jobv1.JobServiceClient, issuer tokenIssuer) *JobClient {
-	return &JobClient{client: client, issuer: issuer}
+func NewJobClient(client jobv1.JobServiceClient, issuer tokenIssuer, events *shared.Publisher) *JobClient {
+	return &JobClient{client: client, issuer: issuer, events: events}
 }
 
 func (c *JobClient) GetSummary(ctx context.Context, jobID int64, clientID uuid.UUID) (application.JobSummary, error) {
@@ -68,6 +71,11 @@ func (c *JobClient) GetSummary(ctx context.Context, jobID int64, clientID uuid.U
 }
 
 func (c *JobClient) SetInProgress(ctx context.Context, jobID int64, clientID uuid.UUID) error {
+	if c.events != nil {
+		if env, err := shared.NewEnvelope("contract.job.mark_filled.requested", strconv.FormatInt(jobID, 10), "contract-service", 1, map[string]any{"job_id": jobID, "client_id": clientID.String()}, fmt.Sprintf("mark-filled:%d", jobID), clientID.String()); err == nil {
+			_ = c.events.Publish(ctx, env)
+		}
+	}
 	if c == nil || c.client == nil || c.issuer == nil {
 		return fmt.Errorf("job client dependencies are not configured")
 	}

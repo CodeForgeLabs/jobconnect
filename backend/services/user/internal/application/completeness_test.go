@@ -13,6 +13,7 @@ func baseProfile(role string) domain.Profile {
 		ContactEmail: "jane@example.com",
 		AvatarURL:    "/profiles/u/avatar",
 		Bio:          "bio",
+		TaxID:        "TIN-123",
 	}
 }
 
@@ -57,15 +58,15 @@ func TestOnboardingUsesStableFourStepKeys(t *testing.T) {
 	profile := baseProfile(domain.RoleFreelancer)
 	freelancer := completeFreelancer(domain.VerificationStatusSubmitted)
 
-	steps := computeOnboardingSteps(profile, nil, freelancer)
+	steps := computeOnboardingSteps(profile, nil, freelancer, readinessSignals{HasWorkPreferences: true})
 	if len(steps) != 4 {
 		t.Fatalf("expected 4 onboarding steps, got %d", len(steps))
 	}
 
 	keys := []string{
-		onboardingStepCoreProfile,
+		onboardingStepProfile,
 		onboardingStepAvatar,
-		onboardingStepRoleProfile,
+		onboardingStepPreferences,
 		onboardingStepKYC,
 	}
 	for _, key := range keys {
@@ -79,7 +80,7 @@ func TestCompletenessClientPendingNeedsKYC(t *testing.T) {
 	profile := baseProfile(domain.RoleClient)
 	client := completeClient(domain.VerificationStatusPending)
 
-	percent, missing := computeCompleteness(profile, client, nil)
+	percent, missing := computeCompleteness(profile, client, nil, readinessSignals{HasHiringPreferences: true})
 	if percent != 75 {
 		t.Fatalf("expected 75 percent for client with pending verification, got %d", percent)
 	}
@@ -92,7 +93,7 @@ func TestCompletenessFreelancerSubmittedIsComplete(t *testing.T) {
 	profile := baseProfile(domain.RoleFreelancer)
 	freelancer := completeFreelancer(domain.VerificationStatusSubmitted)
 
-	percent, missing := computeCompleteness(profile, nil, freelancer)
+	percent, missing := computeCompleteness(profile, nil, freelancer, readinessSignals{HasWorkPreferences: true})
 	if percent != 100 {
 		t.Fatalf("expected 100 percent completeness, got %d", percent)
 	}
@@ -105,7 +106,7 @@ func TestCompletenessAdminDoesNotRequireRoleSpecificOrKYC(t *testing.T) {
 	profile := baseProfile(domain.RoleAdmin)
 	profile.AvatarURL = ""
 
-	percent, missing := computeCompleteness(profile, nil, nil)
+	percent, missing := computeCompleteness(profile, nil, nil, readinessSignals{})
 	if percent != 75 {
 		t.Fatalf("expected 75 percent for admin missing only avatar, got %d", percent)
 	}
@@ -125,32 +126,33 @@ func TestCompletenessUsesRequirementStyleMissingKeys(t *testing.T) {
 	profile.AvatarURL = ""
 	freelancer := &domain.FreelancerProfile{}
 
-	_, missing := computeCompleteness(profile, nil, freelancer)
-	for _, key := range []string{readinessMissingAvatar, readinessMissingRoleProfile, readinessMissingKYC} {
+	_, missing := computeCompleteness(profile, nil, freelancer, readinessSignals{})
+	for _, key := range []string{readinessMissingAvatar, readinessMissingCoreProfile, readinessMissingKYC} {
 		if !hasMissing(missing, key) {
 			t.Fatalf("expected missing %q, got %v", key, missing)
 		}
 	}
-	for _, stepKey := range []string{onboardingStepAvatar, onboardingStepRoleProfile, onboardingStepKYC} {
-		if hasMissing(missing, stepKey) {
-			t.Fatalf("did not expect onboarding step key %q in %v", stepKey, missing)
-		}
+	if !hasMissing(missing, onboardingStepPreferences) {
+		t.Fatalf("expected preferences step key in missing list, got %v", missing)
 	}
 }
 
-func TestReadinessFreelancerIncludesPortfolioAndPreferences(t *testing.T) {
+func TestReadinessFreelancerIncludesPortfolioPreferencesAndCV(t *testing.T) {
 	profile := baseProfile(domain.RoleFreelancer)
 	freelancer := completeFreelancer(domain.VerificationStatusSubmitted)
 
 	percent, missing, recs := computeReadiness(profile, nil, freelancer, readinessSignals{})
-	if percent != 66 {
-		t.Fatalf("expected 66 percent readiness, got %d", percent)
+	if percent != 57 {
+		t.Fatalf("expected 57 percent readiness, got %d", percent)
 	}
 	if !hasMissing(missing, readinessMissingPortfolio) {
 		t.Fatalf("expected missing portfolio, got %v", missing)
 	}
 	if !hasMissing(missing, readinessMissingWorkPreferences) {
 		t.Fatalf("expected missing work preferences, got %v", missing)
+	}
+	if !hasMissing(missing, readinessMissingCV) {
+		t.Fatalf("expected missing cv, got %v", missing)
 	}
 	if len(recs) != len(missing) {
 		t.Fatalf("expected recommendations to align with missing list, missing=%v recs=%v", missing, recs)

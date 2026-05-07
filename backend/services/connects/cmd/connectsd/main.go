@@ -14,6 +14,8 @@ import (
 	"jobconnect/services/connects/internal/application"
 	"jobconnect/services/connects/internal/config"
 	"jobconnect/services/connects/internal/infrastructure/db"
+	eventsinfra "jobconnect/services/connects/internal/infrastructure/events"
+	sharedevents "jobconnect/events"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
@@ -49,6 +51,8 @@ func main() {
 	repo := db.NewPostgresConnectsRepository(pool)
 	app := application.NewUseCases(repo)
 	connectsServer := grpcAdapter.NewConnectsServer(app)
+	authConsumer := eventsinfra.StartAuthConsumer(context.Background(), sharedevents.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_AUTH", "auth.events"), app)
+	defer authConsumer.Close()
 
 	// 3. Setup gRPC Server
 	lis, err := net.Listen("tcp", cfg.GrpcListenAddr)
@@ -81,4 +85,11 @@ func main() {
 
 	grpcServer.GracefulStop()
 	log.Println("Server stopped")
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }

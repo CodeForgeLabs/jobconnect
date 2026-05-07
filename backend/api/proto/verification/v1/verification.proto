@@ -5,6 +5,7 @@ package verification.v1;
 option go_package = "jobconnect/verification/gen/verification/v1;verificationv1";
 
 service VerificationService {
+  rpc GetVerificationEvidenceUploadUrl(GetVerificationEvidenceUploadUrlRequest) returns (GetVerificationEvidenceUploadUrlResponse);
   rpc SubmitVerification(SubmitVerificationRequest) returns (SubmitVerificationResponse);
   rpc GetMyVerificationStatus(GetMyVerificationStatusRequest) returns (GetMyVerificationStatusResponse);
   rpc ListPendingVerifications(ListPendingVerificationsRequest) returns (ListPendingVerificationsResponse);
@@ -13,13 +14,24 @@ service VerificationService {
   rpc RequestReverification(RequestReverificationRequest) returns (RequestReverificationResponse);
 }
 
+message GetVerificationEvidenceUploadUrlRequest {
+  string user_id = 1;
+  string file_name = 2;
+  string content_type = 3;
+}
+
+message GetVerificationEvidenceUploadUrlResponse {
+  string storage_key = 1;
+  string upload_url = 2;
+}
+
 message SubmitVerificationRequest {
   string user_id = 1;
   string legal_name = 2;
   string country_code = 3;
   string document_type = 4;
   string document_number_masked = 5;
-  repeated string evidence_urls = 6;
+  string evidence_url = 6;
   string submission_note = 7;
 }
 
@@ -84,7 +96,7 @@ message VerificationRequest {
   string country_code = 6;
   string document_type = 7;
   string document_number_masked = 8;
-  repeated string evidence_urls = 9;
+  string evidence_url = 9;
   string submission_note = 10;
   string reviewer_user_id = 11;
   string rejection_reason = 12;

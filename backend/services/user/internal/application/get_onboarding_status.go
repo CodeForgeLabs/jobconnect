@@ -36,12 +36,14 @@ type onboardingDetailsRepository interface {
 	ListMyPortfolioItems(ctx context.Context, userID uuid.UUID, pageSize uint32, pageToken string) (ListResult[PortfolioItem], error)
 	GetWorkPreferences(ctx context.Context, userID uuid.UUID) (WorkPreferences, error)
 	GetHiringPreferences(ctx context.Context, userID uuid.UUID) (HiringPreferences, error)
+	GetCV(ctx context.Context, userID uuid.UUID) (CV, error)
 }
 
 func (uc *GetOnboardingStatus) Build(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) GetOnboardingStatusOutput {
-	percent, missing := computeCompleteness(profile, client, freelancer)
-	steps := computeOnboardingSteps(profile, client, freelancer)
-	readinessPercent, readinessMissing, readinessRecommendations := computeReadiness(profile, client, freelancer, readinessSignals{})
+	signals := readinessSignals{}
+	percent, missing := computeCompleteness(profile, client, freelancer, signals)
+	steps := computeOnboardingSteps(profile, client, freelancer, signals)
+	readinessPercent, readinessMissing, readinessRecommendations := computeReadiness(profile, client, freelancer, signals)
 	return GetOnboardingStatusOutput{
 		Percent:                  percent,
 		Missing:                  missing,
@@ -66,8 +68,8 @@ func (uc *GetOnboardingStatus) Execute(ctx context.Context, in GetOnboardingStat
 		signals = uc.computeReadinessSignals(ctx, in.UserID, profile.Role)
 	}
 
-	percent, missing := computeCompleteness(profile, client, freelancer)
-	steps := computeOnboardingSteps(profile, client, freelancer)
+	percent, missing := computeCompleteness(profile, client, freelancer, signals)
+	steps := computeOnboardingSteps(profile, client, freelancer, signals)
 	readinessPercent, readinessMissing, readinessRecommendations := computeReadiness(profile, client, freelancer, signals)
 
 	return GetOnboardingStatusOutput{
@@ -93,6 +95,9 @@ func (uc *GetOnboardingStatus) computeReadinessSignals(ctx context.Context, user
 		prefs, err := uc.Details.GetWorkPreferences(ctx, userID)
 		if err == nil && hasWorkPreferencesSet(prefs) {
 			signals.HasWorkPreferences = true
+		}
+		if cv, err := uc.Details.GetCV(ctx, userID); err == nil && cv.UserID != uuid.Nil {
+			signals.HasCV = true
 		}
 	case domain.RoleClient:
 		prefs, err := uc.Details.GetHiringPreferences(ctx, userID)

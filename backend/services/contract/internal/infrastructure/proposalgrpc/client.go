@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	shared "jobconnect/events"
 	"jobconnect/contract/internal/application"
 	proposalv1 "jobconnect/proposal/gen/proposal/v1"
 
@@ -22,13 +23,19 @@ type tokenIssuer interface {
 type ProposalClient struct {
 	client proposalv1.ProposalServiceClient
 	issuer tokenIssuer
+	events *shared.Publisher
 }
 
-func NewProposalClient(client proposalv1.ProposalServiceClient, issuer tokenIssuer) *ProposalClient {
-	return &ProposalClient{client: client, issuer: issuer}
+func NewProposalClient(client proposalv1.ProposalServiceClient, issuer tokenIssuer, events *shared.Publisher) *ProposalClient {
+	return &ProposalClient{client: client, issuer: issuer, events: events}
 }
 
 func (c *ProposalClient) MarkOfferSent(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
+	if c.events != nil {
+		if env, err := shared.NewEnvelope("contract.proposal.mark_offer_sent.requested", fmt.Sprintf("%d", proposalID), "contract-service", 1, map[string]any{"proposal_id": proposalID, "client_id": clientID.String(), "reason": strings.TrimSpace(reason)}, fmt.Sprintf("mark-offer:%d", proposalID), clientID.String()); err == nil {
+			_ = c.events.Publish(ctx, env)
+		}
+	}
 	if c.client == nil || c.issuer == nil {
 		return fmt.Errorf("proposal client dependencies are not configured")
 	}
@@ -63,6 +70,11 @@ func (c *ProposalClient) MarkOfferSent(ctx context.Context, proposalID int64, cl
 }
 
 func (c *ProposalClient) SetHired(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
+	if c.events != nil {
+		if env, err := shared.NewEnvelope("contract.proposal.set_hired.requested", fmt.Sprintf("%d", proposalID), "contract-service", 1, map[string]any{"proposal_id": proposalID, "client_id": clientID.String(), "reason": strings.TrimSpace(reason)}, fmt.Sprintf("set-hired:%d", proposalID), clientID.String()); err == nil {
+			_ = c.events.Publish(ctx, env)
+		}
+	}
 	if c.client == nil || c.issuer == nil {
 		return fmt.Errorf("proposal client dependencies are not configured")
 	}
@@ -135,6 +147,11 @@ func (c *ProposalClient) GetProposal(ctx context.Context, proposalID int64, clie
 }
 
 func (c *ProposalClient) ReleaseOffer(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
+	if c.events != nil {
+		if env, err := shared.NewEnvelope("contract.proposal.release_offer.requested", fmt.Sprintf("%d", proposalID), "contract-service", 1, map[string]any{"proposal_id": proposalID, "client_id": clientID.String(), "reason": strings.TrimSpace(reason)}, fmt.Sprintf("release-offer:%d", proposalID), clientID.String()); err == nil {
+			_ = c.events.Publish(ctx, env)
+		}
+	}
 	if c.client == nil || c.issuer == nil {
 		return fmt.Errorf("proposal client dependencies are not configured")
 	}

@@ -8,10 +8,10 @@ import (
 )
 
 const (
-	onboardingStepCoreProfile = "core_profile_completed"
-	onboardingStepAvatar      = "avatar_uploaded"
-	onboardingStepRoleProfile = "role_profile_completed"
-	onboardingStepKYC         = "kyc_completed"
+	onboardingStepProfile     = "profile"
+	onboardingStepAvatar      = "avatar"
+	onboardingStepPreferences = "preferences"
+	onboardingStepKYC         = "kyc"
 
 	readinessMissingCoreProfile       = "core_profile"
 	readinessMissingAvatar            = "avatar"
@@ -20,12 +20,14 @@ const (
 	readinessMissingPortfolio         = "portfolio"
 	readinessMissingWorkPreferences   = "work_preferences"
 	readinessMissingHiringPreferences = "hiring_preferences"
+	readinessMissingCV                = "cv"
 )
 
 type readinessSignals struct {
 	HasPortfolio         bool
 	HasWorkPreferences   bool
 	HasHiringPreferences bool
+	HasCV                bool
 }
 
 func verificationCountsComplete(status string) bool {
@@ -33,8 +35,8 @@ func verificationCountsComplete(status string) bool {
 	return normalized == domain.VerificationStatusVerified || normalized == domain.VerificationStatusSubmitted || normalized == "PENDING_REVIEW"
 }
 
-func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) (uint32, []string) {
-	steps := computeOnboardingSteps(profile, client, freelancer)
+func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile, signals readinessSignals) (uint32, []string) {
+	steps := computeOnboardingSteps(profile, client, freelancer, signals)
 	if len(steps) == 0 {
 		return 100, nil
 	}
@@ -56,11 +58,19 @@ func computeCompleteness(profile domain.Profile, client *domain.ClientProfile, f
 	return uint32((completed * 100) / len(steps)), missing
 }
 
-func computeOnboardingSteps(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) []OnboardingStep {
+func computeOnboardingSteps(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile, signals readinessSignals) []OnboardingStep {
+	preferencesComplete := true
+	switch profile.Role {
+	case domain.RoleFreelancer:
+		preferencesComplete = signals.HasWorkPreferences
+	case domain.RoleClient:
+		preferencesComplete = signals.HasHiringPreferences
+	}
+
 	return []OnboardingStep{
-		{Key: onboardingStepCoreProfile, Completed: hasCoreProfile(profile)},
+		{Key: onboardingStepProfile, Completed: hasCoreProfile(profile) && hasRoleProfile(profile, client, freelancer)},
 		{Key: onboardingStepAvatar, Completed: hasAvatar(profile)},
-		{Key: onboardingStepRoleProfile, Completed: hasRoleProfile(profile, client, freelancer)},
+		{Key: onboardingStepPreferences, Completed: preferencesComplete},
 		{Key: onboardingStepKYC, Completed: hasKYC(profile, client, freelancer)},
 	}
 }
@@ -88,6 +98,9 @@ func computeReadiness(profile domain.Profile, client *domain.ClientProfile, free
 		if !signals.HasWorkPreferences {
 			required = append(required, readinessMissingWorkPreferences)
 		}
+		if !signals.HasCV {
+			required = append(required, readinessMissingCV)
+		}
 	case domain.RoleClient:
 		if !signals.HasHiringPreferences {
 			required = append(required, readinessMissingHiringPreferences)
@@ -97,7 +110,7 @@ func computeReadiness(profile domain.Profile, client *domain.ClientProfile, free
 	weights := 4
 	switch profile.Role {
 	case domain.RoleFreelancer:
-		weights = 6
+		weights = 7
 	case domain.RoleClient:
 		weights = 5
 	}
@@ -118,12 +131,12 @@ func computeReadiness(profile domain.Profile, client *domain.ClientProfile, free
 
 func completenessRequirementKey(stepKey string) string {
 	switch stepKey {
-	case onboardingStepCoreProfile:
+	case onboardingStepProfile:
 		return readinessMissingCoreProfile
 	case onboardingStepAvatar:
 		return readinessMissingAvatar
-	case onboardingStepRoleProfile:
-		return readinessMissingRoleProfile
+	case onboardingStepPreferences:
+		return ""
 	case onboardingStepKYC:
 		return readinessMissingKYC
 	default:
@@ -153,6 +166,9 @@ func hasRoleProfile(profile domain.Profile, client *domain.ClientProfile, freela
 func hasKYC(profile domain.Profile, client *domain.ClientProfile, freelancer *domain.FreelancerProfile) bool {
 	switch profile.Role {
 	case domain.RoleFreelancer:
+		if strings.TrimSpace(profile.TaxID) == "" {
+			return false
+		}
 		return freelancer != nil && verificationCountsComplete(freelancer.VerificationStatus)
 	case domain.RoleClient:
 		if client == nil || strings.TrimSpace(client.TaxID) == "" {
@@ -180,6 +196,8 @@ func readinessRecommendation(missingKey string) string {
 		return "Set work preferences."
 	case readinessMissingHiringPreferences:
 		return "Set hiring preferences."
+	case readinessMissingCV:
+		return "Upload your CV."
 	default:
 		return fmt.Sprintf("Complete missing requirement: %s", missingKey)
 	}

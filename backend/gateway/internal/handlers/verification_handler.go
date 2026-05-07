@@ -27,8 +27,14 @@ type submitVerificationRequest struct {
 	CountryCode          string   `json:"country_code" binding:"required,len=2"`
 	DocumentType         string   `json:"document_type" binding:"required"`
 	DocumentNumberMasked string   `json:"document_number_masked" binding:"required"`
+	EvidenceURL          string   `json:"evidence_url" binding:"required"`
 	EvidenceURLs         []string `json:"evidence_urls"`
 	SubmissionNote       string   `json:"submission_note"`
+}
+
+type verificationEvidenceUploadURLRequest struct {
+	FileName    string `json:"file_name" binding:"required"`
+	ContentType string `json:"content_type" binding:"required"`
 }
 
 type reviewVerificationRequest struct {
@@ -53,6 +59,47 @@ type VerificationRequestResponse struct {
 
 type VerificationRequestsResponse struct {
 	Requests []any `json:"requests"`
+}
+
+type VerificationUploadURLResponse struct {
+	StorageKey string `json:"storage_key"`
+	UploadURL  string `json:"upload_url"`
+}
+
+// GetVerificationEvidenceUploadURL godoc
+// @Summary Reserve verification evidence upload URL
+// @Description Returns a pre-signed upload URL for verification evidence.
+// @Tags Verification
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body verificationEvidenceUploadURLRequest true "Verification evidence upload URL payload"
+// @Success 200 {object} VerificationUploadURLResponse
+// @Failure 400 {object} VerificationErrorResponse
+// @Failure 401 {object} VerificationErrorResponse
+// @Failure 500 {object} VerificationErrorResponse
+// @Router /api/v1/verifications/evidence/upload-url [post]
+func (h *VerificationHandler) GetVerificationEvidenceUploadURL(c *gin.Context) {
+	userID, ok := callerUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "authentication required"})
+		return
+	}
+	var body verificationEvidenceUploadURLRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp, err := h.client.GetVerificationEvidenceUploadUrl(c.Request.Context(), &verificationv1.GetVerificationEvidenceUploadUrlRequest{
+		UserId:      userID,
+		FileName:    body.FileName,
+		ContentType: body.ContentType,
+	})
+	if err != nil {
+		writeGRPCError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"storage_key": resp.GetStorageKey(), "upload_url": resp.GetUploadUrl()})
 }
 
 // Submit godoc
@@ -80,6 +127,10 @@ func (h *VerificationHandler) Submit(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if len(req.EvidenceURLs) > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "evidence_urls is no longer supported; use evidence_url"})
+		return
+	}
 
 	resp, err := h.client.SubmitVerification(c.Request.Context(), &verificationv1.SubmitVerificationRequest{
 		UserId:               userID,
@@ -87,7 +138,7 @@ func (h *VerificationHandler) Submit(c *gin.Context) {
 		CountryCode:          strings.ToUpper(req.CountryCode),
 		DocumentType:         req.DocumentType,
 		DocumentNumberMasked: req.DocumentNumberMasked,
-		EvidenceUrls:         req.EvidenceURLs,
+		EvidenceUrl:          req.EvidenceURL,
 		SubmissionNote:       req.SubmissionNote,
 	})
 	if err != nil {

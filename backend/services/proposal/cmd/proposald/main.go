@@ -17,9 +17,11 @@ import (
 	"jobconnect/proposal/internal/config"
 	"jobconnect/proposal/internal/infrastructure/clock"
 	"jobconnect/proposal/internal/infrastructure/db"
+	eventsinfra "jobconnect/proposal/internal/infrastructure/events"
 	"jobconnect/proposal/internal/infrastructure/jobgrpc"
 	"jobconnect/proposal/internal/infrastructure/storage"
 	"jobconnect/proposal/internal/infrastructure/tokens"
+	sharedevents "jobconnect/events"
 
 	jobv1 "jobconnect/job/gen/job/v1"
 
@@ -98,6 +100,10 @@ func main() {
 	internalMarkOfferSentUC := &application.InternalMarkProposalOfferSent{Proposals: proposalRepo, Clock: clockImpl}
 	internalHireUC := &application.InternalHireProposal{Proposals: proposalRepo, Clock: clockImpl}
 	releaseHiredUC := &application.ReleaseHiredProposal{Proposals: proposalRepo, Clock: clockImpl}
+	commandConsumers := eventsinfra.StartCommandConsumer(ctx, sharedevents.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_CONTRACT", "contract.events"), getEnv("KAFKA_TOPIC_JOB", "job.events"), setStatusUC, internalMarkOfferSentUC, internalHireUC, releaseHiredUC)
+	for _, c := range commandConsumers {
+		defer c.Close()
+	}
 
 	proposalServer := grpcadapter.NewProposalServer(
 		submitUC,
@@ -171,6 +177,13 @@ func loadDotEnv(paths ...string) error {
 	}
 
 	return nil
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }
 
 func loadDotEnvFile(path string) error {

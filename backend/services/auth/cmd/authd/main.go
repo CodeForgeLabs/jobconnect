@@ -18,9 +18,11 @@ import (
 	"jobconnect/auth/internal/infrastructure/clock"
 	"jobconnect/auth/internal/infrastructure/db"
 	"jobconnect/auth/internal/infrastructure/email"
+	eventsinfra "jobconnect/auth/internal/infrastructure/events"
 	"jobconnect/auth/internal/infrastructure/hasher"
 	"jobconnect/auth/internal/infrastructure/tokens"
 	"jobconnect/auth/internal/infrastructure/usergrpc"
+	sharedevents "jobconnect/events"
 	userv1 "jobconnect/user/gen/user"
 
 	"google.golang.org/grpc"
@@ -85,6 +87,9 @@ func main() {
 
 	userClient := userv1.NewUserServiceClient(userConn)
 	userProfiles := usergrpc.NewProfileClient(userClient)
+	kafkaPublisher := sharedevents.NewPublisher(sharedevents.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_AUTH", "auth.events"))
+	defer kafkaPublisher.Close()
+	registrationPublisher := eventsinfra.NewUserRegistrationPublisher(kafkaPublisher)
 
 	// Connects Client
 	connectsAddr := os.Getenv("CONNECTS_SERVICE_ADDR")
@@ -104,6 +109,7 @@ func main() {
 		TOS:            tosRepo,
 		UserProfiles:   userProfiles,
 		Connects:       connectsCli,
+		Events:         registrationPublisher,
 		Hasher:         hasherImpl,
 		Clock:          clockImpl,
 		EmailSend:      emailSender,
@@ -243,6 +249,13 @@ func loadDotEnv(paths ...string) error {
 	}
 
 	return nil
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }
 
 func loadDotEnvFile(path string) error {

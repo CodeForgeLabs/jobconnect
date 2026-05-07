@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
+	shared "jobconnect/events"
 	proposalv1 "jobconnect/job/gen/proposal/v1"
 	"jobconnect/job/internal/application"
 
@@ -17,6 +19,7 @@ import (
 
 type ProposalClient struct {
 	client proposalv1.ProposalServiceClient
+	events *shared.Publisher
 }
 
 func NewProposalClient(address string) (*ProposalClient, error) {
@@ -27,6 +30,7 @@ func NewProposalClient(address string) (*ProposalClient, error) {
 	log.Printf("Connected to proposal service at %s", address)
 	return &ProposalClient{
 		client: proposalv1.NewProposalServiceClient(conn),
+		events: shared.NewPublisher(shared.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_JOB", "job.events")),
 	}, nil
 }
 
@@ -83,6 +87,11 @@ func (c *ProposalClient) GetProposal(ctx context.Context, proposalID int64) (app
 }
 
 func (c *ProposalClient) SetProposalStatus(ctx context.Context, proposalID int64, stage string, reason string) error {
+	if c.events != nil {
+		if env, err := shared.NewEnvelope("job.proposal.set_status.requested", fmt.Sprintf("%d", proposalID), "job-service", 1, map[string]any{"proposal_id": proposalID, "stage": stage, "reason": reason}, fmt.Sprintf("set-proposal-status:%d", proposalID), ""); err == nil {
+			_ = c.events.Publish(ctx, env)
+		}
+	}
 	decision, err := applicantStageToDecision(stage)
 	if err != nil {
 		return err
@@ -100,6 +109,11 @@ func (c *ProposalClient) SetProposalStatus(ctx context.Context, proposalID int64
 }
 
 func (c *ProposalClient) ReleaseHiredProposal(ctx context.Context, proposalID int64, clientID uuid.UUID, reason string) error {
+	if c.events != nil {
+		if env, err := shared.NewEnvelope("job.proposal.release_hired.requested", fmt.Sprintf("%d", proposalID), "job-service", 1, map[string]any{"proposal_id": proposalID, "client_id": clientID.String(), "reason": reason}, fmt.Sprintf("release-hired:%d", proposalID), clientID.String()); err == nil {
+			_ = c.events.Publish(ctx, env)
+		}
+	}
 	forwardCtx := forwardAuthorization(ctx)
 	forwardCtx = metadata.AppendToOutgoingContext(forwardCtx, "x-jobconnect-internal", "job-service")
 	_, err := c.client.InternalReleaseHiredProposal(forwardCtx, &proposalv1.InternalReleaseHiredProposalRequest{
@@ -149,4 +163,11 @@ func forwardAuthorization(ctx context.Context) context.Context {
 		return ctx
 	}
 	return metadata.NewOutgoingContext(ctx, metadata.Pairs("authorization", vals[0]))
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }

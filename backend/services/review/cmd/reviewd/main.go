@@ -11,11 +11,13 @@ import (
 	"syscall"
 	"time"
 
+	sharedevents "jobconnect/events"
 	grpcadapter "jobconnect/review/internal/adapters/grpc"
 	"jobconnect/review/internal/application"
 	"jobconnect/review/internal/config"
 	"jobconnect/review/internal/infrastructure/clock"
 	"jobconnect/review/internal/infrastructure/db"
+	eventsinfra "jobconnect/review/internal/infrastructure/events"
 	"jobconnect/review/internal/infrastructure/tokens"
 
 	"google.golang.org/grpc"
@@ -43,14 +45,17 @@ func main() {
 	reviewRepo := db.NewReviewRepo(pool)
 	clockImpl := clock.NewRealClock()
 	jwtParser := tokens.NewJWTParser(cfg.JWTSecret)
+	kafkaPublisher := sharedevents.NewPublisher(sharedevents.ParseBrokers(os.Getenv("KAFKA_BROKERS")), getEnv("KAFKA_TOPIC_REVIEW", "review.events"))
+	defer kafkaPublisher.Close()
+	reviewEvents := eventsinfra.NewReviewPublisher(kafkaPublisher)
 
-	createReviewUC := &application.CreateReview{Reviews: reviewRepo, Clock: clockImpl}
+	createReviewUC := &application.CreateReview{Reviews: reviewRepo, Clock: clockImpl, Events: reviewEvents}
 	getReviewUC := &application.GetReview{Reviews: reviewRepo}
 	listByUserUC := &application.ListReviewsByUser{Reviews: reviewRepo}
 	listByContractUC := &application.ListReviewsByContract{Reviews: reviewRepo}
 	ratingSummaryUC := &application.GetUserRatingSummary{Reviews: reviewRepo}
-	updateReviewUC := &application.UpdateReview{Reviews: reviewRepo, Clock: clockImpl}
-	deleteReviewUC := &application.DeleteReview{Reviews: reviewRepo, Clock: clockImpl}
+	updateReviewUC := &application.UpdateReview{Reviews: reviewRepo, Clock: clockImpl, Events: reviewEvents}
+	deleteReviewUC := &application.DeleteReview{Reviews: reviewRepo, Clock: clockImpl, Events: reviewEvents}
 	replyToReviewUC := &application.ReplyToReview{Reviews: reviewRepo, Clock: clockImpl}
 
 	reviewServer := grpcadapter.NewReviewServer(
@@ -134,4 +139,11 @@ func loadDotEnv(path string) error {
 	}
 
 	return scanner.Err()
+}
+
+func getEnv(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
 }

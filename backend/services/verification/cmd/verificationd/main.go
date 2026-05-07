@@ -15,6 +15,7 @@ import (
 	"jobconnect/verification/internal/application"
 	"jobconnect/verification/internal/config"
 	"jobconnect/verification/internal/infrastructure/db"
+	"jobconnect/verification/internal/infrastructure/storage"
 
 	"google.golang.org/grpc"
 )
@@ -44,7 +45,16 @@ func main() {
 
 	repo := db.NewVerificationRepo(pool)
 	clock := realClock{}
+	evidenceStore, err := storage.NewEvidenceStore(ctx, cfg.EvidenceStore)
+	if err != nil {
+		log.Fatalf("verification evidence store: %v", err)
+	}
+	evidencePutTTL, err := time.ParseDuration(cfg.EvidenceStore.PresignPutTTL)
+	if err != nil {
+		log.Fatalf("verification evidence upload ttl: %v", err)
+	}
 
+	getEvidenceUploadURLUC := &application.GetVerificationEvidenceUploadURL{Store: evidenceStore, PutTTL: evidencePutTTL}
 	submitUC := &application.SubmitVerification{Repo: repo, Clock: clock}
 	getMyStatusUC := &application.GetMyVerificationStatus{Repo: repo}
 	listPendingUC := &application.ListPendingVerifications{Repo: repo}
@@ -53,6 +63,7 @@ func main() {
 	requestReverifyUC := &application.RequestReverification{Repo: repo, Clock: clock}
 
 	verificationServer := grpcadapter.NewVerificationServer(
+		getEvidenceUploadURLUC,
 		submitUC,
 		getMyStatusUC,
 		listPendingUC,

@@ -22,3 +22,8 @@ type VerificationRepository interface {
 type Clock interface {
 	Now() time.Time
 }
+
+type VerificationEvidenceObjectStore interface {
+	BuildObjectKey(userID uuid.UUID, fileName string) string
+	PresignPutObject(ctx context.Context, storageKey string, ttl time.Duration) (string, error)
+}

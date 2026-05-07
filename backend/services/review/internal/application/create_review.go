@@ -12,6 +12,7 @@ import (
 type CreateReview struct {
 	Reviews ReviewRepository
 	Clock   Clock
+	Events  ReviewEventsPublisher
 }
 
 type CreateReviewInput struct {
@@ -56,5 +57,8 @@ func (uc *CreateReview) Execute(ctx context.Context, in CreateReviewInput) (Crea
 		return CreateReviewOutput{}, err
 	}
 	r.ID = id
+	if uc.Events != nil {
+		_ = uc.Events.PublishReviewCreated(ctx, r)
+	}
 	return CreateReviewOutput{Review: r}, nil
 }

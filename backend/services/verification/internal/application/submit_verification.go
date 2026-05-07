@@ -17,7 +17,7 @@ type SubmitVerificationInput struct {
 	CountryCode          string
 	DocumentType         string
 	DocumentNumberMasked string
-	EvidenceURLs         []string
+	EvidenceURL          string
 	SubmissionNote       string
 }
 
@@ -31,6 +31,9 @@ func (uc *SubmitVerification) Execute(ctx context.Context, in SubmitVerification
 		return domain.VerificationRequest{}, fmt.Errorf("user_id is required")
 	}
 	if err := domain.ValidateSubmission(in.LegalName, in.CountryCode, in.DocumentType, in.DocumentNumberMasked); err != nil {
+		return domain.VerificationRequest{}, err
+	}
+	if err := domain.ValidateEvidenceURL(in.EvidenceURL); err != nil {
 		return domain.VerificationRequest{}, err
 	}
 
@@ -52,7 +55,7 @@ func (uc *SubmitVerification) Execute(ctx context.Context, in SubmitVerification
 		CountryCode:          strings.ToUpper(strings.TrimSpace(in.CountryCode)),
 		DocumentType:         strings.TrimSpace(in.DocumentType),
 		DocumentNumberMasked: strings.TrimSpace(in.DocumentNumberMasked),
-		EvidenceURLs:         in.EvidenceURLs,
+		EvidenceURL:          strings.TrimSpace(in.EvidenceURL),
 		SubmissionNote:       strings.TrimSpace(in.SubmissionNote),
 		SubmittedAt:          now,
 		UpdatedAt:            now,

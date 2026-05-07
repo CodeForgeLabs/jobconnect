@@ -113,3 +113,7 @@ type EmailSender interface {
 type ConnectsClient interface {
 	GrantInitialConnects(ctx context.Context, userID uuid.UUID) error
 }
+
+type UserRegistrationPublisher interface {
+	PublishUserRegistered(ctx context.Context, in CreateProfileInput) error
+}

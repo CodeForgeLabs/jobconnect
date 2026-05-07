@@ -45,6 +45,28 @@ services:
       timeout: 5s
       retries: 20
 
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.3.9
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - "1G"
+      - --reserve-memory
+      - "0M"
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:9092
+    ports:
+      - "9092:9092"
+
   user:
     build:
       context: .
@@ -54,6 +76,8 @@ services:
         CMD_PATH: ./cmd/userd
     env_file:
       - .env
+    environment:
+      KAFKA_BROKERS: redpanda:9092
     ports:
       - "50052:50052"
     depends_on:
@@ -71,6 +95,8 @@ services:
         CMD_PATH: ./cmd/authd
     env_file:
       - .env
+    environment:
+      KAFKA_BROKERS: redpanda:9092
     ports:
       - "50051:50051"
     depends_on:
@@ -88,6 +114,8 @@ services:
         CMD_PATH: ./cmd/jobd
     env_file:
       - .env
+    environment:
+      KAFKA_BROKERS: redpanda:9092
     ports:
       - "50053:50053"
     depends_on:
@@ -107,6 +135,8 @@ services:
         CMD_PATH: ./cmd/connectsd
     env_file:
       - .env
+    environment:
+      KAFKA_BROKERS: redpanda:9092
     ports:
       - "50058:50058"
     depends_on:
@@ -122,6 +152,8 @@ services:
         CMD_PATH: ./cmd/proposald
     env_file:
       - .env
+    environment:
+      KAFKA_BROKERS: redpanda:9092
     ports:
       - "50054:50054"
     depends_on:
@@ -143,6 +175,8 @@ services:
         CMD_PATH: ./cmd/contractd
     env_file:
       - .env
+    environment:
+      KAFKA_BROKERS: redpanda:9092
     ports:
       - "50055:50055"
     depends_on:
@@ -210,6 +244,11 @@ services:
         CMD_PATH: ./cmd/verificationd
     env_file:
       - .env
+    environment:
+      VERIFICATION_EVIDENCE_STORAGE_ENDPOINT: "minio:9000"
+      VERIFICATION_EVIDENCE_STORAGE_ACCESS_KEY: "minioadmin"
+      VERIFICATION_EVIDENCE_STORAGE_SECRET_KEY: "minioadmin"
+      VERIFICATION_EVIDENCE_STORAGE_USE_SSL: "false"
     ports:
       - "52062:50060"
     depends_on:
@@ -245,6 +284,8 @@ services:
         CMD_PATH: ./cmd/paymentd
     env_file:
       - .env
+    environment:
+      KAFKA_BROKERS: redpanda:9092
     ports:
       - "52061:50061"
       - "8082:8081"

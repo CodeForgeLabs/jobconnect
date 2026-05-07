@@ -31,7 +31,7 @@ type VerificationRequest struct {
 	CountryCode          string
 	DocumentType         string
 	DocumentNumberMasked string
-	EvidenceURLs         []string
+	EvidenceURL          string
 	SubmissionNote       string
 	ReviewerUserID       *uuid.UUID
 	RejectionReason      string
@@ -63,6 +63,13 @@ func ValidateSubmission(legalName, countryCode, documentType, masked string) err
 	}
 	if strings.TrimSpace(masked) == "" {
 		return fmt.Errorf("document_number_masked is required")
+	}
+	return nil
+}
+
+func ValidateEvidenceURL(evidenceURL string) error {
+	if strings.TrimSpace(evidenceURL) == "" {
+		return fmt.Errorf("evidence_url is required")
 	}
 	return nil
 }
