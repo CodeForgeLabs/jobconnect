@@ -1,138 +1,157 @@
-"use client"
-import React, { useState } from 'react'
-import { Search, X } from 'lucide-react';
-import { useSelector } from 'react-redux';
-import { selectIsLoggedIn } from '../features/login/loginSlice';
-import { usePathname } from 'next/navigation';
-import Image from 'next/image';
-import logo from '@/assets/Background.svg'
+"use client";
 
-const Navbar = () => {
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Search, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import logo from "@/assets/Background.svg";
+import {
+  clearAuthState,
+  selectIsHydrated,
+  selectIsLoggedIn,
+  selectUserRole,
+} from "@/features/login/loginSlice";
+import { authApi } from "@/lib/authApi";
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const isLoggedIn = useSelector(selectIsLoggedIn);
-  const pathname = usePathname();
+const AUTH_PAGES = new Set([
+  "/login",
+  "/signup",
+  "/verify-email",
+  "/forgot-password",
+  "/reset-password",
+  "/auth/callback",
+]);
 
-  const handleClear = () => {
-    setSearchQuery('');
-  };
-
-
-    return (
-        <div className="navbar min-h-7 h-12 py-0 px-6 bg-base-100 shadow-sm">
-
-  <div className="flex flex-1 items-center">
-    <Image src={logo} alt="logo" className="w-8 h-8 mx-3" />
-    <a className="btn btn-ghost text-xl p-0">JobConnect</a>
-
-    {isLoggedIn &&(<div className="relative flex items-center w-full max-w-md">
-      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-        <Search className="w-5 h-5 text-gray-400" />
-      </div>
-      <input
-        type="text"
-        className="block w-full py-2 pl-10 pr-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 focus:outline-none transition-all duration-200"
-        placeholder="Search for jobs, skills, or talent..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-      {searchQuery && (
-        <button
-          onClick={handleClear}
-          className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      )}
-    </div>) }
-    
-
-
-
-
-
-
-  </div>
-
-      <div className='flex gap-4'>
-         <a
-           href="/find-work"
-           className={`btn btn-sm bg-transparent border-none ${
-             pathname === "/"
-               ? " border-blue-500 text-blue-600"
-               : ""
-           } hover:text-black `}
-         >
-           Find Work
-         </a>
-
-         <a
-           href="/find-talent"
-           className={`btn btn-sm bg-transparent border-none ${
-             pathname === "/find-talent"
-               ? "border-b-2 border-blue-500 text-blue-600"
-               : ""
-           } hover:text-black `}
-         >
-           Find Talent
-         </a>
-
-         <a 
-            href= "/login"
-           className="btn btn-sm bg-transparent border-none hover:text-black"
-         >
-           Login
-         </a>
-
-         <a href="/signup" 
-         className="btn btn-sm bg-jobBlue text-white border-none hover:text-blue-600">
-           Sign Up
-         </a>
-      </div>
-     
-  
-    
-
-  <div className="flex gap-2">
-    {isLoggedIn && (
-    <div className="dropdown dropdown-end">
-      <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-        <div className="w-10 rounded-full">
-          <img
-            alt="prof"
-            src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
-        </div>
-      </div>
-
-
-
-      
-
-
-      
-      <ul
-        tabIndex={-1}
-        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
-        <li>
-          <a className="justify-between">
-            Profile
-            <span className="badge">New</span>
-          </a>
-        </li>
-        <li><a>Settings</a></li>
-        <li><a>Logout</a></li>
-      </ul>?
-
-
-
-    </div>)}
-  </div>
-</div>
-    )
+function isAuthRoute(pathname: string): boolean {
+  if (AUTH_PAGES.has(pathname)) return true;
+  return pathname.startsWith("/auth/oauth/");
 }
 
-export default Navbar
+function dashboardPath(role: string): string {
+  if (role === "freelancer") return "/freelancer/dashboard";
+  if (role === "client") return "/client/dashboard";
+  return "/account";
+}
 
+export default function Navbar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const isHydrated = useSelector(selectIsHydrated);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
+  const role = useSelector(selectUserRole);
 
+  const authRoute = useMemo(() => isAuthRoute(pathname), [pathname]);
+  const onboardingRoute = pathname.startsWith("/onboarding");
 
+  const onLogout = async () => {
+    try {
+      await authApi.logoutEverywhere();
+    } catch {
+      // Ignore remote failure and clear local session.
+    } finally {
+      dispatch(clearAuthState());
+      router.replace("/login");
+    }
+  };
+
+  if (onboardingRoute) {
+    return (
+      <header className="border-b border-[#e4e8e2] bg-white">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+          <Link href="/" className="flex items-center gap-3">
+            <Image src={logo} alt="JobConnect" className="h-8 w-8" />
+            <span className="text-2xl font-semibold text-[#1f1f1f]">JobConnect</span>
+          </Link>
+          {isHydrated && isLoggedIn && (
+            <Link href="/account" className="text-sm font-medium text-[#108a00] hover:underline">
+              Account
+            </Link>
+          )}
+        </div>
+      </header>
+    );
+  }
+
+  return (
+    <header className="border-b border-[#e4e8e2] bg-white">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
+        <Link href="/" className="flex items-center gap-3">
+          <Image src={logo} alt="JobConnect" className="h-8 w-8" />
+          <span className="text-2xl font-semibold text-[#1f1f1f]">JobConnect</span>
+        </Link>
+
+        {isHydrated && isLoggedIn && !authRoute && (
+          <div className="relative ml-2 hidden w-full max-w-md items-center md:flex">
+            <Search className="pointer-events-none absolute left-3 h-4 w-4 text-[#7a7a7a]" />
+            <input
+              type="text"
+              className="w-full rounded-full border border-[#d2d7d0] bg-white py-2 pl-9 pr-9 text-sm outline-none transition focus:border-[#108a00]"
+              placeholder="Search for jobs, skills, or talent"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 text-[#7a7a7a] hover:text-[#1f1f1f]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
+
+        <nav className="ml-auto flex items-center gap-2">
+          {!isHydrated && <div className="h-8 w-20 animate-pulse rounded-full bg-[#eef2ee]" />}
+
+          {isHydrated && !isLoggedIn && (
+            <>
+              <Link
+                href="/login"
+                className="rounded-full px-4 py-2 text-sm font-medium text-[#1f1f1f] hover:bg-[#f3f6f3]"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-full bg-[#108a00] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0d7300]"
+              >
+                Sign up
+              </Link>
+            </>
+          )}
+
+          {isHydrated && isLoggedIn && (
+            <>
+              <Link
+                href={dashboardPath(role)}
+                className="rounded-full px-4 py-2 text-sm font-medium text-[#1f1f1f] hover:bg-[#f3f6f3]"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/account"
+                className="rounded-full border border-[#d2d7d0] px-4 py-2 text-sm font-medium text-[#1f1f1f] hover:bg-[#f3f6f3]"
+              >
+                Account
+              </Link>
+              <button
+                type="button"
+                className="rounded-full px-4 py-2 text-sm font-medium text-[#7a2f2f] hover:bg-[#fff0f0]"
+                onClick={onLogout}
+              >
+                Log out
+              </button>
+            </>
+          )}
+        </nav>
+      </div>
+    </header>
+  );
+}

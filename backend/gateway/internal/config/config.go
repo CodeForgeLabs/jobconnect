@@ -36,6 +36,7 @@ type Config struct {
 	OAuthGitHubClientID     string
 	OAuthGitHubClientSecret string
 	OAuthGitHubRedirectURI  string
+	OAuthFrontendRedirectURL string
 
 	RefreshCookieName     string
 	RefreshCookieDomain   string
@@ -78,6 +79,7 @@ func LoadFromEnv() (Config, error) {
 		OAuthGitHubClientID:           os.Getenv("GATEWAY_OAUTH_GITHUB_CLIENT_ID"),
 		OAuthGitHubClientSecret:       os.Getenv("GATEWAY_OAUTH_GITHUB_CLIENT_SECRET"),
 		OAuthGitHubRedirectURI:        os.Getenv("GATEWAY_OAUTH_GITHUB_REDIRECT_URI"),
+		OAuthFrontendRedirectURL:      getEnv("GATEWAY_OAUTH_FRONTEND_REDIRECT_URL", "http://localhost:3000/auth/callback"),
 		RefreshCookieName:             getEnv("GATEWAY_REFRESH_COOKIE_NAME", "jc_refresh_token"),
 		RefreshCookieDomain:           os.Getenv("GATEWAY_REFRESH_COOKIE_DOMAIN"),
 		RefreshCookieSecure:           getEnvBool("GATEWAY_REFRESH_COOKIE_SECURE", false),

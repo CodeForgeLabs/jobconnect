@@ -539,6 +539,23 @@ func (h *AuthHandler) OAuthCallback(c *gin.Context) {
 	}
 
 	h.setRefreshCookie(c, resp.GetRefreshToken(), int(h.cfg.RefreshCookieMaxAge.Seconds()))
+
+	if strings.TrimSpace(h.cfg.OAuthFrontendRedirectURL) != "" {
+		redirectURL, parseErr := url.Parse(h.cfg.OAuthFrontendRedirectURL)
+		if parseErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid oauth frontend redirect url"})
+			return
+		}
+		q := redirectURL.Query()
+		q.Set("access_token", resp.GetAccessToken())
+		q.Set("access_token_expires_in_seconds", fmt.Sprintf("%d", resp.GetAccessTokenExpiresInSeconds()))
+		q.Set("is_new_user", fmt.Sprintf("%t", resp.GetIsNewUser()))
+		q.Set("provider", provider)
+		redirectURL.RawQuery = q.Encode()
+		c.Redirect(http.StatusFound, redirectURL.String())
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"access_token":                    resp.GetAccessToken(),
 		"access_token_expires_in_seconds": resp.GetAccessTokenExpiresInSeconds(),

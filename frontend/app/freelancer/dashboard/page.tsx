@@ -1,4 +1,13 @@
+"use client";
+
 import Jobcard from "@/components/Jobcard";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
+import {
+  selectIsAuthenticated,
+  selectIsHydrated,
+} from "@/features/login/loginSlice";
 
 const dummyJobs = [
   {
@@ -34,6 +43,25 @@ const dummyJobs = [
 ];
 
 const FreelancerDashboard = () => {
+  const router = useRouter();
+  const isHydrated = useSelector(selectIsHydrated);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    if (!isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isHydrated, isAuthenticated, router]);
+
+  if (!isHydrated || !isAuthenticated) {
+    return (
+      <div className="p-8 bg-[#eff1f5] min-h-screen">
+        <p className="text-gray-600">Preparing your workspace...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-8   p-8 bg-[#eff1f5]">
       <div>
@@ -44,6 +72,20 @@ const FreelancerDashboard = () => {
           You have 3 tasks requiring your attention. Check your dashboard for
           details.
         </p>
+        <div className="mt-3 flex gap-3">
+          <a
+            href="/onboarding"
+            className="inline-flex items-center rounded-full border border-[#ccd6c4] bg-white px-4 py-2 text-xs font-semibold text-[#1f1f1f] hover:bg-[#f7fbf5]"
+          >
+            Continue onboarding
+          </a>
+          <a
+            href="/account"
+            className="inline-flex items-center rounded-full bg-[#108a00] px-4 py-2 text-xs font-semibold text-white hover:bg-[#0d7300]"
+          >
+            Open account hub
+          </a>
+        </div>
       </div>
 
       <div className="flex gap-6 w-full">

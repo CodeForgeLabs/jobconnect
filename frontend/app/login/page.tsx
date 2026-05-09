@@ -1,95 +1,183 @@
-"use client"
-import React, { useState } from 'react'
-import Typingeffect from '@/components/Typingeffect'
-// import Signup from './Signup'
+"use client";
 
+import { FormEvent, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ApiError } from "@/lib/apiTypes";
+import { authApi } from "@/lib/authApi";
+import { applyLoginToken, redirectPathForRole } from "@/lib/authSession";
+import { store } from "@/store/store";
+import { selectUserRole } from "@/features/login/loginSlice";
+import ChallengeFields from "@/components/auth/ChallengeFields";
 
-import { useRouter } from 'next/navigation'
+export default function LoginPage() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const [email, setEmail] = useState(params.get("email") ?? "");
+  const [password, setPassword] = useState("");
+  const [oauthRole, setOauthRole] = useState<"client" | "freelancer">("client");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [challengeVisible, setChallengeVisible] = useState(false);
+  const [challengeId, setChallengeId] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState("");
+  const [challengeProof, setChallengeProof] = useState<string | undefined>(undefined);
 
+  const canSubmit = useMemo(() => email && password && !loading, [email, password, loading]);
 
-const Login = () => {
-  
-  const router = useRouter()
-  const [username , setUsername] = useState<string>('')
-  const [password , setPassword] = useState<string>('')
-  const [err , setErr] = useState('')
-  const handleLogin = async () => {
-  const res = await fetch("http://localhost:5000/auth/login", {
-    method: "POST",
-    credentials: "include", // important for cookies
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      username,
-      password,
-    }),
-  })
+  async function maybeSolveChallenge(err: ApiError): Promise<string | undefined> {
+    if (!err.payload?.challenge_required) {
+      return undefined;
+    }
 
-  if (res.ok) {
-    router.push("/")
-  } else {
-    const data = await res.json()
-    setErr(data.message)
+    setChallengeVisible(true);
+    if (!challengeId || !recaptchaToken) {
+      throw new Error("Challenge required. Fill challenge fields and retry.");
+    }
+
+    const solved = await authApi.solveChallenge({
+      challenge_id: challengeId,
+      recaptcha_token: recaptchaToken,
+    });
+
+    return solved.challenge_proof;
   }
-}
-  return (
-    <div className="hero bg-base-200 min-h-screen">
-  <div className="hero-content flex-col lg:flex-row-reverse">
-    <div className="text-center lg:text-left">
- <Typingeffect />
 
- 
-      <p className="py-6">
-        Find the right talent.
-Or become the talent.
-      Log in to connect with clients, showcase your skills, and build your freelance career.
-Or hire talented professionals to bring your ideas to life.
-      </p>
-    </div>
-    <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-    <form
-  className="card-body"
-  onSubmit={(e) => {
-    e.preventDefault(); // Prevent default form submission
-    handleLogin(); // Call your login function
-  }}
->
-    <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-      <div className="card-body">
-        <fieldset className="fieldset">
-          <label className="label">Email</label>
-          <input type="email" className="input" placeholder="Email" />
-          <label className="label">Password</label>
-          <input type="password" className="input" placeholder="Password" />
-          <div><a className="link link-hover">Forgot password?</a></div>
-          <button className="btn btn-neutral mt-4">Login</button>
-        </fieldset>
-      </div>
-    </div>
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
 
-  <p>
-    Don&#39;t have an account?{' '}
-    <span
-      onClick={() => {
-   
-        const modal = document.getElementById('my_modal_3') as HTMLDialogElement;
-        if (modal) {
-          modal.showModal();
+    try {
+      const result = await authApi.login({ email, password }, challengeProof);
+      applyLoginToken(result.access_token, result.access_token_expires_in_seconds);
+      const firstTime = sessionStorage.getItem("jc_new_signup") === "1";
+      if (firstTime) {
+        sessionStorage.removeItem("jc_new_signup");
+        router.push("/onboarding");
+        return;
+      }
+      const role = selectUserRole(store.getState());
+      router.push(redirectPathForRole(role));
+    } catch (err) {
+      if (err instanceof ApiError) {
+        try {
+          const proof = await maybeSolveChallenge(err);
+          if (proof) {
+            setChallengeProof(proof);
+            setError("Challenge solved. Submit again to continue.");
+          } else {
+            setError(err.message);
+          }
+        } catch (challengeErr) {
+          setError(challengeErr instanceof Error ? challengeErr.message : err.message);
         }
-      }}
-      className="text-secondary underline"
-    >
-      Sign up
-    </span>
-  </p>
-</form>
+      } else {
+        setError("Unexpected error. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    </div>
-  </div>
-       
-</div>
-  )
+  return (
+    <main className="min-h-screen bg-[#f7f9f7] px-4 py-14">
+      <div className="mx-auto max-w-md rounded-2xl border border-[#d7ddd3] bg-white p-8 shadow-sm">
+        <h1 className="text-3xl font-semibold text-[#1f1f1f]">Log in to JobConnect</h1>
+        <p className="mt-2 text-sm text-[#5e6d55]">Continue where you left off.</p>
+
+        <form className="mt-7 space-y-4" onSubmit={onSubmit}>
+          <input
+            className="input input-bordered w-full border-[#cfd6ca] bg-white"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+          />
+          <input
+            className="input input-bordered w-full border-[#cfd6ca] bg-white"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+          />
+
+          <ChallengeFields
+            visible={challengeVisible}
+            challengeId={challengeId}
+            recaptchaToken={recaptchaToken}
+            onChallengeIdChange={setChallengeId}
+            onRecaptchaTokenChange={setRecaptchaToken}
+          />
+
+          {error && <p className="text-sm text-error">{error}</p>}
+
+          <button
+            className="btn w-full border-none bg-[#108a00] text-white hover:bg-[#0d7300]"
+            disabled={!canSubmit}
+            type="submit"
+          >
+            {loading ? "Signing in..." : "Log in"}
+          </button>
+        </form>
+
+        <div className="mt-4 flex items-center justify-between text-sm">
+          <Link href="/forgot-password" className="text-[#108a00] hover:underline">
+            Forgot password?
+          </Link>
+          <Link href="/signup" className="text-[#108a00] hover:underline">
+            Create account
+          </Link>
+        </div>
+
+        <div className="mt-7 border-t border-[#e4e8e2] pt-5">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#5e6d55]">
+            Continue with OAuth
+          </p>
+
+          <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl border border-[#d8dfd3] bg-[#f8faf7] p-1">
+            <button
+              type="button"
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                oauthRole === "client"
+                  ? "bg-white text-[#1f1f1f] shadow-sm"
+                  : "text-[#607058] hover:bg-white"
+              }`}
+              onClick={() => setOauthRole("client")}
+            >
+              As Client
+            </button>
+            <button
+              type="button"
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                oauthRole === "freelancer"
+                  ? "bg-white text-[#1f1f1f] shadow-sm"
+                  : "text-[#607058] hover:bg-white"
+              }`}
+              onClick={() => setOauthRole("freelancer")}
+            >
+              As Freelancer
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2">
+            <a
+              href={`/api/v1/auth/oauth/google/start?role=${oauthRole}`}
+              className="btn btn-outline justify-start border-[#ccd6c4] bg-white text-[#1f1f1f] hover:bg-[#f7fbf5]"
+            >
+              Continue with Google
+            </a>
+            <a
+              href={`/api/v1/auth/oauth/github/start?role=${oauthRole}`}
+              className="btn btn-outline justify-start border-[#ccd6c4] bg-white text-[#1f1f1f] hover:bg-[#f7fbf5]"
+            >
+              Continue with GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
 }
-
-export default Login
