@@ -18,6 +18,11 @@ export interface Proposal {
 	job_id: number;
 	sender_id: number;
 	status: ProposalStatus;
+    created_at?: string;
+    updated_at?: string;
+    job_owner_id?: number;
+  
+          
 }
 
 export interface ProposalApplicant {

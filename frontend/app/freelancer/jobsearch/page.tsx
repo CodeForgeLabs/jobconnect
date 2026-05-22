@@ -105,17 +105,11 @@ const Jobsearch = () => {
     isLoading: isLoadingAllJobs,
     isFetching: isFetchingAllJobs,
     isError: isAllJobsError,
-  } = useGetJobsQuery(filters, { skip: showMyJobs });
+  } = useGetJobsQuery(filters);
 
-  const {
-    data: myJobs = [],
-    isLoading: isLoadingMyJobs,
-    isFetching: isFetchingMyJobs,
-    isError: isMyJobsError,
-  } = useGetMyJobsQuery(undefined, { skip: !showMyJobs });
-
+  
   const visibleJobs = useMemo(() => {
-    const baseJobs = showMyJobs ? myJobs : allJobs;
+    const baseJobs =  allJobs;
 
     if (skills.length === 0) return baseJobs;
 
@@ -127,11 +121,11 @@ const Jobsearch = () => {
         tags.some((tag) => tag.includes(skill)),
       );
     });
-  }, [showMyJobs, myJobs, allJobs, skills]);
+  }, [ allJobs, skills]);
 
-  const isLoading = showMyJobs ? isLoadingMyJobs : isLoadingAllJobs;
-  const isFetching = showMyJobs ? isFetchingMyJobs : isFetchingAllJobs;
-  const isError = showMyJobs ? isMyJobsError : isAllJobsError;
+  const isLoading = isLoadingAllJobs;
+  const isFetching = isFetchingAllJobs;
+  const isError =  isAllJobsError;
 
   return (
     <div className="flex p-14 bg-[#ebedf1] gap-8">

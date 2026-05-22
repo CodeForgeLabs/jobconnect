@@ -109,13 +109,22 @@ const Navbar = () => {
                 >
                   Find Talent
                 </Link>
+                
                 <Link
-                  href="/postings"
+                  href="/client/mypostings"
                   className={`btn btn-sm bg-transparent border-none hover:text-black ${
-                    pathname === "/postings" ? "text-blue-600" : ""
+                    pathname === "/client/mypostings" ? "text-blue-600" : ""
                   }`}
                 >
                   Postings
+                </Link>
+                <Link
+                  href="/client/mycontracts"
+                  className={`btn btn-sm bg-transparent border-none hover:text-black ${
+                    pathname === "/client/mycontracts" ? "text-blue-600" : ""
+                  }`}
+                >
+                  Contracts
                 </Link>
               </>
             )}
@@ -147,6 +156,9 @@ const Navbar = () => {
                 </li>
                 <li>
                   <Link href="/messages">Messages</Link>
+                </li>
+                <li>
+                  <Link href = "/users/logout">Logout</Link>
                 </li>
               </ul>
             </div>

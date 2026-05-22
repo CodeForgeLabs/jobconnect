@@ -62,7 +62,8 @@ export default function JobDetailView() {
   });
 
   const myProposals = proposalsData;
-  const hasApplied = myProposals?.some((proposal) => proposal.job_id === jobId);
+  const proposalForThisJob = myProposals?.find((proposal) => proposal.job_id === jobId);
+  const hasApplied = !!proposalForThisJob;
 
   const roleHighlights =
     job?.milestones
@@ -380,9 +381,19 @@ export default function JobDetailView() {
         </div>
         <div>
           {hasApplied ? (
-            <p className="text-green-600 font-semibold mt-6">
+            <div>
+              <p className="text-green-600 font-semibold mt-6">
               You have already applied to this job.
             </p>
+            <textarea
+              
+                className=" mt-8 min-w-24 pt-2 pb-6 px-2 text-gray-400 bg-gray-100 border rounded-2xl border-gray-300 tablet:w-[60%] max-tablet:w-full"
+                value={proposalForThisJob?.description ?? coverLetter}
+                onChange={(event) => setCoverLetter(event.target.value)}
+              />
+            </div>
+
+            
           ) : (
             <form className="flex flex-col" onSubmit={handleSubmitProposal}>
               <textarea
