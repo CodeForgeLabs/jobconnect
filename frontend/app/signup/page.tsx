@@ -1,18 +1,59 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRegisterMutation } from "@/api/userapi";
 
 export default function CareerArchSignUp() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"client" | "freelancer">("client");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [register, { isLoading }] = useRegisterMutation();
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (!termsAccepted) {
+      setError("You must accept the terms before creating an account.");
+      return;
+    }
+
+    try {
+      await register({
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        password,
+        role: role === "client" ? "CLIENT" : "FREELANCER",
+      }).unwrap();
+
+      setSuccess("Account created. You can now log in.");
+      router.push("/");
+    } catch (registerError) {
+      console.error("Registration failed:", registerError);
+      setError(
+        "Could not create your account. Please check your details and try again.",
+      );
+    }
+  };
 
   return (
     <div className="bg-surface text-on-surface flex flex-col min-h-screen">
       {/* Suppression Notice: BottomNavBar and SideNav are suppressed for this transactional Signup flow */}
 
-      <main className="flex-grow pt-24 pb-12 px-6 flex items-center justify-center relative overflow-hidden">
+      <main className="grow pt-24 pb-12 px-6 flex items-center justify-center relative overflow-hidden">
         {/* Subtle Architectural Background Elements */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-surface-container rounded-full blur-[120px] -z-10 opacity-60"></div>
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-tertiary-fixed rounded-full blur-[100px] -z-10 opacity-40"></div>
+        <div className="absolute top-0 right-0 w-125 h-125 bg-surface-container rounded-full blur-[120px] -z-10 opacity-60"></div>
+        <div className="absolute bottom-0 left-0 w-100 h-100 bg-tertiary-fixed rounded-full blur-[100px] -z-10 opacity-40"></div>
 
         <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 ">
           {/* Left Side: Editorial Content */}
@@ -76,17 +117,18 @@ export default function CareerArchSignUp() {
                 Start your journey with Jobconnect today.
               </p>
             </div>
-            <form className="flex flex-col gap-6">
+            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
               {/* Role Selection */}
               <div className="flex flex-col gap-3">
                 <span className="text-sm font-semibold uppercase tracking-wider text-on-surface-variant font-label">
                   I am joining as a...
                 </span>
                 <div className="grid grid-cols-2 gap-4">
-                  <label className="relative flex flex-col items-center justify-center p-4 cursor-pointer rounded-lg border-2 border-surface-container-high bg-surface-container-low hover:bg-surface-container-highest transition-all group has-[:checked]:border-primary has-[:checked]:bg-primary-fixed">
+                  <label className="relative flex flex-col items-center justify-center p-4 cursor-pointer rounded-lg border-2 border-surface-container-high bg-surface-container-low hover:bg-surface-container-highest transition-all group has-checked:border-primary has-checked:bg-primary-fixed">
                     <input
-                      defaultChecked
+                      checked={role === "client"}
                       className="sr-only"
+                      onChange={() => setRole("client")}
                       name="role"
                       type="radio"
                       value="client"
@@ -122,7 +164,7 @@ export default function CareerArchSignUp() {
                       />
                     </svg>
                     <span className="font-bold text-primary">Client</span>
-                    <div className="absolute top-2 right-2 opacity-0 group-has-[:checked]:opacity-100 transition-opacity">
+                    <div className="absolute top-2 right-2 opacity-0 group-has-checked:opacity-100 transition-opacity">
                       <svg
                         aria-hidden="true"
                         className="h-5 w-5 text-primary"
@@ -141,9 +183,11 @@ export default function CareerArchSignUp() {
                       </svg>
                     </div>
                   </label>
-                  <label className="relative flex flex-col items-center justify-center p-4 cursor-pointer rounded-lg border-2 border-surface-container-high bg-surface-container-low hover:bg-surface-container-highest transition-all group has-[:checked]:border-primary has-[:checked]:bg-primary-fixed">
+                  <label className="relative flex flex-col items-center justify-center p-4 cursor-pointer rounded-lg border-2 border-surface-container-high bg-surface-container-low hover:bg-surface-container-highest transition-all group has-checked:border-primary has-checked:bg-primary-fixed">
                     <input
+                      checked={role === "freelancer"}
                       className="sr-only"
+                      onChange={() => setRole("freelancer")}
                       name="role"
                       type="radio"
                       value="freelancer"
@@ -184,7 +228,7 @@ export default function CareerArchSignUp() {
                       />
                     </svg>
                     <span className="font-bold text-primary">Freelancer</span>
-                    <div className="absolute top-2 right-2 opacity-0 group-has-[:checked]:opacity-100 transition-opacity">
+                    <div className="absolute top-2 right-2 opacity-0 group-has-checked:opacity-100 transition-opacity">
                       <svg
                         aria-hidden="true"
                         className="h-5 w-5 text-primary"
@@ -214,6 +258,8 @@ export default function CareerArchSignUp() {
                   </label>
                   <input
                     className="w-full px-6 py-3 rounded-full bg-surface-container-lowest border border-outline-variant/30 focus:ring-2 focus:ring-tertiary-container focus:border-transparent transition-all outline-none"
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
                     placeholder="Jane"
                     type="text"
                   />
@@ -224,6 +270,8 @@ export default function CareerArchSignUp() {
                   </label>
                   <input
                     className="w-full px-6 py-3 rounded-full bg-surface-container-lowest border border-outline-variant/30 focus:ring-2 focus:ring-tertiary-container focus:border-transparent transition-all outline-none"
+                    value={lastName}
+                    onChange={(event) => setLastName(event.target.value)}
                     placeholder="Doe"
                     type="text"
                   />
@@ -237,6 +285,8 @@ export default function CareerArchSignUp() {
                 </label>
                 <input
                   className="w-full px-6 py-3 rounded-full bg-surface-container-lowest border border-outline-variant/30 focus:ring-2 focus:ring-tertiary-container focus:border-transparent transition-all outline-none"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
                   placeholder="jane@example.com"
                   type="email"
                 />
@@ -250,6 +300,8 @@ export default function CareerArchSignUp() {
                 <div className="relative">
                   <input
                     className="w-full px-6 py-3 rounded-full bg-surface-container-lowest border border-outline-variant/30 focus:ring-2 focus:ring-tertiary-container focus:border-transparent transition-all outline-none"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
                     placeholder="••••••••"
                     type={showPassword ? "text" : "password"}
                   />
@@ -331,6 +383,8 @@ export default function CareerArchSignUp() {
                 <input
                   className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary"
                   id="terms"
+                  checked={termsAccepted}
+                  onChange={(event) => setTermsAccepted(event.target.checked)}
                   type="checkbox"
                 />
                 <label
@@ -357,16 +411,29 @@ export default function CareerArchSignUp() {
 
               {/* CTA */}
               <button
-                className="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all mt-2"
+                className="w-full bg-linear-to-br from-primary to-primary-container text-on-primary py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all mt-2 disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isLoading}
                 type="submit"
               >
-                Create Account
+                {isLoading ? "Creating Account..." : "Create Account"}
               </button>
+
+              {(error || success) && (
+                <p
+                  className={`text-center text-sm mt-1 ${error ? "text-red-500" : "text-green-600"}`}
+                  role="status"
+                >
+                  {error || success}
+                </p>
+              )}
 
               {/* Login Link */}
               <p className="text-center text-on-surface-variant text-sm mt-2">
                 Already have an account?{" "}
-                <a className="text-primary font-bold hover:underline" href="#">
+                <a
+                  className="text-primary font-bold hover:underline"
+                  href="/login"
+                >
                   Log in
                 </a>
               </p>

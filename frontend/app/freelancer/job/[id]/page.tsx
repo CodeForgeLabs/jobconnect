@@ -1,7 +1,140 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
+import { useParams } from "next/navigation";
+import { useGetJobByIdQuery } from "@/api/jobsapi";
+import {
+  useGetMyProposalsQuery,
+  useCreateProposalMutation,
+} from "@/api/proposalapi";
+const parseSkills = (skills: string) =>
+  skills
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter(Boolean);
+
+const formatPostedDate = (value?: string) => {
+  if (!value) return "Posted recently";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Posted recently";
+
+  return `Posted ${date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })}`;
+};
+
+const formatMoney = (amount?: number) => {
+  if (typeof amount !== "number") return "N/A";
+
+  return amount.toLocaleString(undefined, {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
+};
 
 export default function JobDetailView() {
+  const params = useParams<{ id: string }>();
+  const jobId = Number(params.id);
+  console.log("Job ID from URL:", jobId);
+  const isValidJobId = Number.isFinite(jobId) && jobId > 0;
+  const [coverLetter, setCoverLetter] = useState("");
+
+  const {
+    data: jobdata,
+    isLoading,
+    isError,
+  } = useGetJobByIdQuery(jobId, {
+    skip: !isValidJobId,
+  });
+  const [createProposal, { isLoading: isSubmittingProposal }] =
+    useCreateProposalMutation();
+
+  const job = jobdata?.job;
+  const requiredSkills = parseSkills(job?.skills ?? "");
+  const primarySkills = requiredSkills.slice(0, 3);
+  const secondarySkills = requiredSkills.slice(3);
+
+  const { data: proposalsData } = useGetMyProposalsQuery(undefined, {
+    skip: !isValidJobId,
+  });
+
+  const myProposals = proposalsData;
+  const hasApplied = myProposals?.some((proposal) => proposal.job_id === jobId);
+
+  const roleHighlights =
+    job?.milestones
+      ?.map((milestone) => milestone.description)
+      .filter(Boolean) ?? [];
+
+  const fallbackHighlights = [
+    "Review project details and align on expected delivery outcomes.",
+    "Collaborate clearly with stakeholders throughout execution.",
+    "Deliver high-quality work that matches the posted requirements.",
+  ];
+
+  const responsibilities =
+    roleHighlights.length > 0 ? roleHighlights : fallbackHighlights;
+
+  const handleSubmitProposal = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (!coverLetter.trim()) return;
+
+    const result = await createProposal({
+      job_id: jobId,
+      cover_letter: coverLetter.trim(),
+    });
+    //refetch the job
+      setCoverLetter(result.data?.description ?? "");
+  };
+
+  if (!isValidJobId) {
+    return (
+      <div className="bg-surface text-on-surface selection:bg-primary-fixed selection:text-primary min-h-screen">
+        <main className="max-w-screen-2xl mx-auto px-6 md:px-8 pt-8 md:pt-12 mb-24">
+          <header className="mb-12">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-primary tracking-tighter leading-tight mb-4">
+              Invalid Job ID
+            </h1>
+          </header>
+        </main>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-surface text-on-surface selection:bg-primary-fixed selection:text-primary min-h-screen">
+        <main className="max-w-screen-2xl mx-auto px-6 md:px-8 pt-8 md:pt-12 mb-24">
+          <header className="mb-12">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-primary tracking-tighter leading-tight mb-4">
+              Loading job details...
+            </h1>
+          </header>
+        </main>
+      </div>
+    );
+  }
+
+  if (isError || !job) {
+    return (
+      <div className="bg-surface text-on-surface selection:bg-primary-fixed selection:text-primary min-h-screen">
+        <main className="max-w-screen-2xl mx-auto px-6 md:px-8 pt-8 md:pt-12 mb-24">
+          <header className="mb-12">
+            <h1 className="text-4xl md:text-6xl font-extrabold text-primary tracking-tighter leading-tight mb-4">
+              Job not found
+            </h1>
+          </header>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-surface text-on-surface selection:bg-primary-fixed selection:text-primary min-h-screen">
       <main className="max-w-screen-2xl mx-auto px-6 md:px-8 pt-8 md:pt-12 mb-24">
@@ -9,14 +142,14 @@ export default function JobDetailView() {
         <header className="mb-12">
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <span className="bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full text-[10px] md:text-xs font-bold tracking-wide uppercase">
-              Open Position
+              {job.status || "Open Position"}
             </span>
             <span className="text-on-surface-variant text-sm font-medium">
-              Posted Oct 12, 2023
+              {formatPostedDate(job.created_at)}
             </span>
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-primary tracking-tighter leading-tight mb-4">
-            Senior Systems Architect
+            {job.title}
           </h1>
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 text-on-surface-variant font-medium">
             <div className="flex items-center gap-2">
@@ -36,7 +169,10 @@ export default function JobDetailView() {
                 />
                 <circle cx="12" cy="10" fill="currentColor" r="2.4" />
               </svg>
-              <span>San Francisco, CA (Remote)</span>
+              <span>
+                {job.location || "Location not specified"}
+                {job.work_mode ? ` (${job.work_mode})` : ""}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <svg
@@ -69,7 +205,7 @@ export default function JobDetailView() {
                   strokeWidth="1.8"
                 />
               </svg>
-              <span>AlphaCorp</span>
+              <span>{job.company_name || "Company"}</span>
             </div>
           </div>
         </header>
@@ -79,10 +215,25 @@ export default function JobDetailView() {
           <div className="lg:col-span-8 space-y-12 md:space-y-16">
             {/* Bento Grid Stats */}
             <section className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 p-6 md:p-8 bg-surface-container-low rounded-xl">
-              <StatItem label="Hourly Rate" value="$120/hr" />
-              <StatItem label="Duration" value="6+ Months" />
-              <StatItem label="Level" value="Expert" />
-              <StatItem label="Work Type" value="Remote" />
+              <StatItem
+                label={job.job_type === "HOURLY" ? "Hourly Rate" : "Budget"}
+                value={
+                  job.job_type === "HOURLY"
+                    ? `${formatMoney(job.hourly_rate)}/hr`
+                    : formatMoney(job.budget)
+                }
+              />
+              <StatItem
+                label="Duration"
+                value={
+                  typeof job.max_weekly_hours === "number" &&
+                  job.max_weekly_hours > 0
+                    ? `${job.max_weekly_hours} hrs/week`
+                    : "Not specified"
+                }
+              />
+              <StatItem label="Level" value={job.experience_level || "N/A"} />
+              <StatItem label="Work Type" value={job.work_mode || "N/A"} />
             </section>
 
             {/* Description */}
@@ -91,19 +242,15 @@ export default function JobDetailView() {
                 About the Role
               </h2>
               <p className="text-on-surface-variant leading-relaxed text-base md:text-lg mb-6">
-                AlphaCorp is seeking a visionary Senior Systems Architect to
-                lead the design and evolution of our next-generation distributed
-                trading infrastructure. You will be at the helm of creating
-                resilient, scalable, and high-performance systems that handle
-                billions of transactions daily.
+                {job.description}
               </p>
               <h3 className="text-xl md:text-2xl font-bold text-primary mb-4">
                 Responsibilities
               </h3>
               <ul className="space-y-4 list-none p-0 text-on-surface-variant text-base md:text-lg">
-                <ResponsibilityItem text="Design end-to-end architectural frameworks for globally distributed cloud services." />
-                <ResponsibilityItem text="Directly supervise the implementation of mission-critical Kubernetes clusters." />
-                <ResponsibilityItem text="Perform deep-dive performance analysis and bottleneck identification." />
+                {responsibilities.map((item) => (
+                  <ResponsibilityItem key={item} text={item} />
+                ))}
               </ul>
             </article>
 
@@ -113,11 +260,7 @@ export default function JobDetailView() {
                 Required Skills
               </h2>
               <div className="flex flex-wrap gap-2 md:gap-3">
-                {[
-                  "AWS Cloud Architecture",
-                  "Kubernetes (EKS)",
-                  "Distributed Systems",
-                ].map((skill) => (
+                {primarySkills.map((skill) => (
                   <span
                     key={skill}
                     className="px-4 md:px-6 py-2 md:py-2.5 bg-primary text-white rounded-full font-semibold text-xs md:text-sm shadow-lg shadow-primary/20"
@@ -125,7 +268,7 @@ export default function JobDetailView() {
                     {skill}
                   </span>
                 ))}
-                {["gRPC & Protobuf", "Terraform"].map((skill) => (
+                {secondarySkills.map((skill) => (
                   <span
                     key={skill}
                     className="px-4 md:px-6 py-2 md:py-2.5 bg-surface-container-highest text-primary rounded-full font-semibold text-xs md:text-sm"
@@ -133,6 +276,11 @@ export default function JobDetailView() {
                     {skill}
                   </span>
                 ))}
+                {requiredSkills.length === 0 ? (
+                  <span className="px-4 md:px-6 py-2 md:py-2.5 bg-surface-container-highest text-primary rounded-full font-semibold text-xs md:text-sm">
+                    No skills listed
+                  </span>
+                ) : null}
               </div>
             </section>
           </div>
@@ -185,7 +333,7 @@ export default function JobDetailView() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg font-bold text-primary leading-tight">
-                      AlphaCorp
+                      {job.company_name || "Company"}
                     </h3>
                     <svg
                       aria-hidden="true"
@@ -205,21 +353,55 @@ export default function JobDetailView() {
                     </svg>
                   </div>
                   <p className="text-on-surface-variant text-xs">
-                    Enterprise Tech Solutions
+                    {job.category || "Category not specified"}
                   </p>
                 </div>
               </div>
               <div className="space-y-4">
-                <ClientStat label="Member since" value="2021" />
-                <ClientStat label="Total Spent" value="$2.4M+" />
-                <ClientStat label="Hire Rate" value="94%" />
+                <ClientStat
+                  label="Member since"
+                  value={
+                    job.created_at
+                      ? String(new Date(job.created_at).getFullYear())
+                      : "N/A"
+                  }
+                />
+                <ClientStat
+                  label="Total Spent"
+                  value={formatMoney(job.budget)}
+                />
+                <ClientStat
+                  label="Hire Rate"
+                  value={`${job.applications_count ?? 0} applicants`}
+                />
               </div>
             </div>
           </aside>
         </div>
+        <div>
+          {hasApplied ? (
+            <p className="text-green-600 font-semibold mt-6">
+              You have already applied to this job.
+            </p>
+          ) : (
+            <form className="flex flex-col" onSubmit={handleSubmitProposal}>
+              <textarea
+                placeholder="Write your cover letter here..."
+                className=" mt-8 min-w-24 py-6 px-2  bg-gray-100 border border-primary tablet:w-[60%] max-tablet:w-full"
+                value={coverLetter}
+                onChange={(event) => setCoverLetter(event.target.value)}
+              />
+              <button
+                type="submit"
+                className="mt-4 px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                disabled={isSubmittingProposal}
+              >
+                Submit Proposal
+              </button>
+            </form>
+          )}
+        </div>
       </main>
-
-      
     </div>
   );
 }
