@@ -1,5 +1,6 @@
 "use client"
 import React, { useState } from 'react';
+import {Timer, Hourglass} from "lucide-react";
 
 export default function ContractManagement() {
   // Interactive UI State Engines
@@ -50,7 +51,7 @@ export default function ContractManagement() {
           <div>
             <nav className="flex items-center gap-2 text-xs md:text-sm text-on-secondary-container mb-4 font-label">
               <span>Contracts</span>
-              <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+              <span className="material-symbols-outlined text-[10px]">{">>"}</span>
               <span className="font-medium text-primary">Senior Systems Architect</span>
             </nav>
             <h1 className="text-2xl md:text-4xl font-headline font-extrabold tracking-tight text-on-background">
@@ -166,7 +167,7 @@ export default function ContractManagement() {
                 <div className="p-6 md:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
                   <div className="flex items-start gap-4 md:gap-6">
                     <div className="w-12 h-12 md:w-14 md:h-14 bg-tertiary-fixed rounded-2xl flex items-center justify-center shrink-0 shadow-xs">
-                      <span className="material-symbols-outlined text-on-tertiary-fixed-variant text-2xl md:text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>pending_actions</span>
+                      <span className="material-symbols-outlined text-on-tertiary-fixed-variant text-2xl md:text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}><Timer/></span>
                     </div>
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-3">
@@ -202,7 +203,7 @@ export default function ContractManagement() {
               <div className="bg-surface-container-lowest p-6 md:p-8 rounded-xl border border-outline-variant/20 flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8 opacity-75">
                 <div className="flex items-start gap-4 md:gap-6">
                   <div className="w-12 h-12 md:w-14 md:h-14 bg-surface-container rounded-2xl flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-outline text-2xl md:text-3xl">hourglass_top</span>
+                    <span className="material-symbols-outlined text-outline text-2xl md:text-3xl"><Hourglass/></span>
                   </div>
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-3">

@@ -7,12 +7,14 @@ import { useState } from "react";
 import { MessageCircle, Search, User, X } from "lucide-react";
 
 import logo from "@/assets/Background.svg";
-import { useGetMeQuery } from "@/api/userapi";
-
+import { useGetMeQuery  , useLogoutMutation} from "@/api/userapi";
+import { useRouter } from "next/navigation";
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const pathname = usePathname();
   const { data: userData } = useGetMeQuery();
+  const [logout] = useLogoutMutation();
+  const router = useRouter();
 
   const isLoggedIn = !!userData;
   const isFreelancer = userData?.role === "FREELANCER";
@@ -102,9 +104,9 @@ const Navbar = () => {
             {isClient && (
               <>
                 <Link
-                  href="/find-talent"
+                  href="/client/findtalent"
                   className={`btn btn-sm bg-transparent border-none hover:text-black ${
-                    pathname === "/find-talent" ? "text-blue-600" : ""
+                    pathname === "/client/find-talent" ? "text-blue-600" : ""
                   }`}
                 >
                   Find Talent
@@ -155,11 +157,30 @@ const Navbar = () => {
                   <Link href="/freelancer/profile">Profile</Link>
                 </li>
                 <li>
-                  <Link href="/messages">Messages</Link>
+                  <Link href="/freelancer/wallet">Wallet</Link>
                 </li>
                 <li>
-                  <Link href = "/users/logout">Logout</Link>
-                </li>
+                <button
+                  onClick={async () => {
+                    try {
+                  const res = await logout(undefined);
+
+                  if ("error" in res) {
+                    console.error("Logout failed:", res.error);
+                    return;
+                  }
+
+                  router.push("/login");
+                } catch (error) {
+                  console.error(error);
+                }
+              }}
+              className="w-full text-left"
+            >
+              Logout
+            </button>
+            </li>
+             
               </ul>
             </div>
           </>

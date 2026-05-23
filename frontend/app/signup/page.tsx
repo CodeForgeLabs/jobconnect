@@ -11,7 +11,8 @@ export default function CareerArchSignUp() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"client" | "freelancer">("client");
+  const [role, setRole] = useState<"CLIENT" | "FREELANCER">("FREELANCER");
+  const [companyName, setCompanyName] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -33,7 +34,8 @@ export default function CareerArchSignUp() {
         first_name: firstName,
         last_name: lastName,
         password,
-        role: role === "client" ? "CLIENT" : "FREELANCER",
+        company_name: role === "CLIENT" ? companyName : undefined,
+        role: role === "CLIENT" ? "CLIENT" : "FREELANCER",
       }).unwrap();
 
       setSuccess("Account created. You can now log in.");
@@ -126,12 +128,12 @@ export default function CareerArchSignUp() {
                 <div className="grid grid-cols-2 gap-4">
                   <label className="relative flex flex-col items-center justify-center p-4 cursor-pointer rounded-lg border-2 border-surface-container-high bg-surface-container-low hover:bg-surface-container-highest transition-all group has-checked:border-primary has-checked:bg-primary-fixed">
                     <input
-                      checked={role === "client"}
+                      checked={role === "CLIENT"}
                       className="sr-only"
-                      onChange={() => setRole("client")}
+                      onChange={() => setRole("CLIENT")}
                       name="role"
                       type="radio"
-                      value="client"
+                      value="CLIENT"
                     />
                     <svg
                       aria-hidden="true"
@@ -185,12 +187,12 @@ export default function CareerArchSignUp() {
                   </label>
                   <label className="relative flex flex-col items-center justify-center p-4 cursor-pointer rounded-lg border-2 border-surface-container-high bg-surface-container-low hover:bg-surface-container-highest transition-all group has-checked:border-primary has-checked:bg-primary-fixed">
                     <input
-                      checked={role === "freelancer"}
+                      checked={role === "FREELANCER"}
                       className="sr-only"
-                      onChange={() => setRole("freelancer")}
+                      onChange={() => setRole("FREELANCER")}
                       name="role"
                       type="radio"
-                      value="freelancer"
+                      value="FREELANCER"
                     />
                     <svg
                       aria-hidden="true"
@@ -280,6 +282,24 @@ export default function CareerArchSignUp() {
 
               {/* Email */}
               <div className="flex flex-col gap-2">
+                {role === "CLIENT" && (
+                  <>
+                  <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-label ml-1">
+                    Company Name
+                  </label>
+              
+                <input
+                  className="w-full px-6 py-3 rounded-full bg-surface-container-lowest border border-outline-variant/30 focus:ring-2 focus:ring-tertiary-container focus:border-transparent transition-all outline-none"
+                  value={companyName}
+                  onChange={(event) => setCompanyName(event.target.value)}
+                  placeholder="Acme Corp"
+                  type="text"
+                />
+
+                  </> 
+                )}
+              
+            
                 <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-label ml-1">
                   Email Address
                 </label>

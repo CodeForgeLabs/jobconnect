@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from "react";
 import { useCreateJobMutation, useGetMyJobsQuery } from "@/api/jobsapi";
 import { Banknote, Clock3 , Edit , MoreVertical } from "lucide-react";
-
+import { useRouter } from "next/navigation";
 export default function MyPostingsView() {
   const [activeTab, setActiveTab] = useState("open");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -148,6 +148,7 @@ export default function MyPostingsView() {
     setActiveTab(tab);
     setCurrentPage(1);
   };
+  const router = useRouter();
 
   return (
     <div className="min-h-screen flex flex-col bg-surface text-on-surface transition-colors duration-200 selection:bg-primary-fixed selection:text-primary">
@@ -428,7 +429,10 @@ export default function MyPostingsView() {
                       <JobIcon className="h-5 w-5" aria-hidden="true" />
                     </div>
 
-                    <div className="space-y-1 min-w-0">
+                    <div className="space-y-1 min-w-0"
+                    onClick={() => {
+                      router.push(`mypostings/proposals/${job.id}`);
+                    }}>
                       <h3
                         className={`font-bold text-lg font-headline truncate transition-colors ${
                           closed

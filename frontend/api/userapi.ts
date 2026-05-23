@@ -1,3 +1,4 @@
+
 import { baseApi } from "./baseapi";
 import type { FetchBaseQueryError } from '@reduxjs/toolkit/query';
 
@@ -38,6 +39,7 @@ export interface RegisterRequest {
   first_name: string;
   last_name: string;
   password: string;
+  company_name?: string;
   role: "CLIENT" | "FREELANCER";
 }
 
@@ -54,6 +56,13 @@ export const userApi = baseApi.injectEndpoints({
         url: "/users/login",
         method: "POST",
         body,
+      }),
+    }),
+
+    logout: builder.mutation({
+      query: () => ({
+        url: "/users/logout",
+        method: "POST",
       }),
     }),
 
@@ -75,6 +84,16 @@ export const userApi = baseApi.injectEndpoints({
     // 🔎 GET USER BY EMAIL
     getUserByEmail: builder.query<User, string>({
       query: (email) => `/users/email?email=${email}`,
+    }),
+
+    // 🔎 GET USER BY ID
+    getUserById: builder.query<User, number>({
+      query: (id) => `/users/byid?id=${id}`,
+    }),
+
+    // 🔎 SEARCH USERS BY NAME
+    searchUsersByName: builder.query<User[], string>({
+      query: (name) => `/users/search?name=${name}`,
     }),
 
     // ✏️ UPDATE USER (Cloudinary URL goes here)
@@ -128,9 +147,12 @@ export const userApi = baseApi.injectEndpoints({
 
 export const {
   useLoginMutation,
+  useLogoutMutation,
   useRegisterMutation,
   useGetMeQuery,
   useGetUserByEmailQuery,
+  useGetUserByIdQuery,
+  useSearchUsersByNameQuery,
   useUpdateMeMutation,
   useDeleteMeMutation,
   useUploadImageMutation,

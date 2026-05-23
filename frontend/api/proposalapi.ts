@@ -74,7 +74,9 @@ const normalizeProposalsList = (response: unknown): Proposal[] => {
 };
 
 const normalizeProposalApplicants = (response: unknown): ProposalApplicant[] => {
-	if (Array.isArray(response)) return response as ProposalApplicant[];
+	if (response && typeof response === "object" && "proposals" in response) {
+		return (response as { proposals?: unknown }).proposals as ProposalApplicant[];
+	}
 
 	if (!response || typeof response !== "object") return [];
 
