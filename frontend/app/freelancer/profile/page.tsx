@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import { MapPin, Star, User, Edit, Trash2 } from "lucide-react";
 import {
@@ -98,15 +98,28 @@ const Profile = () => {
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
 
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+const [phoneNumber, setPhoneNumber] = useState("");
+
+const [isEditingRate, setIsEditingRate] = useState(false);
+const [hourlyRate, setHourlyRate] = useState("");
+
+useEffect(() => {
+  setPhoneNumber(userData?.phone_number || "");
+  setHourlyRate(
+    userData?.hourly_rate ? String(userData.hourly_rate) : "",
+  );
+}, [userData]);
+
   const compensationType = "Hourly";
   const rating = 4.8;
   const reviewCount = 128;
   const clientRating = 4.9;
   const clientReviewCount = 42;
   const profileHighlights = [
-    { label: "Projects Delivered", value: "62+" },
+    { label: "Projects Delivered", value: `${portfolioItems.length}` },
 
-    { label: "Clients", value: "31" },
+    { label: "Clients", value: "1+" },
   ];
   const skillsArray: string[] = Array.isArray(userData?.skills)
     ? userData!.skills.map(String)
@@ -201,18 +214,158 @@ const Profile = () => {
             {userData?.location || "Add location"}
           </p>
 
-          <div className="flex justify-between items-center w-full mt-3 bg-[#ebedf1] px-3 py-2 rounded-lg">
-            <p className="text-gray-500 text-xs"> {compensationType} rate</p>
-            <p className="text-jobBlue font-semibold text-sm">
-              {userData?.hourly_rate
-                ? `$${userData.hourly_rate}/hr`
-                : "Set your rate"}
-            </p>
-          </div>
+                        <div className="flex justify-between not-first:w-full mt-3 bg-[#ebedf1] px-3 py-3 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <p className="text-gray-500 text-xs">Hourly rate</p>
 
-          <div className="flex justify-between items-center w-full mt-3 bg-[#ebedf1] px-3 py-2 rounded-lg">
-            <p className="text-gray-500 text-xs"> Job Success</p>
-            <p className="text-jobBlue font-semibold text-sm">95%</p>
+                    
+                  </div>
+
+                  {isEditingRate ? (
+                    <div className="mt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">$</span>
+
+                        <input
+                          type="number"
+                          value={hourlyRate}
+                          onChange={(e) => setHourlyRate(e.target.value)}
+                          placeholder="Enter hourly rate"
+                          className="w-full rounded-md border border-gray-200 p-2 text-sm"
+                        />
+                      </div>
+
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          className="btn btn-primary btn-sm"
+                          disabled={isUpdating}
+                          onClick={async () => {
+                            try {
+                              await updateMe({
+                                hourly_rate: Number(hourlyRate),
+                              }).unwrap();
+
+                              refetch();
+                              setIsEditingRate(false);
+                            } catch (err) {
+                              console.error(err);
+                            }
+                          }}
+                        >
+                          Save
+                        </button>
+
+                        <button
+                          className="btn btn-sm"
+                          onClick={() => {
+                            setHourlyRate(
+                              userData?.hourly_rate
+                                ? String(userData.hourly_rate)
+                                : "",
+                            );
+                            setIsEditingRate(false);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex">
+
+                    <p className="text-jobBlue font-semibold text-sm mr-2">
+                      {userData?.hourly_rate
+                        ? `${userData.hourly_rate} Birr/hr `
+                        : "0.00"}
+                    </p>
+
+                    {!isEditingRate && (
+                      <button
+                        className="text-jobBlue"
+                        onClick={() => setIsEditingRate(true)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                    )}
+
+                    </div>
+                  )}
+                </div>
+
+
+
+
+
+
+
+                  <div className="flex justify-between items-center w-full mt-3 bg-[#ebedf1] px-3 py-3 rounded-lg">
+          
+              <p className="text-gray-500 text-xs">Phone Number</p>
+
+             
+         
+
+            {isEditingPhone ? (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Enter phone number"
+                  className="w-full rounded-md border border-gray-200 p-2 text-sm"
+                />
+
+                <div className="flex gap-2 mt-3">
+                  <button
+                    className="btn btn-primary btn-sm"
+                    disabled={isUpdating}
+                    onClick={async () => {
+                      try {
+                        await updateMe({
+                          phone_number: phoneNumber,
+                        }).unwrap();
+
+                        refetch();
+                        setIsEditingPhone(false);
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                  >
+                    Save
+                  </button>
+
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => {
+                      setPhoneNumber(userData?.phone_number || "");
+                      setIsEditingPhone(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : userData?.phone_number ? (
+              <div className="flex">
+
+              <p className="text-jobBlue font-semibold text-sm  mr-2">
+                {userData.phone_number}
+              </p>
+               {!isEditingPhone && (
+                <button
+                  className="text-jobBlue"
+                  onClick={() => setIsEditingPhone(true)}
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+              )}
+              </div>
+            ) : (
+              <p className="text-jobBlue text-sm">
+                Add phone number
+              </p>
+            )}
           </div>
 
           {/* <button className="btn btn-primary w-full mt-5">
