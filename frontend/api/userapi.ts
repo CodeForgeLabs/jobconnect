@@ -20,6 +20,7 @@ export interface User {
   skills: string | string[];
   hourly_rate: number;
   availability: Availability;
+  connect: number;
   role: Role;
   created_at: string;
   updated_at: string;

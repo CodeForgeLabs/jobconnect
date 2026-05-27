@@ -1,6 +1,59 @@
+"use client";
+
+import { useState } from "react";
+import { useBuyConnectMutation } from "@/api/walletapi";
+
+interface ConnectPackage {
+  id: number;
+  connects: number;
+  price: number;
+  description: string;
+  bestValue?: boolean;
+}
+
+const packages: ConnectPackage[] = [
+  {
+    id: 1,
+    connects: 10,
+    price: 100,
+    description: "For just starting",
+  },
+  {
+    id: 2,
+    connects: 50,
+    price: 400,
+    description: "Most popular option",
+    bestValue: true,
+  },
+  {
+    id: 3,
+    connects: 100,
+    price: 700,
+    description: "For active users",
+  },
+];
+
 const BuyconnectsCard = () => {
+  const [selectedPackage, setSelectedPackage] = useState<number>(2);
+  const [buyConnect, { isLoading }] = useBuyConnectMutation();
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  const handlePurchase = async () => {
+    const buyPackage = packages.find((pkg) => pkg.id === selectedPackage);
+    if (buyPackage) {
+      try {
+        const response = await buyConnect({
+          amount: buyPackage.connects,
+        }).unwrap();
+        setStatusMessage(response.message);
+      } catch {
+        setStatusMessage("Unable to buy connects");
+      }
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-5 rounded-xl bg-white p-8 shadow-sm">
+    <div className="flex grow h-fit flex-col gap-5 rounded-xl bg-white p-8 shadow-sm">
       <div className="flex items-center gap-3">
         <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-jobBlue text-white shadow-sm">
           <svg
@@ -18,52 +71,65 @@ const BuyconnectsCard = () => {
             />
           </svg>
         </span>
+
         <p className="text-lg font-semibold text-slate-800">Buy connects</p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <div className="rounded-lg border border-gray-200 p-4">
-          <span className="flex justify-between text-sm ">
-            <p>10 Connects</p>
-            <p className="text-jobBlue">100 birr</p>
-          </span>
-          <span className="flex justify-between">
-            <p className="text-xs text-gray-500">For just starting</p>
-            <p className="text-xs text-gray-500">select</p>
-          </span>
-        </div>
+        {packages.map((pkg) => {
+          const isSelected = selectedPackage === pkg.id;
 
-        <div className="relative rounded-lg border-2 border-jobBlue p-4 ">
-          <span className="pointer-events-none absolute right-2 top-[-10] rounded-full bg-jobBlue px-2.5 py-1 text-[8px] font-semibold uppercase tracking-wide text-white">
-            Best value
-          </span>
-          <span className="flex justify-between text-sm">
-            <p>50 Connects</p>
-            <p className="text-jobBlue">400 birr</p>
-          </span>
-          <span className="flex justify-between">
-            <p className="text-xs text-gray-500">Most popular option</p>
-            <p className="text-xs text-gray-500">select</p>
-          </span>
-        </div>
+          return (
+            <button
+              key={pkg.id}
+              type="button"
+              onClick={() => setSelectedPackage(pkg.id)}
+              className={`relative rounded-lg p-4 text-left transition-all duration-200 ${
+                isSelected
+                  ? "border-2 border-jobBlue bg-blue-50"
+                  : "border border-gray-200 hover:border-jobBlue/50"
+              }`}
+            >
+              {pkg.bestValue && (
+                <span className="pointer-events-none absolute right-2 -top-2 rounded-full bg-jobBlue px-2.5 py-1 text-[8px] font-semibold uppercase tracking-wide text-white">
+                  Best value
+                </span>
+              )}
 
-        <div className="rounded-lg border border-gray-200 p-4">
-          <span className="flex justify-between text-sm">
-            <p>100 Connects</p>
-            <p className="text-jobBlue">700 birr</p>
-          </span>
-          <span className="flex justify-between">
-            <p className="text-xs text-gray-500">For active users</p>
-            <p className="text-xs text-gray-500">select</p>
-          </span>
-        </div>
+              <span className="flex justify-between text-sm">
+                <p>{pkg.connects} Connects</p>
+
+                <p className="text-jobBlue">{pkg.price} birr</p>
+              </span>
+
+              <span className="mt-1 flex justify-between">
+                <p className="text-xs text-gray-500">{pkg.description}</p>
+
+                <p
+                  className={`text-xs font-medium ${
+                    isSelected ? "text-jobBlue" : "text-gray-500"
+                  }`}
+                >
+                  {isSelected ? "Selected" : "Select"}
+                </p>
+              </span>
+            </button>
+          );
+        })}
       </div>
+      <span>
+        {statusMessage && (
+          <p className="text-sm text-red-500">{statusMessage}</p>
+        )}
+      </span>
 
       <button
         type="button"
-        className="mt-4 w-full text-sm font-semibold text-white bg-jobBlue hover:opacity-80 py-3 px-6 rounded-lg"
+        disabled={isLoading}
+        className="mt-4 w-full rounded-lg bg-jobBlue px-6 py-3 text-sm font-semibold text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60"
+        onClick={handlePurchase}
       >
-        Purchase Now
+        {isLoading ? "Processing..." : "Purchase Now"}
       </button>
     </div>
   );

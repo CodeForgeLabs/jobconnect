@@ -1,39 +1,21 @@
+"use client"
 import Jobcard from "@/components/Jobcard";
+import BuyconnectsCard from "@/components/Buyconnectscard";
+import { useGetJobsQuery } from "@/api/jobsapi";
 
-const dummyJobs = [
-  {
-    title: "Redesign a SaaS landing page",
-    pay: "900",
-    type: "fixed" as const,
-    rating: 4.5,
-    description:
-      "We are looking for a frontend developer to redesign a B2B SaaS landing page with a stronger hero section, pricing cards, customer testimonials, feature highlights, and a clear call-to-action flow. The final result should feel modern, conversion-focused, and fully responsive across desktop and mobile.",
-    postTime: "2 hours ago",
-    tags: ["React", "Tailwind", "Landing Page", "Responsive UI"],
-  },
-  {
-    title: "Fix bugs in a freelancer dashboard",
-    pay: "28",
-    type: "hourly" as const,
-    rating: 4,
-    description:
-      "Need a Next.js developer to clean up several UI issues across a freelancer dashboard, including card spacing, table alignment, mobile responsiveness, and a few inconsistent button states. This is a short-term task, but there may be follow-up work if the quality is strong.",
-    postTime: "5 hours ago",
-    tags: ["Next.js", "CSS", "Bug Fixes", "Dashboard"],
-  },
-  {
-    title: "Build a Figma to React component set",
-    pay: "650",
-    type: "fixed" as const,
-    rating: 5,
-    description:
-      "Convert a full set of Figma designs into reusable React components for a job marketplace web app. The components should be clean, modular, and easy to reuse across multiple pages, with strong attention to spacing, typography, and pixel accuracy.",
-    postTime: "1 day ago",
-    tags: ["Figma", "React", "UI Components", "Design System"],
-  },
-];
+
 
 const FreelancerDashboard = () => {
+  const filters = {
+    title: undefined,
+    category: undefined,
+    job_type: undefined,
+    work_mode: undefined,
+    experience_level: undefined,
+    budget_min: undefined,
+  };
+  const {data : Jobs , isLoading} = useGetJobsQuery(filters);
+
   return (
     <div className="flex flex-col gap-8   p-8 bg-[#eff1f5]">
       <div>
@@ -190,48 +172,40 @@ const FreelancerDashboard = () => {
       </div>
 
       <div className="flex gap-4 justify-between ">
-        <div className="flex w-[65%] flex-col gap-4">
-          <div className="flex w-full items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Recommended for you
-            </h2>
-            <p className="text-xs text-jobBlue">View all</p>
-          </div>
+                    <div className="flex w-[65%] flex-col gap-4">
+              <div className="flex w-full items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Recommended for you
+                </h2>
 
-          <div className="flex flex-col gap-4">
-            {dummyJobs.map((job) => (
-              <Jobcard
-                key={job.title}
-                title={job.title}
-                pay={job.pay}
-                type={job.type}
-                rating={job.rating}
-                description={job.description}
-                postTime={job.postTime}
-                tags={job.tags}
-              />
-            ))}
-          </div>
-        </div>
+                <p className="text-xs text-jobBlue">
+                  View all
+                </p>
+              </div>
 
-        <div className="w-[32%]">
-          <div className=" bg-white border border-gray-200 rounded-lg ">
-            <div className="flex justify-between p-4">
-              <h2 className="text-sm font-semibold text-gray-800">
-              Active Contracts
-            </h2>
-            <p className="text-xs text-gray-500 mt-1">
-              10
-            </p>
-            </div>
-
-            <div className="border-t border-gray-200 h-10 p-4">
-
+              {isLoading ? (
+                <p className="text-sm text-gray-500">
+                  Loading jobs...
+                </p>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  {(Jobs ?? []).map((job) => (
+                    <Jobcard
+                      key={job.id}
+                      title={job.title}
+                      pay={String(job.budget)}
+                      type={job.job_type}
+                      rating={5}
+                      description={job.description}
+                      postTime={job.created_at}
+                      tags={job.skills.split(",").map((tag) => tag.trim())}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             
-            
-          </div>
-        </div>
+        <BuyconnectsCard />
       </div>
     </div>
   );

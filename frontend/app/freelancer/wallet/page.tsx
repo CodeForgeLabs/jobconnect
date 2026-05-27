@@ -1,7 +1,56 @@
+"use client";
+
 import TeleBirrWithdrawCard from "@/components/Telebirrwithdrawcard";
 import BuyconnectsCard from "@/components/Buyconnectscard";
 import TransactionHistoryCard from "@/components/Transactionhistorycard";
-const walletPage = () => {
+import {
+  useGetWalletBalanceQuery,
+  useGetWalletTransactionsQuery,
+} from "@/api/walletapi";
+
+import { useGetMeQuery } from "@/api/userapi";
+const formatMoney = (currency: string, amountMinor: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(amountMinor );
+
+const WalletPage = () => {
+  const { data: wallet } = useGetWalletBalanceQuery();
+  const { data: transactions = [] } = useGetWalletTransactionsQuery();
+  const { data: user } = useGetMeQuery();
+
+  const currency = wallet?.Currency ?? "ETB";
+  const currentBalance = wallet?.BalanceMinor ?? 0;
+
+  const totalLifetimeEarnings = transactions.reduce((total, transaction) => {
+    if (transaction.Status === "SUCCESS") {
+      return total + transaction.AmountMinor;
+    }
+
+    return total;
+  }, 0);
+
+  const pendingClearance = transactions.reduce((total, transaction) => {
+    if (transaction.Status === "PENDING") {
+      return total + transaction.AmountMinor;
+    }
+
+    return total;
+  }, 0);
+
+  const totalConnects = transactions.reduce((total, transaction) => {
+    if (
+      transaction.Status === "SUCCESS" &&
+      transaction.Description.toLowerCase().includes("connect")
+    ) {
+      return total + 1;
+    }
+
+    return total;
+  }, 0);
+
   return (
     <div className="flex flex-col gap-6 p-7 bg-[#ebedf1] ">
       <div>
@@ -14,7 +63,9 @@ const walletPage = () => {
       <div className="flex gap-6">
         <div className="relative flex grow flex-col overflow-hidden rounded-lg bg-jobBlue p-6 text-white shadow-lg">
           <h2 className=" text-[10px] font-medium">Current Balance</h2>
-          <p className=" text-2xl font-bold leading-none">$1,250.00</p>
+          <p className=" text-2xl font-bold leading-none">
+            {formatMoney(currency, currentBalance)}
+          </p>
 
           <span className="mt-4 inline-flex w-fit rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-blue-50">
             +12.5% this month
@@ -48,7 +99,9 @@ const walletPage = () => {
               <h2 className="text-[10px] font-medium text-gray-500">
                 Total Lifetime Earnings{" "}
               </h2>
-              <p className="text-2xl font-bold">$8,250.00</p>
+              <p className="text-2xl font-bold">
+                {formatMoney(currency, totalLifetimeEarnings)}
+              </p>
             </div>
 
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-green-100 text-green-700">
@@ -75,14 +128,16 @@ const walletPage = () => {
               <p className="text-[8px] font-semibold uppercase tracking-wide text-gray-500">
                 Pending clearance
               </p>
-              <p className="text-base font-bold ">$500.00</p>
+              <p className="text-base font-bold ">
+                {formatMoney(currency, pendingClearance)}
+              </p>
             </span>
 
             <span className="flex flex-col grow border-l-2 border-gray-200 pl-3">
               <p className="text-[8px] font-semibold uppercase tracking-wide text-gray-500">
                 Total connects
               </p>
-              <p className="text-base font-bold">100</p>
+              <p className="text-base font-bold">{user?.connect ?? 0}</p>
             </span>
           </div>
         </div>
@@ -101,4 +156,4 @@ const walletPage = () => {
   );
 };
 
-export default walletPage;
+export default WalletPage;

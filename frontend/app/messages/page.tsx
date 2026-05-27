@@ -1,4 +1,5 @@
 "use client";
+import { useSearchParams } from "next/navigation";
 import {
   Check,
   CheckCheck,
@@ -9,7 +10,7 @@ import {
   Smile,
   Edit,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import {
   useGetMessagesQuery,
@@ -27,6 +28,7 @@ import {
 } from "@/api/userapi";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import avatarPlaceholder from "@/assets/avatarsvg.png";
+import { useRouter } from "next/navigation";
 
 function isNewMessagePayload(
   value: unknown,
@@ -41,6 +43,20 @@ function isNewMessagePayload(
 const DEFAULT_AVATAR_URL = avatarPlaceholder.src;
 
 export default function ChatPage() {
+
+
+
+
+  const searchParams = useSearchParams();
+  const userIdFromParams = searchParams.get("userid");
+  console.log("Parsed userId from URL params:", userIdFromParams);
+
+  const parsedUserIdFromParams = userIdFromParams
+  ? Number(userIdFromParams)
+  : null;
+
+
+
   const { data: userData } = useGetMeQuery();
   const userId = userData?.id || 0;
 
@@ -54,7 +70,13 @@ export default function ChatPage() {
   );
   const { data: temp, refetch: refetchConversations } =
     useGetConversationsQuery();
-  const conversations = temp?.conversations || [];
+
+  const conversations = useMemo(
+    () => temp?.conversations || [],
+    // depend on the reference that holds conversations to avoid changing
+    // on every render
+    [temp?.conversations],
+  );
   const [sendMessage, { isLoading: isSending }] = useSendMessageMutation();
   const [markAsSeen] = useMarkAsSeenMutation();
 
@@ -80,6 +102,18 @@ export default function ChatPage() {
 
   const activeUser = currentConversation?.User || selectedUser;
   const activeUserId = activeUser?.id ?? 0;
+
+
+    const { data: paramUser } = useGetUserByIdQuery(
+      parsedUserIdFromParams ?? 0,
+      {
+        skip: !parsedUserIdFromParams,
+      },
+    );
+
+
+
+
   const { data: activeUserDetails } = useGetUserByIdQuery(activeUserId, {
     skip: !activeUserId,
   });
@@ -278,6 +312,40 @@ export default function ChatPage() {
 
     closeSearchModal();
   };
+  useEffect(() => {
+    if (!paramUser || !parsedUserIdFromParams) return;
+
+    const existingConversation = conversations.find(
+      (conversation: ConversationItemType) =>
+        conversation.User?.id === parsedUserIdFromParams ||
+        conversation.OtherUserID === parsedUserIdFromParams,
+    );
+
+    const timeoutId = window.setTimeout(() => {
+      setMessageText("");
+      setLiveMessages([]);
+      setOptimisticMessages([]);
+
+      if (existingConversation) {
+        const conversationId =
+          existingConversation.LastMessage?.ConversationID ??
+          existingConversation.OtherUserID;
+
+        setActiveChat(conversationId);
+        setSelectedUser(null);
+      } else {
+        setActiveChat(-1);
+        setSelectedUser(paramUser);
+      }
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [paramUser, parsedUserIdFromParams, conversations]);
+
+  
+
+
+ const router = useRouter();
 
   return (
     <div className="flex  flex-col h-[90vh] bg-surface text-on-surface selection:bg-primary-fixed selection:text-primary">
@@ -326,12 +394,7 @@ export default function ChatPage() {
                     }
                     time={
                       conv.LastMessage?.CreatedAt
-                        ? new Date(
-                            conv.LastMessage.CreatedAt,
-                          ).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
+                        ? formatMessageTime(conv.LastMessage.CreatedAt)
                         : ""
                     }
                     unread={conv.UnseenCount}
@@ -355,7 +418,15 @@ export default function ChatPage() {
             <>
               {/* Chat Header */}
               <header className="h-20 shrink-0 flex items-center justify-between px-8 border-b border-outline-variant/20 bg-white/50 ">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4"
+                onClick={() => {
+                  if (activeUser.role == "FREELANCER") {
+                    router.push(`/freelancer/profile/${activeUser.id}`);
+                  } else {
+                    // 
+                }}
+              }
+                >
                   <div className="relative">
                     <Image
                       src={activeUserProfilePicture}
@@ -392,10 +463,7 @@ export default function ChatPage() {
                       <SentMsg
                         key={idx}
                         texts={[msg.Text || ""]}
-                        time={new Date(msg.CreatedAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        time={formatMessageTime(msg.CreatedAt)}
                         isSeen={msg.IsSeen}
                         avatarUrl={userData?.profile_picture_url || undefined}
                       />
@@ -403,10 +471,7 @@ export default function ChatPage() {
                       <ReceivedMsg
                         key={idx}
                         text={msg.Text || ""}
-                        time={new Date(msg.CreatedAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        time={formatMessageTime(msg.CreatedAt)}
                         avatarUrl={activeUserProfilePicture}
                       />
                     ),
@@ -623,8 +688,9 @@ const ConversationItem = ({
     onClick={onClick}
     className={`p-4 rounded-2xl flex gap-4 cursor-pointer transition-all ${active ? "bg-primary/10" : "hover:bg-white"}`}
   >
-    <div className="relative shrink-0">
+    <div className="relative shrink-0 ">
       <ConversationAvatar userId={userId} fallbackAvatar={fallbackAvatar} />
+      
       {online && (
         <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 bg-green-500 border-4 border-surface-container-low rounded-full"></div>
       )}
@@ -759,3 +825,44 @@ const ConversationAvatar = ({
     />
   );
 };
+
+
+
+
+
+
+
+function formatMessageTime(dateString: string) {
+  const date = new Date(dateString);
+  const now = new Date();
+
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  const time = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  // same day
+  if (diffDays === 0) {
+    return time;
+  }
+
+  // yesterday
+  if (diffDays === 1) {
+    return `Yesterday ${time}`;
+  }
+
+  // last 7 days → weekday
+  if (diffDays < 7) {
+    return `${date.toLocaleDateString([], { weekday: "short" })} ${time}`;
+  }
+
+  // older → full date
+  return `${date.toLocaleDateString([], {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  })} ${time}`;
+}

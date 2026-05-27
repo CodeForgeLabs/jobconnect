@@ -1,6 +1,6 @@
 import { baseApi } from "./baseapi";
 
-export type ProposalStatus = "PENDING" | "APPROVED" | "REJECTED" | string;
+export type ProposalStatus = "PENDING" | "INVITED" | "REJECTED" | "HIRED";
 
 export interface CreateProposalRequest {
 	cover_letter: string;
@@ -134,7 +134,7 @@ export const proposalApi = baseApi.injectEndpoints({
 			}),
 			transformResponse: (response: unknown) => {
 				const normalized = normalizeProposal(response);
-				return normalized ?? ({ id: 0, job_id: 0, sender_id: 0, status: "pending" } as Proposal);
+				return normalized ?? ({ id: 0, job_id: 0, sender_id: 0, status: "PENDING" } as Proposal);
 			},
 		}),
 

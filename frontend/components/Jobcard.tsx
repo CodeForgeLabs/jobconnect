@@ -4,7 +4,7 @@ import { useId } from "react";
 interface JobcardProps {
   title: string;
   pay: string;
-  type: "fixed" | "hourly";
+  type: "FIXED" | "HOURLY";
   rating?: number;
 
   description: string;
@@ -32,7 +32,7 @@ const Jobcard = ({
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-gray-700">
-        {type === "hourly" ? (
+        {type === "HOURLY" ? (
           <span className="flex items-center gap-1">
             <span className="font-semibold text-jobBlue">
               $ Hourly : {pay}/hr
