@@ -49,7 +49,7 @@ const Login = () => {
        if (res.role === "FREELANCER") {
           router.push("/freelancer/dashboard");
         } else  {
-          router.push("/client");
+          router.push("/client/dashboard");
         } 
       }
     } catch (error) {

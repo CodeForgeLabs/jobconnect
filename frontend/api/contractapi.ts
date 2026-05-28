@@ -29,14 +29,49 @@ export interface WorkSessionRequest {
 	contract_id: number;
 }
 
+export interface PayWeeklyLogsRequest {
+	contract_id: number;
+	week_number: number;
+	year: number;
+}
+
+export interface WorkSessionLogEntry {
+	id: number;
+	start_time: string;
+	end_time: string;
+	total_hours: number;
+	is_paid: boolean;
+}
+
+export interface WorkSessionDayLog {
+	day: string;
+	date: string;
+	total_hours: number;
+	sessions: WorkSessionLogEntry[];
+}
+
+export interface WeeklyWorkLog {
+	week_number: number;
+	week_start: string;
+	week_end: string;
+	total_hours: number;
+	days: WorkSessionDayLog[];
+}
+
+export interface WeeklyWorkLogsResponse {
+	data: WeeklyWorkLog[];
+}
+
 export interface UpdateContractStatusRequest {
 	contractId: number;
 	newStatus: ContractStatus;
+
 }
 
 export interface UpdateMilestoneStatusRequest {
 	milestoneId: number;
 	newStatus: ContractMilestoneStatus;
+	
 }
 
 export interface ContractMilestone {
@@ -48,7 +83,7 @@ export interface ContractMilestone {
 	Due_date: string;
 	ID: number;
 	Status: ContractMilestoneStatus;
-	Submission_url: string;
+	submission_url: string;
 	UpdatedAt: string;
 	WorkDescription: string;
 }
@@ -206,6 +241,22 @@ export const contractApi = baseApi.injectEndpoints({
 			}),
 		}),
 
+		getWeeklyLogs: builder.mutation<WeeklyWorkLogsResponse, WorkSessionRequest>({
+			query: (body) => ({
+				url: "/contracts/work-session/weekly-logs",
+				method: "POST",
+				body,
+			}),
+		}),
+
+		payWeeklyLogs: builder.mutation<ApiMessageResponse, PayWeeklyLogsRequest>({
+			query: (body) => ({
+				url: "/contracts/work-session/pay-weekly-logs",
+				method: "POST",
+				body,
+			}),
+		}),
+
 		updateContractStatus: builder.mutation<
 			ApiMessageResponse,
 			UpdateContractStatusRequest
@@ -234,6 +285,8 @@ export const {
 	useGetWorkSessionTimeElapsedMutation,
 	useGetWorkSessionTimeLogsMutation,
 	useGetWeeklyHoursMutation,
+	useGetWeeklyLogsMutation,
+	usePayWeeklyLogsMutation,
 	useUpdateContractStatusMutation,
 	useGetContractByIdQuery,
 } = contractApi;

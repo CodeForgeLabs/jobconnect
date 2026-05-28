@@ -136,6 +136,35 @@ export const userApi = baseApi.injectEndpoints({
       },
     }),
 
+
+    uploadFile: builder.mutation<{ secure_url: string }, File>({
+      queryFn: async (file) => {
+        try {
+      const formData = new FormData();
+
+      formData.append("file", file);
+      formData.append(
+        "upload_preset",
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
+      );
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+
+      return { data: { secure_url: String(data.secure_url) } };
+        } catch (error) {
+          return { error: error as FetchBaseQueryError };
+        }
+      },
+    }),
+
     // ❌ DELETE ACCOUNT
     deleteMe: builder.mutation<void, void>({
       query: () => ({
@@ -157,4 +186,5 @@ export const {
   useUpdateMeMutation,
   useDeleteMeMutation,
   useUploadImageMutation,
+  useUploadFileMutation,
 } = userApi;

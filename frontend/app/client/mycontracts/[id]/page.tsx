@@ -1,314 +1,889 @@
-"use client"
-import React, { useState } from 'react';
-import {Timer, Hourglass} from "lucide-react";
+"use client";
+
+/* eslint-disable @next/next/no-img-element */
+
+import Link from "next/link";
+import { useParams  , useRouter} from "next/navigation";
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import {
+  BadgeAlert,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  ExternalLink,
+  FileText,
+  Loader2,
+  MessageCircle,
+  RefreshCcw,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
+import {
+  type ContractMilestone,
+  useGetContractByIdQuery,
+  useGetWeeklyLogsMutation,
+  usePayWeeklyLogsMutation,
+  useUpdateMilestoneStatusMutation,
+  useUpdateContractStatusMutation,
+} from "@/api/contractapi";
+
+type MilestoneStatusMeta = {
+  label: string;
+  Icon: LucideIcon;
+  className: string;
+};
+
+type WeeklySession = {
+  id: number;
+  start_time: string;
+  end_time: string;
+  total_hours: number;
+  is_paid: boolean;
+};
+
+type WeeklyDay = {
+  day: string;
+  date: string;
+  total_hours: number;
+  sessions: WeeklySession[];
+};
+
+type WeeklyLog = {
+  week_number: number;
+  week_start: string;
+  week_end: string;
+  total_hours: number;
+  days: WeeklyDay[];
+};
+
+const formatMoney = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  }).format(Number(value || 0));
+
+const formatDate = (value?: string) => {
+  if (!value) return "N/A";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+const formatTime = (value?: string) => {
+  if (!value) return "--";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return parsed.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
+
+const normalizeContractType = (type?: string) =>
+  (type ?? "FIXED").toUpperCase();
+
+const getMilestoneStatusMeta = (status?: string): MilestoneStatusMeta => {
+  const normalized = (status ?? "PENDING").toUpperCase();
+
+  if (normalized === "APPROVED") {
+    return {
+      label: "Approved",
+      Icon: CheckCircle2,
+      className: "bg-emerald-100 text-emerald-700 border-emerald-200",
+    };
+  }
+
+  if (normalized === "PAID") {
+    return {
+      label: "Paid",
+      Icon: Wallet,
+      className: "bg-sky-100 text-sky-700 border-sky-200",
+    };
+  }
+
+  if (normalized === "SUBMITTED") {
+    return {
+      label: "Submitted",
+      Icon: FileText,
+      className: "bg-blue-100 text-blue-700 border-blue-200",
+    };
+  }
+
+  if (normalized === "IN_PROGRESS") {
+    return {
+      label: "In Progress",
+      Icon: Clock3,
+      className: "bg-amber-100 text-amber-700 border-amber-200",
+    };
+  }
+
+  if (normalized === "REVISION_REQUESTED") {
+    return {
+      label: "Revision Requested",
+      Icon: RefreshCcw,
+      className: "bg-rose-100 text-rose-700 border-rose-200",
+    };
+  }
+
+  return {
+    label: "Pending",
+    Icon: BadgeAlert,
+    className: "bg-slate-100 text-slate-700 border-slate-200",
+  };
+};
+
+const calculatePaidAmount = (milestones: ContractMilestone[]) =>
+  milestones
+    .filter((milestone) => {
+      const normalized = (milestone.Status ?? "").toUpperCase();
+      return normalized === "PAID" || normalized === "APPROVED";
+    })
+    .reduce((sum, milestone) => sum + Number(milestone.Amount || 0), 0);
+
+const normalizeWeeklyLogs = (response: unknown): WeeklyLog[] => {
+  if (Array.isArray(response)) return response as WeeklyLog[];
+
+  if (!response || typeof response !== "object") return [];
+
+  const candidate = response as Record<string, unknown>;
+  const maybeData = candidate.data ?? candidate.logs ?? candidate.weeks;
+
+  return Array.isArray(maybeData) ? (maybeData as WeeklyLog[]) : [];
+};
+
+const StatCard = ({
+  label,
+  value,
+  helper,
+}: {
+  label: string;
+  value: string;
+  helper?: string;
+}) => (
+  <div className="rounded-3xl border border-white/60 bg-white/80 p-5 shadow-[0_18px_50px_rgba(15,23,42,0.08)] backdrop-blur">
+    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+      {label}
+    </p>
+    <p className="mt-3 text-2xl font-black tracking-tight text-slate-900">
+      {value}
+    </p>
+    {helper ? <p className="mt-2 text-xs text-slate-500">{helper}</p> : null}
+  </div>
+);
+
+
+
 
 export default function ContractManagement() {
-  // Interactive UI State Engines
-  const [activeTab, setActiveTab] = useState('Active');
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatMessage, setChatMessage] = useState('');
+  const params = useParams<{ id: string }>();
+  const router = useRouter();
+  const contractId = Number(params?.id);
+  const isValidId = Number.isFinite(contractId) && contractId > 0;
 
-  // Sample Chat Data Layer state
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      isUser: false,
-      text: "Hi! I've just submitted the CI/CD documentation for Milestone 3. Let me know if you need any adjustments."
-    },
-    {
-      id: 2,
-      isUser: true,
-      text: "Thanks Alex, reviewing it now with the DevOps team."
+  const {
+    data: contract,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetContractByIdQuery(contractId, {
+    skip: !isValidId,
+  });
+
+  const [loadWeeklyLogs] = useGetWeeklyLogsMutation();
+  const [payWeeklyLogs] = usePayWeeklyLogsMutation();
+  const [updateMilestoneStatus] = useUpdateMilestoneStatusMutation();
+  const [updateContractStatus] = useUpdateContractStatusMutation();
+  const [weeklyLogs, setWeeklyLogs] = useState<WeeklyLog[]>([]);
+  const [pageMessage, setPageMessage] = useState<string | null>(null);
+  const [loadingWeeklyLogs, setLoadingWeeklyLogs] = useState(false);
+  const [payingWeekKey, setPayingWeekKey] = useState<string | null>(null);
+  const [requestingMilestoneId, setRequestingMilestoneId] = useState<
+    number | null
+  >(null);
+  const [milestoneFeedbacks, setMilestoneFeedbacks] = useState<
+  Record<number, string>
+>({});
+
+  const contractType = useMemo(
+    () => normalizeContractType(contract?.type),
+    [contract?.type],
+  );
+  const isHourly = contractType === "HOURLY";
+  const milestones = useMemo(
+    () => contract?.milestones ?? [],
+    [contract?.milestones],
+  );
+  const paidAmount = useMemo(
+    () => calculatePaidAmount(milestones),
+    [milestones],
+  );
+  const remainingAmount = Math.max(
+    (contract?.total_budget ?? 0) - paidAmount,
+    0,
+  );
+  const progressPercent = contract?.total_budget
+    ? Math.min((paidAmount / contract.total_budget) * 100, 100)
+    : 0;
+  const freelancerName = [
+    contract?.freelancer_first_name,
+    contract?.freelancer_last_name,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  const syncWeeklyLogs = useCallback(async () => {
+    if (!contract || !isHourly) return;
+
+    setLoadingWeeklyLogs(true);
+    try {
+      const response = await loadWeeklyLogs({
+        contract_id: contract.contract_id,
+      }).unwrap();
+      setWeeklyLogs(normalizeWeeklyLogs(response));
+    } catch {
+      setWeeklyLogs([]);
+      setPageMessage("Unable to load weekly work logs right now.");
+    } finally {
+      setLoadingWeeklyLogs(false);
     }
-  ]);
+  }, [contract, isHourly, loadWeeklyLogs]);
 
-  // Handler for sending new messages
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!chatMessage.trim()) return;
-    
-    setMessages([
-      ...messages,
-      {
-        id: Date.now(),
-        isUser: true,
-        text: chatMessage
-      }
-    ]);
-    setChatMessage('');
+  useEffect(() => {
+    if (!isHourly || !contract) return;
+    void syncWeeklyLogs();
+  }, [contract, isHourly, syncWeeklyLogs]);
+
+  const[feedBeckError, setFeedBackError] = useState<string | null>(null);
+
+  const handleRequestChanges = async (milestone: ContractMilestone) => {
+    setPageMessage(null);
+    setRequestingMilestoneId(milestone.ID);
+    if (!milestoneFeedbacks[milestone.ID] || milestoneFeedbacks[milestone.ID].trim() === "") {
+      setFeedBackError("Feedback is required to request changes.");
+      setRequestingMilestoneId(null);
+      return;
+    }
+    try {
+      await updateMilestoneStatus({
+        milestoneId: milestone.ID,
+        newStatus: "REVISION_REQUESTED",
+        
+      }).unwrap();
+      setPageMessage(`Requested changes for ${milestone.Description}.`);
+      await refetch();
+    } catch {
+      setPageMessage("Unable to request changes right now.");
+    } finally {
+      setRequestingMilestoneId(null);
+    }
   };
 
-  return (
-    <div className="bg-surface text-on-surface min-h-screen  selection:bg-primary-fixed selection:text-primary">
-      
-     
+  const handlePayWeek = async (week: WeeklyLog) => {
+    if (!contract) return;
 
-      {/* Main Content Canvas Layout */}
-      <main className="pt-12 pb-16 px-4 md:px-8 max-w-7xl mx-auto">
-        
-        {/* Header Breadcrumb Stack & Primary Controls */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
-          <div>
-            <nav className="flex items-center gap-2 text-xs md:text-sm text-on-secondary-container mb-4 font-label">
-              <span>Contracts</span>
-              <span className="material-symbols-outlined text-[10px]">{">>"}</span>
-              <span className="font-medium text-primary">Senior Systems Architect</span>
-            </nav>
-            <h1 className="text-2xl md:text-4xl font-headline font-extrabold tracking-tight text-on-background">
-              Senior Systems Architect - <span className="text-primary-container font-bold">Alex Rivera</span>
-            </h1>
-            <p className="mt-2 text-on-secondary-container text-sm max-w-2xl leading-relaxed">
-              Full-scale infrastructure migration and CI/CD pipeline optimization for the Q3 Digital Transformation initiative.
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3 w-full lg:w-auto">
-            <button className="flex-1 lg:flex-none px-6 py-2.5 bg-surface-container-low text-primary font-semibold rounded-full hover:bg-surface-container-high transition-colors text-xs md:text-sm">
-              Pause Contract
-            </button>
-            <button className="flex-1 lg:flex-none px-6 py-2.5 bg-error-container text-on-error-container font-semibold rounded-full hover:opacity-90 transition-colors text-xs md:text-sm">
-              End Contract
-            </button>
-          </div>
+    const weekKey = `${week.week_number}-${new Date(week.week_start).getFullYear()}`;
+    setPageMessage(null);
+    setPayingWeekKey(weekKey);
+
+    try {
+      await payWeeklyLogs({
+        contract_id: contract.contract_id,
+        week_number: week.week_number,
+        year: new Date(week.week_start).getFullYear(),
+      }).unwrap();
+
+      setPageMessage(`Paid weekly logs for week ${week.week_number}.`);
+      await syncWeeklyLogs();
+      await refetch();
+    } catch {
+      setPageMessage("Unable to process weekly payment right now.");
+    } finally {
+      setPayingWeekKey(null);
+    }
+  };
+
+  if (!isValidId) {
+    return (
+      <div className="mx-auto mt-16 max-w-3xl rounded-3xl border border-rose-200 bg-rose-50 p-8 text-rose-700 shadow-sm">
+        <h1 className="text-xl font-black">Invalid contract ID</h1>
+        <p className="mt-2 text-sm">The contract URL is missing a valid id.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto mt-12 grid max-w-7xl gap-6 px-4 pb-16 md:px-8 lg:px-10">
+        <div className="h-44 animate-pulse rounded-4xl bg-slate-200/70" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="h-64 animate-pulse rounded-4xl bg-slate-200/70" />
+          <div className="h-64 animate-pulse rounded-4xl bg-slate-200/70" />
         </div>
+        <div className="h-96 animate-pulse rounded-4xl bg-slate-200/70" />
+      </div>
+    );
+  }
 
-        {/* Dashboard Bento Data Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          
-          {/* Freelancer Profile Summary Block */}
-          <div className="bg-surface-container-lowest p-6 md:p-8 rounded-lg shadow-sm border border-outline-variant/20 flex flex-col items-center text-center">
-            <div className="relative mb-4">
-              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-surface">
-                <img 
-                  alt="Alex Rivera Profile" 
-                  className="w-full h-full object-cover" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDP3tGC-HxvufGWUXWSwjbuGwPvGC2OMfmS_v0jLB1FTXldBhr-2E3fGcJ2-SSfVjMEE1OLa0wbXQ_sUG3mcgdwe1Qu5A6ECRh-ZpWhgxYInwff_xUcn2VO1X8jQFkMzvQPsuVigL_9nR4Bz9cYF1HWzCSyFZbu9fP_psmmxcwOFmlwstmndflBiW9PEYwz-HSnt60IMcgOLGv2NIGGaAzFagKECCMNkNCPdzE70oArYuHjaJhUlkBkxdvTIHPf9ppFEqFXVHKAiNz9"
+  if (isError || !contract) {
+    return (
+      <div className="mx-auto mt-16 max-w-3xl rounded-3xl border border-rose-200 bg-rose-50 p-8 text-rose-700 shadow-sm">
+        <h1 className="text-xl font-black">Unable to load contract</h1>
+        <p className="mt-2 text-sm">Please try again.</p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-5 rounded-2xl bg-rose-600 px-4 py-2.5 text-sm font-bold text-white"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const activeSinceLabel = contract.start_date
+    ? `Active since ${formatDate(contract.start_date)}`
+    : "Contract active";
+
+  const contractSummary = contract.description || contract.proposal_description;
+  const statusLabel = contract.status || "ACTIVE";
+
+ // ...existing code...
+
+const handleUpdateContractStatus = async (
+  newStatus: string,
+  milestoneId: number
+) => {
+  if (!contract) return;
+
+  await updateMilestoneStatus({
+    milestoneId: milestoneId, // use the key expected by UpdateContractStatusRequest
+    newStatus: newStatus      // use the key expected by UpdateContractStatusRequest
+  }).unwrap();
+};
+
+// ...existing code...
+
+
+  return (
+    <div className="min-h-screen bg-surface text-slate-900 selection:bg-amber-200 selection:text-slate-900">
+      <main className="mx-auto max-w-7xl px-4 pb-16 pt-10 md:px-8 lg:px-10">
+        <header className="mb-8 flex flex-col gap-6 rounded-4xl border border-white/70 bg-white/75 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <nav className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              <span>Contracts</span>
+              <span>/</span>
+              <span>{contractType === "HOURLY" ? "Hourly" : "Fixed"}</span>
+            </nav>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="rounded-full bg-slate-900 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-white">
+                {contractType === "HOURLY"
+                  ? "Hourly Contract"
+                  : "Fixed Contract"}
+              </span>
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-slate-600">
+                {statusLabel}
+              </span>
+              <span className="text-sm text-slate-500">{activeSinceLabel}</span>
+            </div>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 md:text-5xl">
+              {contract.title || contract.job_title}
+            </h1>
+            {contractSummary ? (
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 md:text-base">
+                {contractSummary}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+            onClick={() => {
+              router.push(`/messages?userid=${contract.freelancer_id}`);
+            }}
+            >
+              <MessageCircle className="h-4 w-4" />
+              Message freelancer
+            </button>
+            <Link
+              href="/client/mycontracts"
+              className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+            >
+              Back to contracts
+            </Link>
+          </div>
+        </header>
+
+        {pageMessage ? (
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+            {pageMessage}
+          </div>
+        ) : null}
+
+        <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="rounded-4xl border border-white/70 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+                  Freelancer
+                </p>
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">
+                  {freelancerName || contract.freelancer_email}
+                </h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  {contract.freelancer_headline || contract.job_title}
+                </p>
+              </div>
+
+              <div className="h-16 w-16 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+                {contract.freelancer_profile_picture_url ? (
+                  <img
+                    src={contract.freelancer_profile_picture_url}
+                    alt={freelancerName || contract.freelancer_email}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-lg font-black text-slate-500">
+                    {freelancerName?.charAt(0) || "F"}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              <StatCard
+                label="Total budget"
+                value={formatMoney(contract.total_budget || contract.hourly_rate * contract.weekly_hour_limit )}
+                helper={
+                  contractType === "HOURLY" ? "Budget ceiling" : "Fixed price"
+                }
+              />
+              <StatCard
+                label="Paid so far"
+                value={formatMoney(paidAmount)}
+                helper={
+                  contractType === "HOURLY"
+                    ? "Amount paid based on approved weekly logs"
+                    : "Approved milestones"
+                }
+              />
+              <StatCard
+                label="Remaining"
+                value={formatMoney(remainingAmount)}
+                helper={
+                  contractType === "HOURLY"
+                    ? "Available balance"
+                    : "Pending payout"
+                }
+              />
+            </div>
+
+            <div className="mt-6 rounded-[1.75rem] border border-slate-200 bg-linear-to-r from-slate-950 to-slate-800 p-5 text-white">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/60">
+                    Progress
+                  </p>
+                  <p className="mt-2 text-2xl font-black tracking-tight">
+                    {Math.round(progressPercent)}%
+                  </p>
+                </div>
+                <p className="max-w-md text-right text-sm text-white/70">
+                  {contractType === "HOURLY"
+                    ? "Hourly work is tracked weekly and can be paid once logs are ready."
+                    : "Fixed work is managed milestone by milestone with submission review."}
+                </p>
+              </div>
+              <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className="h-full rounded-full bg-amber-300 transition-all duration-500"
+                  style={{ width: `${Math.max(progressPercent, 8)}%` }}
                 />
               </div>
-              <div className="absolute bottom-1 right-1 w-5 h-5 bg-tertiary-fixed-dim border-2 border-surface rounded-full"></div>
-            </div>
-            <h2 className="text-xl font-headline font-bold text-on-background">Alex Rivera</h2>
-            <p className="text-xs md:text-sm text-on-secondary-container mb-4 font-body">Senior Systems Architect</p>
-            
-            <div className="flex gap-2 mb-6">
-              <span className="bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Top Rated</span>
-              <span className="bg-surface-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider">100% Success</span>
-            </div>
-            
-            <button 
-              onClick={() => setChatOpen(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-secondary-container text-on-secondary-fixed font-bold rounded-full hover:bg-secondary-fixed transition-all text-xs md:text-sm"
-            >
-              <span className="material-symbols-outlined text-sm">chat</span>
-              Message Alex
-            </button>
-          </div>
-
-          {/* Financial Breakdown Container Card */}
-          <div className="md:col-span-2 bg-surface-container-low p-6 md:p-8 rounded-lg flex flex-col justify-between">
-            <div>
-              <h3 className="text-xs font-label uppercase tracking-widest text-on-secondary-container mb-8 font-bold">Financial Overview</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-                <div>
-                  <p className="text-xs text-on-secondary-container mb-1 font-body">Total Budget</p>
-                  <p className="text-2xl md:text-3xl font-headline font-extrabold text-primary">$24,500.00</p>
-                </div>
-                <div>
-                  <p className="text-xs text-on-secondary-container mb-1 font-body">Amount Paid</p>
-                  <p className="text-2xl md:text-3xl font-headline font-extrabold text-on-background">$12,000.00</p>
-                </div>
-                <div>
-                  <p className="text-xs text-on-secondary-container mb-1 font-body">Remaining</p>
-                  <p className="text-2xl md:text-3xl font-headline font-extrabold text-on-tertiary-container">$12,500.00</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Completion Strategy Progress Tracking Bar */}
-            <div className="mt-8">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-medium text-on-secondary-container font-label">Project Progress</span>
-                <span className="text-xs font-bold text-primary font-label">48% Complete</span>
-              </div>
-              <div className="w-full h-3 bg-surface-container-high rounded-full overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: '48.9%' }}></div>
-              </div>
             </div>
           </div>
 
-        </div>
+          <div className="rounded-4xl border border-white/70 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+                  Contract terms
+                </p>
+                <h3 className="mt-3 text-xl font-black tracking-tight text-slate-950">
+                  {contractType === "HOURLY"
+                    ? "Hourly workflow"
+                    : "Fixed workflow"}
+                </h3>
+              </div>
+              <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-black uppercase tracking-[0.22em] text-slate-600">
+                ID #{contract.contract_id}
+              </div>
+            </div>
 
-        {/* Milestones & Work Item Iteration Section */}
-        <section className="mb-12">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <h2 className="text-xl md:text-2xl font-headline font-bold text-on-background">Milestones &amp; Payments</h2>
-            <div className="flex bg-surface-container-low p-1 rounded-full border border-outline-variant/10 self-start sm:self-auto">
-              <button 
-                onClick={() => setActiveTab('Active')}
-                className={`px-6 py-2 text-xs font-bold rounded-full transition-all ${activeTab === 'Active' ? 'bg-surface-container-lowest shadow-xs text-primary' : 'text-on-secondary-container hover:text-primary'}`}
-              >
-                Active
-              </button>
-              <button 
-                onClick={() => setActiveTab('Past')}
-                className={`px-6 py-2 text-xs font-bold rounded-full transition-all ${activeTab === 'Past' ? 'bg-surface-container-lowest shadow-xs text-primary' : 'text-on-secondary-container hover:text-primary'}`}
-              >
-                Past
-              </button>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                  Start date
+                </p>
+                <p className="mt-2 text-sm font-bold text-slate-900">
+                  {formatDate(contract.start_date)}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                  End date
+                </p>
+                <p className="mt-2 text-sm font-bold text-slate-900">
+                  {formatDate(contract.end_date)}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                  Hourly rate
+                </p>
+                <p className="mt-2 text-sm font-bold text-slate-900">
+                  {formatMoney(contract.hourly_rate)}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                  Weekly limit
+                </p>
+                <p className="mt-2 text-sm font-bold text-slate-900">
+                  {contract.weekly_hour_limit || "—"} hrs
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-amber-50 p-4 text-sm leading-7 text-slate-700">
+              {contractType === "HOURLY"
+                ? "Hourly contracts show weekly work logs below. Each week can be reviewed and paid after the logged sessions are verified."
+                : "Fixed contracts show submitted milestone files below. You can review each submission and request changes from the milestone card."}
             </div>
           </div>
-
-          {/* Dynamic Filter Dependent Viewport Segment */}
-          {activeTab === 'Active' ? (
-            <div className="space-y-6">
-              
-              {/* Active Pending Milestone Card */}
-              <div className="bg-surface-container-lowest rounded-xl shadow-xs border border-primary-container/10 overflow-hidden">
-                <div className="p-6 md:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8">
-                  <div className="flex items-start gap-4 md:gap-6">
-                    <div className="w-12 h-12 md:w-14 md:h-14 bg-tertiary-fixed rounded-2xl flex items-center justify-center shrink-0 shadow-xs">
-                      <span className="material-symbols-outlined text-on-tertiary-fixed-variant text-2xl md:text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}><Timer/></span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h4 className="font-headline font-bold text-lg md:text-xl text-on-background">Milestone 3: CI/CD Pipeline AWS Migration</h4>
-                        <span className="bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-widest">Pending Approval</span>
-                      </div>
-                      <p className="text-xs md:text-sm text-on-secondary-container max-w-2xl leading-relaxed font-body">
-                        Verification of automated deployment stages in staging. Submission includes full architectural diagrams and security sign-off for the new pipeline infrastructure.
-                      </p>
-                      <div className="flex items-center gap-6 pt-2 text-xs text-on-secondary-container font-label">
-                        <span className="flex items-center gap-1.5 font-medium">
-                          <span className="material-symbols-outlined text-base md:text-lg">calendar_today</span> Due Sep 15
-                        </span>
-                        <span className="flex items-center gap-1.5 font-bold text-primary">
-                          <span className="material-symbols-outlined text-base md:text-lg">payments</span> $6,500.00
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-row lg:flex-col sm:flex-row gap-3 items-center border-t lg:border-t-0 pt-6 lg:pt-0 w-full lg:w-auto justify-end">
-                    <button className="flex-1 lg:flex-none px-5 py-2.5 text-on-secondary-container font-semibold hover:bg-surface-container-low rounded-full transition-all text-xs md:text-sm whitespace-nowrap">
-                      Request Changes
-                    </button>
-                    <button className="flex-1 lg:flex-none px-8 py-3 bg-primary text-white font-bold rounded-full shadow-md shadow-primary/10 hover:scale-[1.01] active:scale-95 transition-all text-xs md:text-sm whitespace-nowrap">
-                      Approve and Pay
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Upcoming Milestone Row Segment */}
-              <div className="bg-surface-container-lowest p-6 md:p-8 rounded-xl border border-outline-variant/20 flex flex-col lg:flex-row lg:items-center justify-between gap-6 md:gap-8 opacity-75">
-                <div className="flex items-start gap-4 md:gap-6">
-                  <div className="w-12 h-12 md:w-14 md:h-14 bg-surface-container rounded-2xl flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-outline text-2xl md:text-3xl"><Hourglass/></span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <h4 className="font-headline font-bold text-lg md:text-xl text-on-background">Milestone 4: Security Hardening &amp; Pentesting</h4>
-                      <span className="bg-surface-container text-on-secondary-container px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">In Progress</span>
-                    </div>
-                    <p className="text-xs md:text-sm text-on-secondary-container max-w-2xl leading-relaxed font-body">
-                      Implementation of Zero-Trust architecture and final stress testing protocols. Preparing environment for external security audit.
-                    </p>
-                    <div className="flex items-center gap-6 pt-2 text-xs text-on-secondary-container font-medium font-label">
-                      <span className="flex items-center gap-1.5"><span class="material-symbols-outlined text-base md:text-lg">calendar_today</span> Due Oct 12</span>
-                      <span className="flex items-center gap-1.5"><span class="material-symbols-outlined text-base md:text-lg">payments</span> $6,000.00</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right lg:w-auto w-full">
-                  <span className="text-xs md:text-sm font-semibold text-on-secondary-container/60 block italic px-4 py-2">
-                    Awaiting submission
-                  </span>
-                </div>
-              </div>
-
-            </div>
-          ) : (
-            <div className="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/20 text-center py-12">
-              <span className="material-symbols-outlined text-3xl text-outline mb-2">history</span>
-              <p className="text-sm font-medium text-on-secondary-container font-body">Historical or past approved milestones appear here.</p>
-            </div>
-          )}
         </section>
 
-        {/* Message Shortcut Component Block Frame */}
-        <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-40 group">
-          <button 
-            onClick={() => setChatOpen(!chatOpen)}
-            className="w-14 h-14 md:w-16 md:h-16 bg-primary-container text-white rounded-full shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-300 relative"
-          >
-            <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>chat</span>
-            {!chatOpen && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-error text-white text-[10px] flex items-center justify-center rounded-full font-bold">2</span>
-            )}
-          </button>
-
-          {/* Contextual Real-time Mini Chat Module */}
-          <div className={`absolute bottom-20 right-0 w-72 md:w-80 bg-surface-container-lowest shadow-2xl rounded-lg border border-outline-variant/20 overflow-hidden transition-all duration-300 origin-bottom-right ${
-            chatOpen ? 'scale-100 opacity-100 visible' : 'scale-90 opacity-0 invisible'
-          }`}>
-            <div className="bg-primary-container p-4 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20">
-                  <img 
-                    alt="Alex Rivera Small Profile" 
-                    className="w-full h-full object-cover" 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBw7pLfXPiMDCwXm3SWJrDbzRnwLdhoKit-xmT1-z8u22qNdW-eFsLqfXNr3gaPvr9CCWwm-PGifnusJ_C2nTD9_DKvYzab3bCP3briK6iF5eHUr__28FMSje5ZM6yvxdGJGSNrFqmGBZHV9FSDci6HTSloy7R3wklOgKY2TDCiKMyyYiTVa_EaQJxwY4mPgBKZfkOGdlDd3wBRuA41Fq2yX4huQYWXw1ctcQXdbFti5UkIPyCqXVSW9GO5t1Nsh7yAPaLiRVHHl42v"
-                  />
-                </div>
-                <div>
-                  <p className="text-xs font-bold leading-none font-headline">Alex Rivera</p>
-                  <p className="text-[10px] opacity-70 mt-0.5 font-label">Online</p>
-                </div>
+        {contractType === "HOURLY" ? (
+          <section className="mt-8 rounded-4xl border border-white/70 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+                  Weekly hours
+                </p>
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">
+                  Weekly work logs and payment
+                </h2>
               </div>
-              <button 
-                onClick={() => setChatOpen(false)}
-                className="material-symbols-outlined text-lg hover:bg-white/10 rounded-full p-1 transition-colors flex items-center justify-center"
+              <button
+                type="button"
+                onClick={() => void syncWeeklyLogs()}
+                className="inline-flex items-center gap-2 self-start rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
               >
-                close
+                {loadingWeeklyLogs ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CalendarDays className="h-4 w-4" />
+                )}
+                Refresh week
               </button>
             </div>
-            
-            {/* Dynamic Interactive Feed Frame */}
-            <div className="h-64 p-4 overflow-y-auto space-y-4 bg-surface">
-              {messages.map((msg) => (
-                <div key={msg.id} className={`flex ${msg.isUser ? 'flex-row-reverse' : ''} gap-2`}>
-                  <div className={`max-w-[80%] p-3 rounded-lg text-xs font-body ${
-                    msg.isUser 
-                      ? 'bg-primary-container text-white rounded-tr-none' 
-                      : 'bg-surface-container-low text-on-surface rounded-tl-none border border-outline-variant/10'
-                  }`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
+
+            {loadingWeeklyLogs ? (
+              <div className="mt-6 rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-500">
+                Loading weekly logs...
+              </div>
+            ) : weeklyLogs.length > 0 ? (
+              <div className="mt-6 space-y-6">
+                {weeklyLogs.map((week) => {
+                  const weekKey = `${week.week_number}-${new Date(week.week_start).getFullYear()}`;
+                  const allSessionsPaid = week.days.every((day) =>
+                    day.sessions.every((session) => session.is_paid),
+                  );
+
+                  return (
+                    <article
+                      key={weekKey}
+                      className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-slate-50"
+                    >
+                      <div className="flex flex-col gap-4 border-b border-slate-200 bg-linear-to-r from-slate-950 to-slate-800 p-5 text-white md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/60">
+                            Week {week.week_number}
+                          </p>
+                          <h3 className="mt-2 text-xl font-black tracking-tight">
+                            {formatDate(week.week_start)} -{" "}
+                            {formatDate(week.week_end)}
+                          </h3>
+                          <p className="mt-2 text-sm text-white/70">
+                            {week.total_hours.toFixed(2)} total hours logged
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => void handlePayWeek(week)}
+                          disabled={
+                            allSessionsPaid || payingWeekKey === weekKey
+                          }
+                          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {payingWeekKey === weekKey ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Wallet className="h-4 w-4" />
+                          )}
+                          {allSessionsPaid ? "Paid" : "Pay weekly logs"}
+                        </button>
+                      </div>
+
+                      <div className="grid gap-4 p-5">
+                        {week.days.map((day) => (
+                          <div
+                            key={`${weekKey}-${day.date}`}
+                            className="rounded-2xl border border-slate-200 bg-white p-4"
+                          >
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="text-sm font-black text-slate-900">
+                                  {day.day}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  {formatDate(day.date)}
+                                </p>
+                              </div>
+                              <p className="text-sm font-bold text-slate-700">
+                                {day.total_hours.toFixed(2)} hrs
+                              </p>
+                            </div>
+
+                            <div className="mt-4 space-y-3">
+                              {day.sessions.map((session) => (
+                                <div
+                                  key={session.id}
+                                  className="flex flex-col gap-3 rounded-2xl bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                  <div>
+                                    <p className="text-sm font-bold text-slate-900">
+                                      Session #{session.id}
+                                    </p>
+                                    <p className="text-xs text-slate-500">
+                                      {formatTime(session.start_time)} -{" "}
+                                      {formatTime(session.end_time)}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className="rounded-full bg-slate-900 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-white">
+                                      {session.total_hours.toFixed(2)} hrs
+                                    </span>
+                                    <span
+                                      className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] ${session.is_paid ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-700"}`}
+                                    >
+                                      {session.is_paid ? "Paid" : "Unpaid"}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="mt-6 rounded-[1.75rem] border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
+                <p className="text-sm font-semibold text-slate-500">
+                  No weekly logs found for this contract yet.
+                </p>
+              </div>
+            )}
+          </section>
+        ) : (
+          <section className="mt-8 rounded-4xl border border-white/70 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500">
+                  Milestones
+                </p>
+                <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-950">
+                  Submitted files and change requests
+                </h2>
+              </div>
+              <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-slate-600">
+                {milestones.length} milestone
+                {milestones.length === 1 ? "" : "s"}
+              </div>
             </div>
 
-            {/* Form Messaging Submission Context */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t border-outline-variant/20 bg-white">
-              <div className="relative flex items-center">
-                <input 
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  className="w-full pl-4 pr-10 py-2.5 bg-surface-container-low border-none rounded-full text-xs focus:ring-2 focus:ring-primary-container/30 text-on-surface focus:outline-none" 
-                  placeholder="Type a message..." 
-                  type="text"
-                />
-                <button 
-                  type="submit" 
-                  className="absolute right-2 material-symbols-outlined text-primary text-xl p-1 hover:bg-surface-container rounded-full flex items-center justify-center transition-colors"
-                >
-                  send
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+            <div className="mt-6 space-y-4">
+              {milestones.length > 0 ? (
+                milestones.map((milestone) => {
+                  const meta = getMilestoneStatusMeta(milestone.Status);
+                  // const canRequestChanges = ![
+                  //   "PAID",
+                  //   "REVISION_REQUESTED",
+                  // ].includes((milestone.Status ?? "").toUpperCase());
 
+                  return (
+                    <article
+                      key={milestone.ID}
+                      className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 md:p-6"
+                    >
+                      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="max-w-4xl">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <h3 className="text-xl font-black tracking-tight text-slate-950">
+                              {milestone.Description}
+                            </h3>
+                            <span
+                              className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] ${meta.className}`}
+                            >
+                              <meta.Icon className="h-3.5 w-3.5" />
+                              {meta.label}
+                            </span>
+                          </div>
+
+                          <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600">
+                            {milestone.WorkDescription ||
+                           
+                              "No additional milestone work description provided."}
+                          </p>
+                          {
+                            milestone.Status == "SUBMITTED" ? (
+                              <div className="mt-4">
+                            <label
+                              htmlFor={`feedback-${milestone.ID}`}
+                              className="block text-sm font-medium text-red-700"
+                            >
+                              {feedBeckError }
+                            </label>
+                            <textarea
+                              id={`feedback-${milestone.ID}`}
+                              rows={3}
+                              className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-50 py-2 px-3 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Enter your feedback for requesting changes..."
+                              value={milestoneFeedbacks[milestone.ID] || ""}
+                              onChange={(e) =>
+                                setMilestoneFeedbacks({
+                                  ...milestoneFeedbacks,
+                                  [milestone.ID]: e.target.value,
+                                })
+                              }
+                            />
+                          </div>
+                            ): null
+                          }
+                          
+
+                          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                            <div className="rounded-2xl bg-white p-4">
+                              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                                Due date
+                              </p>
+                              <p className="mt-2 text-sm font-bold text-slate-900">
+                                {formatDate(milestone.Due_date)}
+                              </p>
+                            </div>
+                            <div className="rounded-2xl bg-white p-4">
+                              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                                Amount
+                              </p>
+                              <p className="mt-2 text-sm font-bold text-slate-900">
+                                {formatMoney(milestone.Amount)}
+                              </p>
+                            </div>
+                            <div className="rounded-2xl bg-white p-4">
+                              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                                Submission
+                              </p>
+                              {milestone.submission_url ? (
+                                <a
+                                  href={milestone.submission_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="mt-2 inline-flex items-center gap-2 text-sm font-bold text-slate-950 underline decoration-slate-300 underline-offset-4 transition hover:text-slate-700"
+                                >
+                                  View submitted file
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                              ) : (
+                                <p className="mt-2 text-sm font-semibold text-slate-500">
+                                  Awaiting submission
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex shrink-0 flex-col gap-3 lg:items-end">
+                          <button
+                            type="button"
+                            onClick={() => void handleRequestChanges(milestone)}
+                            disabled={
+                             milestone.Status !== "SUBMITTED" || requestingMilestoneId === milestone.ID
+                            }
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            {requestingMilestoneId === milestone.ID ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <RefreshCcw className="h-4 w-4" />
+                            )}
+                            Request changes
+                          </button>
+
+                          {milestone.submission_url ? (
+                            <>
+                            {/* <a
+                              href={milestone.submission_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                            >
+                              Review file
+                              <FileText className="h-4 w-4" />
+                            </a> */}
+                            <button 
+                            
+                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-emerald-200"
+                              onClick={() => void handleUpdateContractStatus("APPROVED", milestone.ID)}
+                            >
+
+                              Approve and pay 
+                            </button>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })
+              ) : (
+                <div className="rounded-[1.75rem] border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
+                  <p className="text-sm font-semibold text-slate-500">
+                    No milestones are attached to this fixed contract.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

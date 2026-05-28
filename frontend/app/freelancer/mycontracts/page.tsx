@@ -15,7 +15,7 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
-import { type Contract, useGetMyContractsQuery } from "@/api/contractapi";
+import { type Contract, useGetMyContractsQuery ,useStartWorkSessionMutation , useEndWorkSessionMutation} from "@/api/contractapi";
 import { useGetJobByIdQuery } from "@/api/jobsapi";
 
 type ContractFilter = "ALL" | "ACTIVE" | "COMPLETED" | "CANCELLED";
@@ -134,7 +134,9 @@ function ContractCard({ contract }: { contract: Contract }) {
   const router = useRouter();
 
   return (
-    <div className="group flex flex-col gap-6 rounded-2xl bg-surface p-8 shadow-xl transition-shadow hover:shadow-2xl">
+    <div 
+    onClick={()=> router.push(`/freelancer/mycontracts/${contract.contract_id}`)}
+    className="group flex flex-col gap-6 rounded-2xl bg-surface p-8 shadow-xl transition-shadow hover:shadow-2xl">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl ring-2 ring-primary ring-offset-2">
@@ -173,7 +175,9 @@ function ContractCard({ contract }: { contract: Contract }) {
       </div>
 
       {isHourly ? (
-        <div className="rounded-2xl border border-outline-variant/50 bg-surface-container-low p-5">
+        <div 
+        
+        className="rounded-2xl border border-outline-variant/50 bg-surface-container-low p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
@@ -207,7 +211,9 @@ function ContractCard({ contract }: { contract: Contract }) {
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div 
+
+        className="space-y-3">
           <div className="flex justify-between text-sm font-bold">
             <span className="text-on-surface-variant">Project Progress</span>
             <span className="text-primary">{progressPercent}%</span>
@@ -268,10 +274,12 @@ function ContractCard({ contract }: { contract: Contract }) {
         </div>
         <div>
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Due Date
+            {contractType === "HOURLY" ? "Weekly Cap" : "Due Date"}
           </p>
           <p className="text-xl font-black text-on-surface">
-            {formatDate(contract.end_date)}
+            {contractType === "HOURLY"
+              ? `${contract.weekly_hour_limit} hours`
+              : formatDate(contract.end_date)}
           </p>
         </div>
       </div>
@@ -286,7 +294,10 @@ function ContractCard({ contract }: { contract: Contract }) {
         <button
           type="button"
           className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-outline-variant py-3 text-sm font-bold text-on-surface-variant transition-all hover:bg-slate-50 active:scale-95"
-          onClick={() => router.push(`/messages?userid=${contract.client_id}`)}
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/messages?userid=${contract.client_id}`);
+          }}
         >
           <MessageCircle className="size-4" />
           <span
