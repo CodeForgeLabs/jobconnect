@@ -43,6 +43,22 @@ export interface WorkSessionLogEntry {
 	is_paid: boolean;
 }
 
+export interface WorkSessionTimeLogApiEntry {
+	ID: number;
+	ContractID: number;
+	FreelancerID: number;
+	start_time: string;
+	end_time?: string;
+	TotalHours: number;
+	IsPaid: boolean;
+	CreatedAt: string;
+	UpdatedAt: string;
+}
+
+export interface WorkSessionTimeLogsResponse {
+	time_logs: WorkSessionTimeLogApiEntry[];
+}
+
 export interface WorkSessionDayLog {
 	day: string;
 	date: string;
@@ -71,6 +87,7 @@ export interface UpdateContractStatusRequest {
 export interface UpdateMilestoneStatusRequest {
 	milestoneId: number;
 	newStatus: ContractMilestoneStatus;
+	feedback?: string;
 	
 }
 
@@ -190,9 +207,12 @@ export const contractApi = baseApi.injectEndpoints({
 			ApiMessageResponse,
 			UpdateMilestoneStatusRequest
 		>({
-			query: ({ milestoneId, newStatus }) => ({
+			query: ({ milestoneId, newStatus , feedback }) => ({
 				url: `/contracts/milestone/${milestoneId}/status?new_status=${encodeURIComponent(newStatus)}`,
 				method: "PATCH",
+				body: {
+					feedback
+				}
 			}),
 		}),
 
@@ -225,7 +245,7 @@ export const contractApi = baseApi.injectEndpoints({
 			}),
 		}),
 
-		getWorkSessionTimeLogs: builder.mutation<Record<string, unknown>, WorkSessionRequest>({
+		getWorkSessionTimeLogs: builder.mutation<WorkSessionTimeLogsResponse, WorkSessionRequest>({
 			query: (body) => ({
 				url: "/contracts/work-session/time-logs",
 				method: "POST",

@@ -107,9 +107,15 @@ const Jobsearch = () => {
     isError: isAllJobsError,
   } = useGetJobsQuery(filters);
 
-  
+  const {
+    data: myJobs = [],
+    isLoading: isLoadingMyJobs,
+    isFetching: isFetchingMyJobs,
+    isError: isMyJobsError,
+  } = useGetMyJobsQuery(undefined, { skip: !showMyJobs });
+
   const visibleJobs = useMemo(() => {
-    const baseJobs =  allJobs;
+    const baseJobs = showMyJobs ? myJobs : allJobs;
 
     if (skills.length === 0) return baseJobs;
 
@@ -121,11 +127,11 @@ const Jobsearch = () => {
         tags.some((tag) => tag.includes(skill)),
       );
     });
-  }, [ allJobs, skills]);
+  }, [allJobs, myJobs, showMyJobs, skills]);
 
-  const isLoading = isLoadingAllJobs;
-  const isFetching = isFetchingAllJobs;
-  const isError =  isAllJobsError;
+  const isLoading = showMyJobs ? isLoadingMyJobs : isLoadingAllJobs;
+  const isFetching = showMyJobs ? isFetchingMyJobs : isFetchingAllJobs;
+  const isError = showMyJobs ? isMyJobsError : isAllJobsError;
 
   return (
     <div className="flex p-14 bg-[#ebedf1] gap-8">
@@ -379,26 +385,32 @@ const Jobsearch = () => {
 
           {!isError &&
             visibleJobs.map((job) => (
-             <div
+              <div
                 key={job.id}
-                onClick={() => router.push(`job/${job.id}`)}
+                onClick={() => router.push(`/freelancer/job/${job.id}`)}
                 className="cursor-pointer"
               >
-              <Jobcard
-                key={job.id}
-                title={job.title}
-                pay={String(
-                  job.job_type === "HOURLY" ? job.hourly_rate : job.budget,
-                )}
-                type={job.job_type === "HOURLY" ? "hourly" : "fixed"}
-                description={job.description}
-                postTime={formatPostedTime(job.created_at)}
-                tags={parseSkills(job.skills)}
-              
-              />
-
-             </div>
-              
+                <Jobcard
+                  title={job.title}
+                  pay={String(
+                    job.job_type === "HOURLY" ? job.hourly_rate : job.budget,
+                  )}
+                  type={job.job_type === "HOURLY" ? "HOURLY" : "FIXED"}
+                  description={job.description}
+                  postTime={formatPostedTime(job.created_at)}
+                  tags={parseSkills(job.skills)}
+                  companyName={job.company_name || "Unknown client"}
+                  status={job.status}
+                  skills={job.skills}
+                  jobType={job.job_type === "HOURLY" ? "HOURLY" : "FIXED"}
+                  hourlyRate={String(job.hourly_rate)}
+                  budget={String(job.budget)}
+                  experienceLevel={job.experience_level}
+                  createdAt={job.created_at}
+                  index={visibleJobs.indexOf(job)}
+                  onApply={() => router.push(`/freelancer/job/${job.id}`)}
+                />
+              </div>
             ))}
         </div>
       </div>

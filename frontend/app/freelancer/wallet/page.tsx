@@ -52,7 +52,7 @@ const WalletPage = () => {
   }, 0);
 
   return (
-    <div className="flex flex-col gap-6 p-7 bg-[#ebedf1] ">
+    <div className="flex flex-col gap-6 p-7 bg-surface">
       <div>
         <h1>Wallet & Payments</h1>
         <p className="text-gray-500 text-sm">

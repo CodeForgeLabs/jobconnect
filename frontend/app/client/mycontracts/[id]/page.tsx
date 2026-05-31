@@ -279,10 +279,12 @@ export default function ContractManagement() {
       setRequestingMilestoneId(null);
       return;
     }
+    console.log("Requesting changes for milestone", milestone.ID, "with feedback:", milestoneFeedbacks[milestone.ID]);
     try {
       await updateMilestoneStatus({
         milestoneId: milestone.ID,
         newStatus: "REVISION_REQUESTED",
+        feedback: milestoneFeedbacks[milestone.ID],
         
       }).unwrap();
       setPageMessage(`Requested changes for ${milestone.Description}.`);
@@ -759,11 +761,36 @@ const handleUpdateContractStatus = async (
                             </span>
                           </div>
 
-                          <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-600">
-                            {milestone.WorkDescription ||
-                           
-                              "No additional milestone work description provided."}
+                        <div className="mt-5 space-y-4">
+                      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <div className="flex items-center gap-1">
+                          <FileText className="h-4 w-4 text-slate-500" />
+                          <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">
+                            Submission Description
                           </p>
+                        </div>
+
+                        <p className="mt-1 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                          {milestone.WorkDescription ||
+                            "No additional milestone work description provided."}
+                        </p>
+                      </div>
+
+                      {milestone.ClientFeedback && (
+                        <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-5 shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <MessageCircle className="h-4 w-4 text-rose-500" />
+                            <p className="text-xs font-black uppercase tracking-[0.22em] text-rose-600">
+                              Client Feedback
+                            </p>
+                          </div>
+
+                          <p className="mt-1 whitespace-pre-wrap text-sm leading-7 text-rose-900">
+                            {milestone.ClientFeedback}
+                          </p>
+                        </div>
+                      )}
+                      </div>
                           {
                             milestone.Status == "SUBMITTED" ? (
                               <div className="mt-4">
@@ -837,6 +864,7 @@ const handleUpdateContractStatus = async (
                             onClick={() => void handleRequestChanges(milestone)}
                             disabled={
                              milestone.Status !== "SUBMITTED" || requestingMilestoneId === milestone.ID
+                             
                             }
                             className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                           >
@@ -848,7 +876,7 @@ const handleUpdateContractStatus = async (
                             Request changes
                           </button>
 
-                          {milestone.submission_url ? (
+                          {milestone.Status === "SUBMITTED" ? (
                             <>
                             {/* <a
                               href={milestone.submission_url}
@@ -863,7 +891,9 @@ const handleUpdateContractStatus = async (
                             
                               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-emerald-200"
                               onClick={() => void handleUpdateContractStatus("APPROVED", milestone.ID)}
+                              disabled={milestone.Status !== "SUBMITTED" }
                             >
+                            
 
                               Approve and pay 
                             </button>

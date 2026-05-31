@@ -44,6 +44,21 @@ export interface RegisterRequest {
   role: "CLIENT" | "FREELANCER";
 }
 
+export interface FetchUsersParams {
+  skills?: string;
+  location?: string;
+  min_hourly_rate?: number;
+}
+
+export interface SendOtpRequest {
+  email: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
 /* ========================
    🌐 API
 ======================== */
@@ -95,6 +110,38 @@ export const userApi = baseApi.injectEndpoints({
     // 🔎 SEARCH USERS BY NAME
     searchUsersByName: builder.query<User[], string>({
       query: (name) => `/users/search?name=${name}`,
+    }),
+
+    // 🔎 LIST USERS WITH FILTERS
+    fetchUsers: builder.query<User[], FetchUsersParams | void>({
+      query: (filters) => ({
+        url: "/users/fetch",
+        params: {
+          ...(filters?.skills ? { skills: filters.skills } : {}),
+          ...(filters?.location ? { location: filters.location } : {}),
+          ...(filters?.min_hourly_rate !== undefined
+            ? { min_hourly_rate: filters.min_hourly_rate }
+            : {}),
+        },
+      }),
+    }),
+
+    // 📩 SEND OTP
+    sendOtp: builder.mutation<Record<string, string>, SendOtpRequest>({
+      query: ({ email }) => ({
+        url: "/users/send-otp",
+        method: "POST",
+        params: { email },
+      }),
+    }),
+
+    // ✅ VERIFY OTP
+    verifyOtp: builder.mutation<Record<string, string>, VerifyOtpRequest>({
+      query: ({ email, otp }) => ({
+        url: "/users/verify-otp",
+        method: "POST",
+        params: { email, otp },
+      }),
     }),
 
     // ✏️ UPDATE USER (Cloudinary URL goes here)
@@ -183,6 +230,9 @@ export const {
   useGetUserByEmailQuery,
   useGetUserByIdQuery,
   useSearchUsersByNameQuery,
+  useFetchUsersQuery,
+  useSendOtpMutation,
+  useVerifyOtpMutation,
   useUpdateMeMutation,
   useDeleteMeMutation,
   useUploadImageMutation,

@@ -105,7 +105,7 @@ const Navbar = () => {
           <span className="btn btn-ghost text-xl p-0">JobConnect</span>
         </Link>
 
-        {isLoggedIn && (
+        {/* {isLoggedIn && (
           <div className="relative flex items-center w-full max-w-md">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search className="w-5 h-5 text-gray-400" />
@@ -126,7 +126,7 @@ const Navbar = () => {
               </button>
             )}
           </div>
-        )}
+        )} */}
       </div>
 
       <div className="flex items-center gap-1">

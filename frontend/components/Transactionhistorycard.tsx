@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useGetWalletTransactionsQuery } from "@/api/walletapi";
 
 const formatDate = (value: string) =>
@@ -11,6 +12,27 @@ const formatDate = (value: string) =>
 
 const TransactionHistoryCard = () => {
   const { data: transactions = [] } = useGetWalletTransactionsQuery();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const transactionsPerPage = 5;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(transactions.length / transactionsPerPage),
+  );
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * transactionsPerPage;
+  const visibleTransactions = transactions.slice(
+    startIndex,
+    startIndex + transactionsPerPage,
+  );
+
+  const goToPreviousPage = () => {
+    setCurrentPage((page) => Math.max(1, page - 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((page) => Math.min(totalPages, page + 1));
+  };
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
@@ -37,7 +59,7 @@ const TransactionHistoryCard = () => {
               </p>
             </div>
           ) : (
-            transactions.map((transaction) => {
+            visibleTransactions.map((transaction) => {
               const isPositive = transaction.Status === "SUCCESS";
               const amountPrefix = isPositive ? "+" : "-";
               const statusStyles =
@@ -106,6 +128,40 @@ const TransactionHistoryCard = () => {
             })
           )}
         </div>
+
+        {transactions.length > 0 ? (
+          <div className="flex items-center justify-between gap-4 border-t border-gray-200 px-6 py-4">
+            <p className="text-xs text-gray-500">
+              Showing {startIndex + 1}-
+              {Math.min(startIndex + transactionsPerPage, transactions.length)}{" "}
+              of {transactions.length}
+            </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={goToPreviousPage}
+                disabled={safeCurrentPage === 1}
+                className="rounded-md border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-jobBlue hover:text-jobBlue disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Previous
+              </button>
+
+              <span className="rounded-md bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-600">
+                Page {safeCurrentPage} of {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={goToNextPage}
+                disabled={safeCurrentPage === totalPages}
+                className="rounded-md border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-jobBlue hover:text-jobBlue disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

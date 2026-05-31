@@ -123,7 +123,7 @@ export default function ClientDashboard() {
               Welcome back, {displayName}
             </h1>
           </div>
-          <div className="flex gap-4">
+          <div className="flex gap-4 text-xs">
             <button className="flex items-center gap-2 px-6 py-4 bg-secondary-container text-on-secondary-container font-bold rounded hover:bg-secondary-fixed transition-all active:scale-95">
               <UserPlus className="h-5 w-5" aria-hidden="true" />
               Invite Freelancers
@@ -380,63 +380,9 @@ export default function ClientDashboard() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-surface-container-low py-16 w-full flex flex-col md:flex-row justify-between items-center px-12 gap-8">
-        <div className="flex flex-col gap-4">
-          <span className="font-headline text-xl font-bold text-primary">
-            JobConnect
-          </span>
-          <p className="font-body text-xs text-on-surface-variant">
-            © 2024 JobConnect. Architecting the future of work.
-          </p>
-        </div>
-        <div className="flex gap-12">
-          <div className="flex flex-col gap-3">
-            <span className="font-label text-xs font-bold text-on-surface uppercase tracking-widest">
-              Company
-            </span>
-            <a
-              className="font-body text-xs text-on-surface-variant hover:text-primary transition-all hover:underline underline-offset-4"
-              href="#"
-            >
-              About
-            </a>
-            <a
-              className="font-body text-xs text-on-surface-variant hover:text-primary transition-all hover:underline underline-offset-4"
-              href="#"
-            >
-              Privacy
-            </a>
-            <a
-              className="font-body text-xs text-on-surface-variant hover:text-primary transition-all hover:underline underline-offset-4"
-              href="#"
-            >
-              Terms
-            </a>
-          </div>
-          <div className="flex flex-col gap-3">
-            <span className="font-label text-xs font-bold text-on-surface uppercase tracking-widest">
-              Support
-            </span>
-            <a
-              className="font-body text-xs text-on-surface-variant hover:text-primary transition-all hover:underline underline-offset-4"
-              href="#"
-            >
-              Help Center
-            </a>
-            <a
-              className="font-body text-xs text-on-surface-variant hover:text-primary transition-all hover:underline underline-offset-4"
-              href="#"
-            >
-              Contact
-            </a>
-          </div>
-        </div>
-      </footer>
 
-      {/* FAB for quick job posting */}
-      <button className="fixed bottom-8 right-8 h-16 w-16 bg-linear-to-br from-primary to-primary-container text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-60">
-        <span className="material-symbols-outlined text-3xl">add</span>
-      </button>
+
+  
     </>
   );
 }

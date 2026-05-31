@@ -238,10 +238,7 @@ export default function JobProposalsPage() {
               <h2 className="text-2xl font-bold tracking-tight text-on-surface">
                 Job proposals
               </h2>
-              <p className="text-sm text-on-surface-variant">
-                Each card uses the user-by-id lookup for the latest avatar and
-                name data.
-              </p>
+             
             </div>
           </div>
 
@@ -253,7 +250,7 @@ export default function JobProposalsPage() {
             <div className="rounded-3xl border border-dashed border-error/40 bg-error-container/20 p-8 text-center text-sm text-error">
               {proposalError}
             </div>
-          ) : proposals?.length === 0 ? (
+          ) : !proposals ? (
             <div className="rounded-3xl border border-dashed border-outline-variant/30 bg-surface-container-low p-8 text-center text-sm text-on-surface-variant">
               No proposals yet.
             </div>

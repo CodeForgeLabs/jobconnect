@@ -127,7 +127,7 @@ useEffect(() => {
       ? userData.skills.split(",")
       : [];
   return (
-    <div className="flex p-8 bg-[#ebedf1] ">
+    <div className="flex p-8 bg-surface ">
       <div className="flex flex-col gap-7 w-[30%]">
         <div className="flex flex-col items-center bg-white p-5 rounded-lg shadow-md">
           <div className="avatar relative">

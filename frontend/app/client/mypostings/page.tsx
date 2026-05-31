@@ -1,28 +1,90 @@
 "use client";
-import React, { useMemo, useState } from "react";
-import { useCreateJobMutation, useGetMyJobsQuery } from "@/api/jobsapi";
-import { Banknote, Clock3 , Edit , MoreVertical } from "lucide-react";
+import React, { useState } from "react";
+import {
+  type ExperienceLevel,
+  type JobType,
+  type WorkMode,
+  useCreateJobMutation,
+  useDeleteJobMutation,
+  useGetMyJobsQuery,
+} from "@/api/jobsapi";
+import { useGetWalletBalanceQuery } from "@/api/walletapi";
+import {
+  AlertTriangle,
+  Banknote,
+  Clock3,
+  CreditCard,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+
+type MilestoneDraft = {
+  amount: string;
+  deadline: string;
+  description: string;
+};
+
+type JobFormState = {
+  title: string;
+  category: string;
+  company_name: string;
+  description: string;
+  experience_level: ExperienceLevel;
+  hourly_rate: string;
+  budget: string;
+  is_private: boolean;
+  job_type: JobType;
+  location: string;
+  max_weekly_hours: string;
+  skills: string;
+  work_mode: WorkMode;
+};
+
+type FormErrors = Partial<Record<string, string>>;
+
+const defaultMilestone = (): MilestoneDraft => ({
+  amount: "",
+  deadline: "",
+  description: "",
+});
+
+const defaultForm: JobFormState = {
+  title: "",
+  category: "",
+  company_name: "",
+  description: "",
+  experience_level: "ENTRY",
+  hourly_rate: "",
+  budget: "",
+  is_private: false,
+  job_type: "FIXED",
+  location: "",
+  max_weekly_hours: "",
+  skills: "",
+  work_mode: "REMOTE",
+};
+
+const formatMoney = (currency: string, amountMinor: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(amountMinor);
+
+const toDateInputValue = (date: Date) => date.toISOString().slice(0, 10);
+
 export default function MyPostingsView() {
   const [activeTab, setActiveTab] = useState("open");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [milestones, setMilestones] = useState<MilestoneDraft[]>([
+    defaultMilestone(),
+  ]);
   const pageSize = 4;
-  const [form, setForm] = useState({
-    title: "",
-    category: "",
-    company_name: "",
-    description: "",
-    experience_level: "ENTRY",
-    hourly_rate: "",
-    budget: "",
-    is_private: false,
-    job_type: "FIXED",
-    location: "",
-    max_weekly_hours: "",
-    skills: "",
-    work_mode: "REMOTE",
-  });
+  const [form, setForm] = useState<JobFormState>(defaultForm);
 
   const {
     data: myJobs = [],
@@ -31,11 +93,26 @@ export default function MyPostingsView() {
     refetch,
   } = useGetMyJobsQuery();
 
-  const [createJob, { isLoading: isCreating }] = useCreateJobMutation();
+  const { data: wallet } = useGetWalletBalanceQuery();
 
-  const normalizeStatus = (status?: string) => {
+  const [createJob, { isLoading: isCreating }] = useCreateJobMutation();
+  const [deleteJob] = useDeleteJobMutation();
+  const walletCurrency = wallet?.Currency ?? "ETB";
+  const walletBalanceMinor = wallet?.BalanceMinor ?? 0;
+  const budgetValue = Number(form.budget || 0);
+  const budgetMinor = budgetValue;
+  const milestoneTotal = milestones.reduce((total, milestone) => {
+    const amount = Number(milestone.amount || 0);
+    return total + (Number.isFinite(amount) ? amount : 0);
+  }, 0);
+  const milestoneTotalMinor = Math.round(milestoneTotal);
+  const balanceShortfallMinor = Math.max(0, budgetMinor - walletBalanceMinor);
+  const hasEnoughBalance = walletBalanceMinor >= budgetMinor;
+
+  const normalizeStatus = (status?: string): "OPEN" | "CLOSED" | "PAUSED" => {
     const value = (status || "").toUpperCase();
-    if (value === "CLOSED" || value === "PAUSED") return value;
+    if (value === "CLOSED" || value === "PAUSED")
+      return value as "CLOSED" | "PAUSED";
     return "OPEN";
   };
 
@@ -52,22 +129,21 @@ export default function MyPostingsView() {
     })}`;
   };
 
-  const filteredPostings = useMemo(() => {
-    return myJobs.filter((job) => {
-      const status = normalizeStatus(job.status);
-      if (activeTab === "open") return status === "OPEN";
-      if (activeTab === "closed") return status === "CLOSED";
-      return status !== "OPEN" && status !== "CLOSED";
-    });
-  }, [myJobs, activeTab]);
+  const filteredPostings = myJobs.filter((job) => {
+    const status = normalizeStatus(job.status);
+    if (activeTab === "open") return status === "OPEN";
+    if (activeTab === "closed") return status === "CLOSED";
+    return status !== "OPEN" && status !== "CLOSED";
+  });
 
   const totalPages = Math.max(1, Math.ceil(filteredPostings.length / pageSize));
   const activePage = Math.min(currentPage, totalPages);
 
-  const paginatedPostings = useMemo(() => {
-    const startIndex = (activePage - 1) * pageSize;
-    return filteredPostings.slice(startIndex, startIndex + pageSize);
-  }, [filteredPostings, activePage]);
+  const startIndex = (activePage - 1) * pageSize;
+  const paginatedPostings = filteredPostings.slice(
+    startIndex,
+    startIndex + pageSize,
+  );
 
   const openCount = myJobs.filter(
     (job) => normalizeStatus(job.status) === "OPEN",
@@ -79,51 +155,177 @@ export default function MyPostingsView() {
     (job) => normalizeStatus(job.status) === "PAUSED",
   ).length;
 
+  const resetForm = () => {
+    setForm(defaultForm);
+    setMilestones([defaultMilestone()]);
+    setFormErrors({});
+    setFormError(null);
+  };
+
+  const updateMilestone = (
+    index: number,
+    field: keyof MilestoneDraft,
+    value: string,
+  ) => {
+    setMilestones((current) =>
+      current.map((milestone, milestoneIndex) =>
+        milestoneIndex === index ? { ...milestone, [field]: value } : milestone,
+      ),
+    );
+  };
+
+  const addMilestone = () => {
+    setMilestones((current) => [...current, defaultMilestone()]);
+  };
+
+  const removeMilestone = (index: number) => {
+    setMilestones((current) =>
+      current.length === 1
+        ? current
+        : current.filter((_, currentIndex) => currentIndex !== index),
+    );
+  };
+
+  const validateForm = () => {
+    const errors: FormErrors = {};
+    const trimmedTitle = form.title.trim();
+    const trimmedCategory = form.category.trim();
+    const trimmedCompany = form.company_name.trim();
+    const trimmedDescription = form.description.trim();
+    const trimmedLocation = form.location.trim();
+    const trimmedSkills = form.skills.trim();
+
+    if (!trimmedTitle) errors.title = "Job title is required.";
+    if (!trimmedCategory) errors.category = "Category is required.";
+    if (!trimmedCompany) errors.company_name = "Company name is required.";
+    if (!trimmedDescription) errors.description = "Description is required.";
+    if (!trimmedLocation) errors.location = "Location is required.";
+    if (!trimmedSkills) errors.skills = "Add at least one skill.";
+
+    if (!Number.isFinite(budgetValue) || budgetValue <= 0) {
+      errors.budget = "Enter a valid total budget.";
+    }
+
+    if (form.job_type === "HOURLY") {
+      const hourlyRateValue = Number(form.hourly_rate);
+      const weeklyHoursValue = Number(form.max_weekly_hours);
+
+      if (!Number.isFinite(hourlyRateValue) || hourlyRateValue <= 0) {
+        errors.hourly_rate = "Hourly rate is required for hourly jobs.";
+      }
+
+      if (!Number.isFinite(weeklyHoursValue) || weeklyHoursValue <= 0) {
+        errors.max_weekly_hours = "Weekly hours are required for hourly jobs.";
+      }
+    }
+
+    let previousDeadline: number | null = null;
+    const hasInvalidMilestone =
+      form.job_type === "HOURLY"
+        ? false
+        : milestones.some((milestone, index) => {
+      const amountValue = Number(milestone.amount);
+      const parsedDeadline = new Date(milestone.deadline);
+
+      const valid = form.job_type === "HOURLY" ||
+        milestone.description.trim().length > 0 &&
+        Number.isFinite(amountValue) &&
+        amountValue > 0 &&
+        milestone.deadline.length > 0 &&
+        !Number.isNaN(parsedDeadline.getTime());
+
+      if (!valid) {
+        errors[`milestone-${index}`] =
+          "Each milestone needs a description, amount, and deadline.";
+        return true;
+      }
+
+      const currentDeadline = parsedDeadline.getTime();
+      if (previousDeadline !== null && currentDeadline <= previousDeadline) {
+        errors[`milestone-${index}`] =
+          "Milestones must be entered in chronological order by deadline.";
+        return true;
+      }
+
+        previousDeadline = currentDeadline;
+        return false;
+      });
+
+    if (form.job_type !== "HOURLY") {
+      if (milestones.length === 0 || hasInvalidMilestone) {
+        errors.milestones = "Add at least one milestone with a deadline.";
+      }
+
+      if (milestoneTotal <= 0) {
+        errors.milestones = "Milestone amounts must total more than zero.";
+      }
+
+      if (Math.abs(milestoneTotal - budgetValue) > 0.01) {
+        errors.milestones = "Milestone amounts must match the total budget.";
+      }
+    }
+
+    if (!hasEnoughBalance) {
+      errors.balance = `You need ${formatMoney(walletCurrency, balanceShortfallMinor)} more to post this job.`;
+    }
+
+    return errors;
+  };
+
   const handleCreateJob = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const validationErrors = validateForm();
+    setFormErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setFormError("Fix the highlighted fields before posting the job.");
+      return;
+    }
 
     const skills = form.skills
       .split(",")
       .map((skill) => skill.trim())
       .filter(Boolean);
+    const jobType: "FIXED" | "HOURLY" = form.job_type;
 
-    await createJob({
-      title: form.title.trim(),
-      category: form.category.trim(),
-      company_name: form.company_name.trim(),
-      description: form.description.trim(),
-      experience_level: form.experience_level,
-      hourly_rate: Number(form.hourly_rate || 0),
-      budget: Number(form.budget || 0),
-      is_private: form.is_private,
-      job_type: form.job_type,
-      location: form.location.trim(),
-      max_weekly_hours: Number(form.max_weekly_hours || 0),
-      skills,
-      work_mode: form.work_mode,
-      milestones: [],
-    }).unwrap();
+    const payloadMilestones =
+      jobType === "HOURLY"
+        ? []
+        : milestones.map((milestone) => ({
+            amount: Number(milestone.amount),
+            description: milestone.description.trim(),
+            deadline: new Date(milestone.deadline),
+          }));
 
-    setIsCreateOpen(false);
-    setForm({
-      title: "",
-      category: "",
-      company_name: "",
-      description: "",
-      experience_level: "ENTRY",
-      hourly_rate: "",
-      budget: "",
-      is_private: false,
-      job_type: "FIXED",
-      location: "",
-      max_weekly_hours: "",
-      skills: "",
-      work_mode: "REMOTE",
-    });
-    refetch();
+    try {
+      await createJob({
+        title: form.title.trim(),
+        category: form.category.trim(),
+        company_name: form.company_name.trim(),
+        description: form.description.trim(),
+        experience_level: form.experience_level,
+        hourly_rate: Number(form.hourly_rate || 0),
+        budget: budgetValue,
+        is_private: form.is_private,
+        job_type: jobType,
+        location: form.location.trim(),
+        max_weekly_hours: Number(form.max_weekly_hours || 0),
+        skills,
+        work_mode: form.work_mode,
+        milestones: payloadMilestones,
+      }).unwrap();
+
+      setIsCreateOpen(false);
+      resetForm();
+      refetch();
+    } catch (error) {
+      console.error("Failed to create job", error);
+      setFormError("Unable to create the job right now.");
+    }
   };
 
-  const pageNumbers = useMemo(() => {
+  const pageNumbers = (() => {
     if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
@@ -142,13 +344,18 @@ export default function MyPostingsView() {
 
     pages.push(totalPages);
     return pages;
-  }, [activePage, totalPages]);
+  })();
 
   const handleTabClick = (tab: string) => {
     setActiveTab(tab);
     setCurrentPage(1);
   };
   const router = useRouter();
+
+  const handleJobDelete = (jobId: number) => {
+    deleteJob(jobId);
+    console.log(`Delete job with ID: ${jobId}`);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-surface text-on-surface transition-colors duration-200 selection:bg-primary-fixed selection:text-primary">
@@ -166,9 +373,14 @@ export default function MyPostingsView() {
           </div>
           <button
             className="bg-primary text-white px-5 py-3 rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 active:scale-98 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
-            onClick={() => setIsCreateOpen((current) => !current)}
+            onClick={() => {
+              setIsCreateOpen((current) => !current);
+              if (isCreateOpen) {
+                resetForm();
+              }
+            }}
           >
-            <span className="material-symbols-outlined text-lg">+</span>
+            <Plus className="h-4 w-4" />
             Post a New Job
           </button>
         </div>
@@ -176,194 +388,431 @@ export default function MyPostingsView() {
         {isCreateOpen ? (
           <form
             onSubmit={handleCreateJob}
-            className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5 md:p-6 space-y-4 shadow-sm"
+            className="overflow-hidden rounded-3xl border border-outline-variant/20 bg-surface-container-low shadow-sm"
           >
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-lg font-black tracking-tight font-headline">
-                Create New Job
-              </h2>
-              <button
-                type="button"
-                className="text-sm font-bold text-on-surface-variant hover:text-on-surface"
-                onClick={() => setIsCreateOpen(false)}
-              >
-                Close
-              </button>
+            <div className="border-b border-outline-variant/15 bg-linear-to-r from-primary/10 via-transparent to-secondary/10 px-5 py-5 md:px-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="text-xl font-black tracking-tight font-headline">
+                    Create New Job
+                  </h2>
+                  <p className="mt-1 text-sm text-on-surface-variant">
+                    Add milestone deadlines and make sure the budget is covered
+                    before posting.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-outline-variant/20 bg-surface px-4 py-3">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-on-surface-variant">
+                      Wallet balance
+                    </p>
+                    <p className="mt-1 text-lg font-black text-on-surface">
+                      {formatMoney(walletCurrency, walletBalanceMinor)}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-outline-variant/20 bg-surface px-4 py-3">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-on-surface-variant">
+                      Job funding needed
+                    </p>
+                    <p className="mt-1 text-lg font-black text-on-surface">
+                      {formatMoney(walletCurrency, budgetMinor)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {formError ? (
+                <div className="mt-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p className="text-sm font-medium">{formError}</p>
+                </div>
+              ) : null}
+              {formErrors.balance ? (
+                <div className="mt-4 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+                  <CreditCard className="mt-0.5 h-4 w-4 shrink-0" />
+                  <p className="text-sm font-medium">{formErrors.balance}</p>
+                </div>
+              ) : null}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                className="input input-bordered w-full"
-                placeholder="Title"
-                value={form.title}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    title: event.target.value,
-                  }))
-                }
-              />
-              <input
-                className="input input-bordered w-full"
-                placeholder="Company name"
-                value={form.company_name}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    company_name: event.target.value,
-                  }))
-                }
-              />
-              <input
-                className="input input-bordered w-full"
-                placeholder="Category"
-                value={form.category}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    category: event.target.value,
-                  }))
-                }
-              />
-              <input
-                className="input input-bordered w-full"
-                placeholder="Location"
-                value={form.location}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    location: event.target.value,
-                  }))
-                }
-              />
-              <input
-                className="input input-bordered w-full"
-                placeholder="Budget"
-                type="number"
-                value={form.budget}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    budget: event.target.value,
-                  }))
-                }
-              />
-              <input
-                className="input input-bordered w-full"
-                placeholder="Hourly rate"
-                type="number"
-                value={form.hourly_rate}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    hourly_rate: event.target.value,
-                  }))
-                }
-              />
-              <input
-                className="input input-bordered w-full"
-                placeholder="Max weekly hours"
-                type="number"
-                value={form.max_weekly_hours}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    max_weekly_hours: event.target.value,
-                  }))
-                }
-              />
-              <input
-                className="input input-bordered w-full"
-                placeholder="Skills comma separated"
-                value={form.skills}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    skills: event.target.value,
-                  }))
-                }
-              />
-            </div>
+            <div className="grid gap-6 p-5 md:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.9fr)] md:p-6">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <Field label="Title" error={formErrors.title}>
+                    <input
+                      className="input input-bordered w-full"
+                      placeholder="Mobile app redesign"
+                      value={form.title}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          title: event.target.value,
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="Company name" error={formErrors.company_name}>
+                    <input
+                      className="input input-bordered w-full"
+                      placeholder="Acme Studios"
+                      value={form.company_name}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          company_name: event.target.value,
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="Category" error={formErrors.category}>
+                    <input
+                      className="input input-bordered w-full"
+                      placeholder="Design"
+                      value={form.category}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          category: event.target.value,
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="Location" error={formErrors.location}>
+                    <input
+                      className="input input-bordered w-full"
+                      placeholder="Remote or Addis Ababa"
+                      value={form.location}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          location: event.target.value,
+                        }))
+                      }
+                    />
+                  </Field>
+                </div>
 
-            <textarea
-              className="textarea textarea-bordered w-full min-h-32"
-              placeholder="Description"
-              value={form.description}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  description: event.target.value,
-                }))
-              }
-            />
+                <Field label="Description" error={formErrors.description}>
+                  <textarea
+                    className="textarea textarea-bordered min-h-36 w-full"
+                    placeholder="Describe the scope, deliverables, and expectations."
+                    value={form.description}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        description: event.target.value,
+                      }))
+                    }
+                  />
+                </Field>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <select
-                className="select select-bordered w-full"
-                value={form.job_type}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    job_type: event.target.value,
-                  }))
-                }
-              >
-                <option value="FIXED">Fixed</option>
-                <option value="HOURLY">Hourly</option>
-              </select>
-              <select
-                className="select select-bordered w-full"
-                value={form.experience_level}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    experience_level: event.target.value,
-                  }))
-                }
-              >
-                <option value="ENTRY">Entry</option>
-                <option value="INTERMEDIATE">Intermediate</option>
-                <option value="EXPERT">Expert</option>
-              </select>
-              <select
-                className="select select-bordered w-full"
-                value={form.work_mode}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    work_mode: event.target.value,
-                  }))
-                }
-              >
-                <option value="REMOTE">Remote</option>
-                <option value="ONSITE">Onsite</option>
-                <option value="HYBRID">Hybrid</option>
-              </select>
-              <label className="label cursor-pointer justify-start gap-3 px-4 border border-outline-variant/30 rounded-xl bg-base-100">
-                <input
-                  type="checkbox"
-                  className="checkbox checkbox-sm"
-                  checked={form.is_private}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      is_private: event.target.checked,
-                    }))
-                  }
-                />
-                <span className="label-text text-sm">Private job</span>
-              </label>
-            </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Field label="Budget" error={formErrors.budget}>
+                    <input
+                      className="input input-bordered w-full"
+                      placeholder="1500"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.budget}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          budget: event.target.value,
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field label="Hourly rate" error={formErrors.hourly_rate}>
+                    <input
+                      className="input input-bordered w-full"
+                      placeholder="35"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={form.hourly_rate}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          hourly_rate: event.target.value,
+                        }))
+                      }
+                    />
+                  </Field>
+                  <Field
+                    label="Max weekly hours"
+                    error={formErrors.max_weekly_hours}
+                  >
+                    <input
+                      className="input input-bordered w-full"
+                      placeholder="20"
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={form.max_weekly_hours}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          max_weekly_hours: event.target.value,
+                        }))
+                      }
+                    />
+                  </Field>
+                </div>
 
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="bg-primary text-white px-5 py-3 rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all disabled:opacity-60"
-                disabled={isCreating}
-              >
-                {isCreating ? "Creating..." : "Create Job"}
-              </button>
-            </div>
+                <Field label="Skills" error={formErrors.skills}>
+                  <input
+                    className="input input-bordered w-full"
+                    placeholder="React, Figma, REST APIs"
+                    value={form.skills}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        skills: event.target.value,
+                      }))
+                    }
+                  />
+                </Field>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Field label="Job type">
+                    <select
+                      className="select select-bordered w-full"
+                      value={form.job_type}
+                      onChange={(event) => {
+                        const value = event.target.value as JobType;
+                        setForm((current) => ({
+                          ...current,
+                          job_type: value,
+                        }));
+                        // When switching to hourly, remove milestones entirely
+                        if (value === "HOURLY") {
+                          setMilestones([]);
+                        }
+                      }}
+                    >
+                      <option value="FIXED">Fixed</option>
+                      <option value="HOURLY">Hourly</option>
+                    </select>
+                  </Field>
+                  <Field label="Experience level">
+                    <select
+                      className="select select-bordered w-full"
+                      value={form.experience_level}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          experience_level: event.target
+                            .value as ExperienceLevel,
+                        }))
+                      }
+                    >
+                      <option value="ENTRY">Entry</option>
+                      <option value="INTERMEDIATE">Intermediate</option>
+                      <option value="EXPERT">Expert</option>
+                    </select>
+                  </Field>
+                  <Field label="Work mode">
+                    <select
+                      className="select select-bordered w-full"
+                      value={form.work_mode}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          work_mode: event.target.value as WorkMode,
+                        }))
+                      }
+                    >
+                      <option value="REMOTE">Remote</option>
+                      <option value="ONSITE">Onsite</option>
+                      <option value="HYBRID">Hybrid</option>
+                    </select>
+                  </Field>
+                </div>
+
+                <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-outline-variant/30 bg-surface px-4 py-3">
+                  <input
+                    type="checkbox"
+                    className="checkbox checkbox-sm"
+                    checked={form.is_private}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        is_private: event.target.checked,
+                      }))
+                    }
+                  />
+                  <span>
+                    <span className="block text-sm font-bold">Private job</span>
+                    <span className="block text-xs text-on-surface-variant">
+                      Hide the posting from public search results.
+                    </span>
+                  </span>
+                </label>
+              </div>
+
+                {form.job_type !== "HOURLY" && (
+                  <div className="space-y-4 rounded-2xl border border-outline-variant/20 bg-surface px-4 py-4 md:px-5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-base font-black tracking-tight">
+                          Milestones
+                        </h3>
+                        <p className="text-xs text-on-surface-variant">
+                          Each milestone needs a deadline and amount.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={addMilestone}
+                        className="inline-flex items-center gap-2 rounded-xl border border-outline-variant/20 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/5"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add milestone
+                      </button>
+                    </div>
+
+                    {formErrors.milestones ? (
+                      <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                        {formErrors.milestones}
+                      </p>
+                    ) : null}
+
+                    <div className="mt-4 space-y-3">
+                      {milestones.map((milestone, index) => (
+                        <div
+                          key={`${index}-${milestone.description}`}
+                          className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-3"
+                        >
+                          <div className="mb-3 flex items-center justify-between gap-3">
+                            <p className="text-sm font-bold text-on-surface">
+                              Milestone {index + 1}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => removeMilestone(index)}
+                              disabled={milestones.length === 1}
+                              className="inline-flex items-center gap-1 text-xs font-bold text-on-surface-variant transition-colors hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Remove
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            <input
+                              className="input input-bordered w-full"
+                              placeholder="Milestone description"
+                              value={milestone.description}
+                              onChange={(event) =>
+                                updateMilestone(
+                                  index,
+                                  "description",
+                                  event.target.value,
+                                )
+                              }
+                            />
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                              <input
+                                className="input input-bordered w-full"
+                                placeholder="Amount"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={milestone.amount}
+                                onChange={(event) =>
+                                  updateMilestone(
+                                    index,
+                                    "amount",
+                                    event.target.value,
+                                  )
+                                }
+                              />
+                              <input
+                                className="input input-bordered w-full"
+                                type="date"
+                                min={toDateInputValue(new Date())}
+                                value={milestone.deadline}
+                                onChange={(event) =>
+                                  updateMilestone(
+                                    index,
+                                    "deadline",
+                                    event.target.value,
+                                  )
+                                }
+                              />
+                            </div>
+                            {formErrors[`milestone-${index}`] ? (
+                              <p className="text-xs font-medium text-red-600">
+                                {formErrors[`milestone-${index}`]}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(form.job_type as JobType) === "HOURLY" && (
+                  <div className="rounded-2xl border border-outline-variant/20 bg-surface px-4 py-4 md:px-5">
+                    <p className="text-sm font-medium text-on-surface-variant">
+                      Hourly jobs do not use milestones — payment is tracked by time.
+                    </p>
+                  </div>
+                )}
+
+                <div className="rounded-2xl border border-outline-variant/20 bg-linear-to-br from-primary/10 via-surface to-secondary/10 p-4">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-on-surface-variant">
+                    Posting summary
+                  </p>
+                  <div className="mt-3 space-y-2 text-sm">
+                    <SummaryRow
+                      label="Budget"
+                      value={formatMoney(walletCurrency, budgetMinor)}
+                    />
+                    <SummaryRow
+                      label="Milestone total"
+                      value={formatMoney(walletCurrency, milestoneTotalMinor)}
+                    />
+                    <SummaryRow
+                      label="Balance status"
+                      value={
+                        hasEnoughBalance
+                          ? "Ready to post"
+                          : `Need ${formatMoney(walletCurrency, balanceShortfallMinor)} more`
+                      }
+                      valueClassName={
+                        hasEnoughBalance ? "text-emerald-600" : "text-red-600"
+                      }
+                    />
+                  </div>
+                  <p className="mt-3 text-xs text-on-surface-variant">
+                    The milestone total must match the budget before the job can
+                    be posted.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    className="rounded-xl border border-outline-variant/20 px-4 py-3 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-container"
+                    onClick={() => {
+                      setIsCreateOpen(false);
+                      resetForm();
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-all hover:shadow-lg hover:shadow-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={isCreating}
+                  >
+                    {isCreating ? "Creating..." : "Create Job"}
+                  </button>
+                </div>
+              </div>
+            
           </form>
         ) : null}
 
@@ -429,10 +878,12 @@ export default function MyPostingsView() {
                       <JobIcon className="h-5 w-5" aria-hidden="true" />
                     </div>
 
-                    <div className="space-y-1 min-w-0"
-                    onClick={() => {
-                      router.push(`mypostings/proposals/${job.id}`);
-                    }}>
+                    <div
+                      className="space-y-1 min-w-0 cursor-pointer"
+                      onClick={() => {
+                        router.push(`/client/mypostings/proposals/${job.id}`);
+                      }}
+                    >
                       <h3
                         className={`font-bold text-lg font-headline truncate transition-colors ${
                           closed
@@ -487,25 +938,15 @@ export default function MyPostingsView() {
                     <div className="flex items-center gap-1">
                       {closed ? (
                         <button className="px-4 py-2 bg-surface-container-highest hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl border border-outline-variant/20 transition-all">
-                          Archive
+                          Archivd
                         </button>
                       ) : (
                         <>
                           <button
-                            className="p-2 text-outline hover:text-primary hover:bg-primary/5 rounded-xl transition-all"
-                            aria-label="Edit listing"
+                            className="px-4 py-2 bg-surface text-red-500 font-bold text-xs rounded-xl border border-red-100 transition-all"
+                            onClick={() => handleJobDelete(job.id)}
                           >
-                            <span className="material-symbols-outlined text-lg">
-                             <Edit />
-                            </span>
-                          </button>
-                          <button
-                            className="p-2 text-outline hover:text-on-surface hover:bg-surface-container rounded-xl transition-all"
-                            aria-label="More options"
-                          >
-                            <span className="material-symbols-outlined text-lg">
-                              <MoreVertical />
-                            </span>
+                            Delete job
                           </button>
                         </>
                       )}
@@ -552,7 +993,7 @@ export default function MyPostingsView() {
                 >
                   {page}
                 </button>
-              ),
+              )
             )}
 
             <button
@@ -570,6 +1011,45 @@ export default function MyPostingsView() {
           </nav>
         </div>
       </main>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="space-y-2">
+      <span className="block text-sm font-bold text-on-surface">{label}</span>
+      {children}
+      {error ? (
+        <span className="block text-xs font-medium text-red-600">{error}</span>
+      ) : null}
+    </label>
+  );
+}
+
+function SummaryRow({
+  label,
+  value,
+  valueClassName = "text-on-surface",
+}: {
+  label: string;
+  value: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-surface-container-low px-3 py-2">
+      <span className="text-xs font-semibold text-on-surface-variant">
+        {label}
+      </span>
+      <span className={`text-sm font-black ${valueClassName}`}>{value}</span>
     </div>
   );
 }

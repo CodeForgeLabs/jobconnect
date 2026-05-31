@@ -10,6 +10,7 @@ export interface JobMilestone {
 	amount: number;
 	description: string;
 	created_at?: string;
+	deadline?: string;
 	is_paid?: boolean;
 	job_id?: number;
 }
@@ -55,12 +56,13 @@ export interface CreateJobRequest {
 	experience_level: string;
 	hourly_rate: number;
 	is_private: boolean;
-	job_type: string;
+	job_type: "FIXED" | "HOURLY";
 	location: string;
 	max_weekly_hours: number;
 	milestones: Array<{
 		amount: number;
 		description: string;
+		deadline: Date;
 	}>;
 	skills: string[];
 	title: string;
@@ -75,7 +77,7 @@ export interface UpdateJobRequest {
 	experience_level?: string;
 	hourly_rate?: number;
 	is_private?: boolean;
-	job_type?: string;
+	job_type?: "FIXED" | "HOURLY";
 	location?: string;
 	max_weekly_hours?: number;
 	skills?: string[];

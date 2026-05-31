@@ -9,7 +9,7 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   BadgeAlert,
   BadgeCheck,
@@ -29,6 +29,7 @@ import {
   useGetWorkSessionTimeLogsMutation,
   useSubmitMilestoneWorkMutation,
   useStartWorkSessionMutation,
+  type WorkSessionTimeLogsResponse,
 } from "@/api/contractapi";
 import { useGetJobByIdQuery } from "@/api/jobsapi";
 import { useUploadFileMutation } from "@/api/userapi";
@@ -126,11 +127,12 @@ const calculatePaidAmount = (milestones: ContractMilestone[]) =>
     .reduce((sum, milestone) => sum + Number(milestone.Amount || 0), 0);
 
 const formatDuration = (totalSeconds: number) => {
+  console.log("Formatting duration for seconds:", totalSeconds);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+  const seconds = Math.floor(totalSeconds % 60);
 
-  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).slice(0, 2)}`;
 };
 
 const normalizeElapsedSeconds = (response: unknown) => {
@@ -180,10 +182,48 @@ const normalizeTimeLogs = (response: unknown): TimeLogEntry[] => {
       }
 
       const log = item as Record<string, unknown>;
-      const duration =
-        (typeof log.duration_seconds === "number" && log.duration_seconds) ||
-        (typeof log.durationSeconds === "number" && log.durationSeconds) ||
-        Number(log.duration_seconds || log.durationSeconds || 0);
+
+      const durationSeconds = (() => {
+        if (typeof log.duration_seconds === "number")
+          return log.duration_seconds;
+        if (typeof log.durationSeconds === "number") return log.durationSeconds;
+
+        if (typeof log.TotalHours === "number")
+          return Math.round(log.TotalHours * 3600);
+        if (typeof log.total_hours === "number")
+          return Math.round(log.total_hours * 3600);
+        if (typeof log.totalHours === "number")
+          return Math.round(log.totalHours * 3600);
+        if (
+          typeof log.TotalHours === "string" &&
+          !Number.isNaN(Number(log.TotalHours))
+        )
+          return Math.round(Number(log.TotalHours) * 3600);
+
+        const startRaw =
+          log.start_time ??
+          log.startTime ??
+          log.starttime ??
+          log.started_at ??
+          log.startedAt;
+        const endRaw =
+          log.end_time ??
+          log.endTime ??
+          log.endtime ??
+          log.ended_at ??
+          log.endedAt;
+
+        if (startRaw && endRaw) {
+          const startMs = Date.parse(String(startRaw));
+          const endMs = Date.parse(String(endRaw));
+          if (!Number.isNaN(startMs) && !Number.isNaN(endMs)) {
+            const diff = Math.floor((endMs - startMs) / 1000);
+            return diff > 0 ? diff : 0;
+          }
+        }
+
+        return 0;
+      })();
 
       return {
         id: String(log.id ?? log.ID ?? index),
@@ -200,7 +240,7 @@ const normalizeTimeLogs = (response: unknown): TimeLogEntry[] => {
         endedAt: String(
           log.ended_at ?? log.endedAt ?? log.end_time ?? log.endTime ?? "",
         ),
-        durationSeconds: duration,
+        durationSeconds: durationSeconds,
       };
     });
   }
@@ -221,11 +261,16 @@ const normalizeTimeLogs = (response: unknown): TimeLogEntry[] => {
 };
 
 const formatWeeklyHours = (hours: number) => {
-  if (!Number.isFinite(hours)) return "0.00 hrs";
-  return `${hours.toFixed(2)} hrs`;
+  if (!Number.isFinite(hours)) return "0h 0m";
+
+  const wholeHours = Math.floor(hours);
+  const minutes = Math.round((hours - wholeHours) * 60);
+
+  return `${wholeHours}h ${minutes}m`;
 };
 
 export default function FreelancerContractDetailPage() {
+  const router = useRouter();
   const params = useParams<{ id: string }>();
   const contractId = Number(params?.id);
   const isValidId = Number.isFinite(contractId) && contractId > 0;
@@ -239,6 +284,8 @@ export default function FreelancerContractDetailPage() {
   const [weeklyHours, setWeeklyHours] = useState(0);
   const [timeLogs, setTimeLogs] = useState<TimeLogEntry[]>([]);
   const [sessionMessage, setSessionMessage] = useState<string | null>(null);
+  const [paidHourlySoFar, setPaidHourlySoFar] = useState(0);
+  const [notPaidHourly, setNotPaidHourly] = useState(0);
 
   const [startWorkSession, { isLoading: isStartingSession }] =
     useStartWorkSessionMutation();
@@ -361,7 +408,7 @@ export default function FreelancerContractDetailPage() {
         .catch(() => 0),
       fetchTimeLogs(requestBody)
         .unwrap()
-        .catch(() => []),
+        .catch((): WorkSessionTimeLogsResponse => ({ time_logs: [] })),
       fetchWeeklyHours(requestBody)
         .unwrap()
         .catch(() => 0),
@@ -369,6 +416,38 @@ export default function FreelancerContractDetailPage() {
 
     const elapsedFromServer = normalizeElapsedSeconds(elapsedResult);
     const weeklyHoursFromServer = normalizeWeeklyHours(weeklyResult);
+
+    let hasActiveSession = false;
+
+    for (const log of logsResult.time_logs) {
+      if (log.end_time === null || log.end_time === undefined) {
+        hasActiveSession = true;
+
+        const sessionStartTime = new Date(log.start_time).getTime();
+
+        setIsTracking(true);
+        setTrackingStartedAt(sessionStartTime);
+
+        break;
+      }
+    }
+    let paidHourly = 0;
+    let notPaidHourly = 0;
+
+    for (const log of logsResult.time_logs) {
+      if (log.IsPaid) {
+        paidHourly += log.TotalHours * (contract.hourly_rate || 0);
+      } else {
+        notPaidHourly += log.TotalHours * (contract.hourly_rate || 0);
+      }
+    }
+    setPaidHourlySoFar(paidHourly);
+    setNotPaidHourly(notPaidHourly);
+
+    if (!hasActiveSession) {
+      setIsTracking(false);
+      setTrackingStartedAt(null);
+    }
 
     setElapsedBaselineSeconds(elapsedFromServer);
     setWeeklyHours(weeklyHoursFromServer);
@@ -400,10 +479,7 @@ export default function FreelancerContractDetailPage() {
       return elapsedBaselineSeconds;
     }
 
-    return (
-      elapsedBaselineSeconds +
-      Math.floor((currentTimeMs - trackingStartedAt) / 1000)
-    );
+    return Math.floor((currentTimeMs - trackingStartedAt) / 1000);
   }, [currentTimeMs, elapsedBaselineSeconds, isTracking, trackingStartedAt]);
 
   const handleStartSession = async () => {
@@ -415,6 +491,7 @@ export default function FreelancerContractDetailPage() {
       await startWorkSession({ contract_id: contract.contract_id }).unwrap();
       setIsTracking(true);
       setTrackingStartedAt(Date.now());
+      setElapsedBaselineSeconds(0);
       await syncHourlySessionState();
       setSessionMessage("Work session started.");
     } catch {
@@ -490,7 +567,7 @@ export default function FreelancerContractDetailPage() {
   return (
     <>
       <main className="mx-auto max-w-screen-2xl space-y-12 px-8 pb-24 pt-12">
-        <header className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+        <header className="flex px-6 flex-col items-start justify-between gap-6 md:flex-row md:items-end">
           <div className="max-w-3xl">
             <div className="mb-4 flex items-center gap-3">
               <span className="rounded-full bg-tertiary-fixed px-4 py-1 text-xs font-bold uppercase tracking-wide text-on-tertiary-fixed-variant">
@@ -520,17 +597,21 @@ export default function FreelancerContractDetailPage() {
                 </div>
               )}
               <div>
-                <p className="text-sm font-label font-bold uppercase tracking-wider text-on-surface-variant">
-                  Client
-                </p>
                 <p className="text-lg font-headline font-bold text-primary">
                   {contract.client_first_name} {contract.client_last_name}
+                </p>
+                <p className="text-sm font-label font-bold uppercase tracking-wider text-on-surface-variant">
+                 {contract.client_email}
                 </p>
               </div>
             </div>
           </div>
           <div className="flex gap-4">
-            <button className="flex items-center gap-2 rounded-full bg-surface-container-highest px-8 py-4 font-bold text-primary transition-all duration-300 hover:bg-primary-container hover:text-white active:scale-[0.99] active:opacity-80">
+            <button 
+            onClick={() => {
+              router.push(`/messages?userid=${contract.client_id}`);
+            }}
+            className="flex items-center gap-2 rounded-full bg-surface-container-highest px-8 py-4 font-bold text-primary transition-all duration-300 hover:bg-primary-container hover:text-white active:scale-[0.99] active:opacity-80">
               <MessageCircle className="h-4 w-4" />
               Message Client
             </button>
@@ -542,14 +623,9 @@ export default function FreelancerContractDetailPage() {
                     : handleStartSession
                   : undefined
               }
-              className="premium-gradient flex items-center gap-2 rounded-full px-10 py-4 font-bold text-white shadow-xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              className="premium-gradient flex items-center gap-2 rounded-full px-10 py-4 font-bold text-primary shadow-xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                send
-              </span>
+            
               {isHourly
                 ? isTracking
                   ? "End Session"
@@ -571,7 +647,7 @@ export default function FreelancerContractDetailPage() {
                     Total Budget
                   </p>
                   <p className="mt-1 text-4xl font-display font-black text-on-surface">
-                    {formatMoney(contract.total_budget)}
+                    {formatMoney(contract.total_budget || contract.hourly_rate ? (contract.hourly_rate || 0) * (maxWeeklyHours || 0) : 0)}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -580,7 +656,7 @@ export default function FreelancerContractDetailPage() {
                       Paid
                     </p>
                     <p className="text-xl font-headline font-bold text-primary">
-                      {formatMoney(paidAmount)}
+                      {formatMoney(paidAmount || Math.floor(paidHourlySoFar))}
                     </p>
                   </div>
                   <div className="rounded-md bg-tertiary-fixed p-4">
@@ -588,7 +664,7 @@ export default function FreelancerContractDetailPage() {
                       Remaining
                     </p>
                     <p className="text-xl font-headline font-bold text-on-tertiary-fixed-variant">
-                      {formatMoney(remainingAmount)}
+                      {formatMoney(remainingAmount || Math.ceil(notPaidHourly))}
                     </p>
                   </div>
                 </div>
@@ -660,12 +736,12 @@ export default function FreelancerContractDetailPage() {
               {isHourly ? "Hourly Work Session" : "Milestones & Payments"}
             </h2>
             <div className="mx-8 hidden h-0.5 grow bg-surface-container-high md:block" />
-            <button className="text-primary flex items-center gap-2 font-bold transition-transform hover:translate-x-1 active:scale-[0.99] active:opacity-80">
+            {/* <button className="text-primary flex items-center gap-2 font-bold transition-transform hover:translate-x-1 active:scale-[0.99] active:opacity-80">
               View History{" "}
               <span className="material-symbols-outlined text-sm">
                 arrow_forward
               </span>
-            </button>
+            </button> */}
           </div>
 
           {isHourly ? (
