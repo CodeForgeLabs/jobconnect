@@ -112,12 +112,7 @@ const Login = () => {
               Don&#39;t have an account?{" "}
               <span
                 onClick={() => {
-                  const modal = document.getElementById(
-                    "my_modal_3",
-                  ) as HTMLDialogElement;
-                  if (modal) {
-                    modal.showModal();
-                  }
+                  router.push("/signup");
                 }}
                 className="text-secondary underline"
               >

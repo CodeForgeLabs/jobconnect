@@ -2,8 +2,12 @@
 
 import { useGetJobsQuery } from "@/api/jobsapi";
 import { useGetMeQuery } from "@/api/userapi";
-import { useGetMyContractsQuery } from "@/api/contractapi";
+import {
+  useGetMyContractsQuery,
+  useGetWeeklyLogsMutation,
+} from "@/api/contractapi";
 import { useGetMyProposalsQuery } from "@/api/proposalapi";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   BadgeDollarSign,
@@ -19,6 +23,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Jobcard from "@/components/Jobcard";
 
 const formatDate = (value?: string) => {
   if (!value) return "Recently";
@@ -36,12 +41,105 @@ const formatDate = (value?: string) => {
 const formatMoney = (value?: number) =>
   `${Number(value ?? 0).toLocaleString()} birr`;
 
+const formatHoursToHM = (hours?: number) => {
+  const totalMinutes = Math.max(0, Math.round((hours ?? 0) * 60));
+  const hrs = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+
+  if (hrs > 0 && mins > 0) return `${hrs} hr ${mins} min`;
+  if (hrs > 0) return `${hrs} hr`;
+  return `${mins} min`;
+};
+
+const normalizeContractType = (value?: string) =>
+  (value ?? "FIXED").toUpperCase();
+
+const calculatePaidAmount = (
+  milestones: Array<{ Amount?: number; Status?: string }>,
+) =>
+  milestones
+    .filter((milestone) => {
+      const normalized = (milestone.Status ?? "").toUpperCase();
+      return normalized === "PAID" || normalized === "APPROVED";
+    })
+    .reduce((sum, milestone) => sum + Number(milestone.Amount || 0), 0);
+
+const getMilestoneProgressPercent = (status?: string) => {
+  const normalized = (status ?? "PENDING").toUpperCase();
+
+  if (normalized === "PAID" || normalized === "APPROVED") return 100;
+  if (normalized === "SUBMITTED") return 80;
+  if (normalized === "IN_PROGRESS") return 55;
+  if (normalized === "REVISION_REQUESTED") return 35;
+  return 15;
+};
+
+type WeeklySession = {
+  id: number;
+  start_time: string;
+  end_time: string;
+  total_hours: number;
+  is_paid: boolean;
+};
+
+type WeeklyDay = {
+  day: string;
+  date: string;
+  total_hours: number;
+  sessions: WeeklySession[];
+};
+
+type WeeklyLog = {
+  week_number: number;
+  week_start: string;
+  week_end: string;
+  total_hours: number;
+  days: WeeklyDay[];
+};
+
+const normalizeWeeklyLogs = (response: unknown): WeeklyLog[] => {
+  if (Array.isArray(response)) return response as WeeklyLog[];
+
+  if (!response || typeof response !== "object") return [];
+
+  const candidate = response as Record<string, unknown>;
+  const maybeData = candidate.data ?? candidate.logs ?? candidate.weeks;
+
+  return Array.isArray(maybeData) ? (maybeData as WeeklyLog[]) : [];
+};
+
+const pickCurrentWeeklyLog = (logs: WeeklyLog[]) => {
+  if (!logs.length) return null;
+
+  const now = new Date();
+  const current = logs.find((log) => {
+    const start = new Date(log.week_start);
+    const end = new Date(log.week_end);
+    return (
+      !Number.isNaN(start.getTime()) &&
+      !Number.isNaN(end.getTime()) &&
+      now >= start &&
+      now <= end
+    );
+  });
+
+  if (current) return current;
+
+  return [...logs].sort(
+    (left, right) =>
+      new Date(right.week_end).getTime() - new Date(left.week_end).getTime(),
+  )[0];
+};
+
 export default function FreelancerDashboard() {
   const router = useRouter();
   const { data: me } = useGetMeQuery();
   const { data: jobs = [], isLoading } = useGetJobsQuery();
   const { data: proposals = [] } = useGetMyProposalsQuery();
   const { data: contracts = [] } = useGetMyContractsQuery();
+  const [loadWeeklyLogs] = useGetWeeklyLogsMutation();
+  const [hourlyWeeklyLogs, setHourlyWeeklyLogs] = useState<WeeklyLog[]>([]);
+  const [loadingHourlyLogs, setLoadingHourlyLogs] = useState(false);
 
   const displayName =
     [me?.first_name, me?.last_name].filter(Boolean).join(" ") || "Natnael";
@@ -61,14 +159,81 @@ export default function FreelancerDashboard() {
   );
   const connectBalance = me?.connect ?? 0;
 
-  const spotlightContract = activeContracts[0] ?? contracts[0];
-  const deadlineSource = (spotlightContract?.milestones ?? []).slice(
-    0,
-    3,
-  ) as Array<{
+  const spotlightContract =
+    activeContracts.find(
+      (contract) => normalizeContractType(contract.type) === "HOURLY",
+    ) ??
+    activeContracts[0] ??
+    contracts[0];
+  const contractType = useMemo(
+    () => normalizeContractType(spotlightContract?.type),
+    [spotlightContract?.type],
+  );
+  const isHourlyContract = contractType === "HOURLY";
+  const milestones = useMemo(
+    () => spotlightContract?.milestones ?? [],
+    [spotlightContract?.milestones],
+  );
+  const deadlineSource = milestones.slice(0, 3) as Array<{
     Description?: string;
     Amount?: number;
+    Status?: string;
   }>;
+  const paidAmount = useMemo(
+    () => calculatePaidAmount(milestones),
+    [milestones],
+  );
+  const fixedBudget =
+    spotlightContract?.total_budget ??
+    milestones.reduce(
+      (sum, milestone) => sum + Number(milestone.Amount ?? 0),
+      0,
+    );
+  const remainingAmount = Math.max(fixedBudget - paidAmount, 0);
+  const fixedProgressPercent = fixedBudget
+    ? Math.min((paidAmount / fixedBudget) * 100, 100)
+    : 0;
+  const hourlyWeeklyCap =
+    (spotlightContract?.hourly_rate ?? 0) *
+    (spotlightContract?.weekly_hour_limit ?? 0);
+  const currentWeeklyLog = useMemo(
+    () => pickCurrentWeeklyLog(hourlyWeeklyLogs),
+    [hourlyWeeklyLogs],
+  );
+  const workedHoursThisWeek = currentWeeklyLog?.total_hours ?? 0;
+  const remainingHoursThisWeek = Math.max(
+    (spotlightContract?.weekly_hour_limit ?? 0) - workedHoursThisWeek,
+    0,
+  );
+  const weeklyProgressPercent = spotlightContract?.weekly_hour_limit
+    ? Math.min(
+        (workedHoursThisWeek / spotlightContract.weekly_hour_limit) * 100,
+        100,
+      )
+    : 0;
+
+  const fetchHourlyWeeklyLogs = useCallback(async () => {
+    if (!spotlightContract || !isHourlyContract) {
+      setHourlyWeeklyLogs([]);
+      return;
+    }
+
+    setLoadingHourlyLogs(true);
+    try {
+      const response = await loadWeeklyLogs({
+        contract_id: spotlightContract.contract_id,
+      }).unwrap();
+      setHourlyWeeklyLogs(normalizeWeeklyLogs(response));
+    } catch {
+      setHourlyWeeklyLogs([]);
+    } finally {
+      setLoadingHourlyLogs(false);
+    }
+  }, [isHourlyContract, loadWeeklyLogs, spotlightContract]);
+
+  useEffect(() => {
+    void fetchHourlyWeeklyLogs();
+  }, [fetchHourlyWeeklyLogs]);
 
   return (
     <>
@@ -139,9 +304,10 @@ export default function FreelancerDashboard() {
                 className="h-8 w-8 p-2.5 text-tertiary-container bg-tertiary-fixed rounded-2xl"
                 aria-hidden="true"
               />
-              <button 
-              onClick = {() => router.push("/freelancer/wallet")}
-              className="text-xs font-bold text-primary hover:underline font-label">
+              <button
+                onClick={() => router.push("/freelancer/wallet")}
+                className="text-xs font-bold text-primary hover:underline font-label"
+              >
                 Buy more
               </button>
             </div>
@@ -177,9 +343,10 @@ export default function FreelancerDashboard() {
               <h2 className="text-2xl font-bold text-primary">
                 Recommended Jobs
               </h2>
-              <button 
-              onClick={() => router.push("/freelancer/jobsearch")}
-              className="text-sm font-bold text-primary flex items-center gap-2 group font-label">
+              <button
+                onClick={() => router.push("/freelancer/jobsearch")}
+                className="text-sm font-bold text-primary flex items-center gap-2 group font-label"
+              >
                 Filter Feed
                 <ArrowRight
                   className="h-4 w-4 group-hover:translate-x-1 transition-transform"
@@ -196,78 +363,25 @@ export default function FreelancerDashboard() {
               <div className="space-y-5">
                 {recentJobs.length > 0 ? (
                   recentJobs.map((job, index) => (
-                    <div
+                    <Jobcard
                       key={job.id}
-                      className="bg-surface-container-lowest p-6 rounded-lg border border-outline-variant/10 hover:border-primary/20 transition-all cursor-pointer"
-                    >
-                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-                        <div className="flex gap-4">
-                          <div className="w-11 h-11 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
-                            {index === 0 ? (
-                              <Sparkles
-                                className="h-5 w-5 text-primary-container"
-                                aria-hidden="true"
-                              />
-                            ) : index === 1 ? (
-                              <Wallet
-                                className="h-5 w-5 text-primary-container"
-                                aria-hidden="true"
-                              />
-                            ) : (
-                              <ShoppingBag
-                                className="h-5 w-5 text-primary-container"
-                                aria-hidden="true"
-                              />
-                            )}
-                          </div>
-                          <div>
-                            <h4 className="text-lg font-bold text-on-surface">
-                              {job.title}
-                            </h4>
-                            <p className="text-sm text-on-surface-variant">
-                              {job.company_name || "Client"} • Posted{" "}
-                              {formatDate(job.created_at)}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="bg-tertiary-fixed text-on-tertiary-fixed-variant px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider font-label whitespace-nowrap">
-                          {job.status === "OPEN" ? "Best Match" : job.status}
-                        </span>
-                      </div>
-                      <p className="text-on-surface-variant leading-relaxed mb-5 line-clamp-2 text-sm">
-                        {job.description}
-                      </p>
-                      <div className="flex flex-wrap gap-2 mb-5">
-                        {job.skills
-                          .split(",")
-                          .map((skill) => skill.trim())
-                          .filter(Boolean)
-                          .slice(0, 3)
-                          .map((skill) => (
-                            <span
-                              key={skill}
-                              className="px-3 py-1 bg-surface-container text-on-surface-variant text-xs font-medium rounded-md font-label"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                      </div>
-                      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 pt-5 border-t border-outline-variant/10">
-                        <div className="flex flex-wrap gap-4 text-sm font-semibold text-on-surface">
-                          <span>
-                            {job.job_type === "HOURLY"
-                              ? `${formatMoney(job.hourly_rate)} / hr`
-                              : formatMoney(job.budget)}
-                          </span>
-                          <span className="text-on-surface-variant font-normal">
-                            {job.experience_level}
-                          </span>
-                        </div>
-                        <button className="bg-primary text-white px-5 py-2.5 rounded-full font-bold hover:bg-primary-container transition-all active:scale-95 text-sm">
-                          Apply Now
-                        </button>
-                      </div>
-                    </div>
+                      index={index}
+                      title={job.title}
+                      pay={job.budget ? formatMoney(job.budget) : formatMoney(job.hourly_rate)}
+                      type={(job.job_type ?? "FIXED").toUpperCase() as "FIXED" | "HOURLY"}
+                      jobType={(job.job_type ?? "FIXED").toUpperCase() as "FIXED" | "HOURLY"}
+                      description={job.description}
+                      postTime={job.created_at}
+                      tags={job.skills ? job.skills.split(",").map((s:string)=>s.trim()).filter(Boolean) : []}
+                      companyName={job.company_name}
+                      status={job.status}
+                      skills={job.skills}
+                      hourlyRate={job.hourly_rate ? formatMoney(job.hourly_rate) : undefined}
+                      budget={job.budget ? formatMoney(job.budget) : undefined}
+                      experienceLevel={job.experience_level}
+                      createdAt={job.created_at}
+                      onApply={() => router.push(`/freelancer/job/${job.id}`)}
+                    />
                   ))
                 ) : (
                   <div className="rounded-lg border border-dashed border-outline-variant/20 bg-surface-container-lowest p-6 text-sm text-on-surface-variant">
@@ -283,11 +397,120 @@ export default function FreelancerDashboard() {
             <div className="bg-surface-container-lowest p-6 rounded-lg shadow-sm sticky top-24 space-y-6">
               <h3 className="text-lg font-bold text-primary flex items-center gap-2">
                 <CalendarClock className="h-5 w-5" aria-hidden="true" />
-                Upcoming Deadlines
+                {isHourlyContract ? "Hourly Workload" : "Upcoming Deadlines"}
               </h3>
 
+              {spotlightContract ? (
+                <div className="grid grid-cols-2 gap-3 rounded-2xl border border-outline-variant/10 bg-surface-container-low p-4 text-sm">
+                  {isHourlyContract ? (
+                    <>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+                          Worked this week
+                        </p>
+                        <p className="mt-1 font-bold text-on-surface">
+                          {formatHoursToHM(workedHoursThisWeek)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+                          Remaining this week
+                        </p>
+                        <p className="mt-1 font-bold text-on-surface">
+                          {formatHoursToHM(remainingHoursThisWeek)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+                          Weekly cap
+                        </p>
+                        <p className="mt-1 font-bold text-on-surface">
+                          {formatHoursToHM(spotlightContract?.weekly_hour_limit ?? 0)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+                          Weekly value
+                        </p>
+                        <p className="mt-1 font-bold text-on-surface">
+                          {formatMoney(hourlyWeeklyCap)}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+                          Contract budget
+                        </p>
+                        <p className="mt-1 font-bold text-on-surface">
+                          {formatMoney(fixedBudget)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+                          Paid so far
+                        </p>
+                        <p className="mt-1 font-bold text-on-surface">
+                          {formatMoney(paidAmount)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+                          Remaining
+                        </p>
+                        <p className="mt-1 font-bold text-on-surface">
+                          {formatMoney(remainingAmount)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-on-surface-variant">
+                          Progress
+                        </p>
+                        <p className="mt-1 font-bold text-on-surface">
+                          {fixedProgressPercent.toFixed(0)}%
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : null}
+
               <div className="space-y-6 relative after:absolute after:top-2 after:bottom-2 after:left-1.75 after:w-0.5 after:bg-outline-variant/20">
-                {deadlineSource.length > 0 ? (
+                {isHourlyContract ? (
+                  <div className="relative pl-6 group z-10">
+                    <div className="absolute left-0 top-1 w-4 h-4 rounded-full bg-secondary ring-4 ring-surface-container-lowest"></div>
+                    <p className="text-xs font-bold uppercase tracking-wider mb-1 font-label text-on-surface-variant">
+                      {loadingHourlyLogs ? "Loading week" : "Weekly plan"}
+                    </p>
+                    <h5 className="text-sm font-bold text-on-surface">
+                      {spotlightContract?.title ||
+                        spotlightContract?.job_title ||
+                        "Hourly contract"}
+                    </h5>
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      {currentWeeklyLog
+                        ? `Week ${currentWeeklyLog.week_number} • ${formatDate(currentWeeklyLog.week_start)} to ${formatDate(currentWeeklyLog.week_end)}`
+                        : "No weekly log found yet"}
+                    </p>
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      {formatHoursToHM(spotlightContract?.weekly_hour_limit ?? 0)} max per week
+                    </p>
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      Billed at {formatMoney(spotlightContract?.hourly_rate)} /
+                      hr
+                    </p>
+                    <div className="mt-3 h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-secondary transition-all duration-300"
+                        style={{ width: `${weeklyProgressPercent}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-[10px] text-right mt-1 font-bold text-secondary font-label">
+                      {weeklyProgressPercent.toFixed(0)}% of weekly limit used
+                    </p>
+                  </div>
+                ) : deadlineSource.length > 0 ? (
                   deadlineSource.map((milestone, index) => (
                     <div
                       key={`${milestone.Description ?? "milestone"}-${index}`}
@@ -312,10 +535,16 @@ export default function FreelancerDashboard() {
                       {index === 0 ? (
                         <>
                           <div className="mt-3 h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
-                            <div className="h-full bg-primary w-4/5"></div>
+                            <div
+                              className="h-full bg-primary"
+                              style={{
+                                width: `${getMilestoneProgressPercent(milestone.Status)}%`,
+                              }}
+                            ></div>
                           </div>
                           <p className="text-[10px] text-right mt-1 font-bold text-primary font-label">
-                            80% Done
+                            {getMilestoneProgressPercent(milestone.Status)}%
+                            Done
                           </p>
                         </>
                       ) : null}

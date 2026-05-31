@@ -55,11 +55,11 @@ const formatMoney = (value: number) =>
     minimumFractionDigits: 2,
   }).format(value);
 
-const formatDate = (value?: string) => {
+const formatDate = (value?: string | Date) => {
   if (!value) return "N/A";
 
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
+  const parsed = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(parsed.getTime())) return String(value);
 
   return parsed.toLocaleDateString("en-US", {
     month: "short",
@@ -304,6 +304,10 @@ export default function FreelancerContractDetailPage() {
     useState<ContractMilestone | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const [expandedFeedbackIds, setExpandedFeedbackIds] = useState<
+    Record<number, boolean>
+  >({});
+
   const submitDialogRef = useRef<HTMLDialogElement | null>(null);
 
   const [submitMilestoneWork, { isLoading: isSubmittingMilestone }] =
@@ -327,6 +331,16 @@ export default function FreelancerContractDetailPage() {
     setSubmissionFile(null);
     setSubmitError(null);
     setIsUploadingFile(false);
+  };
+
+  const toggleFeedback = (id: number) =>
+    setExpandedFeedbackIds((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const previewFeedback = (text: string, maxLen = 120) => {
+    if (!text) return "";
+    const firstLine = String(text).split("\n")[0] ?? "";
+    if (firstLine.length <= maxLen) return firstLine;
+    return `${firstLine.slice(0, maxLen).trim()}...`;
   };
 
   const handleSubmitMilestone = async (event: FormEvent<HTMLFormElement>) => {
@@ -601,17 +615,18 @@ export default function FreelancerContractDetailPage() {
                   {contract.client_first_name} {contract.client_last_name}
                 </p>
                 <p className="text-sm font-label font-bold uppercase tracking-wider text-on-surface-variant">
-                 {contract.client_email}
+                  {contract.client_email}
                 </p>
               </div>
             </div>
           </div>
           <div className="flex gap-4">
-            <button 
-            onClick={() => {
-              router.push(`/messages?userid=${contract.client_id}`);
-            }}
-            className="flex items-center gap-2 rounded-full bg-surface-container-highest px-8 py-4 font-bold text-primary transition-all duration-300 hover:bg-primary-container hover:text-white active:scale-[0.99] active:opacity-80">
+            <button
+              onClick={() => {
+                router.push(`/messages?userid=${contract.client_id}`);
+              }}
+              className="flex items-center gap-2 rounded-full bg-surface-container-highest px-8 py-4 font-bold text-primary transition-all duration-300 hover:bg-primary-container hover:text-white active:scale-[0.99] active:opacity-80"
+            >
               <MessageCircle className="h-4 w-4" />
               Message Client
             </button>
@@ -625,7 +640,6 @@ export default function FreelancerContractDetailPage() {
               }
               className="premium-gradient flex items-center gap-2 rounded-full px-10 py-4 font-bold text-primary shadow-xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
-            
               {isHourly
                 ? isTracking
                   ? "End Session"
@@ -647,7 +661,11 @@ export default function FreelancerContractDetailPage() {
                     Total Budget
                   </p>
                   <p className="mt-1 text-4xl font-display font-black text-on-surface">
-                    {formatMoney(contract.total_budget || contract.hourly_rate ? (contract.hourly_rate || 0) * (maxWeeklyHours || 0) : 0)}
+                    {formatMoney(
+                      contract.total_budget || contract.hourly_rate
+                        ? (contract.hourly_rate || 0) * (maxWeeklyHours || 0)
+                        : 0,
+                    )}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -911,8 +929,65 @@ export default function FreelancerContractDetailPage() {
                               {milestone.Description}
                             </p>
                             <p className="mt-1 text-xs text-on-surface-variant">
-                              Due {formatDate(milestone.Due_date)}
+                              Due {formatDate(milestone.deadline)}
                             </p>
+                            {milestone.submission_url ? (
+                              <div className="mt-2 space-y-1">
+                                {String(milestone.submission_url)
+                                  .split(",")
+                                  .map((u) => u.trim())
+                                  .filter(Boolean)
+                                  .map((url, idx) => (
+                                    <a
+                                      key={idx}
+                                      href={url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm text-primary hover:underline block"
+                                    >
+                                      Submitted file {idx + 1}
+                                    </a>
+                                  ))}
+                              </div>
+                            ) : null}
+
+                            {milestone.ClientFeedback ? (
+                              <div className="mt-2">
+                                {(() => {
+                                  const isExpanded =
+                                    !!expandedFeedbackIds[milestone.ID];
+                                  const showToggle =
+                                    String(milestone.ClientFeedback).includes(
+                                      "\n",
+                                    ) ||
+                                    String(milestone.ClientFeedback).length >
+                                      120;
+
+                                  return (
+                                    <>
+                                      <p className="text-sm text-on-surface-variant">
+                                        {isExpanded
+                                          ? milestone.ClientFeedback
+                                          : previewFeedback(
+                                              milestone.ClientFeedback,
+                                            )}
+                                      </p>
+                                      {showToggle ? (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            toggleFeedback(milestone.ID)
+                                          }
+                                          className="mt-1 text-primary text-sm font-bold hover:underline"
+                                        >
+                                          {isExpanded ? "Less" : "More"}
+                                        </button>
+                                      ) : null}
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            ) : null}
                           </td>
                           <td className="px-8 py-8 text-right font-headline font-bold text-on-surface">
                             {formatMoney(milestone.Amount)}
@@ -974,7 +1049,7 @@ export default function FreelancerContractDetailPage() {
             </div>
           </div>
           <div className="space-y-8 md:col-span-4">
-            <div>
+            {/* <div>
               <h3 className="mb-6 text-sm font-label font-black uppercase tracking-[0.2em] text-on-surface-variant">
                 Attachments
               </h3>
@@ -993,7 +1068,7 @@ export default function FreelancerContractDetailPage() {
                   </span>
                 </div>
               </div>
-            </div>
+            </div> */}
             <div className="rounded-lg bg-primary p-8 text-white">
               <p className="mb-2 text-xs font-bold uppercase tracking-widest opacity-60">
                 Workspace Tip
@@ -1028,7 +1103,7 @@ export default function FreelancerContractDetailPage() {
                   {selectedMilestone.Description}
                 </h3>
                 <p className="mt-2 text-sm text-on-surface-variant">
-                  Due {formatDate(selectedMilestone.Due_date)} ·{" "}
+                  Due {formatDate(selectedMilestone.deadline)} ·{" "}
                   {formatMoney(selectedMilestone.Amount)}
                 </p>
               </div>
@@ -1116,44 +1191,7 @@ export default function FreelancerContractDetailPage() {
         ) : null}
       </dialog>
 
-      <footer className="w-full bg-surface-container py-16 text-on-surface">
-        <div className="mx-auto flex max-w-screen-2xl flex-col items-start justify-between gap-8 px-12 md:flex-row md:items-center">
-          <div className="flex flex-col gap-4">
-            <span className="text-lg font-display font-bold text-primary">
-              JobConnect
-            </span>
-            <p className="text-sm font-body text-on-surface-variant">
-              © 2024 JobConnect. Architecting the future of work.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-8">
-            <a
-              className="text-sm font-label font-bold text-on-surface-variant transition-all duration-200 hover:translate-x-1 hover:text-primary"
-              href="#"
-            >
-              Privacy Policy
-            </a>
-            <a
-              className="text-sm font-label font-bold text-on-surface-variant transition-all duration-200 hover:translate-x-1 hover:text-primary"
-              href="#"
-            >
-              Terms of Service
-            </a>
-            <a
-              className="text-sm font-label font-bold text-on-surface-variant transition-all duration-200 hover:translate-x-1 hover:text-primary"
-              href="#"
-            >
-              Help Center
-            </a>
-            <a
-              className="text-sm font-label font-bold text-on-surface-variant transition-all duration-200 hover:translate-x-1 hover:text-primary"
-              href="#"
-            >
-              Career Advice
-            </a>
-          </div>
-        </div>
-      </footer>
+      
     </>
   );
 }

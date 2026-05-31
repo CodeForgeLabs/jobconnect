@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Cable, Clover, MailOpen  , MoreVertical} from "lucide-react";
-import { useGetJobsQuery } from "@/api/jobsapi";
+import { Cable, Clover, MailOpen } from "lucide-react";
+import { useGetJobByIdQuery } from "@/api/jobsapi";
+import { useRouter } from "next/navigation";
 import {
   type Proposal,
   type ProposalStatus,
@@ -11,7 +12,7 @@ import {
 
 const ITEMS_PER_PAGE = 4;
 
-type ProposalTab = "PENDING" | "INVITED" | "REJECTED";
+type ProposalTab = "PENDING" | "INVITED" | "REJECTED" | "HIRED";
 
 type ProposalRow = {
   amount: string;
@@ -113,6 +114,8 @@ const buildProposalRow = (
     title: string;
   },
 ): ProposalRow => {
+  // buildProposalRow can receive an undefined `job` when the job
+  // list doesn't include the job for this proposal. Handle gracefully.
   const jobType = job?.job_type === "HOURLY" ? "Hourly" : "Fixed Price";
   const amount =
     job?.job_type === "HOURLY"
@@ -140,41 +143,32 @@ const buildProposalRow = (
 export default function ProposalsView() {
   const [activeTab, setActiveTab] = useState<ProposalTab>("PENDING");
   const [currentPage, setCurrentPage] = useState(0);
+  const router = useRouter();
 
   const { data: proposalsData = [], isLoading: proposalsLoading } =
     useGetMyProposalsQuery();
-  const { data: jobsData = [], isLoading: jobsLoading } = useGetJobsQuery();
 
-  const jobsById = useMemo(() => {
-    return new Map(jobsData.map((job) => [job.id, job]));
-  }, [jobsData]);
-
-  const proposals = useMemo(() => {
-    return proposalsData.map((proposal) =>
-      buildProposalRow(proposal, jobsById.get(proposal.job_id)),
-    );
-  }, [jobsById, proposalsData]);
-
-  const filteredProposals = useMemo(() => {
-    return proposals.filter((proposal) => proposal.status === activeTab);
-  }, [activeTab, proposals]);
+  // Filter raw proposals by active tab and compute pagination from raw data.
+  const filteredProposalsData = useMemo(() => {
+    return proposalsData.filter((p) => p.status === activeTab);
+  }, [activeTab, proposalsData]);
 
   const tabCounts = useMemo(() => {
-    return proposals.reduce(
+    return proposalsData.reduce(
       (counts, proposal) => {
         if (proposal.status === "PENDING") counts.PENDING += 1;
         if (proposal.status === "INVITED") counts.INVITED += 1;
         if (proposal.status === "REJECTED") counts.REJECTED += 1;
-
+        if (proposal.status === "HIRED") counts.HIRED += 1;
         return counts;
       },
-      { PENDING: 0, INVITED: 0, REJECTED: 0 },
+      { PENDING: 0, INVITED: 0, REJECTED: 0, HIRED: 0 },
     );
-  }, [proposals]);
+  }, [proposalsData]);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(filteredProposals.length / ITEMS_PER_PAGE),
+    Math.ceil(filteredProposalsData.length / ITEMS_PER_PAGE),
   );
   const safeCurrentPage = Math.min(currentPage, totalPages - 1);
   const canGoPrevious = safeCurrentPage > 0;
@@ -182,10 +176,10 @@ export default function ProposalsView() {
 
   const visibleProposals = useMemo(() => {
     const start = safeCurrentPage * ITEMS_PER_PAGE;
-    return filteredProposals.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredProposals, safeCurrentPage]);
+    return filteredProposalsData.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredProposalsData, safeCurrentPage]);
 
-  const totalListings = filteredProposals.length;
+  const totalListings = filteredProposalsData.length;
   const showingStart =
     totalListings === 0 ? 0 : safeCurrentPage * ITEMS_PER_PAGE + 1;
   const showingEnd = Math.min(
@@ -193,16 +187,84 @@ export default function ProposalsView() {
     totalListings,
   );
   const successRate =
-    proposals.length > 0
+    proposalsData.length > 0
       ? `${Math.round(
-          (proposals.filter((proposal) => proposal.status === "HIRED").length /
-            proposals.length) *
+          (proposalsData.filter((proposal) => proposal.status === "HIRED")
+            .length /
+            proposalsData.length) *
             100,
         )}%`
       : "0%";
-  const connectCount = proposals.filter(
+  const connectCount = proposalsData.filter(
     (proposal) => proposal.status === "INVITED",
   ).length;
+
+  const ProposalItem = ({ proposal }: { proposal: Proposal }) => {
+    const { data: jobResp } = useGetJobByIdQuery(proposal.job_id);
+    const job = jobResp?.job;
+    const row = buildProposalRow(proposal, job);
+
+    return (
+      <div
+        key={row.id}
+        className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container-low/40 transition-colors group"
+      >
+        <div className="flex gap-4 items-start min-w-0">
+          <div
+            className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${row.iconBg}`}
+          >
+            <span className="material-symbols-outlined text-xl">
+              {row.icon}
+            </span>
+          </div>
+          <div className="space-y-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-bold text-base text-on-surface font-headline truncate group-hover:text-primary transition-colors">
+                {row.title}
+              </h3>
+              <span
+                className={`text-[10px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-md ${row.statusColor}`}
+              >
+                {row.status}
+              </span>
+            </div>
+            <p className="text-on-surface-variant text-xs font-medium">
+              {row.company}
+              <span className="mx-1.5 text-outline">•</span>
+              {row.time}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between sm:justify-end gap-6 sm:pl-0 pl-16">
+          <div className="sm:text-right">
+            <p className="font-extrabold text-sm font-headline text-on-surface">
+              {row.amount}
+            </p>
+            <p className="text-outline text-[11px] font-medium tracking-wide uppercase mt-0.5">
+              {row.type}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/freelancer/job/${row.jobId}`}
+              className="px-4 py-2 border border-outline-variant hover:border-outline hover:bg-surface text-on-surface-variant hover:text-on-surface rounded-xl text-xs font-bold transition-all"
+            >
+              View Proposal
+            </Link>
+            <Link
+              href={`/freelancer/job/${row.jobId}`}
+              aria-label="Open proposal details"
+              className="p-2 text-outline hover:text-on-surface rounded-lg transition-colors"
+            >
+              delete
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div
@@ -220,7 +282,12 @@ export default function ProposalsView() {
               Track and manage your active market listings.
             </p>
           </div>
-          <button className="bg-primary text-white px-5 py-3 rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 active:scale-98 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
+          <button
+            onClick={() => {
+              router.push("/freelancer/jobsearch");
+            }}
+            className="bg-primary text-white px-5 py-3 rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-primary/20 active:scale-98 transition-all flex items-center justify-center gap-2 w-full sm:w-auto"
+          >
             <span className="material-symbols-outlined text-lg">+</span>
             Find New Work
           </button>
@@ -230,7 +297,7 @@ export default function ProposalsView() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard
             label="Total"
-            value={proposals.length}
+            value={proposalsData.length}
             colorClass="bg-primary/10 text-primary"
           />
           <StatCard
@@ -276,78 +343,26 @@ export default function ProposalsView() {
                 setCurrentPage(0);
               }}
             />
+            <TabButton
+              label="HIRED"
+              count={tabCounts.HIRED}
+              active={activeTab === "HIRED"}
+              onClick={() => {
+                setActiveTab("HIRED");
+                setCurrentPage(0);
+              }}
+            />
           </div>
 
           {/* Proposals List Segment */}
           <div className="divide-y divide-outline-variant/10">
-            {proposalsLoading || jobsLoading ? (
+            {proposalsLoading ? (
               <div className="p-6 text-sm text-on-surface-variant">
                 Loading proposals...
               </div>
             ) : visibleProposals.length > 0 ? (
               visibleProposals.map((proposal) => (
-                <div
-                  key={proposal.id}
-                  className="p-5 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container-low/40 transition-colors group"
-                >
-                  {/* Media Meta Pair Layout */}
-                  <div className="flex gap-4 items-start min-w-0">
-                    <div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${proposal.iconBg}`}
-                    >
-                      <span className="material-symbols-outlined text-xl">
-                        {proposal.icon}
-                      </span>
-                    </div>
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-bold text-base text-on-surface font-headline truncate group-hover:text-primary transition-colors">
-                          {proposal.title}
-                        </h3>
-                        <span
-                          className={`text-[10px] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded-md ${proposal.statusColor}`}
-                        >
-                          {proposal.status}
-                        </span>
-                      </div>
-                      <p className="text-on-surface-variant text-xs font-medium">
-                        {proposal.company}
-                        <span className="mx-1.5 text-outline">•</span>
-                        {proposal.time}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Pricing Structure & Action Hub */}
-                  <div className="flex items-center justify-between sm:justify-end gap-6 sm:pl-0 pl-16">
-                    <div className="sm:text-right">
-                      <p className="font-extrabold text-sm font-headline text-on-surface">
-                        {proposal.amount}
-                      </p>
-                      <p className="text-outline text-[11px] font-medium tracking-wide uppercase mt-0.5">
-                        {proposal.type}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/freelancer/job/${proposal.jobId}`}
-                        className="px-4 py-2 border border-outline-variant hover:border-outline hover:bg-surface text-on-surface-variant hover:text-on-surface rounded-xl text-xs font-bold transition-all"
-                      >
-                        View Proposal
-                      </Link>
-                      <Link
-                        href={`/freelancer/job/${proposal.jobId}`}
-                        aria-label="Open proposal details"
-                        className="p-2 text-outline hover:text-on-surface rounded-lg transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-lg">
-                          <MoreVertical />
-                        </span>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                <ProposalItem proposal={proposal} key={proposal.id} />
               ))
             ) : (
               <div className="p-6 text-sm text-on-surface-variant">
@@ -388,8 +403,6 @@ export default function ProposalsView() {
           </footer>
         </div>
       </main>
-
-     
     </div>
   );
 }

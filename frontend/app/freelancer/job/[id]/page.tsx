@@ -6,6 +6,7 @@ import {
   useGetMyProposalsQuery,
   useCreateProposalMutation,
 } from "@/api/proposalapi";
+import { useGetUserByIdQuery } from "@/api/userapi";
 const parseSkills = (skills: string) =>
   skills
     .split(",")
@@ -53,6 +54,9 @@ export default function JobDetailView() {
     useCreateProposalMutation();
 
   const job = jobdata?.job;
+  const { data: clientUser } = useGetUserByIdQuery(job?.created_by ?? 0, {
+    skip: !job?.created_by,
+  });
   const requiredSkills = parseSkills(job?.skills ?? "");
   const primarySkills = requiredSkills.slice(0, 3);
   const secondarySkills = requiredSkills.slice(3);
@@ -62,7 +66,9 @@ export default function JobDetailView() {
   });
 
   const myProposals = proposalsData;
-  const proposalForThisJob = myProposals?.find((proposal) => proposal.job_id === jobId);
+  const proposalForThisJob = myProposals?.find(
+    (proposal) => proposal.job_id === jobId,
+  );
   const hasApplied = !!proposalForThisJob;
 
   const roleHighlights =
@@ -91,7 +97,7 @@ export default function JobDetailView() {
       cover_letter: coverLetter.trim(),
     });
     //refetch the job
-      setCoverLetter(result.data?.description ?? "");
+    setCoverLetter(result.data?.description ?? "");
   };
 
   if (!isValidJobId) {
@@ -136,6 +142,13 @@ export default function JobDetailView() {
     );
   }
 
+  function gotToProposalForm() {
+    const proposalForm = document.getElementById("proposal-form");
+    if (proposalForm) {
+      proposalForm.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+
   return (
     <div className="bg-surface text-on-surface selection:bg-primary-fixed selection:text-primary min-h-screen">
       <main className="max-w-screen-2xl mx-auto px-6 md:px-8 pt-8 md:pt-12 mb-24">
@@ -144,6 +157,9 @@ export default function JobDetailView() {
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <span className="bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full text-[10px] md:text-xs font-bold tracking-wide uppercase">
               {job.status || "Open Position"}
+            </span>
+            <span className="bg-tertiary-fixed text-on-tertiary-fixed-variant px-3 py-1 rounded-full text-[10px] md:text-xs font-bold tracking-wide uppercase">
+              {job.job_type === "HOURLY" ? "Hourly" : "Fixed Price"}
             </span>
             <span className="text-on-surface-variant text-sm font-medium">
               {formatPostedDate(job.created_at)}
@@ -288,70 +304,44 @@ export default function JobDetailView() {
 
           {/* Sidebar */}
           <aside className="lg:col-span-4 space-y-6 md:space-y-8">
-            <div className="bg-primary p-6 md:p-8 rounded-xl text-white shadow-2xl shadow-primary/30">
-              <button className="w-full py-4 bg-white text-primary font-extrabold rounded-lg text-lg mb-4 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                Apply Now
-              </button>
-              <button className="w-full py-4 border-2 border-white/30 text-white font-bold rounded-lg text-lg hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined">favorite</span> Save
-                Job
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                if (!hasApplied) {
+                  setCoverLetter("");
+                  gotToProposalForm();
+                }
+              }}
+              className="w-full py-4 bg-primary text-white font-extrabold rounded-lg text-lg mb-4 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            >
+              Apply Now
+            </button>
 
             <div className="bg-surface-container-low p-6 md:p-8 rounded-xl">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                  <svg
-                    aria-hidden="true"
-                    className="h-8 w-8 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M14.5 4.5c2.8.2 5 2.4 5 5.2 0 4.4-3.8 8.2-8.8 8.8l-2.2.2.2-2.2c.6-5 4.4-8.8 8.8-8.8z"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.8"
-                    />
-                    <circle cx="14.5" cy="9.5" r="1.2" fill="currentColor" />
-                    <path
-                      d="M8.2 14.8l-2.7.3-.3-2.7 2.1-2.1 2.9 2.9-2 1.6z"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="1.8"
-                    />
-                    <path
-                      d="M5 19l3-1"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeWidth="1.8"
-                    />
-                  </svg>
+                <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center shadow-sm overflow-hidden">
+                  {clientUser ? (
+                    clientUser.profile_picture_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={clientUser.profile_picture_url}
+                        alt={`${clientUser.first_name || ""} ${clientUser.last_name || ""}`}
+                        className="w-14 h-14 object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 bg-primary text-white flex items-center justify-center font-bold text-lg">
+                        {(clientUser.first_name?.[0] ?? "") +
+                          (clientUser.last_name?.[0] ?? "")}
+                      </div>
+                    )
+                  ) : (
+                    <div className="w-14 h-14 bg-surface-container rounded-lg animate-pulse" />
+                  )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg font-bold text-primary leading-tight">
                       {job.company_name || "Company"}
                     </h3>
-                    <svg
-                      aria-hidden="true"
-                      className="h-4 w-4 text-blue-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <circle cx="12" cy="12" fill="currentColor" r="10" />
-                      <path
-                        d="M8 12.5l2.5 2.5L16 9.5"
-                        stroke="white"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                      />
-                    </svg>
                   </div>
                   <p className="text-on-surface-variant text-xs">
                     {job.category || "Category not specified"}
@@ -368,12 +358,12 @@ export default function JobDetailView() {
                   }
                 />
                 <ClientStat
-                  label="Total Spent"
+                  label="Project budget"
                   value={formatMoney(job.budget)}
                 />
                 <ClientStat
-                  label="Hire Rate"
-                  value={`${job.applications_count ?? 0} applicants`}
+                  label="Total applicants"
+                  value={`${job.applications_count ?? 0} `}
                 />
               </div>
             </div>
@@ -383,22 +373,25 @@ export default function JobDetailView() {
           {hasApplied ? (
             <div>
               <p className="text-green-600 font-semibold mt-6">
-              You have already applied to this job.
-            </p>
-            <textarea
-              
+                You have already applied to this job.
+              </p>
+              <textarea
                 className=" mt-8 min-w-24 pt-2 pb-6 px-2 text-gray-400 bg-gray-100 border rounded-2xl border-gray-300 tablet:w-[60%] max-tablet:w-full"
                 value={proposalForThisJob?.description ?? coverLetter}
                 onChange={(event) => setCoverLetter(event.target.value)}
               />
             </div>
-
-            
           ) : (
-            <form className="flex flex-col" onSubmit={handleSubmitProposal}>
+            <form
+              id="proposal-form"
+              className="flex flex-col"
+              onSubmit={handleSubmitProposal}
+            >
               <textarea
-                placeholder="Write your cover letter here..."
-                className=" mt-8 min-w-24 py-6 px-2  bg-gray-100 border border-primary tablet:w-[60%] max-tablet:w-full"
+                placeholder="Introduce yourself, explain why you're a good fit for this project, and highlight relevant experience..."
+                className="mt-4 w-full min-h-56 resize-y rounded-2xl border border-gray-300 bg-white px-5 py-4 text-sm leading-7 text-gray-800 shadow-sm outline-none  transition-all duration-200  focus:border-primary focus:ring-4
+      focus:ring-primary/20  placeholder:text-gray-400
+    "
                 value={coverLetter}
                 onChange={(event) => setCoverLetter(event.target.value)}
               />

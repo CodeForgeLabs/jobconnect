@@ -95,13 +95,13 @@ export interface ContractMilestone {
 	Amount: number;
 	ClientFeedback: string;
 	ContractID: number;
-	CreatedAt: string;
+	CreatedAt: Date;
 	Description: string;
-	Due_date: string;
+	deadline: Date;
 	ID: number;
 	Status: ContractMilestoneStatus;
 	submission_url: string;
-	UpdatedAt: string;
+	UpdatedAt: Date;
 	WorkDescription: string;
 }
 
@@ -115,7 +115,7 @@ export interface Contract {
 	client_skills: string;
 	contract_id: number;
 	description: string;
-	end_date: string;
+	end_date: Date;
 	freelancer_email: string;
 	freelancer_first_name: string;
 	freelancer_headline: string;
@@ -128,7 +128,7 @@ export interface Contract {
 	job_title: string;
 	milestones: ContractMilestone[];
 	proposal_description: string;
-	start_date: string;
+	start_date: Date;
 	status: ContractStatus;
 	title: string;
 	total_budget: number;

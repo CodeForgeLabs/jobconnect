@@ -1,14 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { useGetJobByIdQuery } from "@/api/jobsapi";
+import { useSendMessageMutation } from "@/api/messageapi";
 import {
   ProposalApplicant,
   useGetJobProposalsMutation,
+  useUpdateProposalMutation,
 } from "@/api/proposalapi";
-import { User, useGetUserByIdQuery } from "@/api/userapi";
+import { useCreateContractMutation } from "@/api/contractapi";
+import { User, useGetMeQuery, useGetUserByIdQuery } from "@/api/userapi";
 
 const DEFAULT_AVATAR_URL =
   "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp";
@@ -42,6 +45,18 @@ const formatPostedDate = (value?: string) => {
   })}`;
 };
 
+const buildInvitationMessage = (jobTitle: string, companyName: string) =>
+  `Hello,
+
+We reviewed your proposal for ${jobTitle} at ${companyName} and were impressed by your background and approach.
+
+We would like to invite you for an interview so we can discuss the role, expectations, and next steps in more detail.
+
+Please reply with a few times that work well for you this week. We look forward to speaking with you.
+
+Best regards,
+${companyName} Hiring Team`;
+
 export default function JobProposalsPage() {
   const params = useParams<{ id: string }>();
   const jobId = Number(params.id);
@@ -54,9 +69,12 @@ export default function JobProposalsPage() {
   } = useGetJobByIdQuery(jobId, {
     skip: !isValidJobId,
   });
+  const { data: me } = useGetMeQuery();
 
   const [getJobProposals, { isLoading: isLoadingProposals }] =
     useGetJobProposalsMutation();
+  const [sendMessage, { isLoading: isSendingMessage }] =
+    useSendMessageMutation();
 
   const [proposals, setProposals] = useState<ProposalApplicant[]>([]);
   const [proposalError, setProposalError] = useState<string | null>(null);
@@ -64,23 +82,36 @@ export default function JobProposalsPage() {
   const job = jobResponse?.job;
   const requiredSkills = useMemo(() => parseSkills(job?.skills), [job?.skills]);
 
+  const refreshProposals = useCallback(async () => {
+    if (!isValidJobId) return;
+
+    try {
+      const result = await getJobProposals({ job_id: jobId }).unwrap();
+      setProposals(result);
+      setProposalError(null);
+    } catch (error) {
+      console.error("Failed to load job proposals", error);
+      setProposalError("Unable to load job proposals.");
+    }
+  }, [getJobProposals, isValidJobId, jobId]);
+
   useEffect(() => {
     if (!isValidJobId) return;
 
     let isMounted = true;
 
-    getJobProposals({ job_id: jobId })
-      .unwrap()
-      .then((result) => {
+    (async () => {
+      try {
+        const result = await getJobProposals({ job_id: jobId }).unwrap();
         if (!isMounted) return;
         setProposals(result);
         setProposalError(null);
-      })
-      .catch((error) => {
+      } catch (error) {
         if (!isMounted) return;
         console.error("Failed to load job proposals", error);
         setProposalError("Unable to load job proposals.");
-      });
+      }
+    })();
 
     return () => {
       isMounted = false;
@@ -148,7 +179,10 @@ export default function JobProposalsPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-              <HeaderStat label="Proposals" value={String(proposals?.length ?? 0)} />
+              <HeaderStat
+                label="Proposals"
+                value={String(proposals?.length ?? 0)}
+              />
               <HeaderStat
                 label={job.job_type === "HOURLY" ? "Hourly" : "Budget"}
                 value={
@@ -238,7 +272,6 @@ export default function JobProposalsPage() {
               <h2 className="text-2xl font-bold tracking-tight text-on-surface">
                 Job proposals
               </h2>
-             
             </div>
           </div>
 
@@ -265,6 +298,15 @@ export default function JobProposalsPage() {
                     index
                   }
                   proposal={proposal}
+                  jobId={jobId}
+                  senderId={me?.id ?? 0}
+                  onActionComplete={refreshProposals}
+                  onSendMessage={sendMessage}
+                  isSendingMessage={isSendingMessage}
+                  invitationMessage={buildInvitationMessage(
+                    job?.title || "the role",
+                    job?.company_name || "our company",
+                  )}
                 />
               ))}
             </div>
@@ -306,11 +348,36 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ProposalCard({ proposal }: { proposal: ProposalApplicant }) {
+function ProposalCard({
+  proposal,
+  jobId,
+  senderId,
+  onActionComplete,
+  onSendMessage,
+  isSendingMessage,
+  invitationMessage,
+}: {
+  proposal: ProposalApplicant;
+  jobId: number;
+  senderId: number;
+  onActionComplete: () => Promise<void>;
+  onSendMessage: ReturnType<typeof useSendMessageMutation>[0];
+  isSendingMessage: boolean;
+  invitationMessage: string;
+}) {
+  const router = useRouter();
   const resolvedUserId = proposal.user_id ?? proposal.sender_id ?? 0;
   const { data: applicantUser } = useGetUserByIdQuery(resolvedUserId, {
     skip: !resolvedUserId,
   });
+  const [updateProposal, { isLoading: isUpdatingProposal }] =
+    useUpdateProposalMutation();
+  const [createContract, { isLoading: isCreatingContract }] =
+    useCreateContractMutation();
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [activeAction, setActiveAction] = useState<"invite" | "hire" | null>(
+    null,
+  );
 
   const applicant: User | undefined = applicantUser;
   const displayName =
@@ -328,10 +395,76 @@ function ProposalCard({ proposal }: { proposal: ProposalApplicant }) {
   );
   const proposalText = proposal.description || "No cover letter provided.";
 
+  const handleInviteToTalk = async () => {
+    if (!proposal.proposal_id || !resolvedUserId || !senderId) {
+      setActionError("This proposal cannot be updated right now.");
+      return;
+    }
+
+    setActiveAction("invite");
+    setActionError(null);
+
+    try {
+      await onSendMessage({
+        caption: "",
+        image_url: "",
+        receiver_id: resolvedUserId,
+        sender_id: senderId,
+        text: invitationMessage,
+        type: "text",
+        video_url: "",
+      }).unwrap();
+
+      await updateProposal({
+        id: proposal.proposal_id,
+        payload: { status: "INVITED" },
+      }).unwrap();
+      await onActionComplete();
+    } catch (error) {
+      console.error("Failed to invite applicant", error);
+      setActionError("Unable to invite this applicant right now.");
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
+  const handleHireApplicant = async () => {
+    if (!proposal.proposal_id || !resolvedUserId) {
+      setActionError("This applicant cannot be hired right now.");
+      return;
+    }
+
+    setActiveAction("hire");
+    setActionError(null);
+
+    try {
+      await updateProposal({
+        id: proposal.proposal_id,
+        payload: { status: "HIRED" },
+      }).unwrap();
+
+      await createContract({
+        freelancer_id: String(resolvedUserId),
+        job_id: String(jobId),
+      }).unwrap();
+
+      await onActionComplete();
+    } catch (error) {
+      console.error("Failed to hire applicant", error);
+      setActionError("Unable to hire this applicant right now.");
+    } finally {
+      setActiveAction(null);
+    }
+  };
+
   return (
     <article className="w-full  rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-sm transition-all hover:shadow-md md:p-7">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex gap-4">
+        <div 
+        onClick={() => {
+              router.push(`/freelancer/profile/${resolvedUserId}`);
+            }}
+        className="flex gap-4">
           <div className="h-16 w-16 overflow-hidden rounded-2xl bg-surface-container">
             <Image
               src={avatarUrl}
@@ -351,7 +484,7 @@ function ProposalCard({ proposal }: { proposal: ProposalApplicant }) {
             </div>
 
             <div className="flex flex-wrap gap-2 text-xs">
-              <Badge>{proposal.status || "PENDING"}</Badge>
+             
               {applicant?.location && <Badge>{applicant.location}</Badge>}
               {typeof applicant?.hourly_rate === "number" && (
                 <Badge>{formatMoney(applicant.hourly_rate)}/hr</Badge>
@@ -360,14 +493,47 @@ function ProposalCard({ proposal }: { proposal: ProposalApplicant }) {
           </div>
         </div>
 
+        
         <div className="flex flex-wrap gap-3">
-          <button className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-all hover:opacity-90">
-            Message
+          
+          <button
+            type="button"
+            onClick={handleInviteToTalk}
+            disabled={
+              !resolvedUserId ||
+              activeAction !== null ||
+              isUpdatingProposal ||
+              isCreatingContract ||
+              isSendingMessage ||
+              !senderId ||
+              proposal.status === "INVITED"||
+              proposal.status === "HIRED" 
+         
+            }
+            className="rounded-xl border border-primary/20 px-4 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {activeAction === "invite" ? "Inviting..." : proposal.status === "PENDING" ? "Invite to talk" : "Invited"}
           </button>
-          <button className="rounded-xl border border-outline-variant/20 px-4 py-2.5 text-sm font-bold text-on-surface transition-all hover:bg-surface-container">
-            View profile
+          <button
+            type="button"
+            onClick={handleHireApplicant}
+            disabled={
+              !resolvedUserId ||
+              activeAction !== null ||
+              isUpdatingProposal ||
+              isCreatingContract
+              || proposal.status === "HIRED" ||
+              proposal.status === "PENDING" 
+            }
+            className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {proposal.status === "HIRED" ? "Hired" : activeAction === "hire" ? "Hiring..." : proposal.status === "PENDING" ? "Hire" : "Hire"}
           </button>
         </div>
+
+        {actionError ? (
+          <p className="text-sm font-medium text-red-600">{actionError}</p>
+        ) : null}
       </div>
 
       <div className="mt-6 space-y-4">
@@ -380,6 +546,7 @@ function ProposalCard({ proposal }: { proposal: ProposalApplicant }) {
           </p>
         </div>
 
+        <div className="flex"></div>
         {skills.length > 0 && (
           <div>
             <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">

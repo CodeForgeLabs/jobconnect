@@ -19,6 +19,21 @@ interface JobcardProps {
   onApply?: () => void;
 }
 
+const formatDate = (value?: string) => {
+  if (!value) return "Recently";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+
+
 const Jobcard = ({
   title,
   pay,
@@ -27,7 +42,6 @@ const Jobcard = ({
   postTime,
   tags,
   companyName,
-  status,
   skills,
   jobType,
   hourlyRate,
@@ -38,8 +52,8 @@ const Jobcard = ({
   onApply,
 }: JobcardProps) => {
   const displayCompany = companyName || "Client";
-  const displayPostedAt = createdAt || postTime;
-  const displayStatus = status === "OPEN" ? "Best Match" : status || type;
+  const displayPostedAt = formatDate(createdAt) ||formatDate(postTime);
+  const displayStatus =jobType === "HOURLY" ? "Hourly" : "Fixed Price";
   const displayJobType = jobType || type;
   const displayPay =
     displayJobType === "HOURLY" ? `${hourlyRate || pay} / hr` : budget || pay;
@@ -63,7 +77,7 @@ const Jobcard = ({
     );
 
   return (
-    <div className="space-y-5 rounded-lg border border-outline-variant/10 bg-surface-container-lowest p-6 transition-all hover:border-primary/20">
+    <div className="space-y-5 rounded-lg border border-outline-variant/10 bg-white p-6 transition-all hover:shadow-lg hover:-translate-y-1 transform-gpu">
       <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row">
         <div className="flex gap-4">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-container">
@@ -89,7 +103,7 @@ const Jobcard = ({
         {displaySkills.slice(0, 3).map((skill) => (
           <span
             key={skill}
-            className="rounded-md bg-surface-container px-3 py-1 text-xs font-medium text-on-surface-variant"
+            className="rounded-md bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
           >
             {skill}
           </span>
@@ -98,7 +112,7 @@ const Jobcard = ({
 
       <div className="flex flex-col gap-4 border-t border-outline-variant/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-4 text-sm font-semibold text-on-surface">
-          <span>{displayPay}</span>
+          <span className="text-on-surface">{displayPay}</span>
           <span className="font-normal text-on-surface-variant">
             {experienceLevel || "Any level"}
           </span>
@@ -106,7 +120,7 @@ const Jobcard = ({
         <button
           type="button"
           onClick={onApply}
-          className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-primary-container active:scale-95"
+          className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-[1.02] active:scale-95"
         >
           Apply Now
         </button>

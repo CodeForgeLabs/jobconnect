@@ -3,14 +3,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { useParams  , useRouter} from "next/navigation";
-import {
-  ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useParams, useRouter } from "next/navigation";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import {
   BadgeAlert,
   CalendarDays,
@@ -69,11 +63,11 @@ const formatMoney = (value: number) =>
     minimumFractionDigits: 2,
   }).format(Number(value || 0));
 
-const formatDate = (value?: string) => {
+const formatDate = (value?: string | Date | null) => {
   if (!value) return "N/A";
 
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
+  if (Number.isNaN(parsed.getTime())) return String(value);
 
   return parsed.toLocaleDateString("en-US", {
     month: "short",
@@ -186,9 +180,6 @@ const StatCard = ({
   </div>
 );
 
-
-
-
 export default function ContractManagement() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -216,8 +207,8 @@ export default function ContractManagement() {
     number | null
   >(null);
   const [milestoneFeedbacks, setMilestoneFeedbacks] = useState<
-  Record<number, string>
->({});
+    Record<number, string>
+  >({});
 
   const contractType = useMemo(
     () => normalizeContractType(contract?.type),
@@ -269,23 +260,30 @@ export default function ContractManagement() {
     void syncWeeklyLogs();
   }, [contract, isHourly, syncWeeklyLogs]);
 
-  const[feedBeckError, setFeedBackError] = useState<string | null>(null);
+  const [feedBeckError, setFeedBackError] = useState<string | null>(null);
 
   const handleRequestChanges = async (milestone: ContractMilestone) => {
     setPageMessage(null);
     setRequestingMilestoneId(milestone.ID);
-    if (!milestoneFeedbacks[milestone.ID] || milestoneFeedbacks[milestone.ID].trim() === "") {
+    if (
+      !milestoneFeedbacks[milestone.ID] ||
+      milestoneFeedbacks[milestone.ID].trim() === ""
+    ) {
       setFeedBackError("Feedback is required to request changes.");
       setRequestingMilestoneId(null);
       return;
     }
-    console.log("Requesting changes for milestone", milestone.ID, "with feedback:", milestoneFeedbacks[milestone.ID]);
+    console.log(
+      "Requesting changes for milestone",
+      milestone.ID,
+      "with feedback:",
+      milestoneFeedbacks[milestone.ID],
+    );
     try {
       await updateMilestoneStatus({
         milestoneId: milestone.ID,
         newStatus: "REVISION_REQUESTED",
         feedback: milestoneFeedbacks[milestone.ID],
-        
       }).unwrap();
       setPageMessage(`Requested changes for ${milestone.Description}.`);
       await refetch();
@@ -365,22 +363,21 @@ export default function ContractManagement() {
   const contractSummary = contract.description || contract.proposal_description;
   const statusLabel = contract.status || "ACTIVE";
 
- // ...existing code...
+  // ...existing code...
 
-const handleUpdateContractStatus = async (
-  newStatus: string,
-  milestoneId: number
-) => {
-  if (!contract) return;
+  const handleUpdateContractStatus = async (
+    newStatus: string,
+    milestoneId: number,
+  ) => {
+    if (!contract) return;
 
-  await updateMilestoneStatus({
-    milestoneId: milestoneId, // use the key expected by UpdateContractStatusRequest
-    newStatus: newStatus      // use the key expected by UpdateContractStatusRequest
-  }).unwrap();
-};
+    await updateMilestoneStatus({
+      milestoneId: milestoneId, // use the key expected by UpdateContractStatusRequest
+      newStatus: newStatus, // use the key expected by UpdateContractStatusRequest
+    }).unwrap();
+  };
 
-// ...existing code...
-
+  // ...existing code...
 
   return (
     <div className="min-h-screen bg-surface text-slate-900 selection:bg-amber-200 selection:text-slate-900">
@@ -414,10 +411,11 @@ const handleUpdateContractStatus = async (
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-            onClick={() => {
-              router.push(`/messages?userid=${contract.freelancer_id}`);
-            }}
+            <button
+              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+              onClick={() => {
+                router.push(`/messages?userid=${contract.freelancer_id}`);
+              }}
             >
               <MessageCircle className="h-4 w-4" />
               Message freelancer
@@ -470,7 +468,10 @@ const handleUpdateContractStatus = async (
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               <StatCard
                 label="Total budget"
-                value={formatMoney(contract.total_budget || contract.hourly_rate * contract.weekly_hour_limit )}
+                value={formatMoney(
+                  contract.total_budget ||
+                    contract.hourly_rate * contract.weekly_hour_limit,
+                )}
                 helper={
                   contractType === "HOURLY" ? "Budget ceiling" : "Fixed price"
                 }
@@ -761,62 +762,59 @@ const handleUpdateContractStatus = async (
                             </span>
                           </div>
 
-                        <div className="mt-5 space-y-4">
-                      <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex items-center gap-1">
-                          <FileText className="h-4 w-4 text-slate-500" />
-                          <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">
-                            Submission Description
-                          </p>
-                        </div>
+                          <div className="mt-5 space-y-4">
+                            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+                              <div className="flex items-center gap-1">
+                                <FileText className="h-4 w-4 text-slate-500" />
+                                <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">
+                                  Submission Description
+                                </p>
+                              </div>
 
-                        <p className="mt-1 whitespace-pre-wrap text-sm leading-7 text-slate-700">
-                          {milestone.WorkDescription ||
-                            "No additional milestone work description provided."}
-                        </p>
-                      </div>
+                              <p className="mt-1 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                                {milestone.WorkDescription ||
+                                  "No additional milestone work description provided."}
+                              </p>
+                            </div>
 
-                      {milestone.ClientFeedback && (
-                        <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-5 shadow-sm">
-                          <div className="flex items-center gap-2">
-                            <MessageCircle className="h-4 w-4 text-rose-500" />
-                            <p className="text-xs font-black uppercase tracking-[0.22em] text-rose-600">
-                              Client Feedback
-                            </p>
+                            {milestone.ClientFeedback && (
+                              <div className="rounded-3xl border border-rose-200 bg-rose-50/80 p-5 shadow-sm">
+                                <div className="flex items-center gap-2">
+                                  <MessageCircle className="h-4 w-4 text-rose-500" />
+                                  <p className="text-xs font-black uppercase tracking-[0.22em] text-rose-600">
+                                    Client Feedback
+                                  </p>
+                                </div>
+
+                                <p className="mt-1 whitespace-pre-wrap text-sm leading-7 text-rose-900">
+                                  {milestone.ClientFeedback}
+                                </p>
+                              </div>
+                            )}
                           </div>
-
-                          <p className="mt-1 whitespace-pre-wrap text-sm leading-7 text-rose-900">
-                            {milestone.ClientFeedback}
-                          </p>
-                        </div>
-                      )}
-                      </div>
-                          {
-                            milestone.Status == "SUBMITTED" ? (
-                              <div className="mt-4">
-                            <label
-                              htmlFor={`feedback-${milestone.ID}`}
-                              className="block text-sm font-medium text-red-700"
-                            >
-                              {feedBeckError }
-                            </label>
-                            <textarea
-                              id={`feedback-${milestone.ID}`}
-                              rows={3}
-                              className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-50 py-2 px-3 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="Enter your feedback for requesting changes..."
-                              value={milestoneFeedbacks[milestone.ID] || ""}
-                              onChange={(e) =>
-                                setMilestoneFeedbacks({
-                                  ...milestoneFeedbacks,
-                                  [milestone.ID]: e.target.value,
-                                })
-                              }
-                            />
-                          </div>
-                            ): null
-                          }
-                          
+                          {milestone.Status == "SUBMITTED" ? (
+                            <div className="mt-4">
+                              <label
+                                htmlFor={`feedback-${milestone.ID}`}
+                                className="block text-sm font-medium text-red-700"
+                              >
+                                {feedBeckError}
+                              </label>
+                              <textarea
+                                id={`feedback-${milestone.ID}`}
+                                rows={3}
+                                className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-50 py-2 px-3 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter your feedback for requesting changes..."
+                                value={milestoneFeedbacks[milestone.ID] || ""}
+                                onChange={(e) =>
+                                  setMilestoneFeedbacks({
+                                    ...milestoneFeedbacks,
+                                    [milestone.ID]: e.target.value,
+                                  })
+                                }
+                              />
+                            </div>
+                          ) : null}
 
                           <div className="mt-5 grid gap-3 sm:grid-cols-3">
                             <div className="rounded-2xl bg-white p-4">
@@ -824,7 +822,7 @@ const handleUpdateContractStatus = async (
                                 Due date
                               </p>
                               <p className="mt-2 text-sm font-bold text-slate-900">
-                                {formatDate(milestone.Due_date)}
+                                {formatDate(milestone.deadline)}
                               </p>
                             </div>
                             <div className="rounded-2xl bg-white p-4">
@@ -863,8 +861,8 @@ const handleUpdateContractStatus = async (
                             type="button"
                             onClick={() => void handleRequestChanges(milestone)}
                             disabled={
-                             milestone.Status !== "SUBMITTED" || requestingMilestoneId === milestone.ID
-                             
+                              milestone.Status !== "SUBMITTED" ||
+                              requestingMilestoneId === milestone.ID
                             }
                             className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                           >
@@ -878,7 +876,7 @@ const handleUpdateContractStatus = async (
 
                           {milestone.Status === "SUBMITTED" ? (
                             <>
-                            {/* <a
+                              {/* <a
                               href={milestone.submission_url}
                               target="_blank"
                               rel="noreferrer"
@@ -887,16 +885,18 @@ const handleUpdateContractStatus = async (
                               Review file
                               <FileText className="h-4 w-4" />
                             </a> */}
-                            <button 
-                            
-                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-emerald-200"
-                              onClick={() => void handleUpdateContractStatus("APPROVED", milestone.ID)}
-                              disabled={milestone.Status !== "SUBMITTED" }
-                            >
-                            
-
-                              Approve and pay 
-                            </button>
+                              <button
+                                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-emerald-200"
+                                onClick={() =>
+                                  void handleUpdateContractStatus(
+                                    "APPROVED",
+                                    milestone.ID,
+                                  )
+                                }
+                                disabled={milestone.Status !== "SUBMITTED"}
+                              >
+                                Approve and pay
+                              </button>
                             </>
                           ) : null}
                         </div>
