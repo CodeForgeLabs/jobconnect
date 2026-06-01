@@ -1011,9 +1011,14 @@ export default function FreelancerContractDetailPage() {
                               </button>
                             ) : (
                               <span className="text-sm text-on-surface-variant">
-                                {milestone.Status === "PAID"
+                                {milestone.Status === "APPROVED" ||
+                                milestone.Status === "PAID"
                                   ? "No action needed"
-                                  : "Submit previous milestones first"}
+                                  : milestone.Status === "REVISION_REQUESTED"
+                                    ? "Revise and resubmit"
+                                    : milestone.Status === "SUBMITTED"
+                                      ? "Awaiting client review"
+                                      : "Submit previous milestones first"}
                               </span>
                             )}
                           </td>
@@ -1190,8 +1195,6 @@ export default function FreelancerContractDetailPage() {
           </form>
         ) : null}
       </dialog>
-
-      
     </>
   );
 }

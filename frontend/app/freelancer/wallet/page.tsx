@@ -3,6 +3,7 @@
 import TeleBirrWithdrawCard from "@/components/Telebirrwithdrawcard";
 import BuyconnectsCard from "@/components/Buyconnectscard";
 import TransactionHistoryCard from "@/components/Transactionhistorycard";
+import WithdrawCard from "@/components/Withdrawcard";
 import {
   useGetWalletBalanceQuery,
   useGetWalletTransactionsQuery,
@@ -14,7 +15,7 @@ const formatMoney = (currency: string, amountMinor: number) =>
     style: "currency",
     currency,
     maximumFractionDigits: 2,
-  }).format(amountMinor );
+  }).format(amountMinor);
 
 const WalletPage = () => {
   const { data: wallet } = useGetWalletBalanceQuery();
@@ -146,6 +147,7 @@ const WalletPage = () => {
       <div className="flex gap-6">
         <div className="flex w-[70%] flex-col gap-5 ">
           <TeleBirrWithdrawCard />
+          <WithdrawCard currency={currency} />
           <TransactionHistoryCard />
         </div>
         <div className=" w-[30%] ">

@@ -16,6 +16,7 @@ import {
   UserCircle2,
   UserPlus,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 function EmptyStateBox({
   icon,
@@ -57,6 +58,7 @@ function EmptyStateBox({
 }
 
 export default function ClientDashboard() {
+  const router = useRouter();
   const { data: me } = useGetMeQuery();
   const { data: myJobs = [] } = useGetMyJobsQuery();
   const { data: myContracts = [] } = useGetMyContractsQuery();
@@ -79,10 +81,12 @@ export default function ClientDashboard() {
     0,
   );
 
-  const formatDate = (value: string) => {
+  const formatDate = (value: Date | string) => {
+    if (!value) return "recently";
+
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
-      return value;
+      return "recently";
     }
 
     return date.toLocaleDateString("en-US", {
@@ -124,7 +128,10 @@ export default function ClientDashboard() {
             </h1>
           </div>
           <div className="flex gap-4 text-xs">
-            <button className="flex items-center gap-2 px-6 py-4 bg-secondary-container text-on-secondary-container font-bold rounded hover:bg-secondary-fixed transition-all active:scale-95">
+            <button
+              onClick={() => router.push("/client/findtalent")}
+              className="flex items-center gap-2 px-6 py-4 bg-secondary-container text-on-secondary-container font-bold rounded hover:bg-secondary-fixed transition-all active:scale-95"
+            >
               <UserPlus className="h-5 w-5" aria-hidden="true" />
               Invite Freelancers
             </button>
@@ -221,7 +228,12 @@ export default function ClientDashboard() {
               <h2 className="text-2xl font-bold text-on-surface font-headline">
                 Recent Job Postings
               </h2>
-              <button className="text-primary text-sm font-bold hover:underline">
+              <button
+                onClick={() => {
+                  router.push("/client/mypostings");
+                }}
+                className="text-primary text-sm font-bold hover:underline"
+              >
                 View All
               </button>
             </div>
@@ -298,7 +310,12 @@ export default function ClientDashboard() {
               <h2 className="text-2xl font-bold text-on-surface font-headline">
                 Active Contracts
               </h2>
-              <button className="text-primary text-sm font-bold hover:underline">
+              <button
+                onClick={() => {
+                  router.push("/client/mycontracts");
+                }}
+                className="text-primary text-sm font-bold hover:underline"
+              >
                 Manage
               </button>
             </div>
@@ -380,9 +397,6 @@ export default function ClientDashboard() {
       </main>
 
       {/* Footer */}
-
-
-  
     </>
   );
 }

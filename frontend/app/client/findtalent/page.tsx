@@ -2,13 +2,19 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Loader2, Search, Send, Star, X } from "lucide-react";
 
 import {
-  useFetchUsersQuery,
   type FetchUsersParams,
   type User,
+  useFetchUsersQuery,
 } from "@/api/userapi";
+import {
+  type Job,
+  useGetMyJobsQuery,
+  useInviteToJobMutation,
+} from "@/api/jobsapi";
+import { useRouter } from "next/navigation";
 
 const skillOptions = ["React", "Node.js", "Design", "Marketing", "Data"];
 const quickFilters = [
@@ -35,11 +41,31 @@ function getDisplayName(user: User) {
 }
 
 function getHeadline(user: User) {
-  return user.headline ||  "Available for new projects";
+  return user.headline || "Available for new projects";
 }
 
-function UserCard({ user }: { user: User }) {
+function getJobBudgetLabel(job: Job) {
+  if (job.job_type === "HOURLY") {
+    return `$${Number(job.hourly_rate || 0).toLocaleString()}/hr`;
+  }
+
+  return `$${Number(job.budget || 0).toLocaleString()} fixed`;
+}
+
+interface Userwithreview extends User {
+  average_rating: number;
+  total_reviews: number;
+}
+
+function UserCard({
+  user,
+  onInvite,
+}: {
+  user: Userwithreview;
+  onInvite: (user: Userwithreview) => void;
+}) {
   const skills = parseSkills(user.skills).slice(0, 4);
+  const router = useRouter();
 
   const initials = getDisplayName(user)
     .split(" ")
@@ -54,129 +80,131 @@ function UserCard({ user }: { user: User }) {
     : "This talent has not added a bio yet.";
 
   return (
-    <article className="bg-white p-6 rounded-xl border border-slate-200/70 shadow-md transition-transform duration-200 hover:-translate-y-0.5">
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-start">
-        <div className="shrink-0 flex gap-4 items-center">
-          <div className="h-12 w-12 rounded-full overflow-hidden bg-slate-100 ring-2 ring-[#dce9ff]">
-            {user.profile_picture_url ? (
-              <div
-                aria-label={getDisplayName(user)}
-                role="img"
-                className="h-full w-full bg-center bg-cover"
-                style={{
-                  backgroundImage: `url(${user.profile_picture_url})`,
-                }}
-              />
-            ) : (
-              <div className="h-full w-full grid place-items-center bg-gradient-to-br from-[#15157d] to-[#2e3192] text-white text-lg font-bold">
-                {initials || "T"}
+    <article
+      onClick={() => {
+        router.push(`/freelancer/profile/${user.id}`);
+      }}
+      className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-5"
+    >
+      {/* Main Content Area */}
+      <div className="flex gap-4 items-start">
+        {/* Profile Picture / Initials Avatar */}
+        <div className="h-14 w-14 rounded-full overflow-hidden bg-slate-100 ring-4 ring-slate-100 shrink-0 shadow-sm">
+          {user.profile_picture_url ? (
+            <div
+              aria-label={getDisplayName(user)}
+              role="img"
+              className="h-full w-full bg-center bg-cover"
+              style={{
+                backgroundImage: `url(${user.profile_picture_url})`,
+              }}
+            />
+          ) : (
+            <div className="h-full w-full grid place-items-center bg-linear-to-br from-[#15157d] to-[#2e3192] text-white text-xl font-bold">
+              {initials || "T"}
+            </div>
+          )}
+        </div>
+
+        {/* Name, Headline & Rating Data */}
+        <div className="space-y-1 min-w-0 flex-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <h2 className="text-xl font-black tracking-tight text-[#0d1c2e] truncate">
+              {getDisplayName(user)}
+            </h2>
+
+            {/* Dynamic Bayesian Rating Badge */}
+            <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-0.5 bg-amber-50 text-amber-700 px-2 py-0.5 rounded-lg border border-amber-200/50 text-xs font-black">
+                <Star size={13} className="fill-amber-500 text-amber-500" />
+                <span>{Number(user.average_rating || 0).toFixed(1)}</span>
               </div>
-            )}
-          </div>
-          <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between pc:hidden">
-            <div>
-              
-
-              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-[#0d1c2e]">
-                {getDisplayName(user)}
-              </h2>
-
-              <p className="text-sm font-semibold text-[#15157d]">
-                {getHeadline(user)}
-              </p>
+              <span className="text-[11px] font-bold text-slate-400">
+                ({user.total_reviews || 0})
+              </span>
             </div>
-
-            
           </div>
+
+          <p className="text-xs font-bold text-[#15157d] tracking-wide uppercase">
+            {getHeadline(user)}
+          </p>
+        </div>
+      </div>
+
+      {/* Bio excerpt description */}
+      <p className="text-sm text-[#464652] leading-relaxed line-clamp-3">
+        {bio}
+      </p>
+
+      {/* Skills Pills tags row */}
+      <div className="flex flex-wrap gap-1.5">
+        {skills.length > 0 ? (
+          skills.map((skill) => (
+            <span
+              key={skill}
+              className="rounded-xl bg-[#e6eeff] px-2.5 py-1 text-xs font-bold text-[#15157d]"
+            >
+              {skill}
+            </span>
+          ))
+        ) : (
+          <span className="text-xs italic text-slate-400">
+            No skills specified
+          </span>
+        )}
+      </div>
+
+      {/* Meta Footer Row */}
+      <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between w-full mt-auto">
+        {/* Core details data descriptors */}
+        <div className="flex gap-4 text-[11px] text-[#464652] font-medium">
+          <span>
+            Location:{" "}
+            <strong className="text-[#0d1c2e] font-bold">
+              {user.location || "N/A"}
+            </strong>
+          </span>
         </div>
 
-        <div className="flex-1 space-y-2">
-          <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between max-pc:hidden">
-            <div>
-              
-
-              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight text-[#0d1c2e]">
-                {getDisplayName(user)}
-              </h2>
-
-              <p className="text-sm font-semibold text-[#15157d]">
-                {getHeadline(user)}
-              </p>
-            </div>
-
-            
+        {/* Rates & Actions Controls Wrapper */}
+        <div className="flex items-center justify-between sm:justify-end gap-3 native-row">
+          <div className="text-left sm:text-right sm:mr-1">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              Hourly Rate
+            </p>
+            <p className="text-base font-black text-[#0d1c2e]">
+              ${Number(user.hourly_rate || 0).toLocaleString()}
+              <span className="text-xs font-normal text-slate-500">/hr</span>
+            </p>
           </div>
 
-          <p className="text-sm text-[#464652] leading-relaxed">{bio}</p>
-
-          <div className="flex flex-wrap gap-2">
-            {skills.length > 0 ? (
-              skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="rounded-full bg-[#e6eeff] px-3 py-1 text-xs font-semibold text-[#15157d]"
-                >
-                  {skill}
-                </span>
-              ))
-            ) : (
-              null
-            )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onInvite(user);
+              }}
+              className="inline-flex items-center justify-center rounded-xl bg-[#15157d] px-3 py-2 text-xs font-extrabold text-white transition hover:bg-[#2e3192] hover:shadow-md active:scale-95"
+            >
+              Invite
+            </button>
           </div>
-
-          <div className="flex flex-wrap gap-3 pt-3 border-t border-slate-200/70 text-xs text-[#464652]">
-            <span>
-              Availability:{" "}
-              <strong className="text-[#0d1c2e]">{user.availability || "N/A"}</strong>
-            </span>
-
-            
-
-            <span>
-              Location:{" "}
-              <strong className="text-[#0d1c2e]">
-                {user.location || "N/A"}
-              </strong>
-            </span>
-          </div>
-        </div>
-
-        <div className="flex flex-row lg:flex-col gap-3 lg:justify-center">
-          <Link
-            href={`/freelancer/profile/${user.id}`}
-            className="inline-flex items-center justify-center rounded-lg bg-[#15157d] px-4 py-2 text-sm font-bold text-white transition-all hover:shadow-lg active:scale-95"
-          >
-            View Profile
-          </Link>
-
-          <Link
-            href={`/client/invite?user=${user.id}`}
-            className="inline-flex items-center justify-center rounded-lg bg-[#d5e3fc] px-4 py-2 text-sm font-bold text-[#15157d] transition-all hover:bg-[#dce9ff] active:scale-95"
-          >
-            Invite to Job
-          </Link>
-
-          <div className="text-left xl:text-right">
-              <p className="text-xs text-[#464652]">Hourly Rate</p>
-
-              <p className="text-lg font-extrabold text-[#0d1c2e]">
-                ${Number(user.hourly_rate || 0).toLocaleString()}/hr
-              </p>
-
-            
-            </div>
         </div>
       </div>
     </article>
   );
 }
-
 export default function FindTalent() {
   const [selectedSkill, setSelectedSkill] = useState("");
   const [location, setLocation] = useState("");
   const [minHourlyRate, setMinHourlyRate] = useState(0);
   const [searchText, setSearchText] = useState("");
   const [activeQuickFilter, setActiveQuickFilter] = useState("");
+  const [selectedTalent, setSelectedTalent] = useState<User | null>(null);
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const [inviteMessage, setInviteMessage] = useState<string | null>(null);
+  const [inviteError, setInviteError] = useState<string | null>(null);
 
   const filters = useMemo<FetchUsersParams>(() => {
     const skillValue = [searchText, selectedSkill, activeQuickFilter]
@@ -190,12 +218,43 @@ export default function FindTalent() {
     };
   }, [activeQuickFilter, location, minHourlyRate, searchText, selectedSkill]);
 
-  const {
-    data: users = [],
-    isLoading,
-    isFetching,
-    error,
-  } = useFetchUsersQuery(filters);
+  const { data: users = [], isLoading, error } = useFetchUsersQuery(filters);
+  console.log("Fetched users with filters:", filters, users);
+  const { data: myJobs = [], isLoading: isLoadingMyJobs } = useGetMyJobsQuery();
+  const [inviteToJob, { isLoading: isInviting }] = useInviteToJobMutation();
+
+  const sortedFreelancers = useMemo(() => {
+    // 1. Filter for freelancers and safely cast to your extended interface
+    const freelancers = (users as Userwithreview[]).filter(
+      (u) => u.role === "FREELANCER",
+    );
+
+    // 2. Set Bayesian constants
+    const m = 5; // Dampening threshold (number of reviews needed to fully trust a rating)
+    const C = 3.5; // Platform baseline rating for brand new profiles
+
+    // 3. Execute the weighted sort
+    return [...freelancers].sort((a, b) => {
+      const rA = a.average_rating ?? 0;
+      const vA = a.total_reviews ?? 0;
+      const scoreA = (vA * rA + m * C) / (vA + m);
+
+      const rB = b.average_rating ?? 0;
+      const vB = b.total_reviews ?? 0;
+      const scoreB = (vB * rB + m * C) / (vB + m);
+
+      return scoreB - scoreA; // Sorts descending (highest weighted score first)
+    });
+  }, [users]);
+
+  const privateJobs = useMemo(
+    () =>
+      myJobs.filter(
+        (job) =>
+          job.is_private && (job.status ?? "OPEN").toUpperCase() !== "CLOSED",
+      ),
+    [myJobs],
+  );
 
   const handleReset = () => {
     setSelectedSkill("");
@@ -203,6 +262,53 @@ export default function FindTalent() {
     setMinHourlyRate(0);
     setSearchText("");
     setActiveQuickFilter("");
+  };
+
+  const openInviteModal = (user: User) => {
+    setSelectedTalent(user);
+    setSelectedJobId(null);
+    setInviteMessage(null);
+    setInviteError(null);
+  };
+
+  const closeInviteModal = () => {
+    if (isInviting) return;
+
+    setSelectedTalent(null);
+    setSelectedJobId(null);
+    setInviteMessage(null);
+    setInviteError(null);
+  };
+
+  const handleInviteToPrivateJob = async () => {
+    if (!selectedTalent || !selectedJobId) {
+      setInviteError("Select one private job you created before sending.");
+      return;
+    }
+
+    const selectedJob = privateJobs.find((job) => job.id === selectedJobId);
+
+    if (!selectedJob) {
+      setInviteError(
+        "Invitation works only on private jobs you created. Select a private job from your postings.",
+      );
+      return;
+    }
+
+    setInviteError(null);
+    setInviteMessage(null);
+
+    try {
+      await inviteToJob({
+        job_id: selectedJob.id,
+        user_id: selectedTalent.id,
+      }).unwrap();
+      setInviteMessage(
+        `Invitation sent to ${getDisplayName(selectedTalent)} for ${selectedJob.title}.`,
+      );
+    } catch {
+      setInviteError("Unable to send this invitation right now.");
+    }
   };
 
   const minRateLabel = minHourlyRate === 0 ? "Any rate" : `$${minHourlyRate}+`;
@@ -220,7 +326,6 @@ export default function FindTalent() {
                 <h2 className="mt-2 text-2xl font-extrabold text-[#0d1c2e] font-headline">
                   Find the right talent
                 </h2>
-                
               </div>
 
               <div className="space-y-4">
@@ -228,19 +333,19 @@ export default function FindTalent() {
                   Search skills or keywords
                 </label>
                 <div className="relative">
-                    <Search
-                      size={18}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                    />
+                  <Search
+                    size={18}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
 
-                    <input
-                      value={searchText}
-                      onChange={(event) => setSearchText(event.target.value)}
-                      className="w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm outline-none transition focus:border-[#15157d] focus:ring-2 focus:ring-[#dce9ff]"
-                      placeholder="React, design, AWS..."
-                      type="text"
-                    />
-                  </div>
+                  <input
+                    value={searchText}
+                    onChange={(event) => setSearchText(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-10 py-3 text-sm outline-none transition focus:border-[#15157d] focus:ring-2 focus:ring-[#dce9ff]"
+                    placeholder="React, design, AWS..."
+                    type="text"
+                  />
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -327,7 +432,8 @@ export default function FindTalent() {
                   Reset
                 </button>
                 <div className="flex-1 rounded-2xl bg-[#15157d] px-4 py-3 text-center text-sm font-bold text-white">
-                  {users.length} results
+                  {users.filter((user) => user.role === "FREELANCER").length}{" "}
+                  results
                 </div>
               </div>
             </div>
@@ -389,10 +495,14 @@ export default function FindTalent() {
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div>
                   <p className="text-sm font-semibold text-[#0d1c2e]">
-                    Showing {users.filter((user) => user.role === "FREELANCER").length} talent profile
-                    {users.length === 1 ? "" : "s"}
+                    Showing{" "}
+                    {users.filter((user) => user.role === "FREELANCER").length}{" "}
+                    talent profile
+                    {users.filter((user) => user.role === "FREELANCER")
+                      .length === 1
+                      ? ""
+                      : "s"}
                   </p>
-                 
                 </div>
 
                 <div className="rounded-full bg-[#eff4ff] px-4 py-2 text-xs font-semibold text-[#15157d]">
@@ -435,16 +545,174 @@ export default function FindTalent() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {users
+                {sortedFreelancers
                   .filter((u) => u.role === "FREELANCER")
                   .map((user) => (
-                    <UserCard key={user.id} user={user} />
+                    <UserCard
+                      key={user.id}
+                      user={user}
+                      onInvite={openInviteModal}
+                    />
                   ))}
               </div>
             )}
           </section>
         </div>
       </main>
+
+      {selectedTalent ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="invite-modal-title"
+        >
+          <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-[#15157d]">
+                  Private job invitation
+                </p>
+                <h2
+                  id="invite-modal-title"
+                  className="mt-2 text-2xl font-extrabold text-[#0d1c2e]"
+                >
+                  Invite {getDisplayName(selectedTalent)}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={closeInviteModal}
+                disabled={isInviting}
+                className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label="Close invite modal"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-5 px-6 py-5">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold leading-6 text-amber-900">
+                Invitation works only on private jobs you created.
+              </div>
+
+              {isLoadingMyJobs ? (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+                  <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#15157d]" />
+                  <p className="mt-3 text-sm font-semibold text-[#464652]">
+                    Loading your private jobs...
+                  </p>
+                </div>
+              ) : privateJobs.length === 0 ? (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+                  <h3 className="text-lg font-extrabold text-[#0d1c2e]">
+                    No private jobs available
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-[#464652]">
+                    You can only invite talent to private jobs that you created.
+                    Create or update a posting as private before sending an
+                    invitation.
+                  </p>
+                  <Link
+                    href="/client/mypostings"
+                    className="mt-4 inline-flex items-center justify-center rounded-xl bg-[#15157d] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#0f0f5d]"
+                  >
+                    Manage postings
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-[#0d1c2e]">
+                    Select one private job you created:
+                  </p>
+                  <div className="max-h-80 space-y-3 overflow-y-auto pr-1">
+                    {privateJobs.map((job) => (
+                      <label
+                        key={job.id}
+                        className={`block cursor-pointer rounded-2xl border p-4 transition ${
+                          selectedJobId === job.id
+                            ? "border-[#15157d] bg-[#eff4ff]"
+                            : "border-slate-200 bg-white hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="radio"
+                            name="private-job"
+                            value={job.id}
+                            checked={selectedJobId === job.id}
+                            onChange={() => setSelectedJobId(job.id)}
+                            className="mt-1 h-4 w-4 accent-[#15157d]"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="font-extrabold text-[#0d1c2e]">
+                                {job.title}
+                              </h3>
+                              <span className="rounded-full bg-[#15157d] px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-white">
+                                Private
+                              </span>
+                            </div>
+                            <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#464652]">
+                              {job.description}
+                            </p>
+                            <div className="mt-3 flex flex-wrap gap-3 text-xs font-semibold text-[#464652]">
+                              <span>{job.job_type}</span>
+                              <span>{getJobBudgetLabel(job)}</span>
+                              <span>{job.location || "Remote"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {inviteError ? (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+                  {inviteError}
+                </div>
+              ) : null}
+
+              {inviteMessage ? (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                  {inviteMessage}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={closeInviteModal}
+                disabled={isInviting}
+                className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-[#0d1c2e] transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleInviteToPrivateJob()}
+                disabled={
+                  isInviting ||
+                  isLoadingMyJobs ||
+                  privateJobs.length === 0 ||
+                  selectedJobId === null
+                }
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#15157d] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#0f0f5d] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isInviting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {isInviting ? "Sending invitation..." : "Send invitation"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

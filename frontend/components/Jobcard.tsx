@@ -5,7 +5,7 @@ interface JobcardProps {
   pay: string;
   type: "FIXED" | "HOURLY";
   description: string;
-  postTime: string;
+  postTime: Date | string;
   tags: string[];
   companyName?: string;
   status?: string;
@@ -14,16 +14,16 @@ interface JobcardProps {
   hourlyRate?: string;
   budget?: string;
   experienceLevel?: string;
-  createdAt?: string;
+  createdAt: Date | string;
   index?: number;
   onApply?: () => void;
 }
 
-const formatDate = (value?: string) => {
+const formatDate = (value?: Date | string): string => {
   if (!value) return "Recently";
 
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
+  if (Number.isNaN(parsed.getTime())) return "Recently";
 
   return parsed.toLocaleDateString("en-US", {
     month: "short",
@@ -31,8 +31,6 @@ const formatDate = (value?: string) => {
     year: "numeric",
   });
 };
-
-
 
 const Jobcard = ({
   title,
@@ -52,8 +50,8 @@ const Jobcard = ({
   onApply,
 }: JobcardProps) => {
   const displayCompany = companyName || "Client";
-  const displayPostedAt = formatDate(createdAt) ||formatDate(postTime);
-  const displayStatus =jobType === "HOURLY" ? "Hourly" : "Fixed Price";
+  const displayPostedAt = formatDate(createdAt) || formatDate(postTime);
+  const displayStatus = jobType === "HOURLY" ? "Hourly" : "Fixed Price";
   const displayJobType = jobType || type;
   const displayPay =
     displayJobType === "HOURLY" ? `${hourlyRate || pay} / hr` : budget || pay;
@@ -86,7 +84,7 @@ const Jobcard = ({
           <div>
             <h4 className="text-lg font-bold text-on-surface">{title}</h4>
             <p className="text-sm text-on-surface-variant">
-              {displayCompany} • Posted {displayPostedAt}
+              {displayCompany} • Posted {formatDate(displayPostedAt)}
             </p>
           </div>
         </div>

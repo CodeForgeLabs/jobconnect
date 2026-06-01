@@ -116,7 +116,7 @@ export default function MyPostingsView() {
     return "OPEN";
   };
 
-  const getPostedTime = (value?: string) => {
+  const getPostedTime = (value: string | Date) => {
     if (!value) return "Posted recently";
 
     const postedDate = new Date(value);
@@ -224,32 +224,36 @@ export default function MyPostingsView() {
       form.job_type === "HOURLY"
         ? false
         : milestones.some((milestone, index) => {
-      const amountValue = Number(milestone.amount);
-      const parsedDeadline = new Date(milestone.deadline);
+            const amountValue = Number(milestone.amount);
+            const parsedDeadline = new Date(milestone.deadline);
 
-      const valid = form.job_type === "HOURLY" ||
-        milestone.description.trim().length > 0 &&
-        Number.isFinite(amountValue) &&
-        amountValue > 0 &&
-        milestone.deadline.length > 0 &&
-        !Number.isNaN(parsedDeadline.getTime());
+            const valid =
+              form.job_type === "HOURLY" ||
+              (milestone.description.trim().length > 0 &&
+                Number.isFinite(amountValue) &&
+                amountValue > 0 &&
+                milestone.deadline.length > 0 &&
+                !Number.isNaN(parsedDeadline.getTime()));
 
-      if (!valid) {
-        errors[`milestone-${index}`] =
-          "Each milestone needs a description, amount, and deadline.";
-        return true;
-      }
+            if (!valid) {
+              errors[`milestone-${index}`] =
+                "Each milestone needs a description, amount, and deadline.";
+              return true;
+            }
 
-      const currentDeadline = parsedDeadline.getTime();
-      if (previousDeadline !== null && currentDeadline <= previousDeadline) {
-        errors[`milestone-${index}`] =
-          "Milestones must be entered in chronological order by deadline.";
-        return true;
-      }
+            const currentDeadline = parsedDeadline.getTime();
+            if (
+              previousDeadline !== null &&
+              currentDeadline <= previousDeadline
+            ) {
+              errors[`milestone-${index}`] =
+                "Milestones must be entered in chronological order by deadline.";
+              return true;
+            }
 
-        previousDeadline = currentDeadline;
-        return false;
-      });
+            previousDeadline = currentDeadline;
+            return false;
+          });
 
     if (form.job_type !== "HOURLY") {
       if (milestones.length === 0 || hasInvalidMilestone) {
@@ -650,169 +654,169 @@ export default function MyPostingsView() {
                 </label>
               </div>
 
-                {form.job_type !== "HOURLY" && (
-                  <div className="space-y-4 rounded-2xl border border-outline-variant/20 bg-surface px-4 py-4 md:px-5">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <h3 className="text-base font-black tracking-tight">
-                          Milestones
-                        </h3>
-                        <p className="text-xs text-on-surface-variant">
-                          Each milestone needs a deadline and amount.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={addMilestone}
-                        className="inline-flex items-center gap-2 rounded-xl border border-outline-variant/20 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/5"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add milestone
-                      </button>
-                    </div>
-
-                    {formErrors.milestones ? (
-                      <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
-                        {formErrors.milestones}
+              {form.job_type !== "HOURLY" && (
+                <div className="space-y-4 rounded-2xl border border-outline-variant/20 bg-surface px-4 py-4 md:px-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h3 className="text-base font-black tracking-tight">
+                        Milestones
+                      </h3>
+                      <p className="text-xs text-on-surface-variant">
+                        Each milestone needs a deadline and amount.
                       </p>
-                    ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={addMilestone}
+                      className="inline-flex items-center gap-2 rounded-xl border border-outline-variant/20 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/5"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Add milestone
+                    </button>
+                  </div>
 
-                    <div className="mt-4 space-y-3">
-                      {milestones.map((milestone, index) => (
-                        <div
-                          key={`${index}-${milestone.description}`}
-                          className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-3"
-                        >
-                          <div className="mb-3 flex items-center justify-between gap-3">
-                            <p className="text-sm font-bold text-on-surface">
-                              Milestone {index + 1}
-                            </p>
-                            <button
-                              type="button"
-                              onClick={() => removeMilestone(index)}
-                              disabled={milestones.length === 1}
-                              className="inline-flex items-center gap-1 text-xs font-bold text-on-surface-variant transition-colors hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                              Remove
-                            </button>
-                          </div>
+                  {formErrors.milestones ? (
+                    <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                      {formErrors.milestones}
+                    </p>
+                  ) : null}
 
-                          <div className="space-y-3">
+                  <div className="mt-4 space-y-3">
+                    {milestones.map((milestone, index) => (
+                      <div
+                        key={`${index}-${milestone.description}`}
+                        className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-3"
+                      >
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <p className="text-sm font-bold text-on-surface">
+                            Milestone {index + 1}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => removeMilestone(index)}
+                            disabled={milestones.length === 1}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-on-surface-variant transition-colors hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Remove
+                          </button>
+                        </div>
+
+                        <div className="space-y-3">
+                          <input
+                            className="input input-bordered w-full"
+                            placeholder="Milestone description"
+                            value={milestone.description}
+                            onChange={(event) =>
+                              updateMilestone(
+                                index,
+                                "description",
+                                event.target.value,
+                              )
+                            }
+                          />
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <input
                               className="input input-bordered w-full"
-                              placeholder="Milestone description"
-                              value={milestone.description}
+                              placeholder="Amount"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={milestone.amount}
                               onChange={(event) =>
                                 updateMilestone(
                                   index,
-                                  "description",
+                                  "amount",
                                   event.target.value,
                                 )
                               }
                             />
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                              <input
-                                className="input input-bordered w-full"
-                                placeholder="Amount"
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={milestone.amount}
-                                onChange={(event) =>
-                                  updateMilestone(
-                                    index,
-                                    "amount",
-                                    event.target.value,
-                                  )
-                                }
-                              />
-                              <input
-                                className="input input-bordered w-full"
-                                type="date"
-                                min={toDateInputValue(new Date())}
-                                value={milestone.deadline}
-                                onChange={(event) =>
-                                  updateMilestone(
-                                    index,
-                                    "deadline",
-                                    event.target.value,
-                                  )
-                                }
-                              />
-                            </div>
-                            {formErrors[`milestone-${index}`] ? (
-                              <p className="text-xs font-medium text-red-600">
-                                {formErrors[`milestone-${index}`]}
-                              </p>
-                            ) : null}
+                            <input
+                              className="input input-bordered w-full"
+                              type="date"
+                              min={toDateInputValue(new Date())}
+                              value={milestone.deadline}
+                              onChange={(event) =>
+                                updateMilestone(
+                                  index,
+                                  "deadline",
+                                  event.target.value,
+                                )
+                              }
+                            />
                           </div>
+                          {formErrors[`milestone-${index}`] ? (
+                            <p className="text-xs font-medium text-red-600">
+                              {formErrors[`milestone-${index}`]}
+                            </p>
+                          ) : null}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
 
-                {(form.job_type as JobType) === "HOURLY" && (
-                  <div className="rounded-2xl border border-outline-variant/20 bg-surface px-4 py-4 md:px-5">
-                    <p className="text-sm font-medium text-on-surface-variant">
-                      Hourly jobs do not use milestones — payment is tracked by time.
-                    </p>
-                  </div>
-                )}
-
-                <div className="rounded-2xl border border-outline-variant/20 bg-linear-to-br from-primary/10 via-surface to-secondary/10 p-4">
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-on-surface-variant">
-                    Posting summary
-                  </p>
-                  <div className="mt-3 space-y-2 text-sm">
-                    <SummaryRow
-                      label="Budget"
-                      value={formatMoney(walletCurrency, budgetMinor)}
-                    />
-                    <SummaryRow
-                      label="Milestone total"
-                      value={formatMoney(walletCurrency, milestoneTotalMinor)}
-                    />
-                    <SummaryRow
-                      label="Balance status"
-                      value={
-                        hasEnoughBalance
-                          ? "Ready to post"
-                          : `Need ${formatMoney(walletCurrency, balanceShortfallMinor)} more`
-                      }
-                      valueClassName={
-                        hasEnoughBalance ? "text-emerald-600" : "text-red-600"
-                      }
-                    />
-                  </div>
-                  <p className="mt-3 text-xs text-on-surface-variant">
-                    The milestone total must match the budget before the job can
-                    be posted.
+              {(form.job_type as JobType) === "HOURLY" && (
+                <div className="rounded-2xl border border-outline-variant/20 bg-surface px-4 py-4 md:px-5">
+                  <p className="text-sm font-medium text-on-surface-variant">
+                    Hourly jobs do not use milestones — payment is tracked by
+                    time.
                   </p>
                 </div>
+              )}
 
-                <div className="flex items-center justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    className="rounded-xl border border-outline-variant/20 px-4 py-3 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-container"
-                    onClick={() => {
-                      setIsCreateOpen(false);
-                      resetForm();
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-all hover:shadow-lg hover:shadow-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={isCreating}
-                  >
-                    {isCreating ? "Creating..." : "Create Job"}
-                  </button>
+              <div className="rounded-2xl border border-outline-variant/20 bg-linear-to-br from-primary/10 via-surface to-secondary/10 p-4">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-on-surface-variant">
+                  Posting summary
+                </p>
+                <div className="mt-3 space-y-2 text-sm">
+                  <SummaryRow
+                    label="Budget"
+                    value={formatMoney(walletCurrency, budgetMinor)}
+                  />
+                  <SummaryRow
+                    label="Milestone total"
+                    value={formatMoney(walletCurrency, milestoneTotalMinor)}
+                  />
+                  <SummaryRow
+                    label="Balance status"
+                    value={
+                      hasEnoughBalance
+                        ? "Ready to post"
+                        : `Need ${formatMoney(walletCurrency, balanceShortfallMinor)} more`
+                    }
+                    valueClassName={
+                      hasEnoughBalance ? "text-emerald-600" : "text-red-600"
+                    }
+                  />
                 </div>
+                <p className="mt-3 text-xs text-on-surface-variant">
+                  The milestone total must match the budget before the job can
+                  be posted.
+                </p>
               </div>
-            
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  className="rounded-xl border border-outline-variant/20 px-4 py-3 text-sm font-bold text-on-surface-variant transition-colors hover:bg-surface-container"
+                  onClick={() => {
+                    setIsCreateOpen(false);
+                    resetForm();
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-all hover:shadow-lg hover:shadow-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isCreating}
+                >
+                  {isCreating ? "Creating..." : "Create Job"}
+                </button>
+              </div>
+            </div>
           </form>
         ) : null}
 
@@ -938,7 +942,7 @@ export default function MyPostingsView() {
                     <div className="flex items-center gap-1">
                       {closed ? (
                         <button className="px-4 py-2 bg-surface-container-highest hover:bg-surface-container text-on-surface font-bold text-xs rounded-xl border border-outline-variant/20 transition-all">
-                          Archivd
+                          Archived
                         </button>
                       ) : (
                         <>
@@ -993,7 +997,7 @@ export default function MyPostingsView() {
                 >
                   {page}
                 </button>
-              )
+              ),
             )}
 
             <button

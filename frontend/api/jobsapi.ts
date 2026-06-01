@@ -21,7 +21,7 @@ export interface Job {
 	budget: number;
 	category: string;
 	company_name: string;
-	created_at: string;
+	created_at: Date | string;
 	created_by: number;
 	deadline: string;
 	description: string;
@@ -35,7 +35,7 @@ export interface Job {
 	skills: string;
 	status: JobStatus | string;
 	title: string;
-	updated_at: string;
+	updated_at: Date | string;
 	work_mode: WorkMode | string;
 }
 
@@ -67,6 +67,11 @@ export interface CreateJobRequest {
 	skills: string[];
 	title: string;
 	work_mode: string;
+}
+
+export interface InviteUserRequest {
+  job_id: number;
+  user_id: number;
 }
 
 export interface UpdateJobRequest {
@@ -133,6 +138,31 @@ export const jobsApi = baseApi.injectEndpoints({
 				normalizeJobsListResponse(response),
 		}),
 
+		getJobsRecommended: builder.query<Job[], JobFilterParams | void>({
+			query: (filters) => {
+				const searchParams = new URLSearchParams();
+
+				if (filters) {
+					if (filters.title) searchParams.set("title", filters.title);
+					if (filters.category) searchParams.set("category", filters.category);
+					if (filters.job_type) searchParams.set("job_type", filters.job_type);
+					if (filters.work_mode) searchParams.set("work_mode", filters.work_mode);
+					if (filters.experience_level) {
+						searchParams.set("experience_level", filters.experience_level);
+					}
+					if (filters.budget_min !== undefined) {
+						searchParams.set("budget_min", String(filters.budget_min));
+					}
+				}
+
+				const queryString = searchParams.toString();
+
+				return queryString ? `/jobs/fetch/recommended?${queryString}` : "jobs/fetch/recommended";
+			},
+			transformResponse: (response: unknown) =>
+				normalizeJobsListResponse(response),
+		}),
+
 		createJob: builder.mutation<Job, CreateJobRequest>({
 			query: (body) => ({
 				url: "/jobs",
@@ -147,6 +177,17 @@ export const jobsApi = baseApi.injectEndpoints({
 				normalizeJobsListResponse(response),
 		}),
 
+
+		getJobsByClient: builder.query<Job[], number>({
+            query: (clientId) => ({
+                url: "/jobs/by-client",
+                method: "GET",
+                params: { id: clientId },
+            }),
+            transformResponse: (response: unknown) =>
+                normalizeJobsListResponse(response),
+        }),
+
 		getJobById: builder.query<{ job: Job }, number>({
 			query: (id) => `/jobs/${id}`,
 		}),
@@ -157,6 +198,14 @@ export const jobsApi = baseApi.injectEndpoints({
 				method: "DELETE",
 			}),
 		}),
+
+		inviteToJob: builder.mutation<void, InviteUserRequest>({
+				query: (body) => ({
+					url: "/jobs/invite",
+					method: "POST",
+					body,
+				}),
+				}),
 
 		updateJob: builder.mutation<Job, { id: number; body: UpdateJobRequest }>({
 			query: ({ id, body }) => ({
@@ -175,4 +224,7 @@ export const {
 	useGetJobByIdQuery,
 	useDeleteJobMutation,
 	useUpdateJobMutation,
+	useInviteToJobMutation,
+    useGetJobsRecommendedQuery,
+	useGetJobsByClientQuery,
 } = jobsApi;

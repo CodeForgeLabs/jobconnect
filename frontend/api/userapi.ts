@@ -12,6 +12,7 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  company_name?: string;
   bio: string;
   headline: string;
   location: string;
@@ -52,6 +53,11 @@ export interface FetchUsersParams {
 
 export interface SendOtpRequest {
   email: string;
+}
+export interface Userwithreview extends User {
+  average_rating: number;
+  total_reviews: number;
+
 }
 
 export interface VerifyOtpRequest {
@@ -113,7 +119,7 @@ export const userApi = baseApi.injectEndpoints({
     }),
 
     // 🔎 LIST USERS WITH FILTERS
-    fetchUsers: builder.query<User[], FetchUsersParams | void>({
+    fetchUsers: builder.query<Userwithreview[], FetchUsersParams | void>({
       query: (filters) => ({
         url: "/users/fetch",
         params: {

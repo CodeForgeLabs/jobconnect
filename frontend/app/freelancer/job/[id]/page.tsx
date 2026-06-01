@@ -13,7 +13,7 @@ const parseSkills = (skills: string) =>
     .map((skill) => skill.trim())
     .filter(Boolean);
 
-const formatPostedDate = (value?: string) => {
+const formatPostedDate = (value: string | Date) => {
   if (!value) return "Posted recently";
 
   const date = new Date(value);
@@ -311,9 +311,10 @@ export default function JobDetailView() {
                   gotToProposalForm();
                 }
               }}
+              disabled={hasApplied}
               className="w-full py-4 bg-primary text-white font-extrabold rounded-lg text-lg mb-4 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              Apply Now
+              {hasApplied ? "Already Applied" : "Apply Now"}
             </button>
 
             <div className="bg-surface-container-low p-6 md:p-8 rounded-xl">

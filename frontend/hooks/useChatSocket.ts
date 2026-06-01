@@ -75,7 +75,7 @@ export function useChatSocket(userId: number, onMessage: MessageHandler) {
       };
 
       ws.onerror = (err) => {
-        console.error("WebSocket error", err);
+        console.log("WebSocket error", err);
       };
     };
 

@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Bell, MessageCircle, Search, User, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Bell, MessageCircle, User, X } from "lucide-react";
 
 import logo from "@/assets/Background.svg";
 import { useGetMeQuery, useLogoutMutation } from "@/api/userapi";
@@ -15,18 +15,27 @@ import {
   type Notification,
 } from "@/api/notificationapi";
 import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+
 const Navbar = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [wsNotifications, setWsNotifications] = useState<Notification[]>([]);
   const [readNotificationIds, setReadNotificationIds] = useState<number[]>([]);
   const pathname = usePathname();
-  const { data: userData } = useGetMeQuery();
+  const { data: userData, refetch } = useGetMeQuery();
   const [logout] = useLogoutMutation();
   const router = useRouter();
   const { data: notificationData = [] } = useGetNotificationsQuery(undefined, {
     skip: !userData,
   });
   const [markNotificationAsRead] = useMarkNotificationAsReadMutation();
+
+  useEffect(() => {
+    const authRoutes = ["/login", "/signup"];
+
+    // If we just navigated away from an auth page into the app, pull fresh state
+    if (!authRoutes.includes(pathname)) {
+      refetch();
+    }
+  }, [pathname, refetch]);
 
   const notifications = [...wsNotifications, ...notificationData].reduce<
     Notification[]
@@ -57,10 +66,6 @@ const Navbar = () => {
   const unreadCount = notifications.filter(
     (notification) => !notification.is_read,
   ).length;
-
-  const handleClear = () => {
-    setSearchQuery("");
-  };
 
   useNotificationSocket(userData?.id ?? 0, (message) => {
     const payload =
@@ -252,7 +257,34 @@ const Navbar = () => {
                   ) : (
                     <ul className="">
                       {notifications.map((notification) => (
-                        <li key={notification.id}>
+                        <li
+                          key={notification.id}
+                          onClick={() => {
+                            if (
+                              notification.job_id &&
+                              !notification.contract_id &&
+                              userData?.role === "FREELANCER"
+                            ) {
+                              router.push(
+                                `/freelancer/job/${notification.job_id}`,
+                              );
+                            } else if (
+                              notification.contract_id &&
+                              userData?.role === "FREELANCER"
+                            ) {
+                              router.push(
+                                `/freelancer/mycontracts/${notification.contract_id}`,
+                              );
+                            } else if (
+                              notification.contract_id &&
+                              userData?.role === "CLIENT"
+                            ) {
+                              router.push(
+                                `/client/mycontracts/${notification.contract_id}`,
+                              );
+                            }
+                          }}
+                        >
                           <button
                             type="button"
                             onClick={() => handleMarkAsRead(notification.id)}
@@ -307,7 +339,11 @@ const Navbar = () => {
 
               <ul className="menu menu-sm dropdown-content bg-base-100 rounded-box z-40 mt-3 w-52 p-2 shadow">
                 <li>
-                  <Link href="/freelancer/profile">Profile</Link>
+                  {isClient ? (
+                    <Link href="/client/profile">Profile</Link>
+                  ) : (
+                    <Link href="/freelancer/profile">Profile</Link>
+                  )}
                 </li>
                 <li>
                   <Link href="/freelancer/wallet">Wallet</Link>

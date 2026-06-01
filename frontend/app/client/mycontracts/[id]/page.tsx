@@ -166,9 +166,7 @@ const normalizeWeeklyLogs = (response: unknown): WeeklyLog[] => {
 };
 
 const hasUnpaidSessions = (week: WeeklyLog) =>
-  week.days.some((day) =>
-    day.sessions.some((session) => !session.is_paid),
-  );
+  week.days.some((day) => day.sessions.some((session) => !session.is_paid));
 
 const getUnpaidHours = (week: WeeklyLog) =>
   week.days.reduce(
@@ -176,7 +174,10 @@ const getUnpaidHours = (week: WeeklyLog) =>
       total +
       day.sessions
         .filter((session) => !session.is_paid)
-        .reduce((dayTotal, session) => dayTotal + Number(session.total_hours || 0), 0),
+        .reduce(
+          (dayTotal, session) => dayTotal + Number(session.total_hours || 0),
+          0,
+        ),
     0,
   );
 
@@ -367,7 +368,8 @@ export default function ContractManagement() {
   const unpaidHourlyTotal = useMemo(
     () =>
       unpaidWeeklyLogs.reduce(
-        (total, week) => total + getUnpaidHours(week) * Number(contract?.hourly_rate || 0),
+        (total, week) =>
+          total + getUnpaidHours(week) * Number(contract?.hourly_rate || 0),
         0,
       ),
     [contract?.hourly_rate, unpaidWeeklyLogs],
@@ -749,7 +751,7 @@ export default function ContractManagement() {
               <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/10">
                 <div
                   className="h-full rounded-full bg-amber-300 transition-all duration-500"
-                  style={{ width: `${Math.max(progressPercent, 8)}%` }}
+                  style={{ width: `${Math.max(progressPercent, 0)}%` }}
                 />
               </div>
             </div>
@@ -1259,7 +1261,8 @@ export default function ContractManagement() {
               <div className="mt-5 max-h-72 space-y-3 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-3">
                 {unpaidWeeklyLogs.map((week) => {
                   const unpaidHours = getUnpaidHours(week);
-                  const weekTotal = unpaidHours * Number(contract.hourly_rate || 0);
+                  const weekTotal =
+                    unpaidHours * Number(contract.hourly_rate || 0);
 
                   return (
                     <div

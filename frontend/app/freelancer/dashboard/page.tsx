@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetJobsQuery } from "@/api/jobsapi";
+import { useGetJobsRecommendedQuery } from "@/api/jobsapi";
 import { useGetMeQuery } from "@/api/userapi";
 import {
   useGetMyContractsQuery,
@@ -134,7 +134,7 @@ const pickCurrentWeeklyLog = (logs: WeeklyLog[]) => {
 export default function FreelancerDashboard() {
   const router = useRouter();
   const { data: me } = useGetMeQuery();
-  const { data: jobs = [], isLoading } = useGetJobsQuery();
+  const { data: jobs = [], isLoading } = useGetJobsRecommendedQuery();
   const { data: proposals = [] } = useGetMyProposalsQuery();
   const { data: contracts = [] } = useGetMyContractsQuery();
   const [loadWeeklyLogs] = useGetWeeklyLogsMutation();
@@ -367,16 +367,39 @@ export default function FreelancerDashboard() {
                       key={job.id}
                       index={index}
                       title={job.title}
-                      pay={job.budget ? formatMoney(job.budget) : formatMoney(job.hourly_rate)}
-                      type={(job.job_type ?? "FIXED").toUpperCase() as "FIXED" | "HOURLY"}
-                      jobType={(job.job_type ?? "FIXED").toUpperCase() as "FIXED" | "HOURLY"}
+                      pay={
+                        job.budget
+                          ? formatMoney(job.budget)
+                          : formatMoney(job.hourly_rate)
+                      }
+                      type={
+                        (job.job_type ?? "FIXED").toUpperCase() as
+                          | "FIXED"
+                          | "HOURLY"
+                      }
+                      jobType={
+                        (job.job_type ?? "FIXED").toUpperCase() as
+                          | "FIXED"
+                          | "HOURLY"
+                      }
                       description={job.description}
                       postTime={job.created_at}
-                      tags={job.skills ? job.skills.split(",").map((s:string)=>s.trim()).filter(Boolean) : []}
+                      tags={
+                        job.skills
+                          ? job.skills
+                              .split(",")
+                              .map((s: string) => s.trim())
+                              .filter(Boolean)
+                          : []
+                      }
                       companyName={job.company_name}
                       status={job.status}
                       skills={job.skills}
-                      hourlyRate={job.hourly_rate ? formatMoney(job.hourly_rate) : undefined}
+                      hourlyRate={
+                        job.hourly_rate
+                          ? formatMoney(job.hourly_rate)
+                          : undefined
+                      }
                       budget={job.budget ? formatMoney(job.budget) : undefined}
                       experienceLevel={job.experience_level}
                       createdAt={job.created_at}
@@ -425,7 +448,9 @@ export default function FreelancerDashboard() {
                           Weekly cap
                         </p>
                         <p className="mt-1 font-bold text-on-surface">
-                          {formatHoursToHM(spotlightContract?.weekly_hour_limit ?? 0)}
+                          {formatHoursToHM(
+                            spotlightContract?.weekly_hour_limit ?? 0,
+                          )}
                         </p>
                       </div>
                       <div>
@@ -494,7 +519,10 @@ export default function FreelancerDashboard() {
                         : "No weekly log found yet"}
                     </p>
                     <p className="text-xs text-on-surface-variant mt-1">
-                      {formatHoursToHM(spotlightContract?.weekly_hour_limit ?? 0)} max per week
+                      {formatHoursToHM(
+                        spotlightContract?.weekly_hour_limit ?? 0,
+                      )}{" "}
+                      max per week
                     </p>
                     <p className="text-xs text-on-surface-variant mt-1">
                       Billed at {formatMoney(spotlightContract?.hourly_rate)} /

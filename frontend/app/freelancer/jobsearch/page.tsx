@@ -138,7 +138,9 @@ const Jobsearch = () => {
       {/* Sidebar Filters */}
       <div className="w-full lg:w-80 shrink-0 h-fit bg-white border border-gray-100 p-6 rounded-2xl shadow-xs flex flex-col gap-6">
         <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-          <p className="text-xs font-bold uppercase tracking-wider text-primary">Advanced Filters</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-primary">
+            Advanced Filters
+          </p>
           <button
             type="button"
             onClick={handleClearAllFilters}
@@ -163,7 +165,9 @@ const Jobsearch = () => {
                 onChange={() => setJobType(undefined)}
                 className="radio radio-sm radio-primary transition-all"
               />
-              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">Any</span>
+              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+                Any
+              </span>
             </label>
             <label className="flex items-center gap-3 cursor-pointer py-1 group select-none">
               <input
@@ -173,7 +177,9 @@ const Jobsearch = () => {
                 onChange={() => setJobType("FIXED")}
                 className="radio radio-sm radio-primary transition-all"
               />
-              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">Fixed rate</span>
+              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+                Fixed rate
+              </span>
             </label>
             <label className="flex items-center gap-3 cursor-pointer py-1 group select-none">
               <input
@@ -183,7 +189,9 @@ const Jobsearch = () => {
                 onChange={() => setJobType("HOURLY")}
                 className="radio radio-sm radio-primary transition-all"
               />
-              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">Hourly rate</span>
+              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+                Hourly rate
+              </span>
             </label>
           </div>
         </div>
@@ -205,7 +213,9 @@ const Jobsearch = () => {
                 onChange={() => setExperienceLevel(undefined)}
                 className="radio radio-sm radio-primary transition-all"
               />
-              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">Any</span>
+              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+                Any
+              </span>
             </label>
             <label className="flex items-center gap-3 cursor-pointer py-1 group select-none">
               <input
@@ -215,7 +225,9 @@ const Jobsearch = () => {
                 onChange={() => setExperienceLevel("ENTRY")}
                 className="radio radio-sm radio-primary transition-all"
               />
-              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">Entry Level</span>
+              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+                Entry Level
+              </span>
             </label>
             <label className="flex items-center gap-3 cursor-pointer py-1 group select-none">
               <input
@@ -225,7 +237,9 @@ const Jobsearch = () => {
                 onChange={() => setExperienceLevel("INTERMEDIATE")}
                 className="radio radio-sm radio-primary transition-all"
               />
-              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">Intermediate</span>
+              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+                Intermediate
+              </span>
             </label>
             <label className="flex items-center gap-3 cursor-pointer py-1 group select-none">
               <input
@@ -235,7 +249,9 @@ const Jobsearch = () => {
                 onChange={() => setExperienceLevel("EXPERT")}
                 className="radio radio-sm radio-primary transition-all"
               />
-              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">Expert</span>
+              <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
+                Expert
+              </span>
             </label>
           </div>
         </div>
@@ -269,7 +285,8 @@ const Jobsearch = () => {
           </div>
           <div className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/10">
             <p className="text-[11px] text-gray-400 leading-normal">
-              Max budget constraints are currently un-supported by the active API route layer.
+              Max budget constraints are currently un-supported by the active
+              API route layer.
             </p>
           </div>
         </div>
@@ -319,8 +336,10 @@ const Jobsearch = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-3xl font-extrabold tracking-tight text-on-surface">Find Work</h1>
-          
+          <h1 className="text-3xl font-extrabold tracking-tight text-on-surface">
+            Find Work
+          </h1>
+
           {/* Track Switch Toggle */}
           <div className="bg-gray-100 p-1 rounded-xl flex items-center gap-1 w-fit border border-gray-200/40">
             <button
@@ -380,23 +399,34 @@ const Jobsearch = () => {
           <p className="text-gray-500 text-sm font-medium">
             {isLoading ? (
               <span className="inline-flex items-center gap-2 text-primary font-semibold">
-                <span className="loading loading-spinner loading-xs"></span> Loading matches...
+                <span className="loading loading-spinner loading-xs"></span>{" "}
+                Loading matches...
               </span>
             ) : (
               <span>
-                Available items: <span className="font-bold text-on-surface">{visibleJobs.length} matches found</span>
+                Available items:{" "}
+                <span className="font-bold text-on-surface">
+                  {visibleJobs.length} matches found
+                </span>
               </span>
             )}
-            {isFetching && !isLoading ? <span className="text-xs text-primary ml-1 animate-pulse">(updating pipeline...)</span> : ""}
+            {isFetching && !isLoading ? (
+              <span className="text-xs text-primary ml-1 animate-pulse">
+                (updating pipeline...)
+              </span>
+            ) : (
+              ""
+            )}
           </p>
-          
+
           <div className="dropdown dropdown-bottom dropdown-end">
             <div
               tabIndex={0}
               role="button"
               className="btn btn-sm bg-white hover:bg-gray-50 border border-gray-200 text-xs font-bold text-gray-700 rounded-xl gap-2 shadow-xs normal-case"
             >
-              Sort by: Newest <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
+              Sort by: Newest{" "}
+              <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
             </div>
             <ul
               tabIndex={-1}
@@ -404,9 +434,6 @@ const Jobsearch = () => {
             >
               <li>
                 <a className="text-xs font-semibold py-2">Newest first</a>
-              </li>
-              <li>
-                <a className="text-xs font-semibold py-2">Most relevant</a>
               </li>
             </ul>
           </div>
@@ -416,15 +443,19 @@ const Jobsearch = () => {
         <div className="flex flex-col gap-4">
           {isError ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 shadow-xs animate-fadeIn">
-              System communication bottleneck failed to parse remote collection. Please re-query structural view.
+              System communication bottleneck failed to parse remote collection.
+              Please re-query structural view.
             </div>
           ) : null}
 
           {!isLoading && !isError && visibleJobs.length === 0 ? (
             <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center shadow-xs">
-              <p className="text-sm font-semibold text-gray-700">No matching open scopes located</p>
+              <p className="text-sm font-semibold text-gray-700">
+                No matching open scopes located
+              </p>
               <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
-                Modify your current tag selection parameters or criteria filters to explore wider directory pipelines.
+                Modify your current tag selection parameters or criteria filters
+                to explore wider directory pipelines.
               </p>
             </div>
           ) : null}
@@ -443,7 +474,7 @@ const Jobsearch = () => {
                   )}
                   type={job.job_type === "HOURLY" ? "HOURLY" : "FIXED"}
                   description={job.description}
-                  postTime={formatPostedTime(job.created_at)}
+                  postTime={job.created_at}
                   tags={parseSkills(job.skills)}
                   companyName={job.company_name || "Unknown client"}
                   status={job.status}

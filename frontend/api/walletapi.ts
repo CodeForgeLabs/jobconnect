@@ -51,6 +51,19 @@ export interface CreateWalletTransactionResponse {
 	payment_url: string;
 }
 
+export interface WithdrawInput {
+	account_number: string;
+	amount: string;
+	bank_code: string;
+	currency: string;
+}
+
+export interface WithdrawResponse {
+	data: string;
+	message: string;
+	success: boolean;
+}
+
 export const walletApi = baseApi.injectEndpoints({
 	endpoints: (builder) => ({
 		getWalletBalance: builder.query<Wallet, void>({
@@ -77,6 +90,14 @@ export const walletApi = baseApi.injectEndpoints({
 			}),
 		}),
 
+		withdraw: builder.mutation<WithdrawResponse, WithdrawInput>({
+			query: (body) => ({
+				url: "/wallet/withdraw",
+				method: "POST",
+				body,
+			}),
+		}),
+
 		getWalletTransactions: builder.query<WalletTransaction[], void>({
 			query: () => "/wallet/transactions",
 			transformResponse: (response: WalletTransactionsResponse) =>
@@ -89,5 +110,6 @@ export const {
 	useGetWalletBalanceQuery,
 	useBuyConnectMutation,
 	useCreateWalletTransactionMutation,
+	useWithdrawMutation,
 	useGetWalletTransactionsQuery,
 } = walletApi;

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGetJobByIdQuery } from "@/api/jobsapi";
 import { useSendMessageMutation } from "@/api/messageapi";
+import defualtAvatar from "@/assets/avatarsvg.png";
 import {
   ProposalApplicant,
   useGetJobProposalsMutation,
@@ -32,7 +33,7 @@ const formatMoney = (amount?: number) => {
   });
 };
 
-const formatPostedDate = (value?: string) => {
+const formatPostedDate = (value: string | Date) => {
   if (!value) return "Posted recently";
 
   const date = new Date(value);
@@ -385,10 +386,7 @@ function ProposalCard({
     applicant?.email ||
     proposal.email ||
     "Applicant";
-  const avatarUrl =
-    applicant?.profile_picture_url ||
-    proposal.profile_picture_url ||
-    DEFAULT_AVATAR_URL;
+  const avatarUrl = applicant?.profile_picture_url || defualtAvatar;
   const headline = applicant?.headline || proposal.headline || "Freelancer";
   const skills = parseSkills(
     applicant?.skills ? String(applicant.skills) : proposal.skills,
@@ -460,11 +458,12 @@ function ProposalCard({
   return (
     <article className="w-full  rounded-3xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-sm transition-all hover:shadow-md md:p-7">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-        <div 
-        onClick={() => {
-              router.push(`/freelancer/profile/${resolvedUserId}`);
-            }}
-        className="flex gap-4">
+        <div
+          onClick={() => {
+            router.push(`/freelancer/profile/${resolvedUserId}`);
+          }}
+          className="flex gap-4"
+        >
           <div className="h-16 w-16 overflow-hidden rounded-2xl bg-surface-container">
             <Image
               src={avatarUrl}
@@ -484,7 +483,6 @@ function ProposalCard({
             </div>
 
             <div className="flex flex-wrap gap-2 text-xs">
-             
               {applicant?.location && <Badge>{applicant.location}</Badge>}
               {typeof applicant?.hourly_rate === "number" && (
                 <Badge>{formatMoney(applicant.hourly_rate)}/hr</Badge>
@@ -493,9 +491,7 @@ function ProposalCard({
           </div>
         </div>
 
-        
         <div className="flex flex-wrap gap-3">
-          
           <button
             type="button"
             onClick={handleInviteToTalk}
@@ -506,13 +502,16 @@ function ProposalCard({
               isCreatingContract ||
               isSendingMessage ||
               !senderId ||
-              proposal.status === "INVITED"||
-              proposal.status === "HIRED" 
-         
+              proposal.status === "INVITED" ||
+              proposal.status === "HIRED"
             }
             className="rounded-xl border border-primary/20 px-4 py-2.5 text-sm font-bold text-primary transition-all hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {activeAction === "invite" ? "Inviting..." : proposal.status === "PENDING" ? "Invite to talk" : "Invited"}
+            {activeAction === "invite"
+              ? "Inviting..."
+              : proposal.status === "PENDING"
+                ? "Invite to talk"
+                : "Invited"}
           </button>
           <button
             type="button"
@@ -521,13 +520,20 @@ function ProposalCard({
               !resolvedUserId ||
               activeAction !== null ||
               isUpdatingProposal ||
-              isCreatingContract
-              || proposal.status === "HIRED" ||
-              proposal.status === "PENDING" 
+              isCreatingContract ||
+              proposal.status === "HIRED" ||
+              proposal.status === "PENDING" ||
+              proposal.status === "REJECTED"
             }
             className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {proposal.status === "HIRED" ? "Hired" : activeAction === "hire" ? "Hiring..." : proposal.status === "PENDING" ? "Hire" : "Hire"}
+            {proposal.status === "HIRED"
+              ? "Hired"
+              : activeAction === "hire"
+                ? "Hiring..."
+                : proposal.status === "PENDING"
+                  ? "Hire"
+                  : "Rejected"}
           </button>
         </div>
 
