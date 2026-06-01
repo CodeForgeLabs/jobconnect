@@ -3,11 +3,15 @@ import React, { useState } from "react";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useGetMyContractsQuery, Contract } from "../../../api/contractapi";
+import { ArrowBigDownDashIcon } from "lucide-react";
 
 export default function MyContracts() {
   // Application Interactive States
   const [activeFilter, setActiveFilter] = useState("All Active");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Pagination State (Shows 6 items initially since it's a 2-column grid)
+  const [visibleCount, setVisibleCount] = useState(4);
 
   // Fetch user's contracts from API
   const { data: apiContracts, isLoading, isError } = useGetMyContractsQuery();
@@ -71,14 +75,14 @@ export default function MyContracts() {
         }
       }
     }
-      return contract.statusType === "pending";
-    return true;
+    return contract.statusType === "pending";
   });
+
+  // Chunk array into current visible window
+  const displayedContracts = filteredContracts.slice(0, visibleCount);
 
   return (
     <div className="min-h-screen bg-surface text-on-background selection:bg-primary-fixed selection:text-primary">
-      {/* Structural Styles Setup via CSS Inject Option */}
-
       {/* Main Framework Content Grid */}
       <main className="pt-16 pb-24 px-4 md:px-12 lg:px-24 max-w-7xl mx-auto">
         {/* Dynamic App Dashboard Header */}
@@ -107,8 +111,6 @@ export default function MyContracts() {
                       return sum + contractBudget;
                     }, 0) || 0
                   }   
-
-          
                 </span>
               </div>
             </div>
@@ -121,7 +123,10 @@ export default function MyContracts() {
             {filterOptions.map((option) => (
               <button
                 key={option}
-                onClick={() => setActiveFilter(option)}
+                onClick={() => {
+                  setActiveFilter(option);
+                  setVisibleCount(6); // Reset pagination window on switch
+                }}
                 className={`px-5 py-2.5 rounded-full text-xs font-bold tracking-wide transition-all ${
                   activeFilter === option
                     ? "bg-primary text-on-primary shadow-md shadow-primary/10"
@@ -139,7 +144,10 @@ export default function MyContracts() {
             </span>
             <input
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setVisibleCount(6); // Reset pagination window on typing
+              }}
               className="pl-11 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant/30 focus:outline-none focus:ring-2 focus:ring-primary/20 rounded-full text-xs w-full transition-all text-on-surface"
               placeholder="Search contracts or talent..."
               type="text"
@@ -152,9 +160,9 @@ export default function MyContracts() {
           <div className="text-center py-16">Loading contracts…</div>
         ) : isError ? (
           <div className="text-center py-16">Unable to load contracts.</div>
-        ) : filteredContracts.length > 0 ? (
+        ) : displayedContracts.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredContracts.map((contract) => (
+            {displayedContracts.map((contract) => (
               <div
                 key={contract.id}
                 className="bg-surface-container-lowest border border-outline-variant/20 p-6 md:p-8 rounded-2xl hover:shadow-xl hover:border-outline-variant/40 transition-all duration-300 flex flex-col justify-between"
@@ -257,46 +265,23 @@ export default function MyContracts() {
         )}
 
         {/* Load More/Pagination Element Wrapper */}
-        {filteredContracts.length > 0 && (
+        {filteredContracts.length > visibleCount && (
           <div className="mt-16 flex flex-col items-center gap-3">
-            <button className="group flex items-center gap-2 text-primary font-bold text-sm hover:gap-3 transition-all">
+            <button 
+              type="button"
+              onClick={() => setVisibleCount((prev) => prev + 6)} // Increment chunk limits dynamically
+              className="group flex items-center gap-2 text-primary font-bold text-sm hover:gap-3 transition-all cursor-pointer"
+            >
               Load more active contracts
-              <span className="material-symbols-outlined text-lg transition-transform group-hover:translate-y-0.5">
-                expand_more
-              </span>
+              <ArrowBigDownDashIcon className="transition-transform group-hover:translate-y-0.5" />
             </button>
             <p className="text-outline text-[10px] font-bold uppercase tracking-widest">
-              Showing {filteredContracts.length} of {apiContracts?.length}{" "}
+              Showing {displayedContracts.length} of {filteredContracts.length}{" "}
               active contracts
             </p>
           </div>
         )}
       </main>
-
-      {/* Touch-Friendly Navigation Tab Module (Viewport restricted to lower break boundaries) */}
-      <nav className="fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-xl md:hidden flex justify-around items-center py-3 px-2 z-50 border-t border-outline-variant/20">
-        <button className="flex flex-col items-center gap-0.5 text-outline">
-          <span className="material-symbols-outlined text-xl">dashboard</span>
-          <span className="text-[9px] font-bold tracking-tight">Overview</span>
-        </button>
-        <button className="flex flex-col items-center gap-0.5 text-primary">
-          <span
-            className="material-symbols-outlined text-xl"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            description
-          </span>
-          <span className="text-[9px] font-bold tracking-tight">Contracts</span>
-        </button>
-        <button className="flex flex-col items-center gap-0.5 text-outline">
-          <span className="material-symbols-outlined text-xl">chat</span>
-          <span className="text-[9px] font-bold tracking-tight">Messages</span>
-        </button>
-        <button className="flex flex-col items-center gap-0.5 text-outline">
-          <span className="material-symbols-outlined text-xl">settings</span>
-          <span className="text-[9px] font-bold tracking-tight">Settings</span>
-        </button>
-      </nav>
     </div>
   );
 }

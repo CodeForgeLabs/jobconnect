@@ -4,9 +4,11 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BadgeAlert,
+  Star,
+  X,
   CalendarDays,
   CheckCircle2,
   Clock3,
@@ -16,6 +18,8 @@ import {
   MessageCircle,
   RefreshCcw,
   Wallet,
+  Pause,
+  Ban,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -26,6 +30,7 @@ import {
   useUpdateMilestoneStatusMutation,
   useUpdateContractStatusMutation,
 } from "@/api/contractapi";
+import { useCreateReviewMutation } from "@/api/reviewsapi";
 
 type MilestoneStatusMeta = {
   label: string;
@@ -59,7 +64,7 @@ type WeeklyLog = {
 const formatMoney = (value: number) =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: "ETB",
     minimumFractionDigits: 2,
   }).format(Number(value || 0));
 
@@ -160,6 +165,21 @@ const normalizeWeeklyLogs = (response: unknown): WeeklyLog[] => {
   return Array.isArray(maybeData) ? (maybeData as WeeklyLog[]) : [];
 };
 
+const hasUnpaidSessions = (week: WeeklyLog) =>
+  week.days.some((day) =>
+    day.sessions.some((session) => !session.is_paid),
+  );
+
+const getUnpaidHours = (week: WeeklyLog) =>
+  week.days.reduce(
+    (total, day) =>
+      total +
+      day.sessions
+        .filter((session) => !session.is_paid)
+        .reduce((dayTotal, session) => dayTotal + Number(session.total_hours || 0), 0),
+    0,
+  );
+
 const StatCard = ({
   label,
   value,
@@ -199,16 +219,34 @@ export default function ContractManagement() {
   const [payWeeklyLogs] = usePayWeeklyLogsMutation();
   const [updateMilestoneStatus] = useUpdateMilestoneStatusMutation();
   const [updateContractStatus] = useUpdateContractStatusMutation();
+  const [createReview, { isLoading: isCreatingReview }] =
+    useCreateReviewMutation();
   const [weeklyLogs, setWeeklyLogs] = useState<WeeklyLog[]>([]);
   const [pageMessage, setPageMessage] = useState<string | null>(null);
   const [loadingWeeklyLogs, setLoadingWeeklyLogs] = useState(false);
   const [payingWeekKey, setPayingWeekKey] = useState<string | null>(null);
+  const [contractActionLoading, setContractActionLoading] = useState<
+    "PAUSED" | "CANCELLED" | "ACTIVE" | "COMPLETED" | null
+  >(null);
   const [requestingMilestoneId, setRequestingMilestoneId] = useState<
+    number | null
+  >(null);
+  const [approvingMilestoneId, setApprovingMilestoneId] = useState<
     number | null
   >(null);
   const [milestoneFeedbacks, setMilestoneFeedbacks] = useState<
     Record<number, string>
   >({});
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewNote, setReviewNote] = useState("");
+  const [reviewContext, setReviewContext] = useState<
+    "completion" | "termination"
+  >("completion");
+  const [isTerminateWarningOpen, setIsTerminateWarningOpen] = useState(false);
+  const [isHourlySettlementOpen, setIsHourlySettlementOpen] = useState(false);
+  const [settlingHourlyCompletion, setSettlingHourlyCompletion] =
+    useState(false);
 
   const contractType = useMemo(
     () => normalizeContractType(contract?.type),
@@ -239,17 +277,20 @@ export default function ContractManagement() {
     .trim();
 
   const syncWeeklyLogs = useCallback(async () => {
-    if (!contract || !isHourly) return;
+    if (!contract || !isHourly) return [];
 
     setLoadingWeeklyLogs(true);
     try {
       const response = await loadWeeklyLogs({
         contract_id: contract.contract_id,
       }).unwrap();
-      setWeeklyLogs(normalizeWeeklyLogs(response));
+      const normalizedLogs = normalizeWeeklyLogs(response);
+      setWeeklyLogs(normalizedLogs);
+      return normalizedLogs;
     } catch {
       setWeeklyLogs([]);
       setPageMessage("Unable to load weekly work logs right now.");
+      return null;
     } finally {
       setLoadingWeeklyLogs(false);
     }
@@ -318,6 +359,57 @@ export default function ContractManagement() {
     }
   };
 
+  const unpaidWeeklyLogs = useMemo(
+    () => weeklyLogs.filter(hasUnpaidSessions),
+    [weeklyLogs],
+  );
+
+  const unpaidHourlyTotal = useMemo(
+    () =>
+      unpaidWeeklyLogs.reduce(
+        (total, week) => total + getUnpaidHours(week) * Number(contract?.hourly_rate || 0),
+        0,
+      ),
+    [contract?.hourly_rate, unpaidWeeklyLogs],
+  );
+
+  const openReviewModal = (context: "completion" | "termination") => {
+    setReviewContext(context);
+    setReviewRating(5);
+    setReviewNote("");
+    setIsReviewModalOpen(true);
+  };
+
+  const handleApproveMilestone = async (milestone: ContractMilestone) => {
+    setPageMessage(null);
+    setApprovingMilestoneId(milestone.ID);
+
+    const isLastMilestone = milestones
+      .filter((item) => item.ID !== milestone.ID)
+      .every((item) => {
+        const status = (item.Status ?? "").toUpperCase();
+        return status === "APPROVED" || status === "PAID";
+      });
+
+    try {
+      await updateMilestoneStatus({
+        milestoneId: milestone.ID,
+        newStatus: "APPROVED",
+      }).unwrap();
+
+      setPageMessage(`Approved ${milestone.Description}.`);
+      await refetch();
+
+      if (isLastMilestone) {
+        openReviewModal("completion");
+      }
+    } catch {
+      setPageMessage("Unable to approve milestone right now.");
+    } finally {
+      setApprovingMilestoneId(null);
+    }
+  };
+
   if (!isValidId) {
     return (
       <div className="mx-auto mt-16 max-w-3xl rounded-3xl border border-rose-200 bg-rose-50 p-8 text-rose-700 shadow-sm">
@@ -362,27 +454,121 @@ export default function ContractManagement() {
 
   const contractSummary = contract.description || contract.proposal_description;
   const statusLabel = contract.status || "ACTIVE";
-
-  // ...existing code...
+  const normalizedContractStatus = (contract.status ?? "ACTIVE").toUpperCase();
+  const isContractPaused = normalizedContractStatus === "PAUSED";
+  const isContractActionable =
+    normalizedContractStatus !== "CANCELLED" &&
+    normalizedContractStatus !== "COMPLETED";
+  const isFixedContract = contractType === "FIXED";
 
   const handleUpdateContractStatus = async (
-    newStatus: string,
-    milestoneId: number,
+    newStatus: "ACTIVE" | "PAUSED" | "CANCELLED" | "COMPLETED",
   ) => {
     if (!contract) return;
 
-    await updateMilestoneStatus({
-      milestoneId: milestoneId, // use the key expected by UpdateContractStatusRequest
-      newStatus: newStatus, // use the key expected by UpdateContractStatusRequest
-    }).unwrap();
+    setPageMessage(null);
+    setContractActionLoading(newStatus);
+
+    try {
+      await updateContractStatus({
+        contractId: contract.contract_id,
+        newStatus,
+      }).unwrap();
+
+      const statusMessageMap: Record<string, string> = {
+        PAUSED: "Contract has been paused.",
+        ACTIVE: "Contract has been resumed.",
+        COMPLETED: "Contract has been completed.",
+        CANCELLED: "Contract has been terminated.",
+      };
+      if (newStatus === "COMPLETED") {
+        openReviewModal("completion");
+      }
+
+      setPageMessage(
+        statusMessageMap[newStatus] ?? "Contract status has been updated.",
+      );
+      await refetch();
+    } catch {
+      setPageMessage("Unable to update contract status right now.");
+    } finally {
+      setContractActionLoading(null);
+    }
   };
 
-  // ...existing code...
+  const handleCompleteHourlyContract = async () => {
+    if (!contract) return;
+
+    setPageMessage(null);
+    setContractActionLoading("COMPLETED");
+
+    const latestLogs = await syncWeeklyLogs();
+    if (!latestLogs) {
+      setContractActionLoading(null);
+      return;
+    }
+
+    const unpaidLogs = latestLogs.filter(hasUnpaidSessions);
+
+    setContractActionLoading(null);
+
+    if (unpaidLogs.length > 0) {
+      setIsHourlySettlementOpen(true);
+      setPageMessage(
+        "Please settle unpaid hourly logs before completing this contract.",
+      );
+      return;
+    }
+
+    await handleUpdateContractStatus("COMPLETED");
+  };
+
+  const handleSettleAndCompleteHourlyContract = async () => {
+    if (!contract) return;
+
+    setPageMessage(null);
+    setSettlingHourlyCompletion(true);
+    setContractActionLoading("COMPLETED");
+
+    try {
+      const latestLogs = await syncWeeklyLogs();
+      if (!latestLogs) return;
+
+      const logsToPay = latestLogs.filter(hasUnpaidSessions);
+
+      if (logsToPay.length === 0) {
+        setIsHourlySettlementOpen(false);
+        await handleUpdateContractStatus("COMPLETED");
+        return;
+      }
+
+      for (const week of logsToPay) {
+        await payWeeklyLogs({
+          contract_id: contract.contract_id,
+          week_number: week.week_number,
+          year: new Date(week.week_start).getFullYear(),
+        }).unwrap();
+      }
+
+      const settledLogs = await syncWeeklyLogs();
+      if (!settledLogs) return;
+
+      setIsHourlySettlementOpen(false);
+      await handleUpdateContractStatus("COMPLETED");
+    } catch {
+      setPageMessage(
+        "Unable to settle all unpaid weekly logs. Please try again before completing the contract.",
+      );
+    } finally {
+      setSettlingHourlyCompletion(false);
+      setContractActionLoading(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-surface text-slate-900 selection:bg-amber-200 selection:text-slate-900">
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-10 md:px-8 lg:px-10">
-        <header className="mb-8 flex flex-col gap-6 rounded-4xl border border-white/70 bg-white/75 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8 lg:flex-row lg:items-end lg:justify-between">
+        <header className="mb-8 max-tablet:flex-col flex gap-6 rounded-4xl border border-white/70 bg-white/75 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <nav className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
               <span>Contracts</span>
@@ -410,22 +596,70 @@ export default function ContractManagement() {
             ) : null}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
-              onClick={() => {
-                router.push(`/messages?userid=${contract.freelancer_id}`);
-              }}
-            >
-              <MessageCircle className="h-4 w-4" />
-              Message freelancer
-            </button>
-            <Link
-              href="/client/mycontracts"
-              className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
-            >
-              Back to contracts
-            </Link>
+          <div className="flex flex-col gap-4 lg:items-end">
+            <div className="flex flex-wrap gap-3">
+              <button
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() =>
+                  void handleUpdateContractStatus(
+                    isContractPaused ? "ACTIVE" : "PAUSED",
+                  )
+                }
+                disabled={
+                  !isContractActionable || contractActionLoading !== null
+                }
+              >
+                <Pause className="h-4 w-4" />
+                {contractActionLoading ===
+                (isContractPaused ? "ACTIVE" : "PAUSED")
+                  ? isContractPaused
+                    ? "Resuming..."
+                    : "Pausing..."
+                  : isContractPaused
+                    ? "Resume Contract"
+                    : "Pause Contract"}
+              </button>
+              <button
+                className="inline-flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-bold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={() => {
+                  if (isFixedContract) {
+                    setIsTerminateWarningOpen(true);
+                    return;
+                  }
+
+                  void handleCompleteHourlyContract();
+                }}
+                disabled={
+                  !isContractActionable || contractActionLoading !== null
+                }
+              >
+                <Ban className="h-4 w-4" />
+                {contractActionLoading === "CANCELLED" ||
+                contractActionLoading === "COMPLETED"
+                  ? "Updating..."
+                  : isFixedContract
+                    ? "Terminate Contract"
+                    : "Complete Contract"}
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                onClick={() => {
+                  router.push(`/messages?userid=${contract.freelancer_id}`);
+                }}
+              >
+                <MessageCircle className="h-4 w-4" />
+                Message freelancer
+              </button>
+              <Link
+                href="/client/mycontracts"
+                className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+              >
+                Back to contracts
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -876,26 +1110,17 @@ export default function ContractManagement() {
 
                           {milestone.Status === "SUBMITTED" ? (
                             <>
-                              {/* <a
-                              href={milestone.submission_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
-                            >
-                              Review file
-                              <FileText className="h-4 w-4" />
-                            </a> */}
                               <button
                                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-emerald-200"
                                 onClick={() =>
-                                  void handleUpdateContractStatus(
-                                    "APPROVED",
-                                    milestone.ID,
-                                  )
+                                  void handleApproveMilestone(milestone)
                                 }
-                                disabled={milestone.Status !== "SUBMITTED"}
+                                disabled={approvingMilestoneId === milestone.ID}
                               >
-                                Approve and pay
+                                {approvingMilestoneId === milestone.ID ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : null}
+                                Approve milestone
                               </button>
                             </>
                           ) : null}
@@ -914,6 +1139,229 @@ export default function ContractManagement() {
             </div>
           </section>
         )}
+
+        {isReviewModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+            <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                    Leave a review
+                  </p>
+                  <h3 className="mt-2 text-2xl font-black text-slate-900">
+                    {reviewContext === "completion"
+                      ? "How was this contract?"
+                      : "How was the freelancer overall?"}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsReviewModalOpen(false)}
+                  className="rounded-full border border-slate-200 p-2 text-slate-500 hover:bg-slate-50"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="mt-6 flex items-center gap-2">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setReviewRating(star)}
+                    className="rounded-full p-1"
+                  >
+                    <Star
+                      className={`h-7 w-7 ${
+                        star <= reviewRating
+                          ? "fill-amber-400 text-amber-400"
+                          : "text-slate-300"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+
+              <textarea
+                rows={4}
+                value={reviewNote}
+                onChange={(event) => setReviewNote(event.target.value)}
+                className="mt-5 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800 focus:border-slate-300 focus:outline-none"
+                placeholder="Share a short review about communication, quality, and delivery..."
+              />
+
+              <div className="mt-5 flex justify-end gap-3">
+                <button
+                  type="button"
+                  className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700"
+                  onClick={() => setIsReviewModalOpen(false)}
+                  disabled={isCreatingReview}
+                >
+                  Later
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                  disabled={isCreatingReview || reviewNote.trim().length === 0}
+                  onClick={async () => {
+                    if (!contract) return;
+
+                    try {
+                      await createReview({
+                        contract_id: contract.contract_id,
+                        rating: reviewRating,
+                        note: reviewNote.trim(),
+                      }).unwrap();
+                      setIsReviewModalOpen(false);
+                      setPageMessage("Review submitted successfully.");
+                    } catch {
+                      setPageMessage("Unable to submit review right now.");
+                    }
+                  }}
+                >
+                  {isCreatingReview ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : null}
+                  Submit review
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {isHourlySettlementOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+            <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                    Unpaid hourly logs
+                  </p>
+                  <h3 className="mt-2 text-xl font-black text-slate-900">
+                    Settle logged hours before completion
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsHourlySettlementOpen(false)}
+                  className="rounded-full border border-slate-200 p-2 text-slate-500 hover:bg-slate-50"
+                  disabled={settlingHourlyCompletion}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                This hourly contract has unpaid work sessions. Pay the unpaid
+                weekly logs first, then the contract can be completed.
+              </p>
+
+              <div className="mt-5 max-h-72 space-y-3 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                {unpaidWeeklyLogs.map((week) => {
+                  const unpaidHours = getUnpaidHours(week);
+                  const weekTotal = unpaidHours * Number(contract.hourly_rate || 0);
+
+                  return (
+                    <div
+                      key={`${week.week_number}-${week.week_start}`}
+                      className="rounded-2xl bg-white p-4"
+                    >
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm font-black text-slate-900">
+                            Week {week.week_number}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {formatDate(week.week_start)} -{" "}
+                            {formatDate(week.week_end)}
+                          </p>
+                        </div>
+                        <div className="text-left sm:text-right">
+                          <p className="text-sm font-black text-slate-900">
+                            {formatMoney(weekTotal)}
+                          </p>
+                          <p className="text-xs font-semibold text-slate-500">
+                            {unpaidHours.toFixed(2)} unpaid hrs
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
+                Total due before completion: {formatMoney(unpaidHourlyTotal)}
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsHourlySettlementOpen(false)}
+                  className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700"
+                  disabled={settlingHourlyCompletion}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleSettleAndCompleteHourlyContract()}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                  disabled={
+                    settlingHourlyCompletion || unpaidWeeklyLogs.length === 0
+                  }
+                >
+                  {settlingHourlyCompletion ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wallet className="h-4 w-4" />
+                  )}
+                  Pay and complete
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {isTerminateWarningOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+            <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+              <h3 className="text-xl font-black text-slate-900">
+                Terminate Fixed Contract?
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                This will cancel the contract. Remaining funds will be returned
+                to you after deducting milestone amounts already owed to the
+                freelancer.
+              </p>
+
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsTerminateWarningOpen(false)}
+                  className="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700"
+                  disabled={contractActionLoading !== null}
+                >
+                  Keep Contract
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await handleUpdateContractStatus("CANCELLED");
+                    setIsTerminateWarningOpen(false);
+                  }}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+                  disabled={contractActionLoading !== null}
+                >
+                  {contractActionLoading === "CANCELLED" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : null}
+                  Confirm Termination
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </main>
     </div>
   );

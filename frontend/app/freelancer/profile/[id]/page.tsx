@@ -1,4 +1,5 @@
 "use client";
+import defaultAvatar from "@/assets/avatarsvg.png"; // Adjust alias if needed
 
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -11,6 +12,8 @@ import {
 } from "@/api/portofolioapi";
 
 import PortfolioCard from "@/components/Portofoliocard";
+import { useMemo, useState } from "react";
+import { useGetUserReviewsQuery } from "@/api/reviewsapi";
 
 const PublicProfile = () => {
   const params = useParams();
@@ -25,9 +28,23 @@ const PublicProfile = () => {
   });
 
   const portfolioItems: PortfolioItem[] = portfolioData?.portfolio ?? [];
+  const { data: reviewsData } = useGetUserReviewsQuery(userData?.id ?? 0, {
+    skip: !userData?.id,
+  });
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(2);
 
-  const rating = 4.8;
-  const reviewCount = 128;
+  // 2. Safely sorts reviews so the most recent ones always come first
+  const sortedReviews = useMemo(() => {
+    if (!reviewsData?.reviews) return [];
+    return [...reviewsData.reviews].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+  }, [reviewsData]);
+  // 3. Cuts the array down to the visible window size
+  const displayedReviews = sortedReviews.slice(0, visibleReviewsCount);
+  const rating = reviewsData?.average_rating ?? 0;
+  const reviewCount = reviewsData?.review_count ?? 0;
 
   const profileHighlights = [
     {
@@ -143,9 +160,7 @@ const PublicProfile = () => {
                 </span>
               ))
             ) : (
-              <p className="text-sm text-gray-500">
-                No skills added yet.
-              </p>
+              <p className="text-sm text-gray-500">No skills added yet.</p>
             )}
           </div>
         </div>
@@ -209,45 +224,35 @@ const PublicProfile = () => {
           </div>
         </div>
 
-        {/* WORK HISTORY */}
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <p className="font-semibold text-lg">Work History</p>
+          <p className="font-semibold text-lg mb-2">Work History</p>
 
-          <div className="mt-4">
-            <p className="font-semibold text-sm">
-              Frontend Developer
-            </p>
+          {displayedReviews.length > 0 ? (
+            <>
+              {/* Renders only the active sliced batch */}
+              {displayedReviews.map((review) => (
+                <ReviewItem key={review.id} review={review} />
+              ))}
 
-            <p className="text-gray-500 text-xs">
-              Freelance Projects
-            </p>
-
-            <div className="mt-2 flex items-center gap-2">
-              <div className="flex items-center gap-0.5 text-yellow-400">
-                {Array.from({ length: 5 }, (_, index) => (
-                  <Star
-                    key={index}
-                    className={`h-4 w-4 ${
-                      index < Math.floor(rating)
-                        ? "fill-current"
-                        : "text-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <span className="text-xs font-semibold text-gray-600">
-                Client rating {rating.toFixed(1)}
-              </span>
-            </div>
-
-            <p className="text-gray-500 mt-2 text-sm leading-7">
-              This freelancer has worked on responsive frontend
-              applications, landing pages, dashboard interfaces, and
-              modern web experiences using React, Tailwind CSS, and
-              TypeScript.
-            </p>
-          </div>
+              {/* Conditionally displays the "Load More" action if there are more reviews left */}
+              {sortedReviews.length > visibleReviewsCount && (
+                <div className="mt-6 pt-3 border-t border-gray-100 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleReviewsCount((prev) => prev + 2)}
+                    className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    Load more reviews
+                    <span className="text-xs text-gray-400">
+                      ({sortedReviews.length - visibleReviewsCount} remaining)
+                    </span>
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-gray-500 mt-4 text-sm">No reviews yet.</p>
+          )}
         </div>
       </div>
     </div>
@@ -255,3 +260,73 @@ const PublicProfile = () => {
 };
 
 export default PublicProfile;
+
+interface ReviewProps {
+  review: {
+    id: number;
+    contract_id: number;
+    client_id: number;
+    freelancer_id: number;
+    rating: number;
+    note: string;
+    created_at: string;
+  };
+}
+
+// 2. The sub-component that maps keys correctly and handles isolated states
+const ReviewItem = ({ review }: ReviewProps) => {
+  const { data: clientData } = useGetUserByIdQuery(review.client_id);
+  // TODO: We will plug in manual API fetches here in the next step using review.client_id or review.contract_id
+
+  return (
+    <div className="mt-6 border-b border-gray-100 pb-4 last:border-none">
+      {/* Fallback title until we pull the contract info */}
+
+      <div className="flex items-center gap-3">
+        <Image
+          src={clientData?.profile_picture_url || defaultAvatar}
+          alt={`${clientData ? `${clientData.first_name} ${clientData.last_name}` : "Client"}'s profile picture`}
+          width={32}
+          height={32}
+          className="h-8 w-8 rounded-full object-cover"
+        />
+
+        <div className="flex flex-col">
+          <p className=" text-xs ">
+            {clientData
+              ? `${clientData.first_name} ${clientData.last_name}`
+              : "Loading client..."}
+          </p>
+
+          <p className="text-gray-500 text-xs ">
+            {new Date(review.created_at).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-2 flex items-center gap-2">
+        <div className="flex items-center gap-0.5 text-yellow-400">
+          {Array.from({ length: 5 }, (_, index) => (
+            <Star
+              key={index}
+              className={`h-4 w-4 ${
+                index < Math.floor(review.rating)
+                  ? "fill-current"
+                  : "text-gray-300"
+              }`}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+        <span className="text-xs font-semibold text-gray-600">
+          {review.rating.toFixed(1)}
+        </span>
+      </div>
+
+      {/* Changed review.comment to review.note to match your JSON */}
+      <p className="text-gray-600 mt-2 text-sm italic">
+        &quot;{review.note}&quot;
+      </p>
+    </div>
+  );
+};

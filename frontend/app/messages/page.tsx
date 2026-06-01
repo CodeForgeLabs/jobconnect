@@ -10,7 +10,7 @@ import {
   Smile,
   Edit,
 } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
 import {
   useGetMessagesQuery,
@@ -43,19 +43,13 @@ function isNewMessagePayload(
 const DEFAULT_AVATAR_URL = avatarPlaceholder.src;
 
 export default function ChatPage() {
-
-
-
-
   const searchParams = useSearchParams();
   const userIdFromParams = searchParams.get("userid");
   console.log("Parsed userId from URL params:", userIdFromParams);
 
   const parsedUserIdFromParams = userIdFromParams
-  ? Number(userIdFromParams)
-  : null;
-
-
+    ? Number(userIdFromParams)
+    : null;
 
   const { data: userData } = useGetMeQuery();
   const userId = userData?.id || 0;
@@ -68,6 +62,8 @@ export default function ChatPage() {
   const [optimisticMessages, setOptimisticMessages] = useState<LastMessage[]>(
     [],
   );
+
+  const bottomRef = useRef<HTMLDivElement>(null);
   const { data: temp, refetch: refetchConversations } =
     useGetConversationsQuery();
 
@@ -103,16 +99,9 @@ export default function ChatPage() {
   const activeUser = currentConversation?.User || selectedUser;
   const activeUserId = activeUser?.id ?? 0;
 
-
-    const { data: paramUser } = useGetUserByIdQuery(
-      parsedUserIdFromParams ?? 0,
-      {
-        skip: !parsedUserIdFromParams,
-      },
-    );
-
-
-
+  const { data: paramUser } = useGetUserByIdQuery(parsedUserIdFromParams ?? 0, {
+    skip: !parsedUserIdFromParams,
+  });
 
   const { data: activeUserDetails } = useGetUserByIdQuery(activeUserId, {
     skip: !activeUserId,
@@ -205,6 +194,11 @@ export default function ChatPage() {
       refetchConversations();
     }
   });
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [renderedMessages]);
 
   const handleSendMessage = async () => {
     const text = messageText.trim();
@@ -342,10 +336,7 @@ export default function ChatPage() {
     return () => window.clearTimeout(timeoutId);
   }, [paramUser, parsedUserIdFromParams, conversations]);
 
-  
-
-
- const router = useRouter();
+  const router = useRouter();
 
   return (
     <div className="flex  flex-col h-[90vh] bg-surface text-on-surface selection:bg-primary-fixed selection:text-primary">
@@ -418,14 +409,15 @@ export default function ChatPage() {
             <>
               {/* Chat Header */}
               <header className="h-20 shrink-0 flex items-center justify-between px-8 border-b border-outline-variant/20 bg-white/50 ">
-                <div className="flex items-center gap-4"
-                onClick={() => {
-                  if (activeUser.role == "FREELANCER") {
-                    router.push(`/freelancer/profile/${activeUser.id}`);
-                  } else {
-                    // 
-                }}
-              }
+                <div
+                  className="flex items-center gap-4"
+                  onClick={() => {
+                    if (activeUser.role == "FREELANCER") {
+                      router.push(`/freelancer/profile/${activeUser.id}`);
+                    } else {
+                      //
+                    }
+                  }}
                 >
                   <div className="relative">
                     <Image
@@ -481,6 +473,7 @@ export default function ChatPage() {
                     No messages yet. Start the conversation!
                   </div>
                 )}
+                <div ref={bottomRef} />,
               </div>
 
               {/* Input Area */}
@@ -690,7 +683,7 @@ const ConversationItem = ({
   >
     <div className="relative shrink-0 ">
       <ConversationAvatar userId={userId} fallbackAvatar={fallbackAvatar} />
-      
+
       {online && (
         <div className="absolute -bottom-0.5 -right-0.5 h-4 w-4 bg-green-500 border-4 border-surface-container-low rounded-full"></div>
       )}
@@ -825,12 +818,6 @@ const ConversationAvatar = ({
     />
   );
 };
-
-
-
-
-
-
 
 function formatMessageTime(dateString: string) {
   const date = new Date(dateString);

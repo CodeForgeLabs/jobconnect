@@ -1,10 +1,11 @@
 "use client";
 import Image from "next/image";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 
 import { MapPin, Star, User, Edit, Trash2 } from "lucide-react";
 import {
   useGetMeQuery,
+  useGetUserByIdQuery,
   useUpdateMeMutation,
   useUploadImageMutation,
 } from "@/api/userapi";
@@ -16,7 +17,9 @@ import {
   type PortfolioRequest,
   type PortfolioItem,
 } from "@/api/portofolioapi";
+import { useGetUserReviewsQuery } from "@/api/reviewsapi";
 import PortfolioCard from "@/components/Portofoliocard";
+import React from "react";
 
 const Profile = () => {
   const { data: userData, refetch } = useGetMeQuery();
@@ -25,8 +28,27 @@ const Profile = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const portfolioImageInputRef = useRef<HTMLInputElement | null>(null);
 
+  // 1. Tracks how many reviews to display (starts at 4)
+
   const { data: portfolioData, refetch: refetchPortfolio } =
     useGetUserPortfolioQuery(userData?.id ?? 0, { skip: !userData?.id });
+
+  const { data: reviewsData } = useGetUserReviewsQuery(userData?.id ?? 0, {
+    skip: !userData?.id,
+  });
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(2);
+
+  // 2. Safely sorts reviews so the most recent ones always come first
+  const sortedReviews = useMemo(() => {
+    if (!reviewsData?.reviews) return [];
+    return [...reviewsData.reviews].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+  }, [reviewsData]);
+
+  // 3. Cuts the array down to the visible window size
+  const displayedReviews = sortedReviews.slice(0, visibleReviewsCount);
 
   const portfolioItems: PortfolioItem[] = portfolioData?.portfolio ?? [];
   const [createPortfolio, { isLoading: isCreating }] =
@@ -98,28 +120,28 @@ const Profile = () => {
   const [skills, setSkills] = useState<string[]>([]);
   const [newSkill, setNewSkill] = useState("");
 
+  const [isEditingHeadline, setIsEditingHeadline] = useState(false);
+  const [headline, setHeadline] = useState("");
+
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
 
-const [isEditingRate, setIsEditingRate] = useState(false);
-const [hourlyRate, setHourlyRate] = useState("");
+  const [isEditingRate, setIsEditingRate] = useState(false);
+  const [hourlyRate, setHourlyRate] = useState("");
 
-useEffect(() => {
-  setPhoneNumber(userData?.phone_number || "");
-  setHourlyRate(
-    userData?.hourly_rate ? String(userData.hourly_rate) : "",
-  );
-}, [userData]);
+  useEffect(() => {
+    setPhoneNumber(userData?.phone_number || "");
+    setHourlyRate(userData?.hourly_rate ? String(userData.hourly_rate) : "");
+    setHeadline(userData?.headline || "");
+  }, [userData]);
 
-  const compensationType = "Hourly";
-  const rating = 4.8;
-  const reviewCount = 128;
-  const clientRating = 4.9;
-  const clientReviewCount = 42;
+  const rating = reviewsData?.average_rating ?? 0;
+
+  const clientReviewCount = reviewsData?.review_count ?? 0;
   const profileHighlights = [
     { label: "Projects Delivered", value: `${portfolioItems.length}` },
 
-    { label: "Clients", value: "1+" },
+    { label: "Clients", value: `${reviewsData?.reviews.length || 0}` },
   ];
   const skillsArray: string[] = Array.isArray(userData?.skills)
     ? userData!.skills.map(String)
@@ -194,7 +216,59 @@ useEffect(() => {
           <h1 className="text-[20px] font-bold mt-4">
             {userData?.first_name} {userData?.last_name}
           </h1>
-          <p className="text-jobBlue text-sm">{userData?.headline}</p>
+          {isEditingHeadline ? (
+            <div className="mt-2 flex flex-col gap-2 w-full">
+              <input
+                type="text"
+                value={headline}
+                onChange={(e) => setHeadline(e.target.value)}
+                placeholder="e.g. Senior Full Stack Developer"
+                className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              <div className="flex justify-center gap-2">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-xs"
+                  disabled={isUpdating}
+                  onClick={async () => {
+                    try {
+                      await updateMe({ headline }).unwrap();
+                      refetch();
+                      setIsEditingHeadline(false);
+                    } catch (err) {
+                      console.error("Headline update failed", err);
+                    }
+                  }}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-xs"
+                  onClick={() => {
+                    setHeadline(userData?.headline || "");
+                    setIsEditingHeadline(false);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2 mt-1 group">
+              <p className="text-jobBlue text-sm font-medium">
+                {userData?.headline || "Add professional headline"}
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsEditingHeadline(true)}
+                className="text-gray-400 hover:text-jobBlue transition-colors cursor-pointer"
+                aria-label="Edit headline"
+              >
+                <Edit className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
           <div className="mt-2 flex items-center gap-2">
             <div className="flex items-center gap-0.5 text-yellow-400">
               {Array.from({ length: 5 }, (_, index) => (
@@ -206,104 +280,90 @@ useEffect(() => {
               ))}
             </div>
             <span className="text-xs font-semibold text-gray-600">
-              {rating.toFixed(1)} ({reviewCount} reviews)
+              {rating.toFixed(1)} ({clientReviewCount} reviews)
             </span>
           </div>
-          <p className="flex items-center gap-1 text-gray-500 text-sm">
+          {/* <p className="flex items-center gap-1 text-gray-500 text-sm">
             <MapPin className="h-4 w-4" />
             {userData?.location || "Add location"}
-          </p>
+          </p> */}
 
-                        <div className="flex justify-between not-first:w-full mt-3 bg-[#ebedf1] px-3 py-3 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <p className="text-gray-500 text-xs">Hourly rate</p>
+          <div className="flex justify-between not-first:w-full mt-3 bg-[#ebedf1] px-3 py-3 rounded-lg">
+            <div className="flex items-center justify-between">
+              <p className="text-gray-500 text-xs">Hourly rate</p>
+            </div>
 
-                    
-                  </div>
+            {isEditingRate ? (
+              <div className="mt-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold">$</span>
 
-                  {isEditingRate ? (
-                    <div className="mt-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">$</span>
-
-                        <input
-                          type="number"
-                          value={hourlyRate}
-                          onChange={(e) => setHourlyRate(e.target.value)}
-                          placeholder="Enter hourly rate"
-                          className="w-full rounded-md border border-gray-200 p-2 text-sm"
-                        />
-                      </div>
-
-                      <div className="flex gap-2 mt-3">
-                        <button
-                          className="btn btn-primary btn-sm"
-                          disabled={isUpdating}
-                          onClick={async () => {
-                            try {
-                              await updateMe({
-                                hourly_rate: Number(hourlyRate),
-                              }).unwrap();
-
-                              refetch();
-                              setIsEditingRate(false);
-                            } catch (err) {
-                              console.error(err);
-                            }
-                          }}
-                        >
-                          Save
-                        </button>
-
-                        <button
-                          className="btn btn-sm"
-                          onClick={() => {
-                            setHourlyRate(
-                              userData?.hourly_rate
-                                ? String(userData.hourly_rate)
-                                : "",
-                            );
-                            setIsEditingRate(false);
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex">
-
-                    <p className="text-jobBlue font-semibold text-sm mr-2">
-                      {userData?.hourly_rate
-                        ? `${userData.hourly_rate} Birr/hr `
-                        : "0.00"}
-                    </p>
-
-                    {!isEditingRate && (
-                      <button
-                        className="text-jobBlue"
-                        onClick={() => setIsEditingRate(true)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                    )}
-
-                    </div>
-                  )}
+                  <input
+                    type="number"
+                    value={hourlyRate}
+                    onChange={(e) => setHourlyRate(e.target.value)}
+                    placeholder="Enter hourly rate"
+                    className="w-full rounded-md border border-gray-200 p-2 text-sm"
+                  />
                 </div>
 
+                <div className="flex gap-2 mt-3">
+                  <button
+                    className="btn btn-primary btn-sm"
+                    disabled={isUpdating}
+                    onClick={async () => {
+                      try {
+                        await updateMe({
+                          hourly_rate: Number(hourlyRate),
+                        }).unwrap();
 
+                        refetch();
+                        setIsEditingRate(false);
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }}
+                  >
+                    Save
+                  </button>
 
+                  <button
+                    className="btn btn-sm"
+                    onClick={() => {
+                      setHourlyRate(
+                        userData?.hourly_rate
+                          ? String(userData.hourly_rate)
+                          : "",
+                      );
+                      setIsEditingRate(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex">
+                <p className="text-jobBlue font-semibold text-sm mr-2">
+                  {userData?.hourly_rate
+                    ? `${userData.hourly_rate} Birr/hr `
+                    : "0.00"}
+                </p>
 
+                {!isEditingRate && (
+                  <button
+                    className="text-jobBlue"
+                    onClick={() => setIsEditingRate(true)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
-
-
-                  <div className="flex justify-between items-center w-full mt-3 bg-[#ebedf1] px-3 py-3 rounded-lg">
-          
-              <p className="text-gray-500 text-xs">Phone Number</p>
-
-             
-         
+          <div className="flex justify-between items-center w-full mt-3 bg-[#ebedf1] px-3 py-3 rounded-lg">
+            <p className="text-gray-500 text-xs">Phone Number</p>
 
             {isEditingPhone ? (
               <div className="mt-2">
@@ -348,23 +408,20 @@ useEffect(() => {
               </div>
             ) : userData?.phone_number ? (
               <div className="flex">
-
-              <p className="text-jobBlue font-semibold text-sm  mr-2">
-                {userData.phone_number}
-              </p>
-               {!isEditingPhone && (
-                <button
-                  className="text-jobBlue"
-                  onClick={() => setIsEditingPhone(true)}
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-              )}
+                <p className="text-jobBlue font-semibold text-sm  mr-2">
+                  {userData.phone_number}
+                </p>
+                {!isEditingPhone && (
+                  <button
+                    className="text-jobBlue"
+                    onClick={() => setIsEditingPhone(true)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             ) : (
-              <p className="text-jobBlue text-sm">
-                Add phone number
-              </p>
+              <p className="text-jobBlue text-sm">Add phone number</p>
             )}
           </div>
 
@@ -909,36 +966,34 @@ useEffect(() => {
         </div>
 
         <div className="bg-white p-6 rounded-lg shadow-md">
-          <p className="font-semibold text-lg">Work History</p>
-          <div className="mt-4">
-            <p className="font-semibold text-sm">Senior Web Developer</p>
-            <p className="text-gray-500 text-xs">
-              Tech Company - Jan 2020 to Present
-            </p>
-            <div className="mt-2 flex items-center gap-2">
-              <div className="flex items-center gap-0.5 text-yellow-400">
-                {Array.from({ length: 5 }, (_, index) => (
-                  <Star
-                    key={index}
-                    className={`h-4 w-4 ${index < Math.floor(clientRating) ? "fill-current" : "text-gray-300"}`}
-                    aria-hidden="true"
-                  />
-                ))}
-              </div>
-              <span className="text-xs font-semibold text-gray-600">
-                Client rating {clientRating.toFixed(1)} ({clientReviewCount}{" "}
-                reviews)
-              </span>
-            </div>
-            <p className="text-gray-500 mt-2 text-sm">
-              &quot; He is responsible for leading a team of developers in
-              creating and maintaining the company&apos;s main web application.
-              He has successfully implemented new features, optimized
-              performance, and ensured the application is scalable and secure.
-              He has also collaborated closely with designers and product
-              managers to deliver a seamless user experience.&quot;
-            </p>
-          </div>
+          <p className="font-semibold text-lg mb-2">Work History</p>
+
+          {displayedReviews.length > 0 ? (
+            <>
+              {/* Renders only the active sliced batch */}
+              {displayedReviews.map((review) => (
+                <ReviewItem key={review.id} review={review} />
+              ))}
+
+              {/* Conditionally displays the "Load More" action if there are more reviews left */}
+              {sortedReviews.length > visibleReviewsCount && (
+                <div className="mt-6 pt-3 border-t border-gray-100 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => setVisibleReviewsCount((prev) => prev + 2)}
+                    className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    Load more reviews
+                    <span className="text-xs text-gray-400">
+                      ({sortedReviews.length - visibleReviewsCount} remaining)
+                    </span>
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-gray-500 mt-4 text-sm">No reviews yet.</p>
+          )}
         </div>
       </div>
     </div>
@@ -946,3 +1001,74 @@ useEffect(() => {
 };
 
 export default Profile;
+
+// 1. Define a quick type for the review coming from your API response
+interface ReviewProps {
+  review: {
+    id: number;
+    contract_id: number;
+    client_id: number;
+    freelancer_id: number;
+    rating: number;
+    note: string;
+    created_at: string;
+  };
+}
+
+// 2. The sub-component that maps keys correctly and handles isolated states
+const ReviewItem = ({ review }: ReviewProps) => {
+  const { data: clientData } = useGetUserByIdQuery(review.client_id);
+  // TODO: We will plug in manual API fetches here in the next step using review.client_id or review.contract_id
+
+  return (
+    <div className="mt-6 border-b border-gray-100 pb-4 last:border-none">
+      {/* Fallback title until we pull the contract info */}
+
+      <div className="flex items-center gap-3">
+        <Image
+          src={clientData?.profile_picture_url || "/default-avatar.png"}
+          alt={`${clientData ? `${clientData.first_name} ${clientData.last_name}` : "Client"}'s profile picture`}
+          width={32}
+          height={32}
+          className="h-8 w-8 rounded-full object-cover"
+        />
+
+        <div className="flex flex-col">
+          <p className=" text-xs ">
+            {clientData
+              ? `${clientData.first_name} ${clientData.last_name}`
+              : "Loading client..."}
+          </p>
+
+          <p className="text-gray-500 text-xs ">
+            {new Date(review.created_at).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-2 flex items-center gap-2">
+        <div className="flex items-center gap-0.5 text-yellow-400">
+          {Array.from({ length: 5 }, (_, index) => (
+            <Star
+              key={index}
+              className={`h-4 w-4 ${
+                index < Math.floor(review.rating)
+                  ? "fill-current"
+                  : "text-gray-300"
+              }`}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+        <span className="text-xs font-semibold text-gray-600">
+          {review.rating.toFixed(1)}
+        </span>
+      </div>
+
+      {/* Changed review.comment to review.note to match your JSON */}
+      <p className="text-gray-600 mt-2 text-sm italic">
+        &quot;{review.note}&quot;
+      </p>
+    </div>
+  );
+};
