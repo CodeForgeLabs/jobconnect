@@ -451,7 +451,7 @@ const Jobsearch = () => {
           {!isLoading && !isError && visibleJobs.length === 0 ? (
             <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center shadow-xs">
               <p className="text-sm font-semibold text-gray-700">
-                No matching open scopes located
+                No matching jobs
               </p>
               <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
                 Modify your current tag selection parameters or criteria filters

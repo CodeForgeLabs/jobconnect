@@ -374,7 +374,7 @@ export default function ProposalsView() {
           {/* Paginated Footer System */}
           <footer className="flex items-center justify-between px-6 py-4 border-t border-outline-variant/20 bg-surface-container-low">
             <span className="text-xs text-on-surface-variant font-medium">
-              Showing {showingStart} to {showingEnd} of {totalListings} listings
+              Showing {showingEnd - showingStart} of {totalListings} listings
             </span>
             <div className="flex gap-1.5">
               <button

@@ -834,12 +834,6 @@ export default function MyPostingsView() {
             active={activeTab === "closed"}
             onClick={() => handleTabClick("closed")}
           />
-          <TabButton
-            label="Draft"
-            count={draftCount}
-            active={activeTab === "draft"}
-            onClick={() => handleTabClick("draft")}
-          />
         </div>
 
         {/* Main Postings Content Stack */}

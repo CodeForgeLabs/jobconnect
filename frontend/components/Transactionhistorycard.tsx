@@ -60,7 +60,7 @@ const TransactionHistoryCard = () => {
             </div>
           ) : (
             visibleTransactions.map((transaction) => {
-              const isPositive = transaction.Status === "SUCCESS";
+              const isPositive = transaction.Status !== "WITHDRAW";
               const amountPrefix = isPositive ? "+" : "-";
               const statusStyles =
                 transaction.Status === "SUCCESS"
