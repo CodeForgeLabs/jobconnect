@@ -684,7 +684,7 @@ export default function MyPostingsView() {
                   <div className="mt-4 space-y-3">
                     {milestones.map((milestone, index) => (
                       <div
-                        key={`${index}-${milestone.description}`}
+                        key={`${index}`}
                         className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-3"
                       >
                         <div className="mb-3 flex items-center justify-between gap-3">
