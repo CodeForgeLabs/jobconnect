@@ -261,7 +261,9 @@ export default function ChatPage() {
         setSelectedUser(null);
         setLiveMessages([]);
         setOptimisticMessages([]);
-        await refetchMessages();
+        if (shouldFetchMessages) {
+          await refetchMessages();
+        }
       }
     } catch (error) {
       console.error("Failed to send message", error);
