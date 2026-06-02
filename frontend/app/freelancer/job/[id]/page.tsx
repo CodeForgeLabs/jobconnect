@@ -89,6 +89,14 @@ export default function JobDetailView() {
       job_id: jobId,
       cover_letter: coverLetter.trim(),
     });
+    if (result.error) {
+      setError(
+        "not able to submit proposal atleast 10 connects required to apply. Please try again.",
+      );
+      console.log(Error);
+      return;
+    }
+
     //refetch the job
     setCoverLetter(result.data?.description ?? "");
     await refetchProposals();
@@ -417,7 +425,6 @@ export default function JobDetailView() {
                 value={proposalForThisJob?.description ?? coverLetter}
                 onChange={(event) => setCoverLetter(event.target.value)}
               />
-              {Error && <p className="text-red-500 text-sm mt-2">{Error}</p>}
             </div>
           ) : (
             <form
@@ -433,6 +440,7 @@ export default function JobDetailView() {
                 value={coverLetter}
                 onChange={(event) => setCoverLetter(event.target.value)}
               />
+              {Error && <p className="text-red-500 text-sm mt-2">{Error}</p>}
               <button
                 type="submit"
                 className="mt-4 px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
