@@ -6,6 +6,9 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Bell, MessageCircle, User, X } from "lucide-react";
 
+import { useGetConversationsQuery } from "@/api/messageapi";
+import { useChatSocket } from "@/hooks/useChatSocket";
+
 import logo from "@/assets/Background.svg";
 import { useGetMeQuery, useLogoutMutation } from "@/api/userapi";
 import { useRouter } from "next/navigation";
@@ -59,6 +62,21 @@ const Navbar = () => {
       },
     ];
   }, []);
+
+  const { data: conversationsData, refetch: refetchConversations } =
+    useGetConversationsQuery(undefined, {
+      skip: !userData,
+    });
+
+  const unreadMessagesCount =
+    conversationsData?.conversations?.reduce(
+      (sum, conversation) => sum + (conversation.UnseenCount || 0),
+      0,
+    ) || 0;
+
+  useChatSocket(userData?.id ?? 0, () => {
+    refetchConversations();
+  });
 
   const isLoggedIn = !!userData;
   const isFreelancer = userData?.role === "FREELANCER";
@@ -218,10 +236,15 @@ const Navbar = () => {
             )}
             <Link
               href="/messages"
-              className="btn btn-sm bg-transparent border-none hover:text-black flex items-center gap-1"
+              className="btn btn-sm bg-transparent border-none hover:text-black flex items-center gap-1 relative"
             >
               Messages
               <MessageCircle className="h-3 w-3" />
+              {unreadMessagesCount > 0 && (
+                <span className="absolute -top-1 -right-px min-w-3 h-3  rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-semibold">
+                  {unreadMessagesCount > 99 ? "99+" : unreadMessagesCount}
+                </span>
+              )}
             </Link>
 
             <div className="dropdown dropdown-end   z-50">

@@ -176,6 +176,11 @@ export const jobsApi = baseApi.injectEndpoints({
 			transformResponse: (response: unknown) =>
 				normalizeJobsListResponse(response),
 		}),
+		getInvitedJobs: builder.query<Job[], void>({
+			query: () => "/jobs/fetch/invited",
+			transformResponse: (response: unknown) =>
+				normalizeJobsListResponse(response),
+		}),
 
 
 		getJobsByClient: builder.query<Job[], number>({
@@ -227,4 +232,5 @@ export const {
 	useInviteToJobMutation,
     useGetJobsRecommendedQuery,
 	useGetJobsByClientQuery,
+	useGetInvitedJobsQuery,
 } = jobsApi;

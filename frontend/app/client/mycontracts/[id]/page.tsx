@@ -399,7 +399,19 @@ export default function ContractManagement() {
         newStatus: "APPROVED",
       }).unwrap();
 
-      setPageMessage(`Approved ${milestone.Description}.`);
+      if (isLastMilestone && contract) {
+        await updateContractStatus({
+          contractId: contract.contract_id,
+          newStatus: "COMPLETED",
+        }).unwrap();
+
+        setPageMessage(
+          `Approved ${milestone.Description}. Contract completed successfully.`,
+        );
+      } else {
+        setPageMessage(`Approved ${milestone.Description}.`);
+      }
+
       await refetch();
 
       if (isLastMilestone) {

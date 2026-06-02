@@ -31,7 +31,7 @@ const formatMoney = (amount?: number) => {
 
   return amount.toLocaleString(undefined, {
     style: "currency",
-    currency: "USD",
+    currency: "ETB",
     maximumFractionDigits: 0,
   });
 };
@@ -71,19 +71,12 @@ export default function JobDetailView() {
   );
   const hasApplied = !!proposalForThisJob;
 
-  const roleHighlights =
-    job?.milestones
-      ?.map((milestone) => milestone.description)
-      .filter(Boolean) ?? [];
+  const milestones = [...(job?.milestones ?? [])].sort((a, b) => {
+    const first = a.deadline ? new Date(a.deadline).getTime() : 0;
+    const second = b.deadline ? new Date(b.deadline).getTime() : 0;
 
-  const fallbackHighlights = [
-    "Review project details and align on expected delivery outcomes.",
-    "Collaborate clearly with stakeholders throughout execution.",
-    "Deliver high-quality work that matches the posted requirements.",
-  ];
-
-  const responsibilities =
-    roleHighlights.length > 0 ? roleHighlights : fallbackHighlights;
+    return first - second;
+  });
 
   const handleSubmitProposal = async (
     event: React.FormEvent<HTMLFormElement>,
@@ -261,15 +254,57 @@ export default function JobDetailView() {
               <p className="text-on-surface-variant leading-relaxed text-base md:text-lg mb-6">
                 {job.description}
               </p>
-              <h3 className="text-xl md:text-2xl font-bold text-primary mb-4">
-                Responsibilities
-              </h3>
-              <ul className="space-y-4 list-none p-0 text-on-surface-variant text-base md:text-lg">
-                {responsibilities.map((item) => (
-                  <ResponsibilityItem key={item} text={item} />
-                ))}
-              </ul>
             </article>
+
+            {/* Milestones */}
+            {job.job_type === "FIXED" && (
+              <section>
+                <h2 className="text-2xl md:text-3xl font-bold text-primary mb-6">
+                  Project Milestones
+                </h2>
+
+                <div className="space-y-4">
+                  {milestones.length > 0 ? (
+                    milestones.map((milestone, index) => (
+                      <div
+                        key={milestone.id ?? index}
+                        className="relative overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-low p-5"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                          <div>
+                            <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary mb-3">
+                              Milestone {index + 1}
+                            </div>
+
+                            <p className="text-base font-semibold text-on-surface">
+                              {milestone.description}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-col md:items-end gap-2">
+                            <span className="text-lg font-bold text-primary">
+                              {formatMoney(milestone.amount)}
+                            </span>
+                            <span className="text-sm text-on-surface-variant">
+                              Due:{" "}
+                              {milestone.deadline
+                                ? new Date(
+                                    milestone.deadline,
+                                  ).toLocaleDateString()
+                                : "No deadline"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-outline-variant/30 p-6 text-on-surface-variant">
+                      No milestones have been defined for this project.
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
 
             {/* Skills */}
             <section>
@@ -417,10 +452,6 @@ type LabelValueProps = {
   value: string;
 };
 
-type ResponsibilityItemProps = {
-  text: string;
-};
-
 const StatItem = ({ label, value }: LabelValueProps) => (
   <div className="flex flex-col gap-1">
     <span className="text-on-surface-variant text-[10px] md:text-xs uppercase tracking-widest font-bold">
@@ -428,28 +459,6 @@ const StatItem = ({ label, value }: LabelValueProps) => (
     </span>
     <span className="text-lg md:text-2xl font-bold text-primary">{value}</span>
   </div>
-);
-
-const ResponsibilityItem = ({ text }: ResponsibilityItemProps) => (
-  <li className="flex items-start gap-3">
-    <svg
-      aria-hidden="true"
-      className="mt-1 h-5 w-5 shrink-0 text-primary"
-      fill="none"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle cx="12" cy="12" fill="currentColor" r="10" />
-      <path
-        d="M8 12.5l2.5 2.5L16 9.5"
-        stroke="white"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-      />
-    </svg>
-    <span>{text}</span>
-  </li>
 );
 
 const ClientStat = ({ label, value }: LabelValueProps) => (

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Cable, Clover, MailOpen } from "lucide-react";
 import { useGetJobByIdQuery } from "@/api/jobsapi";
+import { useGetMeQuery } from "@/api/userapi";
 import { useRouter } from "next/navigation";
 import {
   type Proposal,
@@ -147,6 +148,7 @@ export default function ProposalsView() {
 
   const { data: proposalsData = [], isLoading: proposalsLoading } =
     useGetMyProposalsQuery();
+  const { data: meData } = useGetMeQuery();
 
   // Filter raw proposals by active tab and compute pagination from raw data.
   const filteredProposalsData = useMemo(() => {
@@ -195,9 +197,7 @@ export default function ProposalsView() {
             100,
         )}%`
       : "0%";
-  const connectCount = proposalsData.filter(
-    (proposal) => proposal.status === "INVITED",
-  ).length;
+  const connectCount = meData?.connect ?? 0;
 
   const ProposalItem = ({ proposal }: { proposal: Proposal }) => {
     const { data: jobResp } = useGetJobByIdQuery(proposal.job_id);

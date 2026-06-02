@@ -6,7 +6,7 @@ import { KeyboardEvent, useMemo, useState } from "react";
 import Jobcard from "@/components/Jobcard";
 import {
   useGetJobsQuery,
-  useGetMyJobsQuery,
+  useGetInvitedJobsQuery,
   type JobFilterParams,
 } from "@/api/jobsapi";
 
@@ -112,7 +112,7 @@ const Jobsearch = () => {
     isLoading: isLoadingMyJobs,
     isFetching: isFetchingMyJobs,
     isError: isMyJobsError,
-  } = useGetMyJobsQuery(undefined, { skip: !showMyJobs });
+  } = useGetInvitedJobsQuery(undefined, { skip: !showMyJobs });
 
   const visibleJobs = useMemo(() => {
     const baseJobs = showMyJobs ? myJobs : allJobs;
@@ -362,7 +362,7 @@ const Jobsearch = () => {
                   : "text-gray-500 hover:text-gray-900 bg-transparent"
               }`}
             >
-              My Jobs
+              Invited Jobs
             </button>
           </div>
         </div>
