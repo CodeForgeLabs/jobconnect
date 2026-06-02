@@ -444,7 +444,7 @@ export default function ChatPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-px h-6 bg-outline-variant mx-2 hidden sm:block"></div>
                   <button className="p-2 text-outline hover:bg-surface-container rounded-lg transition-all">
-                    <span className="material-symbols-outlined">call</span>
+                 
                   </button>
                 </div>
               </header>
@@ -475,7 +475,7 @@ export default function ChatPage() {
                     No messages yet. Start the conversation!
                   </div>
                 )}
-                <div ref={bottomRef} />,
+                <div className="h-0" ref={bottomRef} ></div>
               </div>
 
               {/* Input Area */}
@@ -496,21 +496,6 @@ export default function ChatPage() {
                       disabled={!activeUser || isSending}
                     />
                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-outline-variant/10">
-                      <div className="flex items-center gap-1">
-                        <button className="p-2 text-outline hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
-                          <Paperclip size={18} />
-                        </button>
-                        <button className="p-2 text-outline hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
-                          <Smile size={18} />
-                        </button>
-                        <button className="p-2 text-outline hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
-                          <ImageIcon size={18} />
-                        </button>
-                        <div className="w-px h-4 bg-outline-variant mx-1" />
-                        <button className="p-2 text-outline hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
-                          Bold
-                        </button>
-                      </div>
                       <button
                         onClick={handleSendMessage}
                         disabled={

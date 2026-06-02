@@ -96,9 +96,6 @@ const Login = () => {
                     onChange={(e) => setPassword(e.target.value)}
                   />
 
-                  <div>
-                    <a className="link link-hover">Forgot password?</a>
-                  </div>
                   <div className="text-red-500 mt-2">{err}</div>
                   <button className="btn btn-neutral mt-4">Login</button>
                 </fieldset>
