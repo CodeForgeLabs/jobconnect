@@ -21,14 +21,14 @@ const packages: ConnectPackage[] = [
   {
     id: 2,
     connects: 50,
-    price: 400,
+    price: 500,
     description: "Most popular option",
     bestValue: true,
   },
   {
     id: 3,
     connects: 100,
-    price: 700,
+    price: 1000,
     description: "For active users",
   },
 ];

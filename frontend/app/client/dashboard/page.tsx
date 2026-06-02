@@ -241,6 +241,7 @@ export default function ClientDashboard() {
               {recentJobs.length > 0 ? (
                 recentJobs.map((job) => (
                   <div
+                    // onClick={() => router.push(`/client/job/${job.job_id}`)}
                     key={job.title}
                     className="group bg-surface-container-low p-6 rounded-lg flex items-center justify-between hover:bg-surface-container-highest transition-all duration-200 cursor-pointer hover:translate-x-1"
                   >

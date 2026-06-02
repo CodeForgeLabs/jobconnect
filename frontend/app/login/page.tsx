@@ -17,7 +17,7 @@ const Login = () => {
   const [email, setEmail] = useState<string>("nb@gmail.com");
   const [password, setPassword] = useState<string>("nb");
   const [err, setErr] = useState("");
-  const [login] = useLoginMutation();
+  const [login, { isLoading }] = useLoginMutation();
   const isLoggedIn = useSelector(selectIsLoggedIn);
 
   const handleLogin = async () => {
@@ -97,7 +97,9 @@ const Login = () => {
                   />
 
                   <div className="text-red-500 mt-2">{err}</div>
-                  <button className="btn btn-neutral mt-4">Login</button>
+                  <button className="btn btn-neutral mt-4" disabled={isLoading}>
+                    {isLoading ? "Logging in..." : "Login"}
+                  </button>
                 </fieldset>
               </div>
             </div>
