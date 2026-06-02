@@ -59,6 +59,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-1 bg-yellow-400"
               aria-label="0.5 star"
               checked={normalizedRating === 0.5}
+              readOnly
             />
             <input
               type="radio"
@@ -66,6 +67,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-2 bg-yellow-400"
               aria-label="1 star"
               checked={normalizedRating === 1}
+              readOnly
             />
             <input
               type="radio"
@@ -73,6 +75,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-1 bg-yellow-400"
               aria-label="1.5 star"
               checked={normalizedRating === 1.5}
+              readOnly
             />
             <input
               type="radio"
@@ -80,6 +83,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-2 bg-yellow-400"
               aria-label="2 star"
               checked={normalizedRating === 2}
+              readOnly
             />
             <input
               type="radio"
@@ -87,6 +91,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-1 bg-yellow-400"
               aria-label="2.5 star"
               checked={normalizedRating === 2.5}
+              readOnly
             />
             <input
               type="radio"
@@ -94,6 +99,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-2 bg-yellow-400"
               aria-label="3 star"
               checked={normalizedRating === 3}
+              readOnly
             />
             <input
               type="radio"
@@ -101,6 +107,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-1 bg-yellow-400"
               aria-label="3.5 star"
               checked={normalizedRating === 3.5}
+              readOnly
             />
             <input
               type="radio"
@@ -108,6 +115,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-2 bg-yellow-400"
               aria-label="4 star"
               checked={normalizedRating === 4}
+              readOnly
             />
             <input
               type="radio"
@@ -115,6 +123,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-1 bg-yellow-400"
               aria-label="4.5 star"
               checked={normalizedRating === 4.5}
+              readOnly
             />
             <input
               type="radio"
@@ -122,6 +131,7 @@ const Talentcard = ({
               className="mask mask-star-2 mask-half-2 bg-yellow-400"
               aria-label="5 star"
               checked={normalizedRating === 5}
+              readOnly
             />
           </div>
           {/* <p className="text-sm text-yellow-400 font-semibold flex items-center gap-1">

@@ -1,4 +1,39 @@
+"use client";
+
+import { useState } from "react";
+import { useGetWalletTransactionsQuery } from "@/api/walletapi";
+
+const formatDate = (value: string) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  }).format(new Date(value));
+
 const TransactionHistoryCard = () => {
+  const { data: transactions = [] } = useGetWalletTransactionsQuery();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const transactionsPerPage = 5;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(transactions.length / transactionsPerPage),
+  );
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * transactionsPerPage;
+  const visibleTransactions = transactions.slice(
+    startIndex,
+    startIndex + transactionsPerPage,
+  );
+
+  const goToPreviousPage = () => {
+    setCurrentPage((page) => Math.max(1, page - 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((page) => Math.min(totalPages, page + 1));
+  };
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
       <div className="flex justify-between border-b border-gray-200 p-6">
@@ -17,101 +52,116 @@ const TransactionHistoryCard = () => {
         </div>
 
         <div className="divide-y divide-gray-100 px-6 text-sm text-gray-700">
-          <div className="grid grid-cols-4 items-center gap-4 py-4">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-green-100 text-green-700">
-                <svg
-                  className="h-5 w-5"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.8"
-                    d="M4 20h16M5 10h14M6 10v8M10 10v8M14 10v8M18 10v8M4 10 12 4l8 6"
-                  />
-                </svg>
-              </span>
-              <div>
-                <p className="font-medium text-gray-900">TeleBirr Withdraw</p>
-                <p className="text-xs text-gray-500">Withdrawal</p>
-              </div>
+          {transactions.length === 0 ? (
+            <div className="grid grid-cols-4 items-center gap-4 py-4">
+              <p className="col-span-4 text-sm text-gray-500">
+                No transactions yet.
+              </p>
             </div>
-            <p>Apr 05, 2026</p>
-            <span className="inline-flex items-center w-fit rounded-full bg-emerald-50 p-1 text-xs font-semibold text-emerald-700">
-              Completed
-            </span>
-            <p className="self-center text-right font-semibold text-gray-500">- 500 birr</p>
-          </div>
+          ) : (
+            visibleTransactions.map((transaction) => {
+              const isPositive = transaction.Status === "SUCCESS";
+              const amountPrefix = isPositive ? "+" : "-";
+              const statusStyles =
+                transaction.Status === "SUCCESS"
+                  ? "bg-emerald-50 text-emerald-700"
+                  : transaction.Status === "PENDING"
+                    ? "bg-yellow-50 text-yellow-700"
+                    : "bg-gray-100 text-gray-600";
 
-          <div className="grid grid-cols-4 items-center gap-4 py-4">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-jobBlue text-white">
-                <svg
-                  className="h-4 w-4"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
+              return (
+                <div
+                  key={transaction.ID}
+                  className="grid grid-cols-4 items-center gap-4 py-4"
                 >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.8"
-                    d="M3 6h2l.4 2M7 13h10l3-7H6.4M7 13 6 8m1 5-1.3 5.2A1 1 0 0 0 6.7 19h10.6a1 1 0 0 0 1-.8L19 13M9 21h1m4 0h1"
-                  />
-                </svg>
-              </span>
-              <div>
-                <p className="font-medium text-gray-900">Buy Connects</p>
-                <p className="text-xs text-gray-500">Purchase</p>
-              </div>
-            </div>
-            <p>Apr 03, 2026</p>
-            <span className="inline-flex items-center w-fit rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-700">
-              Pending
-            </span>
-            <p className="self-center text-right font-semibold text-yellow-700">- 400 birr</p>
-          </div>
-
-          <div className="grid grid-cols-4 items-center gap-4 py-4">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-yellow-100 text-yellow-700">
-                <svg
-                  className="h-5 w-5"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.8"
-                    d="M12 5v12m0 0-4-4m4 4 4-4M5 19h14"
-                  />
-                </svg>
-              </span>
-              <div>
-                <p className="font-medium text-gray-900">Job Payment</p>
-                <p className="text-xs text-gray-500">Earning</p>
-              </div>
-            </div>
-            <p>Apr 01, 2026</p>
-            <span className=" w-fit rounded-full bg-emerald-50 p-1 text-xs font-semibold text-emerald-700 items-center inline-flex">
-              Completed
-            </span>
-            <p className="self-center text-right font-semibold text-emerald-700 ">
-              + 1,250 birr
-            </p>
-          </div>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`inline-flex h-9 w-9 items-center justify-center rounded-full ${
+                        isPositive
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-jobBlue text-white"
+                      }`}
+                    >
+                      <svg
+                        className="h-5 w-5"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.8"
+                          d="M4 20h16M5 10h14M6 10v8M10 10v8M14 10v8M18 10v8M4 10 12 4l8 6"
+                        />
+                      </svg>
+                    </span>
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {transaction.Description ||
+                          transaction.Type ||
+                          transaction.TxRef}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {transaction.Type || transaction.TxRef}
+                      </p>
+                    </div>
+                  </div>
+                  <p>{formatDate(transaction.CreatedAt)}</p>
+                  <span
+                    className={`inline-flex items-center w-fit rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles}`}
+                  >
+                    {transaction.Status || "Unknown"}
+                  </span>
+                  <p
+                    className={`self-center text-right font-semibold ${
+                      isPositive ? "text-emerald-700" : "text-gray-500"
+                    }`}
+                  >
+                    {amountPrefix} {transaction.AmountMinor}
+                    birr
+                  </p>
+                </div>
+              );
+            })
+          )}
         </div>
+
+        {transactions.length > 0 ? (
+          <div className="flex items-center justify-between gap-4 border-t border-gray-200 px-6 py-4">
+            <p className="text-xs text-gray-500">
+              Showing {startIndex + 1}-
+              {Math.min(startIndex + transactionsPerPage, transactions.length)}{" "}
+              of {transactions.length}
+            </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={goToPreviousPage}
+                disabled={safeCurrentPage === 1}
+                className="rounded-md border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-jobBlue hover:text-jobBlue disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Previous
+              </button>
+
+              <span className="rounded-md bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-600">
+                Page {safeCurrentPage} of {totalPages}
+              </span>
+
+              <button
+                type="button"
+                onClick={goToNextPage}
+                disabled={safeCurrentPage === totalPages}
+                className="rounded-md border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-jobBlue hover:text-jobBlue disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

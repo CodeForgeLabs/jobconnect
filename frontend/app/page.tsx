@@ -98,7 +98,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="mt-10 flex flex-col py-12 pl-10 pr-12  bg-[#ebedf1]  w-full">
+      {/* <div className="mt-10 flex flex-col py-12 pl-10 pr-12  bg-[#ebedf1]  w-full">
         <h1 className="text-3xl font-bold  mb-4">Browse by Category</h1>
         <p className=" text-gray-500 mb-12">
           Looking for work? Browse our categories to find the perfect job for
@@ -129,15 +129,9 @@ export default function Home() {
             title="Marketing & Sales"
             jobs="1200+ Jobs"
           />
-        </div>
-
-
-          
-
-
-
-      </div>
-
+        </div> */}
+      {/* </div> */}
+      {/* 
       <div className="mt-10 py-12">
             <h1 className="text-3xl font-bold mb-4 text-center">Meet our top rated-talents</h1>
              <p className="text-center text-gray-500"> The highest rated freelancers on our platform </p>
@@ -179,37 +173,34 @@ export default function Home() {
 
 
              </div>
-             </div>
-              
+             </div> */}
 
+      <div className="bg-[#ebedf1] py-16 px-10 mt-10">
+        <div className="flex flex-col justify-center bg-jobBlue py-12 h-80  rounded-2xl">
+          <h1 className="text-4xl font-[Inter] font-bold mb-4 text-center text-white">
+            Ready to get your work done?
+          </h1>
+          <p className="text-[18px] text-center text-gray-200 mb-6">
+            Join thousands of companies using jobconnect to build their dream
+            teams!
+          </p>
+          <div className="flex justify-center">
+            <a
+              href="/login"
+              className="btn btn-primary rounded-sm text-jobBlue bg-white p-6"
+            >
+              Hire a Freelancer
+            </a>
 
-              <div className="bg-[#ebedf1] py-16 px-10 mt-10">
-                <div className="flex flex-col justify-center bg-jobBlue py-12 h-80  rounded-2xl">
-                <h1 className="text-4xl font-[Inter] font-bold mb-4 text-center text-white">Ready to get your work done?</h1>
-                <p className="text-[18px] text-center text-gray-200 mb-6">Join thousands of companies using jobconnect to build their dream teams!</p>
-                <div className="flex justify-center">
-                  <a
-                    href="/login"
-                    className="btn btn-primary rounded-sm text-jobBlue bg-white p-6"
-                  >
-                    Hire a Freelancer
-                  </a>
-
-                  <a
-                    href="/login"
-                    className="btn btn-secondary rounded-lg text-white ml-4 bg-jobBlue border border-white p-6"
-                  >
-                    Find Work
-                  </a>
-                </div>
-
-              </div>
-
-            
+            <a
+              href="/login"
+              className="btn btn-secondary rounded-lg text-white ml-4 bg-jobBlue border border-white p-6"
+            >
+              Find Work
+            </a>
           </div>
-
-
-
+        </div>
+      </div>
     </div>
   );
 }

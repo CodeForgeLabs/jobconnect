@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+telegrambot/node_modules/
+telegrambot/*.json
+.DS_Store

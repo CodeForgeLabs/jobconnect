@@ -1,156 +1,125 @@
-import { Banknote, Clock3 } from "lucide-react";
-import { useId } from "react";
+import { ShoppingBag, Sparkles, Wallet } from "lucide-react";
 
 interface JobcardProps {
   title: string;
   pay: string;
-  type: "fixed" | "hourly";
-  rating?: number;
-
+  type: "FIXED" | "HOURLY";
   description: string;
-  postTime: string;
+  postTime: Date | string;
   tags: string[];
+  companyName?: string;
+  status?: string;
+  skills?: string;
+  jobType?: "FIXED" | "HOURLY";
+  hourlyRate?: string;
+  budget?: string;
+  experienceLevel?: string;
+  createdAt: Date | string;
+  index?: number;
+  onApply?: () => void;
 }
+
+const formatDate = (value?: Date | string): string => {
+  if (!value) return "Recently";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "Recently";
+
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
 
 const Jobcard = ({
   title,
   pay,
   type,
-  rating = 5,
-
   description,
   postTime,
   tags,
+  companyName,
+  skills,
+  jobType,
+  hourlyRate,
+  budget,
+  experienceLevel,
+  createdAt,
+  index = 0,
+  onApply,
 }: JobcardProps) => {
-  const ratingGroupName = useId();
-  const normalizedRating = Math.max(0, Math.min(5, Math.round(rating * 2) / 2));
+  const displayCompany = companyName || "Client";
+  const displayPostedAt = formatDate(createdAt) || formatDate(postTime);
+  const displayStatus = jobType === "HOURLY" ? "Hourly" : "Fixed Price";
+  const displayJobType = jobType || type;
+  const displayPay =
+    displayJobType === "HOURLY" ? `${hourlyRate || pay} / hr` : budget || pay;
+  const displaySkills = skills
+    ? skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter(Boolean)
+    : tags;
+
+  const icon =
+    index === 0 ? (
+      <Sparkles className="h-5 w-5 text-primary-container" aria-hidden="true" />
+    ) : index === 1 ? (
+      <Wallet className="h-5 w-5 text-primary-container" aria-hidden="true" />
+    ) : (
+      <ShoppingBag
+        className="h-5 w-5 text-primary-container"
+        aria-hidden="true"
+      />
+    );
 
   return (
-    <div className="flex flex-col  rounded-lg bg-white py-4 px-6 ">
-      <div className="mb-1 flex items-start justify-between gap-4">
-        <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-      </div>
-
-      <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-gray-700">
-        {type === "hourly" ? (
-          <span className="flex items-center gap-1">
-            <span className="font-semibold text-jobBlue">
-              $ Hourly : {pay}/hr
-            </span>
-          </span>
-        ) : (
-          <span className="flex items-center gap-1">
-            <Banknote className="h-3.5 w-3.5 text-jobBlue" />
-            <span className="font-semibold text-jobBlue">$Fixed: {pay}</span>
-          </span>
-        )}
-
-        <span className="text-gray-400">|</span>
-        {/* <span>{rate}</span> */}
-        <p className="flex items-center gap-1 text-sm text-gray-500">
-          <Clock3 className="h-3.5 w-3.5" />
-          Posted {postTime}
-        </p>
-      </div>
-
-      <p className="mb-4 text-gray-500">{description}</p>
-
-      {tags.length > 0 ? (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-sm bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="flex justify-between border-t border-gray-200 pt-4">
-        <div className="flex items-center gap-1">
-          <div className="flex items-center rating rating-xs rating-half pointer-events-none">
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="rating-hidden"
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-1 bg-yellow-400"
-              aria-label="0.5 star"
-              checked={normalizedRating === 0.5}
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-2 bg-yellow-400"
-              aria-label="1 star"
-              checked={normalizedRating === 1}
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-1 bg-yellow-400"
-              aria-label="1.5 star"
-              checked={normalizedRating === 1.5}
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-2 bg-yellow-400"
-              aria-label="2 star"
-              checked={normalizedRating === 2}
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-1 bg-yellow-400"
-              aria-label="2.5 star"
-              checked={normalizedRating === 2.5}
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-2 bg-yellow-400"
-              aria-label="3 star"
-              checked={normalizedRating === 3}
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-1 bg-yellow-400"
-              aria-label="3.5 star"
-              checked={normalizedRating === 3.5}
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-2 bg-yellow-400"
-              aria-label="4 star"
-              checked={normalizedRating === 4}
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-1 bg-yellow-400"
-              aria-label="4.5 star"
-              checked={normalizedRating === 4.5}
-            />
-            <input
-              type="radio"
-              name={ratingGroupName}
-              className="mask mask-star-2 mask-half-2 bg-yellow-400"
-              aria-label="5 star"
-              checked={normalizedRating === 5}
-            />
+    <div className="space-y-5 rounded-lg border border-outline-variant/10 bg-white p-6 transition-all hover:shadow-lg hover:-translate-y-1 transform-gpu">
+      <div className="mb-4 flex flex-col items-start justify-between gap-4 sm:flex-row">
+        <div className="flex gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-surface-container">
+            {icon}
           </div>
-          <p className="text-xs text-gray-400">Payment verified</p>
+          <div>
+            <h4 className="text-lg font-bold text-on-surface">{title}</h4>
+            <p className="text-sm text-on-surface-variant">
+              {displayCompany} • Posted {formatDate(displayPostedAt)}
+            </p>
+          </div>
         </div>
+        <span className="whitespace-nowrap rounded-full bg-tertiary-fixed px-4 py-1 text-xs font-bold uppercase tracking-wider text-on-tertiary-fixed-variant">
+          {displayStatus}
+        </span>
+      </div>
 
-        <button className="text-[12px] rounded-lg bg-jobBlue px-5 py-2 text-white hover:bg-blue-600">
+      <p className="mb-5 line-clamp-2 text-sm leading-relaxed text-on-surface-variant">
+        {description}
+      </p>
+
+      <div className="mb-5 flex flex-wrap gap-2">
+        {displaySkills.slice(0, 3).map((skill) => (
+          <span
+            key={skill}
+            className="rounded-md bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+          >
+            {skill}
+          </span>
+        ))}
+      </div>
+
+      <div className="flex flex-col gap-4 border-t border-outline-variant/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-4 text-sm font-semibold text-on-surface">
+          <span className="text-on-surface">{displayPay}</span>
+          <span className="font-normal text-on-surface-variant">
+            {experienceLevel || "Any level"}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onApply}
+          className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-white transition-transform hover:scale-[1.02] active:scale-95"
+        >
           Apply Now
         </button>
       </div>

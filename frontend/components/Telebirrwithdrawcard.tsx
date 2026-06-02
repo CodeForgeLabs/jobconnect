@@ -1,4 +1,50 @@
+"use client";
+
+import { useState } from "react";
+
+import { useGetMeQuery } from "@/api/userapi";
+import { useCreateWalletTransactionMutation } from "@/api/walletapi";
+
 const TeleBirrWithdrawCard = () => {
+  const { data: user } = useGetMeQuery();
+  const [createWalletTransaction, { isLoading }] =
+    useCreateWalletTransactionMutation();
+  const [amount, setAmount] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    setStatusMessage(null);
+
+    if (!user) {
+      setStatusMessage("Sign in to create a payment link.");
+      return;
+    }
+
+    const parsedAmount = Number(amount);
+
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setStatusMessage("Enter a valid amount.");
+      return;
+    }
+
+    try {
+      const response = await createWalletTransaction({
+        amountMinor: Math.round(parsedAmount),
+        description: "TeleBirr deposit",
+        email: user.email,
+        phone: phoneNumber || user.phone_number,
+        userID: user.id,
+      }).unwrap();
+
+      setPaymentUrl(response.payment_url);
+      window.open(response.payment_url, "_blank", "noopener,noreferrer");
+    } catch {
+      setStatusMessage("Unable to create payment link.");
+    }
+  };
+
   return (
     <div className="flex flex-col  gap-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between">
@@ -31,7 +77,7 @@ const TeleBirrWithdrawCard = () => {
             </svg>
           </span>
           <h2 className="text-lg font-semibold text-slate-800">
-            Withdraw to TeleBirr
+            Deposit from TeleBirr
           </h2>
         </div>
         <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -67,8 +113,12 @@ const TeleBirrWithdrawCard = () => {
             </span>
             <input
               id="telebirr-amount"
-              type="text"
+              type="number"
+              min="1"
+              step="0.01"
               placeholder="$100.00"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
               className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
             />
           </div>
@@ -111,7 +161,9 @@ const TeleBirrWithdrawCard = () => {
             <input
               id="telebirr-phone"
               type="text"
-              placeholder="09xxxxxx"
+              placeholder={user?.phone_number || "09xxxxxx"}
+              value={phoneNumber}
+              onChange={(event) => setPhoneNumber(event.target.value)}
               className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
             />
           </div>
@@ -121,13 +173,10 @@ const TeleBirrWithdrawCard = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-        <span>Withdrawal fee: 1.5%</span>
-        <span>Min: $10 | Max: $2,000</span>
-      </div>
-
       <button
         type="button"
+        onClick={handleSubmit}
+        disabled={isLoading}
         className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700"
       >
         <svg
@@ -145,8 +194,23 @@ const TeleBirrWithdrawCard = () => {
             strokeLinejoin="round"
           />
         </svg>
-        Withdraw Funds
+        {isLoading ? "Creating..." : "Deposit Funds"}
       </button>
+
+      {statusMessage ? (
+        <p className="text-sm text-rose-500">{statusMessage}</p>
+      ) : null}
+
+      {paymentUrl ? (
+        <a
+          href={paymentUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm font-medium text-jobBlue underline"
+        >
+          Open payment page
+        </a>
+      ) : null}
     </div>
   );
 };

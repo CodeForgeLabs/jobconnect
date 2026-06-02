@@ -9,5 +9,6 @@
 html, body {
   @apply font-sans;
   font-family: 'Inter', sans-serif;
+  font-size: 15px;
   
 }
