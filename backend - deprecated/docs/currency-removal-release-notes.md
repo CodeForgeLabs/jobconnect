@@ -20,9 +20,9 @@
 - The shared compose database was verified with the new migrations applied successfully.
 
 ## Verification
-- `go test ./...` passed for `backend/services/job`.
-- `go test ./...` passed for `backend/services/contract`.
-- `go test ./...` passed for `backend/services/wallet`.
-- `go test ./...` passed for `backend/services/payment`.
-- `go test ./...` passed for `backend/gateway`.
+- `go test ./...` passed for `backend - deprecated/services/job`.
+- `go test ./...` passed for `backend - deprecated/services/contract`.
+- `go test ./...` passed for `backend - deprecated/services/wallet`.
+- `go test ./...` passed for `backend - deprecated/services/payment`.
+- `go test ./...` passed for `backend - deprecated/gateway`.
 - `./scripts/migrate-all.ps1` applied the new drop migrations successfully on the current compose stack.
