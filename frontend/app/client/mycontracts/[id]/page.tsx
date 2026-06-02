@@ -386,20 +386,22 @@ export default function ContractManagement() {
     setPageMessage(null);
     setApprovingMilestoneId(milestone.ID);
 
-    const isLastMilestone = milestones
-      .filter((item) => item.ID !== milestone.ID)
-      .every((item) => {
-        const status = (item.Status ?? "").toUpperCase();
-        return status === "APPROVED" || status === "PAID";
-      });
-
     try {
       await updateMilestoneStatus({
         milestoneId: milestone.ID,
         newStatus: "APPROVED",
       }).unwrap();
 
-      if (isLastMilestone && contract) {
+      const allOtherMilestonesCompleted = milestones
+        .filter((item) => item.ID !== milestone.ID)
+        .every((item) => {
+          const status = (item.Status ?? "").toUpperCase();
+          return status === "APPROVED" || status === "PAID";
+        });
+
+      const isFinalMilestoneApproval = allOtherMilestonesCompleted;
+
+      if (isFinalMilestoneApproval && contract) {
         await updateContractStatus({
           contractId: contract.contract_id,
           newStatus: "COMPLETED",
@@ -414,8 +416,10 @@ export default function ContractManagement() {
 
       await refetch();
 
-      if (isLastMilestone) {
-        openReviewModal("completion");
+      if (isFinalMilestoneApproval) {
+        setTimeout(() => {
+          openReviewModal("completion");
+        }, 100);
       }
     } catch {
       setPageMessage("Unable to approve milestone right now.");

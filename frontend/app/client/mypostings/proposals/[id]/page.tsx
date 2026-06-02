@@ -522,7 +522,6 @@ function ProposalCard({
               isUpdatingProposal ||
               isCreatingContract ||
               proposal.status === "HIRED" ||
-              proposal.status === "PENDING" ||
               proposal.status === "REJECTED"
             }
             className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
@@ -531,9 +530,9 @@ function ProposalCard({
               ? "Hired"
               : activeAction === "hire"
                 ? "Hiring..."
-                : proposal.status === "PENDING"
-                  ? "Hire"
-                  : "Rejected"}
+                : proposal.status === "REJECTED"
+                  ? "Rejected"
+                  : "Hire"}
           </button>
         </div>
 

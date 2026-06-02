@@ -69,7 +69,7 @@ export function useNotificationSocket(
 			};
 
 			ws.onerror = (err) => {
-				console.error("Notification socket error", err);
+				console.log("Notification socket error", err);
 			};
 		};
 
