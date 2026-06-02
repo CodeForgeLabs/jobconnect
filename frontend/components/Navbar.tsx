@@ -6,6 +6,9 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Bell, MessageCircle, User, X } from "lucide-react";
 
+import { useDispatch } from "react-redux";
+import { baseApi } from "@/api/baseapi";
+
 import { useGetConversationsQuery } from "@/api/messageapi";
 import { useChatSocket } from "@/hooks/useChatSocket";
 
@@ -30,6 +33,7 @@ const Navbar = () => {
     skip: !userData,
   });
   const [markNotificationAsRead] = useMarkNotificationAsReadMutation();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const authRoutes = ["/login", "/signup"];
@@ -382,6 +386,7 @@ const Navbar = () => {
                           return;
                         }
 
+                        dispatch(baseApi.util.resetApiState());
                         router.push("/login");
                       } catch (error) {
                         console.error(error);

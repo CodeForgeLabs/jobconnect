@@ -24,7 +24,6 @@ const Login = () => {
     try {
       const res = (await login({ email, password }).unwrap()) as {
         role?: string;
-  
       };
       if (res) {
         logIn();
@@ -44,16 +43,14 @@ const Login = () => {
           dispatch(setIsClient(false));
         }
 
-
-        
-       if (res.role === "FREELANCER") {
+        if (res.role === "FREELANCER") {
           router.push("/freelancer/dashboard");
-        } else  {
+        } else {
           router.push("/client/dashboard");
-        } 
+        }
       }
     } catch (error) {
-      console.error("Login failed:", error);
+      console.log(error);
       setErr("Invalid email or password");
     }
   };

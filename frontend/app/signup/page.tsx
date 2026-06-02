@@ -231,7 +231,7 @@ export default function CareerArchSignUp() {
         router.push("/freelancer/dashboard");
       }
     } catch (verifyError) {
-      console.error("Registration failed after OTP verification:", verifyError);
+      console.log("Registration after OTP verification failed:", verifyError);
       setError(
         getErrorMessage(
           verifyError,
