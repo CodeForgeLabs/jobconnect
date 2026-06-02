@@ -42,6 +42,7 @@ export default function JobDetailView() {
   console.log("Job ID from URL:", jobId);
   const isValidJobId = Number.isFinite(jobId) && jobId > 0;
   const [coverLetter, setCoverLetter] = useState("");
+  const [Error, setError] = useState("");
 
   const {
     data: jobdata,
@@ -61,9 +62,10 @@ export default function JobDetailView() {
   const primarySkills = requiredSkills.slice(0, 3);
   const secondarySkills = requiredSkills.slice(3);
 
-  const { data: proposalsData } = useGetMyProposalsQuery(undefined, {
-    skip: !isValidJobId,
-  });
+  const { data: proposalsData, refetch: refetchProposals } =
+    useGetMyProposalsQuery(undefined, {
+      skip: !isValidJobId,
+    });
 
   const myProposals = proposalsData;
   const proposalForThisJob = myProposals?.find(
@@ -83,14 +85,13 @@ export default function JobDetailView() {
   ) => {
     event.preventDefault();
 
-    if (!coverLetter.trim()) return;
-
     const result = await createProposal({
       job_id: jobId,
       cover_letter: coverLetter.trim(),
     });
     //refetch the job
     setCoverLetter(result.data?.description ?? "");
+    await refetchProposals();
   };
 
   if (!isValidJobId) {
@@ -416,6 +417,7 @@ export default function JobDetailView() {
                 value={proposalForThisJob?.description ?? coverLetter}
                 onChange={(event) => setCoverLetter(event.target.value)}
               />
+              {Error && <p className="text-red-500 text-sm mt-2">{Error}</p>}
             </div>
           ) : (
             <form
