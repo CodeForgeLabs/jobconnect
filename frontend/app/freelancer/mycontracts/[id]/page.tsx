@@ -359,10 +359,8 @@ export default function FreelancerContractDetailPage() {
         milestoneProjectUrl = uploadResult.secure_url;
       }
 
-      if (!milestoneProjectUrl) {
-        setSubmitError(
-          "Add a project link or upload a file before submitting.",
-        );
+      if (!milestoneProjectUrl && !submissionDescription.trim()) {
+        setSubmitError("Provide a project link or  upload a file");
         return;
       }
 
@@ -938,7 +936,7 @@ export default function FreelancerContractDetailPage() {
                                   .map((url, idx) => (
                                     <a
                                       key={idx}
-                                      href={url}
+                                      href={milestone.submission_url}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-sm text-primary hover:underline block"
@@ -1093,7 +1091,15 @@ export default function FreelancerContractDetailPage() {
           event.preventDefault();
           handleCloseSubmitModal();
         }}
-        className="w-[min(92vw,44rem)] rounded-3xl border border-outline-variant/30 bg-surface-container-lowest p-0 shadow-2xl backdrop:bg-slate-950/60"
+        className=" fixed
+
+    left-1/2
+
+    top-1/2
+
+    -translate-x-1/2
+
+    -translate-y-1/2 w-[min(92vw,44rem)] rounded-3xl border border-outline-variant/30 bg-surface-container-lowest p-0 shadow-2xl backdrop:bg-slate-950/60"
       >
         {selectedMilestone ? (
           <form onSubmit={handleSubmitMilestone} className="p-8 md:p-10">
@@ -1160,10 +1166,17 @@ export default function FreelancerContractDetailPage() {
                   className="w-full rounded-2xl border border-dashed border-outline-variant/30 bg-surface-container-low px-4 py-3 text-sm text-on-surface file:mr-4 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-bold file:text-white"
                 />
                 <p className="text-xs text-on-surface-variant">
-                  If you upload a file, it will be uploaded first and the
-                  resulting link will be submitted.
+                  You can submit work using notes, a project link, or a file
+                  upload. Any one of them is enough.
                 </p>
               </label>
+              <div className="rounded-2xl border border-primary/15 bg-primary/5 px-4 py-3 text-sm text-on-surface">
+                Submit at least one of the following but not both:
+                <ul className="mt-2 list-disc pl-5 text-on-surface-variant">
+                  <li>Project URL</li>
+                  <li>File upload</li>
+                </ul>
+              </div>
 
               {submitError ? (
                 <div className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
