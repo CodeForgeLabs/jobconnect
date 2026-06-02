@@ -630,22 +630,20 @@ export default function FreelancerContractDetailPage() {
               <MessageCircle className="h-4 w-4" />
               Message Client
             </button>
-            <button
-              onClick={
-                isHourly
-                  ? isTracking
-                    ? handleEndSession
-                    : handleStartSession
-                  : undefined
-              }
-              className="premium-gradient flex items-center gap-2 rounded-full px-10 py-4 font-bold text-primary shadow-xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              {isHourly
-                ? isTracking
-                  ? "End Session"
-                  : "Start Session"
-                : "Submit Work"}
-            </button>
+            {isHourly && (
+              <button
+                onClick={
+                  isHourly
+                    ? isTracking
+                      ? handleEndSession
+                      : handleStartSession
+                    : undefined
+                }
+                className="premium-gradient flex items-center gap-2 rounded-full px-10 py-4 font-bold text-primary shadow-xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {isHourly ? (isTracking ? "End Session" : "Start Session") : ""}
+              </button>
+            )}
           </div>
         </header>
 

@@ -59,8 +59,6 @@ export default function JobDetailView() {
     skip: !job?.created_by,
   });
   const requiredSkills = parseSkills(job?.skills ?? "");
-  const primarySkills = requiredSkills.slice(0, 3);
-  const secondarySkills = requiredSkills.slice(3);
 
   const { data: proposalsData, refetch: refetchProposals } =
     useGetMyProposalsQuery(undefined, {
@@ -321,15 +319,7 @@ export default function JobDetailView() {
                 Required Skills
               </h2>
               <div className="flex flex-wrap gap-2 md:gap-3">
-                {primarySkills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="px-4 md:px-6 py-2 md:py-2.5 bg-primary text-white rounded-full font-semibold text-xs md:text-sm shadow-lg shadow-primary/20"
-                  >
-                    {skill}
-                  </span>
-                ))}
-                {secondarySkills.map((skill) => (
+                {requiredSkills.map((skill) => (
                   <span
                     key={skill}
                     className="px-4 md:px-6 py-2 md:py-2.5 bg-surface-container-highest text-primary rounded-full font-semibold text-xs md:text-sm"
