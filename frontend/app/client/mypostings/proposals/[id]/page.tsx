@@ -28,7 +28,7 @@ const formatMoney = (amount?: number) => {
 
   return amount.toLocaleString(undefined, {
     style: "currency",
-    currency: "USD",
+    currency: "ETB",
     maximumFractionDigits: 0,
   });
 };
