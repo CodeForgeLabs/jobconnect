@@ -127,10 +127,10 @@ const Navbar = () => {
   return (
     <div className="navbar sticky top-0 z-50 min-h-7 h-12 py-0 px-6  w-full  bg-surface-container-low/70 glass-nav shadow-[0_8px_30px_rgb(13,28,46,0.04)]">
       <div className="flex flex-1 items-center gap-4">
-        <Link href="/" className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Image src={logo} alt="logo" className="w-8 h-8" />
           <span className="btn btn-ghost text-xl p-0">JobConnect</span>
-        </Link>
+        </div>
 
         {/* {isLoggedIn && (
           <div className="relative flex items-center w-full max-w-md">
