@@ -421,7 +421,15 @@ const Profile = () => {
                 )}
               </div>
             ) : (
-              <p className="text-jobBlue text-sm">Add phone number</p>
+              <div className="flex items-center gap-2">
+                <p className="text-jobBlue text-sm">Add phone number</p>
+                <button
+                  className="text-jobBlue"
+                  onClick={() => setIsEditingPhone(true)}
+                >
+                  <Edit className="h-4 w-4" />
+                </button>
+              </div>
             )}
           </div>
 

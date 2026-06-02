@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useBuyConnectMutation } from "@/api/walletapi";
 
 interface ConnectPackage {
@@ -37,6 +38,7 @@ const BuyconnectsCard = () => {
   const [selectedPackage, setSelectedPackage] = useState<number>(2);
   const [buyConnect, { isLoading }] = useBuyConnectMutation();
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   const handlePurchase = async () => {
     const buyPackage = packages.find((pkg) => pkg.id === selectedPackage);
@@ -46,6 +48,9 @@ const BuyconnectsCard = () => {
           amount: buyPackage.connects,
         }).unwrap();
         setStatusMessage(response.message);
+        setTimeout(() => {
+          router.refresh();
+        }, 1000);
       } catch {
         setStatusMessage("Unable to buy connects");
       }
@@ -118,9 +123,15 @@ const BuyconnectsCard = () => {
         })}
       </div>
       <span>
-        {statusMessage && (
+        {statusMessage == "Unable to buy connects" && (
           <p className="text-sm text-red-500">{statusMessage}</p>
         )}
+
+        {statusMessage && statusMessage !== "Unable to buy connects" && (
+          <p className="text-sm text-green-500">{statusMessage}</p>
+        )}
+
+
       </span>
 
       <button
