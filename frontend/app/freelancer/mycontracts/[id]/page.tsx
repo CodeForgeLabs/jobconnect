@@ -639,7 +639,11 @@ export default function FreelancerContractDetailPage() {
                 }
                 className="premium-gradient flex items-center gap-2 rounded-full px-10 py-4 font-bold text-primary shadow-xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               >
-                {isHourly ? (isTracking ? "End Session" : "Start Session") : ""}
+                {isHourly && contract.status === "ACTIVE"
+                  ? isTracking
+                    ? "End Session"
+                    : "Start Session"
+                  : ""}
               </button>
             )}
           </div>
@@ -784,7 +788,11 @@ export default function FreelancerContractDetailPage() {
                     <button
                       type="button"
                       onClick={handleStartSession}
-                      disabled={isStartingSession || isTracking}
+                      disabled={
+                        isStartingSession ||
+                        isTracking ||
+                        contract.status !== "ACTIVE"
+                      }
                       className="rounded-full bg-primary px-5 py-3 text-sm font-bold text-white transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Start Session
@@ -792,7 +800,11 @@ export default function FreelancerContractDetailPage() {
                     <button
                       type="button"
                       onClick={handleEndSession}
-                      disabled={isEndingSession || !isTracking}
+                      disabled={
+                        isEndingSession ||
+                        !isTracking ||
+                        contract.status !== "ACTIVE"
+                      }
                       className="rounded-full bg-surface-container-high px-5 py-3 text-sm font-bold text-on-surface transition-all hover:bg-surface-container-highest disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       End Session
