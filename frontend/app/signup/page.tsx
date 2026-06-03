@@ -8,6 +8,7 @@ import {
   useSendOtpMutation,
   useVerifyOtpMutation,
 } from "@/api/userapi";
+import { validatePersonalName } from "@/lib/fieldValidation";
 
 export default function CareerArchSignUp() {
   const router = useRouter();
@@ -120,6 +121,14 @@ export default function CareerArchSignUp() {
     role: role === "CLIENT" ? ("CLIENT" as const) : ("FREELANCER" as const),
   });
 
+  const firstNameError = validatePersonalName(firstName, "First name");
+  const lastNameError = validatePersonalName(lastName, "Last name");
+  const hasDetailsFieldErrors = Boolean(firstNameError || lastNameError);
+  const getTextInputClassName = (fieldError?: string | null) =>
+    `w-full px-6 py-3 rounded-full bg-surface-container-lowest border border-outline-variant/30 focus:ring-2 focus:ring-tertiary-container focus:border-transparent transition-all outline-none ${
+      fieldError ? "border-red-500 focus:ring-red-200" : ""
+    }`;
+
   const setOtpDigit = (index: number, value: string) => {
     const nextValue = value.replace(/\D/g, "").slice(0, 1);
 
@@ -182,6 +191,12 @@ export default function CareerArchSignUp() {
       setError("Please fill in all required fields before continuing.");
       return;
     }
+
+    if (hasDetailsFieldErrors) {
+      setError("Fix the highlighted fields before continuing.");
+      return;
+    }
+
     if (!passwordRequirements.test(password)) {
       setError(
         "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.",
@@ -532,13 +547,18 @@ export default function CareerArchSignUp() {
                       </label>
                       <input
                         autoComplete="given-name"
-                        className="w-full px-6 py-3 rounded-full bg-surface-container-lowest border border-outline-variant/30 focus:ring-2 focus:ring-tertiary-container focus:border-transparent transition-all outline-none"
+                        className={getTextInputClassName(firstNameError)}
                         value={firstName}
                         onChange={(event) => setFirstName(event.target.value)}
                         placeholder="Jane"
                         required
                         type="text"
                       />
+                      {firstNameError ? (
+                        <p className="mt-1 text-xs font-medium text-red-500">
+                          {firstNameError}
+                        </p>
+                      ) : null}
                     </div>
                     <div className="flex flex-col gap-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant font-label ml-1">
@@ -546,13 +566,18 @@ export default function CareerArchSignUp() {
                       </label>
                       <input
                         autoComplete="family-name"
-                        className="w-full px-6 py-3 rounded-full bg-surface-container-lowest border border-outline-variant/30 focus:ring-2 focus:ring-tertiary-container focus:border-transparent transition-all outline-none"
+                        className={getTextInputClassName(lastNameError)}
                         value={lastName}
                         onChange={(event) => setLastName(event.target.value)}
                         placeholder="Doe"
                         required
                         type="text"
                       />
+                      {lastNameError ? (
+                        <p className="mt-1 text-xs font-medium text-red-500">
+                          {lastNameError}
+                        </p>
+                      ) : null}
                     </div>
                   </div>
 

@@ -4,6 +4,10 @@ import { useState } from "react";
 
 import { useGetMeQuery } from "@/api/userapi";
 import { useCreateWalletTransactionMutation } from "@/api/walletapi";
+import {
+  validatePhoneNumber,
+  validatePositiveDecimal,
+} from "@/lib/fieldValidation";
 
 const TeleBirrWithdrawCard = () => {
   const { data: user } = useGetMeQuery();
@@ -13,6 +17,15 @@ const TeleBirrWithdrawCard = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const amountFormatError = amount.trim()
+    ? validatePositiveDecimal(amount, "Amount")
+    : null;
+  const amountMinimumError =
+    amount.trim() && !amountFormatError && Number(amount) < 100
+      ? "Amount must be at least 100 birr."
+      : null;
+  const amountError = amountFormatError || amountMinimumError;
+  const phoneNumberError = validatePhoneNumber(phoneNumber, "Phone");
 
   const handleSubmit = async () => {
     setStatusMessage(null);
@@ -22,19 +35,29 @@ const TeleBirrWithdrawCard = () => {
       return;
     }
 
-    const parsedAmount = Number(amount);
-
-    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
-      setStatusMessage("Enter a valid amount.");
+    const submitAmountError =
+      validatePositiveDecimal(amount, "Amount") ||
+      (Number(amount) < 100 ? "Amount must be at least 100 birr." : null);
+    if (submitAmountError) {
+      setStatusMessage(submitAmountError);
       return;
     }
+
+    const paymentPhone = phoneNumber || user.phone_number || "";
+    const submitPhoneError = validatePhoneNumber(paymentPhone, "Phone");
+    if (submitPhoneError) {
+      setStatusMessage(submitPhoneError);
+      return;
+    }
+
+    const parsedAmount = Number(amount);
 
     try {
       const response = await createWalletTransaction({
         amountMinor: Math.round(parsedAmount),
         description: "TeleBirr deposit",
         email: user.email,
-        phone: phoneNumber || user.phone_number,
+        phone: paymentPhone,
         userID: user.id,
       }).unwrap();
 
@@ -119,10 +142,17 @@ const TeleBirrWithdrawCard = () => {
               placeholder="$100.00"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              aria-invalid={Boolean(amountError)}
+              className={`h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 ${
+                amountError ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
+              }`}
             />
           </div>
-          <p className="text-xs text-slate-400">Min of 100 birr</p>
+          <p
+            className={`text-xs ${amountError ? "font-medium text-rose-500" : "text-slate-400"}`}
+          >
+            {amountError || "Min of 100 birr"}
+          </p>
         </div>
 
         <div className="flex flex-col gap-1.5 grow">
@@ -161,14 +191,21 @@ const TeleBirrWithdrawCard = () => {
             <input
               id="telebirr-phone"
               type="text"
+              inputMode="tel"
               placeholder={user?.phone_number || "09xxxxxx"}
               value={phoneNumber}
               onChange={(event) => setPhoneNumber(event.target.value)}
-              className="h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              aria-invalid={Boolean(phoneNumberError)}
+              className={`h-11 w-full rounded-lg border border-slate-300 bg-white pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 ${
+                phoneNumberError ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
+              }`}
             />
           </div>
-          <p className="text-xs text-slate-400">
-            Enter the phone number linked to your TeleBirr account
+          <p
+            className={`text-xs ${phoneNumberError ? "font-medium text-rose-500" : "text-slate-400"}`}
+          >
+            {phoneNumberError ||
+              "Enter the phone number linked to your TeleBirr account"}
           </p>
         </div>
       </div>

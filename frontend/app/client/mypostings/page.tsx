@@ -18,6 +18,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  validateOptionalPositiveDecimal,
+  validateOptionalPositiveWholeNumber,
+  validatePositiveDecimal,
+  validatePositiveWholeNumber,
+} from "@/lib/fieldValidation";
 
 type MilestoneDraft = {
   amount: string;
@@ -99,7 +105,8 @@ export default function MyPostingsView() {
   const [deleteJob] = useDeleteJobMutation();
   const walletCurrency = wallet?.Currency ?? "ETB";
   const walletBalanceMinor = wallet?.BalanceMinor ?? 0;
-  const budgetValue = Number(form.budget || 0);
+  const parsedBudgetValue = Number(form.budget || 0);
+  const budgetValue = Number.isFinite(parsedBudgetValue) ? parsedBudgetValue : 0;
   const budgetMinor = budgetValue;
   const milestoneTotal = milestones.reduce((total, milestone) => {
     const amount = Number(milestone.amount || 0);
@@ -108,6 +115,23 @@ export default function MyPostingsView() {
   const milestoneTotalMinor = Math.round(milestoneTotal);
   const balanceShortfallMinor = Math.max(0, budgetMinor - walletBalanceMinor);
   const hasEnoughBalance = walletBalanceMinor >= budgetMinor;
+  const budgetInputError = validateOptionalPositiveDecimal(
+    form.budget,
+    "Budget",
+  );
+  const hourlyRateInputError =
+    form.job_type === "HOURLY"
+      ? validateOptionalPositiveDecimal(form.hourly_rate, "Hourly rate")
+      : null;
+  const weeklyHoursInputError =
+    form.job_type === "HOURLY"
+      ? validateOptionalPositiveWholeNumber(
+          form.max_weekly_hours,
+          "Max weekly hours",
+        )
+      : null;
+  const getMilestoneAmountError = (amount: string) =>
+    validateOptionalPositiveDecimal(amount, "Amount");
 
   const normalizeStatus = (status?: string): "OPEN" | "CLOSED" | "PAUSED" => {
     const value = (status || "").toUpperCase();
@@ -202,21 +226,21 @@ export default function MyPostingsView() {
     if (!trimmedLocation) errors.location = "Location is required.";
     if (!trimmedSkills) errors.skills = "Add at least one skill.";
 
-    if (!Number.isFinite(budgetValue) || budgetValue <= 0) {
-      errors.budget = "Enter a valid total budget.";
-    }
+    const budgetError = validatePositiveDecimal(form.budget, "Budget");
+    if (budgetError) errors.budget = budgetError;
 
     if (form.job_type === "HOURLY") {
-      const hourlyRateValue = Number(form.hourly_rate);
-      const weeklyHoursValue = Number(form.max_weekly_hours);
+      const hourlyRateError = validatePositiveDecimal(
+        form.hourly_rate,
+        "Hourly rate",
+      );
+      const weeklyHoursError = validatePositiveWholeNumber(
+        form.max_weekly_hours,
+        "Max weekly hours",
+      );
 
-      if (!Number.isFinite(hourlyRateValue) || hourlyRateValue <= 0) {
-        errors.hourly_rate = "Hourly rate is required for hourly jobs.";
-      }
-
-      if (!Number.isFinite(weeklyHoursValue) || weeklyHoursValue <= 0) {
-        errors.max_weekly_hours = "Weekly hours are required for hourly jobs.";
-      }
+      if (hourlyRateError) errors.hourly_rate = hourlyRateError;
+      if (weeklyHoursError) errors.max_weekly_hours = weeklyHoursError;
     }
 
     let previousDeadline: number | null = null;
@@ -224,19 +248,22 @@ export default function MyPostingsView() {
       form.job_type === "HOURLY"
         ? false
         : milestones.some((milestone, index) => {
-            const amountValue = Number(milestone.amount);
             const parsedDeadline = new Date(milestone.deadline);
+            const amountError = validatePositiveDecimal(
+              milestone.amount,
+              "Amount",
+            );
 
             const valid =
               form.job_type === "HOURLY" ||
               (milestone.description.trim().length > 0 &&
-                Number.isFinite(amountValue) &&
-                amountValue > 0 &&
+                !amountError &&
                 milestone.deadline.length > 0 &&
                 !Number.isNaN(parsedDeadline.getTime()));
 
             if (!valid) {
               errors[`milestone-${index}`] =
+                amountError ||
                 "Each milestone needs a description, amount, and deadline.";
               return true;
             }
@@ -510,7 +537,7 @@ export default function MyPostingsView() {
                 </Field>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <Field label="Budget" error={formErrors.budget}>
+                  <Field label="Budget" error={budgetInputError || formErrors.budget}>
                     <input
                       className="input input-bordered w-full"
                       placeholder="1500"
@@ -526,7 +553,10 @@ export default function MyPostingsView() {
                       }
                     />
                   </Field>
-                  <Field label="Hourly rate" error={formErrors.hourly_rate}>
+                  <Field
+                    label="Hourly rate"
+                    error={hourlyRateInputError || formErrors.hourly_rate}
+                  >
                     <input
                       className="input input-bordered w-full"
                       placeholder="35"
@@ -544,7 +574,9 @@ export default function MyPostingsView() {
                   </Field>
                   <Field
                     label="Max weekly hours"
-                    error={formErrors.max_weekly_hours}
+                    error={
+                      weeklyHoursInputError || formErrors.max_weekly_hours
+                    }
                   >
                     <input
                       className="input input-bordered w-full"
@@ -703,6 +735,15 @@ export default function MyPostingsView() {
                         </div>
 
                         <div className="space-y-3">
+                          {(() => {
+                            const milestoneAmountError =
+                              getMilestoneAmountError(milestone.amount);
+                            const milestoneError =
+                              milestoneAmountError ||
+                              formErrors[`milestone-${index}`];
+
+                            return (
+                              <>
                           <input
                             className="input input-bordered w-full"
                             placeholder="Milestone description"
@@ -717,7 +758,9 @@ export default function MyPostingsView() {
                           />
                           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <input
-                              className="input input-bordered w-full"
+                              className={`input input-bordered w-full ${
+                                milestoneAmountError ? "input-error" : ""
+                              }`}
                               placeholder="Amount"
                               type="number"
                               min="0"
@@ -745,11 +788,14 @@ export default function MyPostingsView() {
                               }
                             />
                           </div>
-                          {formErrors[`milestone-${index}`] ? (
+                          {milestoneError ? (
                             <p className="text-xs font-medium text-red-600">
-                              {formErrors[`milestone-${index}`]}
+                              {milestoneError}
                             </p>
                           ) : null}
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     ))}

@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useGetMeQuery } from "@/api/userapi";
 import { useWithdrawMutation } from "@/api/walletapi";
+import {
+  validatePhoneNumber,
+  validatePositiveDecimal,
+} from "@/lib/fieldValidation";
 
 interface WithdrawCardProps {
   currency: string;
@@ -19,6 +23,13 @@ const WithdrawCard = ({ currency }: WithdrawCardProps) => {
     text: string;
     isError: boolean;
   } | null>(null);
+  const amountError = amount.trim()
+    ? validatePositiveDecimal(amount, "Amount")
+    : null;
+  const accountNumberError = validatePhoneNumber(
+    accountNumber,
+    "Account / Phone Number",
+  );
 
   const handleWithdraw = async () => {
     setStatusMessage(null);
@@ -28,8 +39,14 @@ const WithdrawCard = ({ currency }: WithdrawCardProps) => {
       return;
     }
 
-    if (Number(amount) <= 0) {
-      setStatusMessage({ text: "Enter a valid amount.", isError: true });
+    const submitAmountError = validatePositiveDecimal(amount, "Amount");
+    if (submitAmountError) {
+      setStatusMessage({ text: submitAmountError, isError: true });
+      return;
+    }
+
+    if (accountNumberError) {
+      setStatusMessage({ text: accountNumberError, isError: true });
       return;
     }
 
@@ -54,7 +71,7 @@ const WithdrawCard = ({ currency }: WithdrawCardProps) => {
           isError: true,
         });
       }
-    } catch (err) {
+    } catch {
       setStatusMessage({
         text: "Unable to process withdrawal request.",
         isError: true,
@@ -106,8 +123,14 @@ const WithdrawCard = ({ currency }: WithdrawCardProps) => {
             placeholder="0.00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            aria-invalid={Boolean(amountError)}
+            className={`h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 ${
+              amountError ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
+            }`}
           />
+          {amountError ? (
+            <p className="text-xs font-medium text-rose-500">{amountError}</p>
+          ) : null}
         </div>
 
         {/* Account Number */}
@@ -121,11 +144,20 @@ const WithdrawCard = ({ currency }: WithdrawCardProps) => {
           <input
             id="withdraw-account"
             type="text"
+            inputMode="tel"
             placeholder={user?.phone_number || "09xxxxxx"}
             value={accountNumber}
             onChange={(e) => setAccountNumber(e.target.value)}
-            className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            aria-invalid={Boolean(accountNumberError)}
+            className={`h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 ${
+              accountNumberError ? "border-rose-500 focus:border-rose-500 focus:ring-rose-100" : ""
+            }`}
           />
+          {accountNumberError ? (
+            <p className="text-xs font-medium text-rose-500">
+              {accountNumberError}
+            </p>
+          ) : null}
         </div>
 
         {/* Bank Code */}
@@ -139,7 +171,7 @@ const WithdrawCard = ({ currency }: WithdrawCardProps) => {
           <select
             id="withdraw-bank"
             value={bankCode}
-            onChange={(e) => setBankCode(parseInt(e.target.value))}
+            onChange={(e) => setBankCode(e.target.value)}
             className="h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
           >
             <option value="855">TeleBirr</option>

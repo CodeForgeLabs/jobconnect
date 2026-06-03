@@ -19,6 +19,10 @@ import {
 } from "@/api/portofolioapi";
 import { useGetUserReviewsQuery } from "@/api/reviewsapi";
 import PortfolioCard from "@/components/Portofoliocard";
+import {
+  validatePhoneNumber,
+  validatePositiveDecimal,
+} from "@/lib/fieldValidation";
 import React from "react";
 
 const Profile = () => {
@@ -128,6 +132,8 @@ const Profile = () => {
 
   const [isEditingRate, setIsEditingRate] = useState(false);
   const [hourlyRate, setHourlyRate] = useState("");
+  const phoneNumberError = validatePhoneNumber(phoneNumber, "Phone");
+  const hourlyRateError = validatePositiveDecimal(hourlyRate, "Hourly rate");
 
   useEffect(() => {
     setPhoneNumber(userData?.phone_number || "");
@@ -303,15 +309,25 @@ const Profile = () => {
                     value={hourlyRate}
                     onChange={(e) => setHourlyRate(e.target.value)}
                     placeholder="Enter hourly rate"
-                    className="w-full rounded-md border border-gray-200 p-2 text-sm"
+                    aria-invalid={Boolean(hourlyRateError)}
+                    className={`w-full rounded-md border border-gray-200 p-2 text-sm ${
+                      hourlyRateError ? "border-red-500" : ""
+                    }`}
                   />
                 </div>
+                {hourlyRateError ? (
+                  <p className="mt-1 text-xs font-medium text-red-600">
+                    {hourlyRateError}
+                  </p>
+                ) : null}
 
                 <div className="flex gap-2 mt-3">
                   <button
                     className="btn btn-primary btn-sm"
-                    disabled={isUpdating}
+                    disabled={isUpdating || Boolean(hourlyRateError)}
                     onClick={async () => {
+                      if (hourlyRateError) return;
+
                       try {
                         await updateMe({
                           hourly_rate: Number(hourlyRate),
@@ -372,14 +388,25 @@ const Profile = () => {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="Enter phone number"
-                  className="w-full rounded-md border border-gray-200 p-2 text-sm"
+                  inputMode="tel"
+                  aria-invalid={Boolean(phoneNumberError)}
+                  className={`w-full rounded-md border border-gray-200 p-2 text-sm ${
+                    phoneNumberError ? "border-red-500" : ""
+                  }`}
                 />
+                {phoneNumberError ? (
+                  <p className="mt-1 text-xs font-medium text-red-600">
+                    {phoneNumberError}
+                  </p>
+                ) : null}
 
                 <div className="flex gap-2 mt-3">
                   <button
                     className="btn btn-primary btn-sm"
-                    disabled={isUpdating}
+                    disabled={isUpdating || Boolean(phoneNumberError)}
                     onClick={async () => {
+                      if (phoneNumberError) return;
+
                       try {
                         await updateMe({
                           phone_number: phoneNumber,
