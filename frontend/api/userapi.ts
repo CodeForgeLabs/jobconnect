@@ -54,6 +54,11 @@ export interface FetchUsersParams {
 export interface SendOtpRequest {
   email: string;
 }
+
+export interface CheckUserExistsResponse {
+  exists: boolean;
+}
+
 export interface Userwithreview extends User {
   average_rating: number;
   total_reviews: number;
@@ -94,6 +99,13 @@ export const userApi = baseApi.injectEndpoints({
         url: "/users/register",
         method: "POST",
         body,
+      }),
+    }),
+
+    checkUserExists: builder.query<CheckUserExistsResponse, string>({
+      query: (email) => ({
+        url: "/users/check-exists",
+        params: { email },
       }),
     }),
 
@@ -232,6 +244,7 @@ export const {
   useLoginMutation,
   useLogoutMutation,
   useRegisterMutation,
+  useLazyCheckUserExistsQuery,
   useGetMeQuery,
   useGetUserByEmailQuery,
   useGetUserByIdQuery,

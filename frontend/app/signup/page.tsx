@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import {
+  useLazyCheckUserExistsQuery,
   useRegisterMutation,
   useSendOtpMutation,
   useVerifyOtpMutation,
@@ -32,6 +33,8 @@ export default function CareerArchSignUp() {
   const [register, { isLoading: isRegistering }] = useRegisterMutation();
   const [sendOtp, { isLoading: isSendingOtp }] = useSendOtpMutation();
   const [verifyOtp, { isLoading: isVerifyingOtp }] = useVerifyOtpMutation();
+  const [checkUserExists, { isFetching: isCheckingEmail }] =
+    useLazyCheckUserExistsQuery();
   const passwordRequirements =
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
   const termsSections = [
@@ -211,6 +214,21 @@ export default function CareerArchSignUp() {
 
     if (!termsAccepted) {
       setError("You must accept the terms before creating an account.");
+      return;
+    }
+
+    try {
+      const emailExists = await checkUserExists(email.trim()).unwrap();
+
+      if (emailExists.exists) {
+        setError(
+          "An account with this email already exists. Please log in instead.",
+        );
+        return;
+      }
+    } catch (checkError) {
+      console.error("Email uniqueness check failed:", checkError);
+      setError("Unable to verify this email right now. Please try again.");
       return;
     }
 
@@ -787,10 +805,10 @@ export default function CareerArchSignUp() {
 
                   <button
                     className="w-full bg-linear-to-br from-primary to-primary-container text-on-primary py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-primary/20 hover:scale-[1.01] active:scale-[0.99] transition-all mt-2 disabled:cursor-not-allowed disabled:opacity-70"
-                    disabled={isRegistering || isSendingOtp}
+                    disabled={isRegistering || isSendingOtp || isCheckingEmail}
                     type="submit"
                   >
-                    {isRegistering || isSendingOtp
+                    {isRegistering || isSendingOtp || isCheckingEmail
                       ? "Creating Account..."
                       : "Create Account"}
                   </button>
