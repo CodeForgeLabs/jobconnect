@@ -28,11 +28,28 @@ export type IncomingWSMessage = {
 
 type MessageHandler = (msg: IncomingWSMessage | unknown) => void;
 
+const playNotificationSound = () => {
+  try {
+    const audio = new Audio("/sound/notification.mp3");
+    audio.volume = 0.4;
+    audio.play().catch((err) => {
+      console.log("Audio playback waiting for user interaction...", err);
+    });
+  } catch (error) {
+    console.error("Failed to play sound:", error);
+  }
+};
+
 export function useChatSocket(userId: number, onMessage: MessageHandler) {
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<number | null>(null);
   const shouldReconnect = useRef(true);
   const reconnectAttempts = useRef(0);
+  const onMessageRef = useRef(onMessage);
+
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
 
   useEffect(() => {
     if (!userId) return;
@@ -51,14 +68,13 @@ export function useChatSocket(userId: number, onMessage: MessageHandler) {
       ws.onmessage = (event) => {
         try {
           const parsed = JSON.parse(event.data);
-          if (parsed && typeof parsed === "object" && parsed.type === "new_message") {
-            onMessage(parsed as IncomingWSMessage);
-          } else {
-            onMessage(parsed);
+          if (parsed && typeof parsed === "object") {
+            playNotificationSound();
+            onMessageRef.current(parsed);
           }
         } catch (err) {
           console.error("WS parse error", err);
-          onMessage(event.data);
+          onMessageRef.current(event.data);
         }
       };
 
@@ -67,8 +83,10 @@ export function useChatSocket(userId: number, onMessage: MessageHandler) {
         console.log("WebSocket disconnected", ev.code, ev.reason);
         if (shouldReconnect.current) {
           reconnectAttempts.current += 1;
-          const timeout = Math.min(30000, 1000 * 2 ** reconnectAttempts.current);
-          // schedule reconnection
+          const timeout = Math.min(
+            30000,
+            1000 * 2 ** reconnectAttempts.current,
+          );
           reconnectTimer.current = window.setTimeout(() => connect(), timeout);
           console.log(`Reconnecting in ${timeout}ms`);
         }
@@ -90,13 +108,13 @@ export function useChatSocket(userId: number, onMessage: MessageHandler) {
       if (socketRef.current) {
         try {
           socketRef.current.close();
-        } catch (e) {
+        } catch {
           /* ignore */
         }
         socketRef.current = null;
       }
     };
-  }, [userId, onMessage]);
+  }, [userId]);
 
   return socketRef;
 }

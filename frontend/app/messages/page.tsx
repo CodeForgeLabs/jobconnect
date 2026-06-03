@@ -443,9 +443,7 @@ export default function ChatPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-px h-6 bg-outline-variant mx-2 hidden sm:block"></div>
-                  <button className="p-2 text-outline hover:bg-surface-container rounded-lg transition-all">
-                 
-                  </button>
+                  <button className="p-2 text-outline hover:bg-surface-container rounded-lg transition-all"></button>
                 </div>
               </header>
 
@@ -475,7 +473,7 @@ export default function ChatPage() {
                     No messages yet. Start the conversation!
                   </div>
                 )}
-                <div className="h-0" ref={bottomRef} ></div>
+                <div className="h-0" ref={bottomRef}></div>
               </div>
 
               {/* Input Area */}
@@ -731,7 +729,7 @@ const ReceivedMsg = ({ text, time, avatarUrl }: ReceivedMsgProps) => (
     </div>
     <div className="space-y-2">
       <div className="bg-white p-4 rounded-2xl rounded-bl-none shadow-sm text-sm border border-outline-variant/10 leading-relaxed">
-        {text}
+        {renderMessageText(text)}
       </div>
       <div className="text-[10px] font-bold text-outline pl-1 uppercase">
         {time}
@@ -764,7 +762,7 @@ const SentMsg = ({ texts, time, isSeen, avatarUrl }: SentMsgProps) => (
           key={i}
           className="bg-primary text-white p-4 rounded-2xl rounded-br-none shadow-md text-sm leading-relaxed"
         >
-          {t}
+          {renderMessageText(t)}
         </div>
       ))}
       <div className="flex items-center gap-1.5 text-[10px] font-bold text-outline pr-1 uppercase">
@@ -839,4 +837,24 @@ function formatMessageTime(dateString: string) {
     month: "short",
     year: "numeric",
   })} ${time}`;
+}
+
+function renderMessageText(text: string) {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
+
+  return parts.map((part, i) =>
+    /^https?:\/\/[^\s]+$/.test(part) ? (
+      <a
+        key={i}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="underline break-all opacity-90 hover:opacity-100"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  );
 }

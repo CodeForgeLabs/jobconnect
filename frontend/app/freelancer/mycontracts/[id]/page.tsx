@@ -922,7 +922,8 @@ export default function FreelancerContractDetailPage() {
                       );
                       const Icon = statusMeta.Icon;
                       const canSubmit =
-                        nextSubmittableMilestone?.ID === milestone.ID;
+                        nextSubmittableMilestone?.ID === milestone.ID &&
+                        contract.status === "ACTIVE";
 
                       return (
                         <tr
@@ -1022,10 +1023,10 @@ export default function FreelancerContractDetailPage() {
                                 {milestone.Status === "APPROVED" ||
                                 milestone.Status === "PAID"
                                   ? "No action needed"
-                                  : milestone.Status === "REVISION_REQUESTED"
-                                    ? "Revise and resubmit"
-                                    : milestone.Status === "SUBMITTED"
-                                      ? "Awaiting client review"
+                                  : milestone.Status === "SUBMITTED"
+                                    ? "Awaiting client review"
+                                    : contract.status !== "ACTIVE"
+                                      ? "Contract is not active"
                                       : "Submit previous milestones first"}
                               </span>
                             )}
