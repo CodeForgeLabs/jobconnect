@@ -14,8 +14,8 @@ import { useRouter } from "next/navigation";
 const Login = () => {
   const dispatch = useDispatch();
   const router = useRouter();
-  const [email, setEmail] = useState<string>("nb@gmail.com");
-  const [password, setPassword] = useState<string>("nb");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [err, setErr] = useState("");
   const [login, { isLoading }] = useLoginMutation();
   const isLoggedIn = useSelector(selectIsLoggedIn);

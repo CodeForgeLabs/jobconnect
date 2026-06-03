@@ -25,6 +25,10 @@ import {
   useUpdateMeMutation,
   useUploadImageMutation,
 } from "@/api/userapi";
+import {
+  validatePersonalName,
+  validatePhoneNumber,
+} from "@/lib/fieldValidation";
 
 type ProfileForm = {
   first_name: string;
@@ -125,6 +129,12 @@ export default function ClientProfile() {
   );
 
   const recentJobs = jobs.slice(0, 6);
+  const fieldErrors = {
+    first_name: validatePersonalName(form.first_name, "First name"),
+    last_name: validatePersonalName(form.last_name, "Last name"),
+    phone_number: validatePhoneNumber(form.phone_number, "Phone"),
+  };
+  const hasFieldErrors = Object.values(fieldErrors).some(Boolean);
 
   const updateForm = (field: keyof ProfileForm, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -154,6 +164,11 @@ export default function ClientProfile() {
 
     if (!form.first_name.trim() || !form.last_name.trim()) {
       setError("First name and last name are required.");
+      return;
+    }
+
+    if (hasFieldErrors) {
+      setError("Fix the highlighted fields before saving.");
       return;
     }
 
@@ -376,6 +391,7 @@ export default function ClientProfile() {
                     readValue={me?.first_name || "N/A"}
                     isEditing={isEditing}
                     onChange={(value) => updateForm("first_name", value)}
+                    error={fieldErrors.first_name}
                   />
                   <EditableField
                     label="Last name"
@@ -383,6 +399,7 @@ export default function ClientProfile() {
                     readValue={me?.last_name || "N/A"}
                     isEditing={isEditing}
                     onChange={(value) => updateForm("last_name", value)}
+                    error={fieldErrors.last_name}
                   />
                 </div>
                 <EditableField
@@ -416,6 +433,8 @@ export default function ClientProfile() {
                   isEditing={isEditing}
                   onChange={(value) => updateForm("phone_number", value)}
                   icon={Phone}
+                  inputMode="tel"
+                  error={fieldErrors.phone_number}
                 />
                 <EditableField
                   label="Location"
@@ -562,6 +581,8 @@ function EditableField({
   isEditing,
   onChange,
   icon: Icon,
+  inputMode,
+  error,
 }: {
   label: string;
   value: string;
@@ -569,6 +590,8 @@ function EditableField({
   isEditing: boolean;
   onChange: (value: string) => void;
   icon?: typeof UserCircle2;
+  inputMode?: "text" | "tel";
+  error?: string | null;
 }) {
   return (
     <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-4">
@@ -579,11 +602,20 @@ function EditableField({
         </p>
       </div>
       {isEditing ? (
-        <input
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className="mt-3 w-full rounded-xl border border-outline-variant/30 bg-white px-3 py-2 text-sm font-semibold text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
-        />
+        <>
+          <input
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+            inputMode={inputMode}
+            aria-invalid={Boolean(error)}
+            className={`mt-3 w-full rounded-xl border border-outline-variant/30 bg-white px-3 py-2 text-sm font-semibold text-on-surface outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15 ${
+              error ? "border-red-500 focus:border-red-500 focus:ring-red-100" : ""
+            }`}
+          />
+          {error ? (
+            <p className="mt-1.5 text-xs font-medium text-red-600">{error}</p>
+          ) : null}
+        </>
       ) : (
         <p className="mt-3 break-words text-sm font-semibold text-on-surface">
           {readValue}

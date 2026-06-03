@@ -9,6 +9,7 @@ import {
   useGetInvitedJobsQuery,
   type JobFilterParams,
 } from "@/api/jobsapi";
+import { validateOptionalPositiveDecimal } from "@/lib/fieldValidation";
 
 const formatPostedTime = (createdAt?: string) => {
   if (!createdAt) return "recently";
@@ -42,6 +43,7 @@ const Jobsearch = () => {
     undefined,
   );
   const [budgetMin, setBudgetMin] = useState("");
+  const budgetMinError = validateOptionalPositiveDecimal(budgetMin, "Budget");
   const [showMyJobs, setShowMyJobs] = useState(false);
 
   const addSkill = (value: string) => {
@@ -93,12 +95,12 @@ const Jobsearch = () => {
     if (appliedSearchText) nextFilters.title = appliedSearchText;
     if (jobType) nextFilters.job_type = jobType;
     if (experienceLevel) nextFilters.experience_level = experienceLevel;
-    if (budgetMin && !Number.isNaN(Number(budgetMin))) {
+    if (budgetMin && !budgetMinError) {
       nextFilters.budget_min = Number(budgetMin);
     }
 
     return nextFilters;
-  }, [appliedSearchText, jobType, experienceLevel, budgetMin]);
+  }, [appliedSearchText, jobType, experienceLevel, budgetMin, budgetMinError]);
 
   const {
     data: allJobs = [],
@@ -271,8 +273,16 @@ const Jobsearch = () => {
                 placeholder="Min"
                 value={budgetMin}
                 onChange={(event) => setBudgetMin(event.target.value)}
-                className="input input-sm input-bordered w-full rounded-xl bg-surface focus:outline-hidden transition-all"
+                aria-invalid={Boolean(budgetMinError)}
+                className={`input input-sm input-bordered w-full rounded-xl bg-surface focus:outline-hidden transition-all ${
+                  budgetMinError ? "input-error" : ""
+                }`}
               />
+              {budgetMinError ? (
+                <p className="mt-1 text-xs font-medium text-red-600">
+                  {budgetMinError}
+                </p>
+              ) : null}
             </div>
             <div className="relative w-full">
               <input
