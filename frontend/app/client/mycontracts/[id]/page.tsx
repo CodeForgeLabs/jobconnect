@@ -1114,7 +1114,9 @@ export default function ContractManagement() {
                             onClick={() => void handleRequestChanges(milestone)}
                             disabled={
                               milestone.Status !== "SUBMITTED" ||
-                              requestingMilestoneId === milestone.ID
+                              requestingMilestoneId === milestone.ID ||
+                              !isContractActionable ||
+                              isContractPaused
                             }
                             className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                           >
@@ -1133,7 +1135,11 @@ export default function ContractManagement() {
                                 onClick={() =>
                                   void handleApproveMilestone(milestone)
                                 }
-                                disabled={approvingMilestoneId === milestone.ID}
+                                disabled={
+                                  approvingMilestoneId === milestone.ID ||
+                                  !isContractActionable ||
+                                  isContractPaused
+                                }
                               >
                                 {approvingMilestoneId === milestone.ID ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />

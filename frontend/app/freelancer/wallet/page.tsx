@@ -94,65 +94,79 @@ const WalletPage = () => {
           </span>
         </div>
 
-        <div className="flex grow flex-col bg-white  rounded-lg  gap-5 p-6">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col ">
+        <div className="flex grow flex-col bg-white rounded-lg gap-5 p-6">
+          {user?.role === "FREELANCER" ? (
+            <>
+              <div className="flex items-start justify-between">
+                <div className="flex flex-col">
+                  <h2 className="text-[10px] font-medium text-gray-500">
+                    Total Lifetime Earnings
+                  </h2>
+                  <p className="text-2xl font-bold">
+                    {formatMoney(currency, totalLifetimeEarnings)}
+                  </p>
+                </div>
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-green-100 text-green-700">
+                  <svg
+                    className="w-6 h-6"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 20h16M5 10h14M6 10v8M10 10v8M14 10v8M18 10v8M4 10 12 4l8 6"
+                    />
+                  </svg>
+                </span>
+              </div>
+              <div className="mt-1 flex gap-3 items-center px-9">
+                <span className="flex flex-col grow border-l-2 border-gray-200 pl-3">
+                  <p className="text-[8px] font-semibold uppercase tracking-wide text-gray-500">
+                    Pending clearance
+                  </p>
+                  <p className="text-base font-bold">
+                    {formatMoney(currency, pendingClearance)}
+                  </p>
+                </span>
+                <span className="flex flex-col grow border-l-2 border-gray-200 pl-3">
+                  <p className="text-[8px] font-semibold uppercase tracking-wide text-gray-500">
+                    Total connects
+                  </p>
+                  <p className="text-base font-bold">{user?.connect ?? 0}</p>
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col justify-center h-full">
               <h2 className="text-[10px] font-medium text-gray-500">
-                Total Lifetime Earnings{" "}
+                Total Spent
               </h2>
               <p className="text-2xl font-bold">
                 {formatMoney(currency, totalLifetimeEarnings)}
               </p>
             </div>
-
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-green-100 text-green-700">
-              <svg
-                className="w-6 h-6"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 20h16M5 10h14M6 10v8M10 10v8M14 10v8M18 10v8M4 10 12 4l8 6"
-                />
-              </svg>
-            </span>
-          </div>
-
-          <div className="mt-1 flex gap-3  items-center px-9">
-            <span className="flex flex-col grow border-l-2 border-gray-200 pl-3">
-              <p className="text-[8px] font-semibold uppercase tracking-wide text-gray-500">
-                Pending clearance
-              </p>
-              <p className="text-base font-bold ">
-                {formatMoney(currency, pendingClearance)}
-              </p>
-            </span>
-
-            <span className="flex flex-col grow border-l-2 border-gray-200 pl-3">
-              <p className="text-[8px] font-semibold uppercase tracking-wide text-gray-500">
-                Total connects
-              </p>
-              <p className="text-base font-bold">{user?.connect ?? 0}</p>
-            </span>
-          </div>
+          )}
         </div>
       </div>
 
       <div className="flex gap-6">
-        <div className="flex w-[70%] flex-col gap-5 ">
+        <div
+          className={`flex flex-col gap-5 ${user?.role === "FREELANCER" ? "w-[70%]" : "w-full"}`}
+        >
           <TeleBirrWithdrawCard />
           <WithdrawCard currency={currency} />
           <TransactionHistoryCard />
         </div>
-        <div className=" w-[30%] ">
-          <BuyconnectsCard />
-        </div>
+        {user?.role === "FREELANCER" && (
+          <div className="w-[30%]">
+            <BuyconnectsCard />
+          </div>
+        )}
       </div>
     </div>
   );
