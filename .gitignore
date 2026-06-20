@@ -1,0 +1,41 @@
+# Local build/test artifacts
+.gocache/
+tmp/
+**/tmp/
+**/coverage/
+**/coverage.out
+**/*.log
+**/*.out
+**/*.test
+**/*.exe
+**/*.exe~
+**/*.dll
+**/*.so
+**/*.dylib
+
+# Local env / secrets
+.env
+.env.*
+!.env.example
+
+# Deprecated local copies
+backend deprecated/
+
+# Backend generated runtime reports
+backend_v1_microservice_arch/scripts/*-summary.json
+
+# Backend service binaries
+backend_v1_microservice_arch/gateway/gatewayd
+backend_v1_microservice_arch/services/auth/authd
+backend_v1_microservice_arch/services/chat/chatd
+backend_v1_microservice_arch/services/connects/connectsd
+backend_v1_microservice_arch/services/contract/contractd
+backend_v1_microservice_arch/services/dispute/disputed
+backend_v1_microservice_arch/services/job/jobd
+backend_v1_microservice_arch/services/payment/paymentd
+backend_v1_microservice_arch/services/proposal/proposald
+backend_v1_microservice_arch/services/recommendation/recommendationd
+backend_v1_microservice_arch/services/reviews/reviewsd
+backend_v1_microservice_arch/services/user/userd
+backend_v1_microservice_arch/services/verification/verificationd
+backend_v1_microservice_arch/services/wallet/walletd

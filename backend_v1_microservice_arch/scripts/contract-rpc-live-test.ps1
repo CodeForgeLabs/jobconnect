@@ -70,23 +70,6 @@ function Parse-EnvFile {
     return $envMap
 }
 
-function Get-PostmanEnvValue {
-    param(
-        [string]$Path,
-        [string]$Key
-    )
-    if (-not (Test-Path $Path)) {
-        return $null
-    }
-    $json = Get-Content $Path -Raw | ConvertFrom-Json
-    foreach ($item in $json.values) {
-        if ($item.key -eq $Key) {
-            return [string]$item.value
-        }
-    }
-    return $null
-}
-
 function Wait-ForHttp {
     param(
         [string]$Url,
@@ -829,7 +812,6 @@ Write-Step "Contract RPC Live Test - Preflight"
 $workspaceRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $backendDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 $envPath = Join-Path $backendDir ".env"
-$postmanEnvPath = Join-Path $backendDir "docs/postman/proposal-local.postman_environment.json"
 
 Require-Command -Name "docker"
 Require-Command -Name "grpcurl"
@@ -898,14 +880,11 @@ Wait-ForTcpPort -Port 50055 -Attempts 45 -DelaySeconds 2
 Write-Ok "Gateway and Contract gRPC ports are reachable"
 
 Write-Step "Auth Bootstrap"
-$defaultClientEmail = Get-PostmanEnvValue -Path $postmanEnvPath -Key "clientEmail"
-$defaultFreelancerEmail = Get-PostmanEnvValue -Path $postmanEnvPath -Key "freelancerEmail"
-$defaultPassword = Get-PostmanEnvValue -Path $postmanEnvPath -Key "password"
 
 # Use fresh users per run so proposal connects balance is deterministic.
 $defaultClientEmail = "itest.client.$($script:Context.run_id)@jobconnect.test"
 $defaultFreelancerEmail = "itest.freel.$($script:Context.run_id)@jobconnect.test"
-if (-not $defaultPassword) { $defaultPassword = "Passw0rd!23" }
+$defaultPassword = "Passw0rd!23"
 
 $script:Context.client_email = $defaultClientEmail
 $script:Context.freelancer_email = $defaultFreelancerEmail

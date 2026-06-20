@@ -16,6 +16,10 @@ coverage.out
 *.log
 tmp/
 tmp_endpoint_probe.go
+scripts/*-summary.json
+
+## Local Go cache
+.gocache/
 
 ## Generated stubs (non-user service)
 services/user/gen/auth/
@@ -47,3 +51,19 @@ Thumbs.db
 
 # Swagger generated docs
 gateway/cmd/gatewayd/docs/
+
+## Service binaries
+gateway/gatewayd
+services/auth/authd
+services/chat/chatd
+services/connects/connectsd
+services/contract/contractd
+services/dispute/disputed
+services/job/jobd
+services/payment/paymentd
+services/proposal/proposald
+services/recommendation/recommendationd
+services/reviews/reviewsd
+services/user/userd
+services/verification/verificationd
+services/wallet/walletd

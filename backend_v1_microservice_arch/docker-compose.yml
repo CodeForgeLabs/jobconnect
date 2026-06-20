@@ -53,7 +53,8 @@ services:
         SERVICE: user
         CMD_PATH: ./cmd/userd
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "50052:50052"
     depends_on:
@@ -70,7 +71,8 @@ services:
         SERVICE: auth
         CMD_PATH: ./cmd/authd
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "50051:50051"
     depends_on:
@@ -87,7 +89,8 @@ services:
         SERVICE: job
         CMD_PATH: ./cmd/jobd
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "50053:50053"
     depends_on:
@@ -106,7 +109,8 @@ services:
         SERVICE: connects
         CMD_PATH: ./cmd/connectsd
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "50058:50058"
     depends_on:
@@ -121,7 +125,8 @@ services:
         SERVICE: proposal
         CMD_PATH: ./cmd/proposald
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "50054:50054"
     depends_on:
@@ -142,7 +147,8 @@ services:
         SERVICE: contract
         CMD_PATH: ./cmd/contractd
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "50055:50055"
     depends_on:
@@ -161,7 +167,8 @@ services:
         SERVICE: reviews
         CMD_PATH: ./cmd/reviewsd
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       REVIEWS_GRPC_LISTEN_ADDR: "0.0.0.0:50056"
       REVIEWS_POSTGRES_URL: "postgres://review:review@postgres:5432/jobconnect_review?sslmode=disable"
@@ -179,7 +186,8 @@ services:
         SERVICE: wallet
         CMD_PATH: ./cmd/walletd
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "50059:50059"
     depends_on:
@@ -193,7 +201,8 @@ services:
         SERVICE: chat
         CMD_PATH: ./cmd/chatd
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "50063:50060"
       - "8081:8080"
@@ -209,7 +218,8 @@ services:
         SERVICE: verification
         CMD_PATH: ./cmd/verificationd
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "52062:50060"
     depends_on:
@@ -224,7 +234,8 @@ services:
         SERVICE: dispute
         CMD_PATH: ./cmd/disputed
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       DISPUTE_SERVICE_GRPC_ADDR: ":50066"
       WALLET_SERVICE_ADDR: "wallet:50059"
@@ -244,7 +255,8 @@ services:
         SERVICE: payment
         CMD_PATH: ./cmd/paymentd
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "52061:50061"
       - "8082:8081"
@@ -268,7 +280,8 @@ services:
         SERVICE: recommendation
         CMD_PATH: ./cmd/recommendationd
     env_file:
-      - .env
+      - path: .env
+        required: false
     environment:
       JOB_SERVICE_ADDR: job:50053
       USER_SERVICE_ADDR: user:50052
@@ -296,7 +309,8 @@ services:
       context: .
       dockerfile: gateway/Dockerfile
     env_file:
-      - .env
+      - path: .env
+        required: false
     ports:
       - "8080:8080"
     depends_on:
