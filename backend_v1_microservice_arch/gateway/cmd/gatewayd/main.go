@@ -11,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	_ "jobconnect/gateway/cmd/gatewayd/docs"
 	"jobconnect/gateway/internal/clients"
 	"jobconnect/gateway/internal/config"
 	"jobconnect/gateway/internal/handlers"

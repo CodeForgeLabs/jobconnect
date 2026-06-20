@@ -106,7 +106,6 @@ func (s *ReviewServer) UpdateReview(
 		return nil, fmt.Errorf("invalid review ID: %d", req.GetId())
 	}
 
-	// TODO: get user from context (JWT middleware)
 	userID := getUserID(ctx)
 
 	output, err := s.updateReview.Execute(ctx, applications.UpdateReviewInput{
@@ -133,8 +132,7 @@ func (s *ReviewServer) DeleteReview(
 		return nil, fmt.Errorf("invalid review ID: %d", req.GetId())
 	}
 
-	// userID := getUserID(ctx)
-	userID := "550e8400-e29b-41d4-a716-446655440000" // TODO: remove hardcoded user ID
+	userID := getUserID(ctx)
 
 	output, err := s.deleteReview.Execute(ctx, applications.DeleteReviewInput{
 		ID:     req.GetId(),

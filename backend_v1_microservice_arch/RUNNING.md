@@ -2,9 +2,9 @@
 
 ## API Reference
 
-Authentication API docs (Gateway HTTP + Auth gRPC):
-
-- `docs/auth-gateway-api.md`
+Service contracts live under `api/proto/`. Gateway HTTP routes are defined in
+`gateway/internal/router` and implemented by the handlers in
+`gateway/internal/handlers`.
 
 ## 1) Start databases
 
