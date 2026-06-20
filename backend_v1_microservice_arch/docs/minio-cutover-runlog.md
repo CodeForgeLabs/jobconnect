@@ -3,18 +3,18 @@
 ## Step 1: Baseline before cutover
 - Git branch: feat/avatar-object-storage
 - Pending changes included by request:
-  - backend - deprecated/gateway/go.mod
-  - backend - deprecated/gateway/go.sum
-  - backend - deprecated/services/user/go.mod
-  - backend - deprecated/services/user/go.sum
-  - backend - deprecated/services/user/internal/application/avatar_test.go
-  - backend - deprecated/services/user/internal/config/config.go
+  - backend_v1_microservice_arch/gateway/go.mod
+  - backend_v1_microservice_arch/gateway/go.sum
+  - backend_v1_microservice_arch/services/user/go.mod
+  - backend_v1_microservice_arch/services/user/go.sum
+  - backend_v1_microservice_arch/services/user/internal/application/avatar_test.go
+  - backend_v1_microservice_arch/services/user/internal/config/config.go
 - Runtime check: `docker compose ps` showed no `backend-minio-1` container running.
 - DB schema check (`profile_avatars`): includes `content BYTEA`; no `storage_key`.
 - Migration check (`schema_migrations` in `jobconnect_user`): up to `0004_freelancer_discovery_and_reputation.up.sql`.
 
 ## Step 2: Environment configuration
-- Updated `backend - deprecated/.env` (runtime file, git-ignored) with:
+- Updated `backend_v1_microservice_arch/.env` (runtime file, git-ignored) with:
   - USER_AVATAR_STORAGE_PROVIDER=minio
   - USER_AVATAR_STORAGE_BUCKET=jobconnect-avatars
   - USER_AVATAR_STORAGE_ENDPOINT=minio:9000

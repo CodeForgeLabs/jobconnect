@@ -8,7 +8,7 @@ Authentication API docs (Gateway HTTP + Auth gRPC):
 
 ## 1) Start databases
 
-Run from `backend - deprecated`:
+Run from `backend_v1_microservice_arch`:
 
 ```powershell
 docker compose up -d postgres
@@ -49,7 +49,7 @@ docker compose logs -f gateway auth user job proposal contract wallet
 
 ## 4.1) Optional: Enable OTP emails via SMTP
 
-Set these variables in `backend - deprecated/.env` (used by `auth` service):
+Set these variables in `backend_v1_microservice_arch/.env` (used by `auth` service):
 
 ```powershell
 AUTH_SMTP_HOST=smtp.example.com
@@ -70,7 +70,7 @@ When `AUTH_SMTP_HOST` is empty, auth falls back to a no-op sender (no email deli
 
 ## 4.2) Optional: Enable gateway reCAPTCHA challenge
 
-Set these variables in `backend - deprecated/.env` (used by `gateway` service):
+Set these variables in `backend_v1_microservice_arch/.env` (used by `gateway` service):
 
 ```powershell
 GATEWAY_RECAPTCHA_SECRET_KEY=your_recaptcha_secret
@@ -88,7 +88,7 @@ Challenge flow:
 
 ## 4.3) Required: Configure avatar object storage (user service)
 
-Set these variables in `backend - deprecated/.env` (used by `user` and `minio` services):
+Set these variables in `backend_v1_microservice_arch/.env` (used by `user` and `minio` services):
 
 ```powershell
 USER_AVATAR_STORAGE_PROVIDER=minio
@@ -106,7 +106,7 @@ The local compose stack now includes MinIO (`9000` API, `9001` console).
 
 ## 4.4) Required: Configure portfolio object storage (user service)
 
-Set these variables in `backend - deprecated/.env` (used by `user` and `minio` services):
+Set these variables in `backend_v1_microservice_arch/.env` (used by `user` and `minio` services):
 
 ```powershell
 USER_PORTFOLIO_STORAGE_PROVIDER=minio
@@ -124,7 +124,7 @@ Portfolio media uploaded to MinIO is returned to clients as short-lived presigne
 
 ## 4.5) Required: Configure CV object storage (user service)
 
-Set these variables in `backend - deprecated/.env` (used by `user` and `minio` services):
+Set these variables in `backend_v1_microservice_arch/.env` (used by `user` and `minio` services):
 
 ```powershell
 USER_CV_STORAGE_PROVIDER=minio

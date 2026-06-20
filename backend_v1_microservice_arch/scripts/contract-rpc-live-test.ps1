@@ -851,7 +851,7 @@ if ((-not $envMap.ContainsKey("JOBCONNECT_INTERNAL_CALLER_SECRET")) -or [string]
     }
 }
 if ((-not $envMap.ContainsKey("JOBCONNECT_INTERNAL_CALLER_SECRET")) -or [string]::IsNullOrWhiteSpace($envMap["JOBCONNECT_INTERNAL_CALLER_SECRET"])) {
-    throw "JOBCONNECT_INTERNAL_CALLER_SECRET must be set in backend - deprecated/.env or process environment before running live RPC tests."
+    throw "JOBCONNECT_INTERNAL_CALLER_SECRET must be set in backend_v1_microservice_arch/.env or process environment before running live RPC tests."
 }
 
 $script:Context.run_id = [DateTimeOffset]::UtcNow.ToString("yyyyMMddHHmmss")
