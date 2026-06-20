@@ -3,7 +3,7 @@
 # For deployments that only need the token-cosine ranker, the generic
 # services/Dockerfile produces a much smaller image.
 #
-# Build from the backend - deprecated/ root:
+# Build from the backend_v1_microservice_arch/ root:
 #   docker build -f services/recommendation/Dockerfile -t recommendation .
 
 FROM golang:1.26.1-bookworm AS builder

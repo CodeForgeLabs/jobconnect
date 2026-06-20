@@ -33,7 +33,7 @@ function Invoke-GrpcCall([string]$addr,[string]$method,[hashtable]$headers,[stri
   if(-not $json){ $json='{}' }
   $args=@('-plaintext')
   if($UseReviewProto){
-    $args += @('-import-path','backend - deprecated/api/proto','-proto','review/v1/review.proto')
+    $args += @('-import-path','backend_v1_microservice_arch/api/proto','-proto','review/v1/review.proto')
   }
   foreach($k in $headers.Keys){ $args += @('-H',("{0}: {1}" -f $k,$headers[$k])) }
   $args += @('-d','@',$addr,$method)
@@ -155,5 +155,5 @@ Write-Host "job_id=$jobId"
 Write-Host "client_id=$clientId"
 Write-Host "freelancer_id=$freelId"
 
-$results | ConvertTo-Json -Depth 5 | Set-Content 'backend - deprecated/scripts/job-review-live-test-summary.json'
-Write-Host 'summary_file=backend - deprecated/scripts/job-review-live-test-summary.json'
+$results | ConvertTo-Json -Depth 5 | Set-Content 'backend_v1_microservice_arch/scripts/job-review-live-test-summary.json'
+Write-Host 'summary_file=backend_v1_microservice_arch/scripts/job-review-live-test-summary.json'
