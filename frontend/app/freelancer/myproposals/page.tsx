@@ -253,13 +253,7 @@ export default function ProposalsView() {
             >
               View Proposal
             </Link>
-            <Link
-              href={`/freelancer/job/${row.jobId}`}
-              aria-label="Open proposal details"
-              className="p-2 text-outline hover:text-on-surface rounded-lg transition-colors"
-            >
-              delete
-            </Link>
+           
           </div>
         </div>
       </div>
